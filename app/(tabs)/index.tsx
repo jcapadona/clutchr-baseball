@@ -1,8 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
+  Animated,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -42,10 +43,10 @@ const SEASON_FOCUS: Record<SeasonPhase, FocusMessage> = {
 };
 
 const ROLE_FOCUS: Record<PositionRole, string[]> = {
-  pitcher:   ['Attack the zone. No free passes.', 'Hip drive leads. Arm follows.', 'Next pitch. Short memory.', 'Tempo controls the game.', 'Read the swing. Adjust the sequence.', 'See the glove. Trust the stuff.', 'Pound the zone. Make them earn it.'],
-  catcher:   ['You run this game. Own every pitch.', 'Frame early. Block hard. Lead loud.', 'Your energy sets your pitcher\'s energy.', 'Pre-pitch plan on every single rep.', 'The best mound visit is short and direct.', 'Know the hitter before he steps in.'],
-  infielder: ['Ready hop. Soft hands. Attack.', 'Know the situation before every pitch.', 'See the ball early. Trust your feet.', 'Routine play first. Every single time.', 'Quick transfer. Strong throw. No hesitation.', 'Get low on the short hop. Always.'],
-  outfielder:['First step wins the play — build it now.', 'Read the pitch before you read the ball.', 'Go get everything in your zone.', 'Crow hop on every throw. No exceptions.', 'Charge hard on grounders. Trust your arm.', 'Track it early. Move before you are sure.'],
+  pitcher:   ['Attack the zone. No free passes.', 'Hip drive leads. Arm follows.', 'Next pitch. Short memory.', 'Tempo controls the game.', 'Read the swing. Adjust the sequence.'],
+  catcher:   ['You run this game. Own every pitch.', 'Frame early. Block hard. Lead loud.', 'Your energy sets your pitcher\'s energy.', 'The best mound visit is short and direct.'],
+  infielder: ['Ready hop. Soft hands. Attack.', 'Know the situation before every pitch.', 'Routine play first. Every single time.', 'Quick transfer. Strong throw. No hesitation.'],
+  outfielder:['First step wins the play — build it now.', 'Read the pitch before you read the ball.', 'Crow hop on every throw. No exceptions.', 'Track it early. Move before you are sure.'],
 };
 
 function getPersonalizedFocus(role: PositionRole, struggles: Struggle[], phase: SeasonPhase): FocusMessage {
@@ -57,8 +58,6 @@ function getPersonalizedFocus(role: PositionRole, struggles: Struggle[], phase: 
   const list = ROLE_FOCUS[role] ?? ROLE_FOCUS.infielder;
   return { label: role.toUpperCase(), focus: list[new Date().getDay() % list.length] };
 }
-
-// ─── HELPERS ─────────────────────────────────────────────────────────────────
 
 function getGreeting() {
   const h = new Date().getHours();
@@ -73,7 +72,7 @@ function getRoleLabel(role: string) {
 }
 
 function getStreakMilestone(count: number): string | null {
-  if (count === 3)  return '3-Day Streak';
+  if (count === 3)  return '3-Day Streak 🔥';
   if (count === 7)  return '7-Day Commander';
   if (count === 14) return '14-Day Grinder';
   if (count === 21) return '21-Day Pro';
@@ -154,6 +153,136 @@ function StreakBanner({ streakCount, streakStatus, completedToday, streakBest, o
   );
 }
 
+// ─── HERO CONTINUE CARD ───────────────────────────────────────────────────────
+
+function HeroContinueCard({ lesson, loading, onPress }: {
+  lesson: LegacyLesson | null;
+  loading: boolean;
+  onPress: () => void;
+}) {
+  const dotAnim = useRef(new Animated.Value(0.3)).current;
+  const glowFade = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    // Active dot pulse
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(dotAnim, { toValue: 1, duration: 1000, useNativeDriver: true }),
+        Animated.timing(dotAnim, { toValue: 0.3, duration: 1000, useNativeDriver: true }),
+      ])
+    ).start();
+  }, []);
+
+  useEffect(() => {
+    if (!loading && lesson) {
+      Animated.timing(glowFade, { toValue: 1, duration: 800, useNativeDriver: true }).start();
+    }
+  }, [loading, lesson]);
+
+  const difficultyColor =
+    lesson?.difficulty_tier === 'advanced' ? Colors.warning :
+    lesson?.difficulty_tier === 'intermediate' ? Colors.info :
+    Colors.primary;
+
+  return (
+    <Pressable
+      style={({ pressed }) => [heroStyles.outer, pressed && { opacity: 0.93, transform: [{ scale: 0.985 }] }]}
+      onPress={onPress}
+      disabled={loading || !lesson}
+    >
+      {/* Dark base */}
+      <LinearGradient
+        colors={['#0D1F11', '#090E0A', '#060606']}
+        style={heroStyles.gradient}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
+      />
+
+      {/* Green radial bloom from top */}
+      <Animated.View style={[heroStyles.bloomWrap, { opacity: glowFade }]}>
+        <LinearGradient
+          colors={[
+            'rgba(34,204,94,0.22)',
+            'rgba(34,204,94,0.08)',
+            'rgba(34,204,94,0.02)',
+            'transparent',
+          ]}
+          style={heroStyles.bloom}
+          start={{ x: 0.5, y: 0 }}
+          end={{ x: 0.5, y: 1 }}
+        />
+      </Animated.View>
+
+      {/* Card border */}
+      <View style={heroStyles.border} />
+
+      {/* Content */}
+      <View style={heroStyles.content}>
+
+        {/* Top: badge + meta */}
+        <View style={heroStyles.topRow}>
+          <View style={heroStyles.liveBadge}>
+            <Animated.View style={[heroStyles.liveDot, { opacity: dotAnim }]} />
+            <Text style={heroStyles.liveBadgeText}>CONTINUE CAREER</Text>
+          </View>
+          {!loading && lesson && (
+            <View style={heroStyles.topMeta}>
+              <View style={[heroStyles.tierPill, { borderColor: difficultyColor + '50', backgroundColor: difficultyColor + '12' }]}>
+                <Text style={[heroStyles.tierText, { color: difficultyColor }]}>
+                  {lesson.difficulty_tier ?? 'starter'}
+                </Text>
+              </View>
+              <Text style={heroStyles.durationMeta}>
+                {Math.ceil((lesson.duration_sec ?? 90) / 60)} min
+              </Text>
+            </View>
+          )}
+        </View>
+
+        {/* Title block — the hero moment */}
+        <View style={heroStyles.titleBlock}>
+          {loading ? (
+            <>
+              <View style={[heroStyles.skeletonLine, { width: '85%', height: 32 }]} />
+              <View style={[heroStyles.skeletonLine, { width: '60%', height: 18, marginTop: 6 }]} />
+            </>
+          ) : (
+            <>
+              <Text style={heroStyles.title} numberOfLines={3}>
+                {lesson?.title ?? 'Control the Controllables'}
+              </Text>
+              {lesson?.subtitle && (
+                <Text style={heroStyles.subtitle} numberOfLines={2}>
+                  {lesson.subtitle}
+                </Text>
+              )}
+            </>
+          )}
+        </View>
+
+        {/* Bottom row: XP + CTA button */}
+        <View style={heroStyles.bottomRow}>
+          <View style={heroStyles.xpRow}>
+            <View style={heroStyles.xpIconBox}>
+              <Ionicons name="flash" size={12} color={Colors.warning} />
+            </View>
+            <Text style={heroStyles.xpAmount}>+{lesson?.xp_reward ?? 50}</Text>
+            <Text style={heroStyles.xpUnit}>XP</Text>
+          </View>
+
+          <View style={heroStyles.ctaBtn}>
+            <Text style={heroStyles.ctaText}>Let's go</Text>
+            <Ionicons name="arrow-forward" size={13} color="#000" />
+          </View>
+        </View>
+      </View>
+
+      {/* Bottom glow line */}
+      <View style={heroStyles.bottomGlow} />
+    </Pressable>
+  );
+}
+
 // ─── SCREEN ──────────────────────────────────────────────────────────────────
 
 export default function HomeScreen() {
@@ -162,6 +291,23 @@ export default function HomeScreen() {
   const [toolShelfOpen, setToolShelfOpen] = useState(false);
   const [nextLesson, setNextLesson] = useState<LegacyLesson | null>(null);
   const [loadingLesson, setLoadingLesson] = useState(true);
+
+  // Staggered entry animations
+  const anim0 = useRef(new Animated.Value(0)).current;
+  const anim1 = useRef(new Animated.Value(0)).current;
+  const anim2 = useRef(new Animated.Value(0)).current;
+  const anim3 = useRef(new Animated.Value(0)).current;
+  const anim4 = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.stagger(70, [
+      Animated.spring(anim0, { toValue: 1, tension: 80, friction: 11, useNativeDriver: true }),
+      Animated.spring(anim1, { toValue: 1, tension: 80, friction: 11, useNativeDriver: true }),
+      Animated.spring(anim2, { toValue: 1, tension: 80, friction: 11, useNativeDriver: true }),
+      Animated.spring(anim3, { toValue: 1, tension: 80, friction: 11, useNativeDriver: true }),
+      Animated.spring(anim4, { toValue: 1, tension: 80, friction: 11, useNativeDriver: true }),
+    ]).start();
+  }, []);
 
   useEffect(() => {
     if (!athleteState) return;
@@ -198,8 +344,17 @@ export default function HomeScreen() {
     router.push(`/lesson/${nextLesson.id}`);
   }
 
-  // FAB sits above the tab bar — calculate correct bottom offset
-  const FAB_BOTTOM = insets.bottom + 72; // 72 = tab bar height
+  const FAB_BOTTOM = insets.bottom + 72;
+
+  // Animated card wrapper helper
+  const animCard = (anim: Animated.Value, child: React.ReactNode) => (
+    <Animated.View style={{
+      opacity: anim,
+      transform: [{ translateY: anim.interpolate({ inputRange: [0, 1], outputRange: [12, 0] }) }],
+    }}>
+      {child}
+    </Animated.View>
+  );
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -208,148 +363,165 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
       >
 
-        {/* ── HEADER ROW: logo + greeting in one compact block ── */}
-        <View style={styles.topRow}>
-          <View style={styles.topLeft}>
-            <Text style={styles.clutchrLogo}>{'<< CLUTCHR'}</Text>
-            <Text style={styles.greeting}>{greeting}, {athleteState.first_name}.</Text>
-            <View style={styles.greetingMeta}>
-              <Text style={styles.roleTag}>{getRoleLabel(athleteState.primary_role)}</Text>
-              <Text style={styles.metaDot}>·</Text>
-              <Text style={styles.seasonTag}>
-                {athleteState.season_phase.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
-              </Text>
+        {/* ── HEADER ── */}
+        {animCard(anim0,
+          <View style={styles.header}>
+            <View style={styles.headerLeft}>
+              <Text style={styles.clutchrWordmark}>{'<< CLUTCHR'}</Text>
+              <View style={styles.greetingRow}>
+                <Text style={styles.greetingLight}>{greeting}, </Text>
+                <Text style={styles.greetingBold}>{athleteState.first_name}.</Text>
+              </View>
+              <View style={styles.metaRow}>
+                <View style={styles.rolePill}>
+                  <Text style={styles.rolePillText}>{getRoleLabel(athleteState.primary_role).toUpperCase()}</Text>
+                </View>
+                <Text style={styles.metaSep}>·</Text>
+                <Text style={styles.seasonText}>
+                  {athleteState.season_phase.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
+                </Text>
+              </View>
+            </View>
+            <View style={styles.headerRight}>
+              <View style={styles.xpBlock}>
+                <Ionicons name="flash" size={12} color={Colors.warning} />
+                <Text style={styles.xpNumber}>{athleteState.total_xp}</Text>
+              </View>
+              <Text style={styles.xpSuffix}>XP</Text>
             </View>
           </View>
-          {/* XP pill — top right corner */}
-          <View style={styles.xpPill}>
-            <Ionicons name="flash" size={11} color={Colors.warning} />
-            <Text style={styles.xpPillText}>{athleteState.total_xp} XP</Text>
-          </View>
-        </View>
+        )}
 
         {/* ── STREAK BANNER ── */}
-        <StreakBanner
-          streakCount={athleteState.streak_count ?? 0}
-          streakStatus={streakStatus}
-          completedToday={completedTodayCount}
-          streakBest={athleteState.streak_best ?? 0}
-          onContinue={handleContinueCareer}
-        />
-
-        {/* ── CONTINUE CAREER — primary action, full visual weight ── */}
-        <Pressable
-          style={({ pressed }) => [styles.continueCard, pressed && styles.continueCardPressed]}
-          onPress={handleContinueCareer}
-          disabled={loadingLesson || !nextLesson}
-        >
-          <LinearGradient
-            colors={['#0D2418', '#0A1A10', '#060606']}
-            style={StyleSheet.absoluteFill}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
+        {animCard(anim1,
+          <StreakBanner
+            streakCount={athleteState.streak_count ?? 0}
+            streakStatus={streakStatus}
+            completedToday={completedTodayCount}
+            streakBest={athleteState.streak_best ?? 0}
+            onContinue={handleContinueCareer}
           />
-          <View style={styles.continueTop}>
-            <View style={styles.continueBadge}>
-              <Text style={styles.continueBadgeText}>CONTINUE CAREER</Text>
-            </View>
-            <Text style={styles.continueMeta}>
-              {loadingLesson ? '...' : nextLesson
-                ? `${nextLesson.difficulty_tier ?? 'Starter'} · ${Math.ceil((nextLesson.duration_sec ?? 90) / 60)} min`
-                : 'All caught up'}
-            </Text>
-          </View>
-          <Text style={styles.continueTitle}>
-            {loadingLesson ? 'Loading your next rep...' : nextLesson?.title ?? 'Control the Controllables'}
-          </Text>
-          {nextLesson?.subtitle && (
-            <Text style={styles.continueDesc}>{nextLesson.subtitle}</Text>
-          )}
-          <View style={styles.continueBottom}>
-            <View style={styles.xpBadge}>
-              <Ionicons name="flash" size={12} color={Colors.warning} />
-              <Text style={styles.xpBadgeText}>+{nextLesson?.xp_reward ?? 50} XP</Text>
-            </View>
-            <Text style={styles.letsGo}>{loadingLesson ? '' : "Let's go →"}</Text>
-          </View>
-        </Pressable>
+        )}
 
-        {/* ── QUICK ACTIONS — compact horizontal row ── */}
-        <View style={styles.quickRow}>
-          <Pressable style={styles.quickCard} onPress={() => router.push('/(tabs)/gamemode')}>
-            <View style={[styles.quickIcon, { backgroundColor: Colors.warningMuted }]}>
-              <Ionicons name="flash" size={18} color={Colors.warning} />
-            </View>
-            <View style={styles.quickText}>
-              <Text style={styles.quickLabel}>GAME MODE</Text>
-              <Text style={styles.quickDesc}>Pre, in, post-game</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={13} color={Colors.textTertiary} />
-          </Pressable>
-          <Pressable style={styles.quickCard} onPress={() => router.push('/(tabs)/locker')}>
-            <View style={[styles.quickIcon, { backgroundColor: Colors.primaryGlow }]}>
-              <Ionicons name="library" size={18} color={Colors.primary} />
-            </View>
-            <View style={styles.quickText}>
-              <Text style={styles.quickLabel}>LOCKER</Text>
-              <Text style={styles.quickDesc}>Articles & tools</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={13} color={Colors.textTertiary} />
-          </Pressable>
-        </View>
+        {/* ── HERO CARD — the centerpiece ── */}
+        {animCard(anim2,
+          <HeroContinueCard
+            lesson={nextLesson}
+            loading={loadingLesson}
+            onPress={handleContinueCareer}
+          />
+        )}
+
+        {/* ── QUICK ACTIONS ── */}
+        {animCard(anim3,
+          <View style={styles.quickRow}>
+            <Pressable style={styles.quickCard} onPress={() => router.push('/(tabs)/gamemode')}>
+              <LinearGradient
+                colors={['rgba(245,166,35,0.10)', 'transparent']}
+                style={StyleSheet.absoluteFill}
+                start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+              />
+              <View style={[styles.quickIconBox, { backgroundColor: Colors.warningMuted }]}>
+                <Ionicons name="flash" size={17} color={Colors.warning} />
+              </View>
+              <View style={styles.quickMeta}>
+                <Text style={styles.quickTitle}>GAME MODE</Text>
+                <Text style={styles.quickDesc}>Pre · in · post</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={12} color={Colors.warning + '60'} />
+            </Pressable>
+
+            <Pressable style={styles.quickCard} onPress={() => router.push('/(tabs)/locker')}>
+              <LinearGradient
+                colors={['rgba(34,204,94,0.08)', 'transparent']}
+                style={StyleSheet.absoluteFill}
+                start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+              />
+              <View style={[styles.quickIconBox, { backgroundColor: Colors.primaryGlow }]}>
+                <Ionicons name="library" size={17} color={Colors.primary} />
+              </View>
+              <View style={styles.quickMeta}>
+                <Text style={styles.quickTitle}>LOCKER</Text>
+                <Text style={styles.quickDesc}>Articles · tools</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={12} color={Colors.primary + '60'} />
+            </Pressable>
+          </View>
+        )}
 
         {/* ── TODAY'S FOCUS ── */}
-        <View style={styles.focusCard}>
-          <View style={styles.focusAccent} />
-          <View style={styles.focusContent}>
-            <Text style={styles.focusLabel}>{focusLabel}</Text>
-            <Text style={styles.focusText}>{focus}</Text>
+        {animCard(anim3,
+          <View style={styles.focusCard}>
+            <View style={styles.focusLeftBar} />
+            <View style={styles.focusBody}>
+              <View style={styles.focusHeader}>
+                <Text style={styles.focusEyebrow}>TODAY'S FOCUS</Text>
+                <View style={styles.focusTagPill}>
+                  <Text style={styles.focusTagText}>{focusLabel}</Text>
+                </View>
+              </View>
+              <Text style={styles.focusText}>{focus}</Text>
+            </View>
           </View>
-        </View>
+        )}
 
-        {/* ── PLAYBOOK — secondary card, lighter weight ── */}
-        <Pressable
-          style={({ pressed }) => [
-            playbookBuilt ? styles.playbookBuilt : styles.playbookCta,
-            pressed && { opacity: 0.82 },
-          ]}
-          onPress={() => router.push('/playbook')}
-        >
-          <View style={[styles.playbookIcon, { backgroundColor: playbookBuilt ? Colors.purple + '15' : Colors.purple + '18' }]}>
-            <Ionicons name="book" size={16} color={Colors.purple} />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.playbookLabel}>
-              {playbookBuilt ? 'MY PLAYBOOK' : 'BUILD YOUR PLAYBOOK'}
-            </Text>
-            <Text style={[styles.playbookSub, playbookBuilt && { color: Colors.purple }]} numberOfLines={1}>
-              {playbookBuilt
-                ? (approachCue || 'Your cues are set')
-                : 'Create your 5 personal cues'}
-            </Text>
-          </View>
-          <Ionicons name="chevron-forward" size={14} color={playbookBuilt ? Colors.purple : Colors.textTertiary} />
-        </Pressable>
+        {/* ── PLAYBOOK ── */}
+        {animCard(anim4,
+          <Pressable
+            style={({ pressed }) => [
+              playbookBuilt ? styles.playbookBuilt : styles.playbookCta,
+              pressed && { opacity: 0.82 },
+            ]}
+            onPress={() => router.push('/playbook')}
+          >
+            {playbookBuilt && (
+              <LinearGradient
+                colors={['rgba(191,90,242,0.10)', 'transparent']}
+                style={StyleSheet.absoluteFill}
+                start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+              />
+            )}
+            <View style={[styles.playbookIcon, { backgroundColor: Colors.purple + '18' }]}>
+              <Ionicons name="book" size={16} color={Colors.purple} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.playbookEyebrow}>
+                {playbookBuilt ? 'MY PLAYBOOK' : 'BUILD YOUR PLAYBOOK'}
+              </Text>
+              <Text style={styles.playbookSub} numberOfLines={1}>
+                {playbookBuilt ? (approachCue || 'Your cues are set') : 'Create your 5 personal cues'}
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={14} color={playbookBuilt ? Colors.purple : Colors.textTertiary} />
+          </Pressable>
+        )}
 
-        {/* ── PROGRESS — slim, bottom of scroll ── */}
-        <View style={styles.progressCard}>
-          <View style={styles.progressRow}>
-            <Text style={styles.progressPhase}>Phase {phaseNum}</Text>
-            <Text style={styles.progressCount}>{completedCount} lessons</Text>
+        {/* ── PROGRESS ── */}
+        {animCard(anim4,
+          <View style={styles.progressWrap}>
+            <View style={styles.progressLabelRow}>
+              <Text style={styles.progressPhaseText}>Phase {phaseNum}</Text>
+              <Text style={styles.progressCountText}>{completedCount} lessons</Text>
+            </View>
+            <View style={styles.progressTrack}>
+              <View style={[styles.progressFill, { width: `${Math.min(100, phaseProgress * 100)}%` }]} />
+            </View>
           </View>
-          <View style={styles.progressTrack}>
-            <View style={[styles.progressFill, { width: `${Math.min(100, phaseProgress * 100)}%` }]} />
-          </View>
-        </View>
+        )}
 
       </ScrollView>
 
-      {/* ── TOOLS FAB — positioned above tab bar, never overlaps content ── */}
+      {/* ── FAB ── */}
       <Pressable
         style={[styles.fab, { bottom: FAB_BOTTOM }]}
         onPress={() => setToolShelfOpen(true)}
       >
-        <Ionicons name="flash" size={17} color={Colors.background} />
+        <LinearGradient
+          colors={[Colors.primary, '#18A84A']}
+          style={StyleSheet.absoluteFill}
+          start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+        />
+        <Ionicons name="flash" size={15} color="#000" />
         <Text style={styles.fabText}>TOOLS</Text>
       </Pressable>
 
@@ -358,93 +530,464 @@ export default function HomeScreen() {
   );
 }
 
-// ─── STYLES ──────────────────────────────────────────────────────────────────
+// ─── HERO STYLES ─────────────────────────────────────────────────────────────
+
+const heroStyles = StyleSheet.create({
+  outer: {
+    borderRadius: Radius.xl,
+    overflow: 'hidden',
+    minHeight: 210,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.22,
+    shadowRadius: 24,
+    elevation: 12,
+  },
+  gradient: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  bloomWrap: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 160,
+  },
+  bloom: {
+    flex: 1,
+  },
+  border: {
+    position: 'absolute',
+    top: 0, left: 0, right: 0, bottom: 0,
+    borderRadius: Radius.xl,
+    borderWidth: 1,
+    borderColor: 'rgba(34,204,94,0.22)',
+  },
+  content: {
+    padding: Spacing.xl,
+    gap: Spacing.md,
+  },
+  topRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  liveBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(34,204,94,0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(34,204,94,0.28)',
+    borderRadius: Radius.pill,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  liveDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: Colors.primary,
+  },
+  liveBadgeText: {
+    fontSize: 9,
+    fontFamily: 'Inter_700Bold',
+    color: Colors.primary,
+    letterSpacing: 1.4,
+  },
+  topMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  tierPill: {
+    borderRadius: Radius.pill,
+    borderWidth: 1,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  tierText: {
+    fontSize: 9,
+    fontFamily: 'Inter_700Bold',
+    letterSpacing: 0.8,
+    textTransform: 'capitalize',
+  },
+  durationMeta: {
+    fontSize: 11,
+    fontFamily: 'Inter_400Regular',
+    color: Colors.textTertiary,
+  },
+  titleBlock: {
+    paddingVertical: 4,
+    gap: 6,
+  },
+  title: {
+    fontSize: 28,
+    fontFamily: 'Inter_700Bold',
+    color: Colors.textPrimary,
+    lineHeight: 34,
+    letterSpacing: -0.4,
+  },
+  subtitle: {
+    fontSize: 14,
+    fontFamily: 'Inter_400Regular',
+    color: 'rgba(255,255,255,0.42)',
+    lineHeight: 20,
+  },
+  skeletonLine: {
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderRadius: 6,
+  },
+  bottomRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 4,
+  },
+  xpRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  xpIconBox: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: 'rgba(245,166,35,0.18)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  xpAmount: {
+    fontSize: 16,
+    fontFamily: 'Inter_700Bold',
+    color: Colors.warning,
+  },
+  xpUnit: {
+    fontSize: 10,
+    fontFamily: 'Inter_700Bold',
+    color: Colors.warning + '80',
+    letterSpacing: 0.8,
+  },
+  ctaBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: Colors.primary,
+    borderRadius: Radius.pill,
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.55,
+    shadowRadius: 10,
+    elevation: 6,
+  },
+  ctaText: {
+    fontSize: 13,
+    fontFamily: 'Inter_700Bold',
+    color: '#000',
+    letterSpacing: 0.2,
+  },
+  bottomGlow: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 2,
+    backgroundColor: Colors.primary,
+    opacity: 0.45,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 1,
+    shadowRadius: 6,
+  },
+});
+
+// ─── SCREEN STYLES ────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
-  // Tighter gap — cards breathe but don't float
-  scroll: { paddingHorizontal: Spacing.xl, gap: 10 },
+  scroll: { paddingHorizontal: Spacing.xl, gap: 12 },
 
-  // ── Header ──
-  topRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', paddingTop: Spacing.md, paddingBottom: 4 },
-  topLeft: { gap: 3 },
-  clutchrLogo: { fontSize: 11, fontFamily: 'Inter_700Bold', color: Colors.primary, letterSpacing: 1.2 },
-  greeting: { fontSize: 26, fontFamily: 'Inter_700Bold', color: Colors.textPrimary, marginTop: 2 },
-  greetingMeta: { flexDirection: 'row', alignItems: 'center', gap: 5 },
-  roleTag: { fontSize: 12, fontFamily: 'Inter_600SemiBold', color: Colors.primary },
-  metaDot: { fontSize: 12, color: Colors.textTertiary },
-  seasonTag: { fontSize: 12, fontFamily: 'Inter_400Regular', color: Colors.textSecondary },
-  xpPill: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: Colors.warningMuted, paddingHorizontal: Spacing.sm, paddingVertical: 5, borderRadius: Radius.pill, marginTop: Spacing.sm },
-  xpPillText: { fontSize: 12, fontFamily: 'Inter_600SemiBold', color: Colors.warning },
-
-  // ── Continue Career ──
-  continueCard: { borderRadius: Radius.lg, borderWidth: 1, borderColor: Colors.primaryBorder, padding: Spacing.xl, gap: 8, overflow: 'hidden' },
-  continueCardPressed: { opacity: 0.9, transform: [{ scale: 0.99 }] },
-  continueTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  continueBadge: { backgroundColor: Colors.primary, borderRadius: Radius.pill, paddingHorizontal: Spacing.md, paddingVertical: 3 },
-  continueBadgeText: { fontSize: 9, fontFamily: 'Inter_700Bold', color: Colors.background, letterSpacing: 1 },
-  continueMeta: { fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.textTertiary },
-  continueTitle: { fontSize: 21, fontFamily: 'Inter_700Bold', color: Colors.textPrimary, lineHeight: 27 },
-  continueDesc: { fontSize: 13, fontFamily: 'Inter_400Regular', color: Colors.textSecondary, lineHeight: 19 },
-  continueBottom: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 2 },
-  xpBadge: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  xpBadgeText: { fontSize: 12, fontFamily: 'Inter_600SemiBold', color: Colors.warning },
-  letsGo: { fontSize: 13, fontFamily: 'Inter_600SemiBold', color: Colors.primary },
-
-  // ── Quick Actions — horizontal, compact ──
-  quickRow: { flexDirection: 'row', gap: 8 },
-  quickCard: {
-    flex: 1, flexDirection: 'row', alignItems: 'center',
-    backgroundColor: Colors.surface, borderRadius: Radius.lg,
-    borderWidth: 1, borderColor: Colors.border,
-    padding: Spacing.md, gap: Spacing.sm,
+  // Header
+  header: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    paddingTop: Spacing.md,
+    paddingBottom: 4,
   },
-  quickIcon: { width: 32, height: 32, borderRadius: Radius.sm, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-  quickText: { flex: 1, gap: 1 },
-  quickLabel: { fontSize: 10, fontFamily: 'Inter_700Bold', color: Colors.textSecondary, letterSpacing: 0.8 },
-  quickDesc: { fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.textTertiary },
+  headerLeft: { gap: 1 },
+  headerRight: { alignItems: 'flex-end', paddingTop: 6, gap: 1 },
 
-  // ── Focus card ──
-  focusCard: { flexDirection: 'row', backgroundColor: Colors.surface, borderRadius: Radius.lg, borderWidth: 1, borderColor: Colors.border, overflow: 'hidden' },
-  focusAccent: { width: 3, backgroundColor: Colors.primary },
-  focusContent: { flex: 1, padding: Spacing.md, gap: 3 },
-  focusLabel: { fontSize: 9, fontFamily: 'Inter_700Bold', color: Colors.primary, letterSpacing: 1 },
-  focusText: { fontSize: 14, fontFamily: 'Inter_500Medium', color: Colors.textPrimary, lineHeight: 21 },
+  clutchrWordmark: {
+    fontSize: 10,
+    fontFamily: 'Inter_700Bold',
+    color: Colors.primary,
+    letterSpacing: 2,
+    marginBottom: 6,
+  },
+  greetingRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+  },
+  greetingLight: {
+    fontSize: 30,
+    fontFamily: 'Inter_400Regular',
+    color: Colors.textSecondary,
+    lineHeight: 36,
+  },
+  greetingBold: {
+    fontSize: 30,
+    fontFamily: 'Inter_700Bold',
+    color: Colors.textPrimary,
+    lineHeight: 36,
+    letterSpacing: -0.4,
+  },
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 5,
+  },
+  rolePill: {
+    backgroundColor: Colors.primaryMuted,
+    borderRadius: Radius.pill,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderWidth: 1,
+    borderColor: Colors.primaryBorder,
+  },
+  rolePillText: {
+    fontSize: 9,
+    fontFamily: 'Inter_700Bold',
+    color: Colors.primary,
+    letterSpacing: 1.2,
+  },
+  metaSep: { fontSize: 11, color: Colors.textTertiary },
+  seasonText: {
+    fontSize: 11,
+    fontFamily: 'Inter_400Regular',
+    color: Colors.textSecondary,
+  },
+  xpBlock: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(245,166,35,0.14)',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: Radius.pill,
+    borderWidth: 1,
+    borderColor: 'rgba(245,166,35,0.22)',
+  },
+  xpNumber: {
+    fontSize: 16,
+    fontFamily: 'Inter_700Bold',
+    color: Colors.warning,
+  },
+  xpSuffix: {
+    fontSize: 9,
+    fontFamily: 'Inter_700Bold',
+    color: Colors.textTertiary,
+    letterSpacing: 1,
+    textAlign: 'right',
+  },
 
-  // ── Playbook card ──
-  playbookCta: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, borderRadius: Radius.lg, borderWidth: 1.5, borderColor: `${Colors.purple}35`, padding: Spacing.md, backgroundColor: `${Colors.purple}07` },
-  playbookBuilt: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, backgroundColor: Colors.surface, borderRadius: Radius.lg, borderWidth: 1, borderColor: Colors.border, padding: Spacing.md },
-  playbookIcon: { width: 34, height: 34, borderRadius: Radius.sm, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-  playbookLabel: { fontSize: 9, fontFamily: 'Inter_700Bold', color: Colors.purple, letterSpacing: 1, marginBottom: 2 },
-  playbookSub: { fontSize: 12, fontFamily: 'Inter_400Regular', color: Colors.textSecondary, lineHeight: 16 },
+  // Quick actions
+  quickRow: { flexDirection: 'row', gap: 10 },
+  quickCard: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.surface,
+    borderRadius: Radius.lg,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    padding: Spacing.md,
+    gap: Spacing.sm,
+    overflow: 'hidden',
+  },
+  quickIconBox: {
+    width: 34,
+    height: 34,
+    borderRadius: Radius.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  quickMeta: { flex: 1, gap: 2 },
+  quickTitle: {
+    fontSize: 10,
+    fontFamily: 'Inter_700Bold',
+    color: Colors.textPrimary,
+    letterSpacing: 0.8,
+  },
+  quickDesc: {
+    fontSize: 11,
+    fontFamily: 'Inter_400Regular',
+    color: Colors.textTertiary,
+  },
 
-  // ── Progress — slim strip, no big card ──
-  progressCard: { gap: 5, paddingBottom: 4 },
-  progressRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  progressPhase: { fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.textTertiary },
-  progressCount: { fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.textTertiary },
-  progressTrack: { height: 2, backgroundColor: Colors.border, borderRadius: 1 },
-  progressFill: { height: 2, backgroundColor: Colors.primary, borderRadius: 1 },
+  // Focus card
+  focusCard: {
+    flexDirection: 'row',
+    backgroundColor: Colors.surface,
+    borderRadius: Radius.lg,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.18,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  focusLeftBar: {
+    width: 3,
+    backgroundColor: Colors.primary,
+  },
+  focusBody: {
+    flex: 1,
+    padding: Spacing.lg,
+    gap: 8,
+  },
+  focusHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  focusEyebrow: {
+    fontSize: 9,
+    fontFamily: 'Inter_700Bold',
+    color: Colors.textTertiary,
+    letterSpacing: 1.5,
+  },
+  focusTagPill: {
+    backgroundColor: Colors.primaryMuted,
+    borderRadius: Radius.pill,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderWidth: 1,
+    borderColor: Colors.primaryBorder,
+  },
+  focusTagText: {
+    fontSize: 8,
+    fontFamily: 'Inter_700Bold',
+    color: Colors.primary,
+    letterSpacing: 0.8,
+  },
+  focusText: {
+    fontSize: 15,
+    fontFamily: 'Inter_500Medium',
+    color: Colors.textPrimary,
+    lineHeight: 22,
+  },
 
-  // ── FAB — never overlaps content ──
+  // Playbook
+  playbookCta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    borderRadius: Radius.lg,
+    borderWidth: 1.5,
+    borderColor: Colors.purple + '38',
+    padding: Spacing.md,
+    backgroundColor: Colors.purple + '07',
+    overflow: 'hidden',
+  },
+  playbookBuilt: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    backgroundColor: Colors.surface,
+    borderRadius: Radius.lg,
+    borderWidth: 1,
+    borderColor: Colors.purple + '28',
+    padding: Spacing.md,
+    overflow: 'hidden',
+  },
+  playbookIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: Radius.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  playbookEyebrow: {
+    fontSize: 9,
+    fontFamily: 'Inter_700Bold',
+    color: Colors.purple,
+    letterSpacing: 1,
+    marginBottom: 2,
+  },
+  playbookSub: {
+    fontSize: 12,
+    fontFamily: 'Inter_400Regular',
+    color: Colors.textSecondary,
+    lineHeight: 16,
+  },
+
+  // Progress
+  progressWrap: { gap: 6, paddingBottom: 4 },
+  progressLabelRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  progressPhaseText: {
+    fontSize: 11,
+    fontFamily: 'Inter_600SemiBold',
+    color: Colors.textTertiary,
+  },
+  progressCountText: {
+    fontSize: 11,
+    fontFamily: 'Inter_400Regular',
+    color: Colors.textTertiary,
+  },
+  progressTrack: {
+    height: 3,
+    backgroundColor: Colors.surfaceElevated,
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: 3,
+    backgroundColor: Colors.primary,
+    borderRadius: 2,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.9,
+    shadowRadius: 4,
+  },
+
+  // FAB
   fab: {
     position: 'absolute',
     right: 20,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
-    backgroundColor: Colors.primary,
     borderRadius: Radius.pill,
-    paddingVertical: 10,
-    paddingHorizontal: Spacing.md,
+    paddingVertical: 11,
+    paddingHorizontal: Spacing.lg,
+    overflow: 'hidden',
     shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.35,
-    shadowRadius: 6,
-    elevation: 6,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.5,
+    shadowRadius: 12,
+    elevation: 8,
   },
-  fabText: { fontSize: 11, fontFamily: 'Inter_700Bold', color: Colors.background, letterSpacing: 1 },
+  fabText: {
+    fontSize: 11,
+    fontFamily: 'Inter_700Bold',
+    color: '#000',
+    letterSpacing: 1.2,
+  },
 });
+
+// ─── BANNER STYLES ────────────────────────────────────────────────────────────
 
 const bannerStyles = StyleSheet.create({
   wrap: { borderRadius: Radius.lg, borderWidth: 1, paddingHorizontal: Spacing.md, paddingVertical: 10 },

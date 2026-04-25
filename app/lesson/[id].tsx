@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
@@ -99,8 +100,6 @@ function SelfRatingCheckIn({ role, lessonTitle, isBoss, onSubmit }: { role: stri
 }
 
 // ─── UI VARIANT ROUTER ────────────────────────────────────────────────────────
-// KEY FIX: firedRef prevents the same component calling onAdvance twice.
-// This was the root cause of the blank screen (7/4 step counter) bug.
 
 function VariantRenderer({ step, onAdvance }: { step: any; onAdvance: (passed?: boolean) => void }) {
   const firedRef = useRef(false);
@@ -128,89 +127,359 @@ function VariantRenderer({ step, onAdvance }: { step: any; onAdvance: (passed?: 
   }
 }
 
-// ─── STANDARD STEP RENDERERS ──────────────────────────────────────────────────
+// ═════════════════════════════════════════════════════════════════════════════
+// STEP RENDERERS — Each has its own distinct visual identity
+// ═════════════════════════════════════════════════════════════════════════════
+
+// ─── SPARK STEP — Editorial pull-quote style ──────────────────────────────────
+// The "here's the insight" moment. Big, bold, almost like a magazine spread.
 
 function SparkStep({ step, onAdvance }: { step: any; onAdvance: () => void }) {
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(16)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, { toValue: 1, duration: 400, useNativeDriver: true }),
+      Animated.spring(slideAnim, { toValue: 0, tension: 70, friction: 12, useNativeDriver: true }),
+    ]).start();
+  }, []);
+
+  const content = step.content ?? step.text ?? step.body ?? '';
+  const cue = step.cue ?? '';
+  const action = step.action ?? '';
+
   return (
-    <View style={stepStyles.container}>
-      <View style={stepStyles.sparkAccent} />
-      <Text style={stepStyles.sparkContent}>{step.content ?? step.text ?? step.body ?? ''}</Text>
-      {step.cue && <View style={stepStyles.cueBox}><Text style={stepStyles.cueLabel}>CUE</Text><Text style={stepStyles.cueText}>{step.cue}</Text></View>}
-      {step.action && <View style={stepStyles.actionBox}><Ionicons name="arrow-forward-circle" size={16} color={Colors.primary} /><Text style={stepStyles.actionText}>{step.action}</Text></View>}
-      <Pressable style={stepStyles.advanceBtn} onPress={onAdvance}><Text style={stepStyles.advanceBtnText}>Got it →</Text></Pressable>
-    </View>
+    <Animated.View style={[sparkStyles.container, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
+      {/* Top accent — green rule + SPARK label */}
+      <View style={sparkStyles.topAccent}>
+        <View style={sparkStyles.accentLine} />
+        <Text style={sparkStyles.accentLabel}>SPARK</Text>
+        <View style={sparkStyles.accentLineFade} />
+      </View>
+
+      {/* The insight text — large, editorial */}
+      <Text style={sparkStyles.body}>{content}</Text>
+
+      {/* Cue box — if present */}
+      {cue !== '' && <CueBox cue={cue} />}
+
+      {/* Action box */}
+      {action !== '' && (
+        <View style={sparkStyles.actionBox}>
+          <Ionicons name="arrow-forward-circle" size={16} color={Colors.primary} />
+          <Text style={sparkStyles.actionText}>{action}</Text>
+        </View>
+      )}
+
+      <AdvanceButton label="Got it →" onPress={onAdvance} />
+    </Animated.View>
   );
 }
+
+// ─── CUE BOX — The sacred cue moment. Used across multiple step types. ────────
+
+function CueBox({ cue, label = 'YOUR CUE' }: { cue: string; label?: string }) {
+  const scaleAnim = useRef(new Animated.Value(0.96)).current;
+
+  useEffect(() => {
+    Animated.spring(scaleAnim, { toValue: 1, tension: 80, friction: 10, useNativeDriver: true }).start();
+  }, []);
+
+  return (
+    <Animated.View style={[cueStyles.wrap, { transform: [{ scale: scaleAnim }] }]}>
+      {/* Dark green background gradient */}
+      <LinearGradient
+        colors={['rgba(34,204,94,0.18)', 'rgba(34,204,94,0.08)']}
+        style={StyleSheet.absoluteFill}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+      />
+      {/* Left accent bar */}
+      <View style={cueStyles.leftBar} />
+      <View style={cueStyles.inner}>
+        <View style={cueStyles.labelRow}>
+          <View style={cueStyles.labelPill}>
+            <Ionicons name="flash" size={9} color={Colors.primary} />
+            <Text style={cueStyles.labelText}>{label}</Text>
+          </View>
+        </View>
+        <Text style={cueStyles.cueText}>{cue}</Text>
+      </View>
+    </Animated.View>
+  );
+}
+
+// ─── CHOICE STEP — High-stakes decision cards ────────────────────────────────
+// Before: clean bordered tiles. After: dramatic success/fail states.
 
 function ChoiceStep({ step, onAdvance }: { step: any; onAdvance: () => void }) {
   const [selected, setSelected] = useState<string | null>(null);
   const [revealed, setRevealed] = useState(false);
   const choices = step.choices ?? step.options ?? [];
+
   function handlePick(id: string, outcome?: string) {
     if (revealed) return;
-    Haptics.selectionAsync(); setSelected(id); setRevealed(true);
-    outcome === 'success' ? Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success) : Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+    Haptics.selectionAsync();
+    setSelected(id);
+    setRevealed(true);
+    if (outcome === 'success') {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    } else {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+    }
   }
+
   return (
-    <View style={stepStyles.container}>
-      <Text style={stepStyles.choicePrompt}>{step.prompt ?? step.question ?? ''}</Text>
-      <View style={stepStyles.choiceList}>
+    <View style={choiceStyles.container}>
+      <Text style={choiceStyles.prompt}>{step.prompt ?? step.question ?? ''}</Text>
+
+      <View style={choiceStyles.list}>
         {choices.map((c: any, i: number) => {
-          const cid = c.id ?? String(i); const isSel = selected === cid; const isOk = c.outcome==='success'||c.quality==='correct';
+          const cid = c.id ?? String(i);
+          const isSel = selected === cid;
+          const isOk = c.outcome === 'success' || c.quality === 'correct';
+
           return (
-            <Pressable key={cid} style={[stepStyles.choiceBtn, { borderColor: isSel?(isOk?Colors.primary:Colors.danger):Colors.border, backgroundColor: isSel?(isOk?Colors.primaryMuted:'rgba(255,59,48,0.08)'):Colors.surface }]}
-              onPress={() => handlePick(cid, c.outcome)} disabled={revealed}>
-              <Text style={[stepStyles.choiceText, isSel && { color: isOk?Colors.primary:Colors.danger }]}>{c.text??c.label??''}</Text>
-              {revealed && isSel && <Ionicons name={isOk?'checkmark-circle':'close-circle'} size={18} color={isOk?Colors.primary:Colors.danger} style={{ marginTop: 6 }} />}
-              {revealed && isSel && c.feedback && <Text style={[stepStyles.choiceFeedback, { color: isOk?Colors.primary:Colors.textSecondary }]}>{c.feedback}</Text>}
-            </Pressable>
+            <ChoiceButton
+              key={cid}
+              label={c.text ?? c.label ?? ''}
+              feedback={c.feedback}
+              isSelected={isSel}
+              isRevealed={revealed}
+              isCorrect={isOk}
+              index={i}
+              onPress={() => handlePick(cid, c.outcome)}
+              disabled={revealed}
+            />
           );
         })}
       </View>
-      {revealed && <Pressable style={stepStyles.advanceBtn} onPress={onAdvance}><Text style={stepStyles.advanceBtnText}>Next →</Text></Pressable>}
+
+      {revealed && <AdvanceButton label="Next →" onPress={onAdvance} />}
     </View>
   );
 }
+
+function ChoiceButton({ label, feedback, isSelected, isRevealed, isCorrect, index, onPress, disabled }: {
+  label: string; feedback?: string; isSelected: boolean; isRevealed: boolean;
+  isCorrect: boolean; index: number; onPress: () => void; disabled: boolean;
+}) {
+  const revealAnim = useRef(new Animated.Value(0)).current;
+  const shakeAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (isSelected && isRevealed) {
+      Animated.timing(revealAnim, { toValue: 1, duration: 300, useNativeDriver: false }).start();
+      if (!isCorrect) {
+        // Shake on wrong answer
+        Animated.sequence([
+          Animated.timing(shakeAnim, { toValue: 6, duration: 60, useNativeDriver: true }),
+          Animated.timing(shakeAnim, { toValue: -6, duration: 60, useNativeDriver: true }),
+          Animated.timing(shakeAnim, { toValue: 4, duration: 60, useNativeDriver: true }),
+          Animated.timing(shakeAnim, { toValue: 0, duration: 60, useNativeDriver: true }),
+        ]).start();
+      }
+    }
+  }, [isSelected, isRevealed]);
+
+  // Determine visual state
+  let borderColor = Colors.border;
+  let bgColor = Colors.surface;
+  let textColor = Colors.textPrimary;
+  let iconName: any = null;
+
+  if (isSelected && isRevealed) {
+    if (isCorrect) {
+      borderColor = Colors.primary;
+      bgColor = 'rgba(34,204,94,0.10)';
+      iconName = 'checkmark-circle';
+    } else {
+      borderColor = Colors.danger;
+      bgColor = 'rgba(255,59,48,0.08)';
+      iconName = 'close-circle';
+      textColor = Colors.danger;
+    }
+  } else if (!isSelected && isRevealed) {
+    borderColor = Colors.border + '40';
+    bgColor = Colors.surface;
+    textColor = Colors.textTertiary;
+  }
+
+  const alphaIndex = ['A', 'B', 'C', 'D'][index] ?? String(index + 1);
+
+  return (
+    <Animated.View style={{ transform: [{ translateX: shakeAnim }] }}>
+      <Pressable
+        onPress={onPress}
+        disabled={disabled}
+        style={[choiceStyles.btn, { borderColor, backgroundColor: bgColor }]}
+      >
+        {/* Option letter */}
+        <View style={[choiceStyles.optionLetter, {
+          backgroundColor: isSelected && isRevealed
+            ? (isCorrect ? Colors.primary : Colors.danger)
+            : Colors.surfaceElevated,
+          borderColor: isSelected && isRevealed
+            ? (isCorrect ? Colors.primary : Colors.danger)
+            : Colors.border,
+        }]}>
+          <Text style={[choiceStyles.optionLetterText, {
+            color: isSelected && isRevealed ? '#000' : Colors.textTertiary,
+          }]}>{alphaIndex}</Text>
+        </View>
+
+        <View style={choiceStyles.btnContent}>
+          <Text style={[choiceStyles.btnText, { color: textColor }]}>{label}</Text>
+
+          {/* Feedback slides in after reveal */}
+          {isSelected && isRevealed && feedback && (
+            <Animated.View style={{ opacity: revealAnim }}>
+              <Text style={[choiceStyles.feedback, { color: isCorrect ? Colors.primary : Colors.textSecondary }]}>
+                {feedback}
+              </Text>
+            </Animated.View>
+          )}
+        </View>
+
+        {/* Result icon */}
+        {isSelected && isRevealed && iconName && (
+          <Ionicons name={iconName} size={20} color={isCorrect ? Colors.primary : Colors.danger} />
+        )}
+      </Pressable>
+
+      {/* Correct answer glow */}
+      {isSelected && isRevealed && isCorrect && (
+        <View style={choiceStyles.correctGlow} />
+      )}
+    </Animated.View>
+  );
+}
+
+// ─── CHECKLIST STEP — Pregame card, satisfying completion ────────────────────
 
 function ChecklistStep({ step, onAdvance }: { step: any; onAdvance: () => void }) {
   const items: string[] = step.instructions ?? step.items ?? step.steps ?? [];
   const [checked, setChecked] = useState<Set<number>>(new Set());
   const allDone = checked.size >= items.length && items.length > 0;
+  const progress = items.length > 0 ? checked.size / items.length : 0;
+
   return (
-    <View style={stepStyles.container}>
-      {step.prompt && <Text style={stepStyles.choicePrompt}>{step.prompt}</Text>}
-      <View style={stepStyles.checkList}>
+    <View style={checklistStyles.container}>
+      {step.prompt && <Text style={checklistStyles.prompt}>{step.prompt}</Text>}
+
+      {/* Progress bar at top */}
+      <View style={checklistStyles.progressWrap}>
+        <View style={checklistStyles.progressTrack}>
+          <Animated.View style={[checklistStyles.progressFill, { width: `${progress * 100}%` }]} />
+        </View>
+        <Text style={checklistStyles.progressLabel}>{checked.size}/{items.length}</Text>
+      </View>
+
+      <View style={checklistStyles.list}>
         {items.map((item, i) => {
           const done = checked.has(i);
           return (
-            <Pressable key={i} style={stepStyles.checkRow} onPress={() => { Haptics.selectionAsync(); setChecked((p) => { const n=new Set(p); n.has(i)?n.delete(i):n.add(i); return n; }); }}>
-              <View style={[stepStyles.checkBox, done && stepStyles.checkBoxDone]}>{done && <Ionicons name="checkmark" size={12} color={Colors.background} />}</View>
-              <Text style={[stepStyles.checkText, done && stepStyles.checkTextDone]}>{item}</Text>
-            </Pressable>
+            <ChecklistRow
+              key={i}
+              text={item}
+              done={done}
+              index={i}
+              onToggle={() => {
+                Haptics.selectionAsync();
+                setChecked((p) => {
+                  const n = new Set(p);
+                  n.has(i) ? n.delete(i) : n.add(i);
+                  return n;
+                });
+              }}
+            />
           );
         })}
       </View>
-      <Pressable style={[stepStyles.advanceBtn, !allDone && stepStyles.advanceBtnDisabled]} onPress={allDone ? onAdvance : undefined}>
-        <Text style={stepStyles.advanceBtnText}>{allDone ? 'Done →' : `${checked.size}/${items.length} checked`}</Text>
-      </Pressable>
+
+      <AdvanceButton
+        label={allDone ? 'Done →' : `${checked.size}/${items.length} checked`}
+        onPress={allDone ? onAdvance : undefined}
+        disabled={!allDone}
+      />
     </View>
   );
 }
 
-function VisualizationStep({ step, onAdvance }: { step: any; onAdvance: () => void }) {
-  const pulseAnim = useRef(new Animated.Value(1)).current;
-  useEffect(() => { Animated.loop(Animated.sequence([Animated.timing(pulseAnim, { toValue:1.06, duration:1400, useNativeDriver:true }), Animated.timing(pulseAnim, { toValue:1, duration:1400, useNativeDriver:true })])).start(); }, []);
-  const body = step.content ?? step.text ?? step.visualization ?? step.body ?? '';
-  const cue = step.cue ?? step.focal_cue ?? step.example_reframe ?? '';
+function ChecklistRow({ text, done, index, onToggle }: { text: string; done: boolean; index: number; onToggle: () => void }) {
+  const checkAnim = useRef(new Animated.Value(0)).current;
+  const strikeAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.spring(checkAnim, { toValue: done ? 1 : 0, tension: 100, friction: 8, useNativeDriver: true }),
+      Animated.timing(strikeAnim, { toValue: done ? 1 : 0, duration: 200, useNativeDriver: false }),
+    ]).start();
+  }, [done]);
+
   return (
-    <View style={stepStyles.container}>
-      <Animated.View style={[stepStyles.vizOrb, { transform: [{ scale: pulseAnim }] }]}><Ionicons name="eye" size={28} color={Colors.primary} /></Animated.View>
-      <Text style={stepStyles.vizBody}>{body}</Text>
-      {cue !== '' && <View style={stepStyles.cueBox}><Text style={stepStyles.cueLabel}>YOUR CUE</Text><Text style={stepStyles.cueText}>{cue}</Text></View>}
-      <Pressable style={stepStyles.advanceBtn} onPress={onAdvance}><Text style={stepStyles.advanceBtnText}>Locked in →</Text></Pressable>
-    </View>
+    <Pressable style={[checklistStyles.row, done && checklistStyles.rowDone]} onPress={onToggle}>
+      {/* Animated checkbox */}
+      <Animated.View style={[
+        checklistStyles.checkbox,
+        {
+          backgroundColor: checkAnim.interpolate({ inputRange: [0, 1], outputRange: [Colors.surface, Colors.primary] }),
+          borderColor: checkAnim.interpolate({ inputRange: [0, 1], outputRange: [Colors.border, Colors.primary] }),
+          transform: [{ scale: checkAnim.interpolate({ inputRange: [0, 0.5, 1], outputRange: [1, 1.2, 1] }) }],
+        },
+      ]}>
+        <Animated.View style={{ opacity: checkAnim }}>
+          <Ionicons name="checkmark" size={13} color="#000" />
+        </Animated.View>
+      </Animated.View>
+
+      <Text style={[checklistStyles.itemText, done && checklistStyles.itemTextDone]}>{text}</Text>
+    </Pressable>
   );
 }
+
+// ─── VISUALIZATION / CUE STEP — Focused, meditative ─────────────────────────
+
+function VisualizationStep({ step, onAdvance }: { step: any; onAdvance: () => void }) {
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }).start();
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, { toValue: 1.08, duration: 1600, useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 1, duration: 1600, useNativeDriver: true }),
+      ])
+    ).start();
+  }, []);
+
+  const body = step.content ?? step.text ?? step.visualization ?? step.body ?? '';
+  const cue = step.cue ?? step.focal_cue ?? step.example_reframe ?? '';
+
+  return (
+    <Animated.View style={[vizStyles.container, { opacity: fadeAnim }]}>
+      {/* Pulsing eye orb */}
+      <Animated.View style={[vizStyles.orb, { transform: [{ scale: pulseAnim }] }]}>
+        <LinearGradient
+          colors={[Colors.primaryMuted, 'transparent']}
+          style={StyleSheet.absoluteFill}
+          start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }}
+        />
+        <Ionicons name="eye-outline" size={32} color={Colors.primary} />
+      </Animated.View>
+
+      <Text style={vizStyles.body}>{body}</Text>
+
+      {cue !== '' && <CueBox cue={cue} />}
+
+      <AdvanceButton label="Locked in →" onPress={onAdvance} />
+    </Animated.View>
+  );
+}
+
+// ─── TIMER STEP — Athletic game clock ────────────────────────────────────────
 
 function TimerStep({ step, onAdvance }: { step: any; onAdvance: () => void }) {
   const duration = step.timer_sec ?? step.duration ?? 15;
@@ -218,38 +487,135 @@ function TimerStep({ step, onAdvance }: { step: any; onAdvance: () => void }) {
   const [running, setRunning] = useState(false);
   const [done, setDone] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const progressAnim = useRef(new Animated.Value(0)).current;
+  const glowAnim = useRef(new Animated.Value(0)).current;
+
   useEffect(() => () => { if (intervalRef.current) clearInterval(intervalRef.current); }, []);
-  const instruction = step.instructions ? (Array.isArray(step.instructions) ? step.instructions.join('\n') : step.instructions) : step.simulation_description ?? step.action ?? '';
+
+  function startTimer() {
+    setRunning(true);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    // Animate the progress arc
+    Animated.timing(progressAnim, { toValue: 1, duration: duration * 1000, useNativeDriver: false }).start();
+    Animated.timing(glowAnim, { toValue: 1, duration: 300, useNativeDriver: true }).start();
+    intervalRef.current = setInterval(() => {
+      setSeconds((s) => {
+        if (s <= 1) {
+          clearInterval(intervalRef.current!);
+          setDone(true);
+          setRunning(false);
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+          return 0;
+        }
+        return s - 1;
+      });
+    }, 1000);
+  }
+
+  const instruction = step.instructions
+    ? (Array.isArray(step.instructions) ? step.instructions.join('\n') : step.instructions)
+    : step.simulation_description ?? step.action ?? '';
+
+  // Progress ring circumference
+  const RADIUS = 52;
+  const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+
   return (
-    <View style={stepStyles.container}>
-      <Text style={stepStyles.choicePrompt}>{instruction}</Text>
-      <View style={stepStyles.timerRing}><Text style={stepStyles.timerNum}>{seconds}</Text><Text style={stepStyles.timerLabel}>sec</Text></View>
-      {!running && !done && <Pressable style={stepStyles.advanceBtn} onPress={() => { setRunning(true); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); intervalRef.current = setInterval(() => { setSeconds((s) => { if (s<=1) { clearInterval(intervalRef.current!); setDone(true); setRunning(false); Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success); return 0; } return s-1; }); }, 1000); }}><Text style={stepStyles.advanceBtnText}>Start →</Text></Pressable>}
-      {running && <Text style={stepStyles.timerRunning}>Focus. Go.</Text>}
-      {done && <Pressable style={stepStyles.advanceBtn} onPress={onAdvance}><Text style={stepStyles.advanceBtnText}>Done →</Text></Pressable>}
+    <View style={timerStyles.container}>
+      <Text style={timerStyles.instruction}>{instruction}</Text>
+
+      {/* Ring + number */}
+      <View style={timerStyles.ringWrap}>
+        {/* Outer track ring */}
+        <View style={timerStyles.ringTrack} />
+
+        {/* Animated glow fill overlay */}
+        <Animated.View style={[timerStyles.ringGlow, { opacity: glowAnim }]} />
+
+        {/* Center number */}
+        <View style={timerStyles.ringCenter}>
+          <Text style={[timerStyles.ringNum, done && { color: Colors.primary }]}>{seconds}</Text>
+          <Text style={timerStyles.ringUnit}>{running || done ? 'sec' : `sec`}</Text>
+        </View>
+
+        {/* Running pulse ring */}
+        {running && (
+          <Animated.View style={[timerStyles.pulseRing, {
+            opacity: progressAnim.interpolate({ inputRange: [0, 0.5, 1], outputRange: [0.4, 0.15, 0.05] }),
+          }]} />
+        )}
+      </View>
+
+      {done && <Text style={timerStyles.doneText}>Time's up. Lock it in.</Text>}
+
+      {!running && !done && (
+        <Pressable style={timerStyles.startBtn} onPress={startTimer}>
+          <LinearGradient
+            colors={[Colors.primary, '#18A84A']}
+            style={StyleSheet.absoluteFill}
+            start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+          />
+          <Ionicons name="play" size={14} color="#000" />
+          <Text style={timerStyles.startBtnText}>Start</Text>
+        </Pressable>
+      )}
+
+      {running && (
+        <View style={timerStyles.runningLabel}>
+          <View style={timerStyles.runningDot} />
+          <Text style={timerStyles.runningText}>Focus. Go.</Text>
+        </View>
+      )}
+
+      {done && <AdvanceButton label="Done →" onPress={onAdvance} />}
     </View>
   );
 }
+
+// ─── REFLECTION STEP ─────────────────────────────────────────────────────────
 
 function ReflectionStep({ step, onAdvance }: { step: any; onAdvance: () => void }) {
   return (
-    <View style={stepStyles.container}>
-      <View style={stepStyles.reflectIcon}><Ionicons name="bulb" size={24} color={Colors.warning} /></View>
-      <Text style={stepStyles.sparkContent}>{step.content ?? step.text ?? step.prompt ?? step.reframe_prompt ?? ''}</Text>
-      {step.example_reframe && <View style={stepStyles.cueBox}><Text style={stepStyles.cueLabel}>EXAMPLE</Text><Text style={stepStyles.cueText}>{step.example_reframe}</Text></View>}
-      <Pressable style={stepStyles.advanceBtn} onPress={onAdvance}><Text style={stepStyles.advanceBtnText}>Got it →</Text></Pressable>
+    <View style={reflectStyles.container}>
+      <View style={reflectStyles.bulbWrap}>
+        <LinearGradient
+          colors={[Colors.warningMuted, 'transparent']}
+          style={StyleSheet.absoluteFill}
+          start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }}
+        />
+        <Ionicons name="bulb" size={28} color={Colors.warning} />
+      </View>
+      <Text style={reflectStyles.body}>{step.content ?? step.text ?? step.prompt ?? step.reframe_prompt ?? ''}</Text>
+      {step.example_reframe && (
+        <View style={reflectStyles.exampleBox}>
+          <Text style={reflectStyles.exampleLabel}>EXAMPLE</Text>
+          <Text style={reflectStyles.exampleText}>{step.example_reframe}</Text>
+        </View>
+      )}
+      <AdvanceButton label="Got it →" onPress={onAdvance} />
     </View>
   );
 }
 
+// ─── FEEDBACK STEP ───────────────────────────────────────────────────────────
+
 function FeedbackStep({ step, onAdvance }: { step: any; onAdvance: () => void }) {
+  const scaleAnim = useRef(new Animated.Value(0.8)).current;
+  useEffect(() => {
+    Animated.spring(scaleAnim, { toValue: 1, tension: 80, friction: 8, useNativeDriver: true }).start();
+  }, []);
   return (
-    <View style={stepStyles.container}>
-      <View style={stepStyles.feedbackCard}><Ionicons name="checkmark-circle" size={32} color={Colors.primary} /><Text style={stepStyles.feedbackText}>{step.content ?? step.text ?? step.message ?? ''}</Text></View>
-      <Pressable style={stepStyles.advanceBtn} onPress={onAdvance}><Text style={stepStyles.advanceBtnText}>Continue →</Text></Pressable>
+    <View style={feedbackStyles.container}>
+      <Animated.View style={[feedbackStyles.iconWrap, { transform: [{ scale: scaleAnim }] }]}>
+        <Ionicons name="checkmark-circle" size={44} color={Colors.primary} />
+      </Animated.View>
+      <Text style={feedbackStyles.text}>{step.content ?? step.text ?? step.message ?? ''}</Text>
+      <AdvanceButton label="Continue →" onPress={onAdvance} />
     </View>
   );
 }
+
+// ─── NOTICE/WONDER STEP — Three completely different phase identities ─────────
 
 function NoticeWonderStep({ step, onAdvance }: { step: any; onAdvance: () => void }) {
   type Phase = 'notice' | 'wonder' | 'reveal';
@@ -259,81 +625,235 @@ function NoticeWonderStep({ step, onAdvance }: { step: any; onAdvance: () => voi
   const phaseAnim = useRef(new Animated.Value(1)).current;
   const noticeItems: string[] = step.notice_items ?? [];
   const wonderOptions: { id: string; text: string }[] = step.wonder_options ?? [];
+
   function transition(next: Phase) {
-    Animated.timing(phaseAnim, { toValue:0, duration:150, useNativeDriver:true }).start(() => { setPhase(next); Animated.timing(phaseAnim, { toValue:1, duration:250, useNativeDriver:true }).start(); });
     Haptics.selectionAsync();
+    Animated.timing(phaseAnim, { toValue: 0, duration: 180, useNativeDriver: true }).start(() => {
+      setPhase(next);
+      Animated.spring(phaseAnim, { toValue: 1, tension: 80, friction: 12, useNativeDriver: true }).start();
+    });
   }
+
   const guessedRight = wonderPick === step.wonder_correct_id;
-  return (
-    <View style={nwStyles.container}>
-      {phase === 'notice' && (
-        <Animated.View style={[nwStyles.phaseWrap, { opacity: phaseAnim }]}>
-          <View style={nwStyles.phaseBadge}><Text style={nwStyles.phaseBadgeText}>NOTICE</Text></View>
-          <Text style={nwStyles.situationLabel}>THE SITUATION</Text>
-          <View style={nwStyles.situationCard}><Text style={nwStyles.situationText}>{step.situation ?? step.content ?? ''}</Text></View>
-          <Text style={nwStyles.instruct}>Tap everything you notice. No wrong answers.</Text>
-          <View style={nwStyles.chipGrid}>
-            {noticeItems.map((item, i) => { const picked = noticePicks.includes(item); return (
-              <Pressable key={i} style={[nwStyles.chip, picked && nwStyles.chipPicked]} onPress={() => { Haptics.selectionAsync(); setNoticePicks((p) => p.includes(item) ? p.filter((x) => x!==item) : [...p, item]); }}>
-                {picked && <Ionicons name="checkmark" size={11} color={Colors.primary} style={{ marginRight: 3 }} />}
+
+  // ── NOTICE PHASE — cool blue-tinted ──
+  if (phase === 'notice') {
+    return (
+      <Animated.View style={[nwStyles.container, { opacity: phaseAnim }]}>
+        {/* Phase header */}
+        <View style={nwStyles.noticeHeader}>
+          <View style={nwStyles.noticePhaseBadge}>
+            <Ionicons name="eye" size={11} color={Colors.info} />
+            <Text style={[nwStyles.phaseBadgeText, { color: Colors.info }]}>NOTICE</Text>
+          </View>
+          <Text style={nwStyles.phaseStep}>1 of 3</Text>
+        </View>
+
+        {/* Situation card — blue left border */}
+        <View style={nwStyles.situationCard}>
+          <View style={[nwStyles.situationBorder, { backgroundColor: Colors.info }]} />
+          <View style={nwStyles.situationInner}>
+            <Text style={nwStyles.situationLabel}>THE SITUATION</Text>
+            <Text style={nwStyles.situationText}>{step.situation ?? step.content ?? ''}</Text>
+          </View>
+        </View>
+
+        <Text style={nwStyles.noticeInstruct}>Tap everything you notice. No wrong answers.</Text>
+
+        {/* Chip grid */}
+        <View style={nwStyles.chipGrid}>
+          {noticeItems.map((item, i) => {
+            const picked = noticePicks.includes(item);
+            return (
+              <Pressable
+                key={i}
+                style={[nwStyles.chip, picked && nwStyles.chipPicked]}
+                onPress={() => {
+                  Haptics.selectionAsync();
+                  setNoticePicks((p) => p.includes(item) ? p.filter((x) => x !== item) : [...p, item]);
+                }}
+              >
+                {picked && <Ionicons name="checkmark" size={10} color={Colors.primary} style={{ marginRight: 3 }} />}
                 <Text style={[nwStyles.chipText, picked && nwStyles.chipTextPicked]}>{item}</Text>
               </Pressable>
-            ); })}
+            );
+          })}
+        </View>
+
+        <Pressable
+          style={[nwStyles.phaseBtn, noticePicks.length === 0 && nwStyles.phaseBtnDisabled]}
+          onPress={noticePicks.length > 0 ? () => transition('wonder') : undefined}
+        >
+          <Text style={nwStyles.phaseBtnText}>
+            {noticePicks.length === 0 ? 'Tap what you notice' : `I noticed ${noticePicks.length} → Wonder`}
+          </Text>
+          {noticePicks.length > 0 && <Ionicons name="arrow-forward" size={14} color="#000" />}
+        </Pressable>
+      </Animated.View>
+    );
+  }
+
+  // ── WONDER PHASE — warm amber tinted ──
+  if (phase === 'wonder') {
+    return (
+      <Animated.View style={[nwStyles.container, { opacity: phaseAnim }]}>
+        <View style={nwStyles.wonderHeader}>
+          <View style={nwStyles.wonderPhaseBadge}>
+            <Ionicons name="help-circle" size={11} color={Colors.warning} />
+            <Text style={[nwStyles.phaseBadgeText, { color: Colors.warning }]}>WONDER</Text>
           </View>
-          <Pressable style={[nwStyles.nextBtn, noticePicks.length===0 && nwStyles.nextBtnDisabled]} onPress={noticePicks.length>0 ? () => transition('wonder') : undefined}>
-            <Text style={nwStyles.nextBtnText}>{noticePicks.length===0 ? 'Tap what you notice' : `I noticed ${noticePicks.length} thing${noticePicks.length!==1?'s':''} →`}</Text>
-          </Pressable>
-        </Animated.View>
-      )}
-      {phase === 'wonder' && (
-        <Animated.View style={[nwStyles.phaseWrap, { opacity: phaseAnim }]}>
-          <View style={[nwStyles.phaseBadge, nwStyles.phaseBadgeWonder]}><Text style={[nwStyles.phaseBadgeText, { color: Colors.warning }]}>WONDER</Text></View>
-          <Text style={nwStyles.wonderPrompt}>{step.wonder_prompt ?? 'What do you think happens next?'}</Text>
-          <View style={nwStyles.wonderOptions}>
-            {wonderOptions.map((opt) => { const picked = wonderPick===opt.id; return (
-              <Pressable key={opt.id} style={[nwStyles.wonderOption, picked && nwStyles.wonderOptionPicked]} onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); setWonderPick(opt.id); }}>
-                <View style={[nwStyles.wonderRadio, picked && nwStyles.wonderRadioFilled]} />
-                <Text style={[nwStyles.wonderOptionText, picked && nwStyles.wonderOptionTextPicked]}>{opt.text}</Text>
+          <Text style={nwStyles.phaseStep}>2 of 3</Text>
+        </View>
+
+        <Text style={nwStyles.wonderPrompt}>{step.wonder_prompt ?? 'What do you think happens next?'}</Text>
+
+        <View style={nwStyles.wonderList}>
+          {wonderOptions.map((opt) => {
+            const picked = wonderPick === opt.id;
+            return (
+              <Pressable
+                key={opt.id}
+                style={[nwStyles.wonderOption, picked && nwStyles.wonderOptionPicked]}
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                  setWonderPick(opt.id);
+                }}
+              >
+                <View style={[nwStyles.wonderRadio, picked && nwStyles.wonderRadioFilled]}>
+                  {picked && <View style={nwStyles.wonderRadioDot} />}
+                </View>
+                <Text style={[nwStyles.wonderOptionText, picked && { color: Colors.textPrimary, fontFamily: 'Inter_600SemiBold' }]}>
+                  {opt.text}
+                </Text>
               </Pressable>
-            ); })}
+            );
+          })}
+        </View>
+
+        {wonderPick && (
+          <Pressable style={[nwStyles.phaseBtn, nwStyles.phaseBtnWonder]} onPress={() => transition('reveal')}>
+            <Text style={nwStyles.phaseBtnText}>Show me what happens →</Text>
+          </Pressable>
+        )}
+      </Animated.View>
+    );
+  }
+
+  // ── REVEAL PHASE — green tinted, the payoff ──
+  return (
+    <Animated.View style={[nwStyles.container, { opacity: phaseAnim }]}>
+      <View style={nwStyles.revealHeader}>
+        <View style={nwStyles.revealPhaseBadge}>
+          <Ionicons name="bulb" size={11} color={Colors.primary} />
+          <Text style={[nwStyles.phaseBadgeText, { color: Colors.primary }]}>REVEAL</Text>
+        </View>
+        <Text style={nwStyles.phaseStep}>3 of 3</Text>
+      </View>
+
+      {/* Right/wrong guess result */}
+      {wonderPick && (
+        <View style={[nwStyles.guessBanner, guessedRight ? nwStyles.guessBannerRight : nwStyles.guessBannerWrong]}>
+          <Ionicons
+            name={guessedRight ? 'checkmark-circle' : 'information-circle'}
+            size={16}
+            color={guessedRight ? Colors.primary : Colors.warning}
+          />
+          <Text style={[nwStyles.guessText, { color: guessedRight ? Colors.primary : Colors.warning }]}>
+            {guessedRight ? 'Your prediction was right.' : 'Here is what actually happens.'}
+          </Text>
+        </View>
+      )}
+
+      {/* Reveal text card — green left border */}
+      <View style={nwStyles.revealCard}>
+        <View style={[nwStyles.situationBorder, { backgroundColor: Colors.primary }]} />
+        <View style={nwStyles.situationInner}>
+          <Text style={nwStyles.revealText}>{step.reveal ?? ''}</Text>
+        </View>
+      </View>
+
+      {/* What you noticed recap */}
+      {noticePicks.length > 0 && (
+        <View style={nwStyles.recapWrap}>
+          <Text style={nwStyles.recapLabel}>YOU NOTICED</Text>
+          <View style={nwStyles.recapChips}>
+            {noticePicks.map((item, i) => (
+              <View key={i} style={nwStyles.recapChip}>
+                <Text style={nwStyles.recapChipText}>{item}</Text>
+              </View>
+            ))}
           </View>
-          {wonderPick && <Pressable style={nwStyles.nextBtn} onPress={() => transition('reveal')}><Text style={nwStyles.nextBtnText}>Show me what happens →</Text></Pressable>}
-        </Animated.View>
+        </View>
       )}
-      {phase === 'reveal' && (
-        <Animated.View style={[nwStyles.phaseWrap, { opacity: phaseAnim }]}>
-          <View style={[nwStyles.phaseBadge, nwStyles.phaseBadgeReveal]}><Text style={[nwStyles.phaseBadgeText, { color: Colors.info }]}>REVEAL</Text></View>
-          {wonderPick && (
-            <View style={[nwStyles.guessFeedback, guessedRight ? nwStyles.guessFeedbackRight : nwStyles.guessFeedbackWrong]}>
-              <Ionicons name={guessedRight?'checkmark-circle':'information-circle'} size={16} color={guessedRight?Colors.primary:Colors.warning} />
-              <Text style={[nwStyles.guessFeedbackText, { color: guessedRight?Colors.primary:Colors.warning }]}>{guessedRight ? 'Your prediction was right.' : 'Here is what actually happens.'}</Text>
-            </View>
-          )}
-          <View style={nwStyles.revealCard}><Text style={nwStyles.revealText}>{step.reveal ?? ''}</Text></View>
-          {noticePicks.length > 0 && <View style={nwStyles.noticeRecap}><Text style={nwStyles.noticeRecapLabel}>YOU NOTICED</Text><View style={nwStyles.noticeRecapChips}>{noticePicks.map((item, i) => <View key={i} style={nwStyles.noticeRecapChip}><Text style={nwStyles.noticeRecapChipText}>{item}</Text></View>)}</View></View>}
-          {(step.reveal_cue ?? step.cue ?? '') !== '' && <View style={nwStyles.cueBox}><Text style={nwStyles.cueLabel}>LOCK IN YOUR CUE</Text><Text style={nwStyles.cueText}>{step.reveal_cue ?? step.cue}</Text></View>}
-          <Pressable style={[nwStyles.nextBtn, { backgroundColor: Colors.primary }]} onPress={onAdvance}><Text style={nwStyles.nextBtnText}>Locked in →</Text></Pressable>
-        </Animated.View>
+
+      {/* Cue box — the stamped takeaway */}
+      {(step.reveal_cue ?? step.cue ?? '') !== '' && (
+        <CueBox cue={step.reveal_cue ?? step.cue} label="LOCK IN YOUR CUE" />
       )}
-    </View>
+
+      <AdvanceButton label="Locked in →" onPress={onAdvance} variant="primary" />
+    </Animated.View>
   );
 }
 
+// ─── SHARED: ADVANCE BUTTON ───────────────────────────────────────────────────
+
+function AdvanceButton({ label, onPress, disabled = false, variant = 'default' }: {
+  label: string; onPress?: () => void; disabled?: boolean; variant?: 'default' | 'primary';
+}) {
+  return (
+    <Pressable
+      style={({ pressed }) => [
+        advanceStyles.btn,
+        variant === 'primary' && advanceStyles.btnPrimary,
+        disabled && advanceStyles.btnDisabled,
+        pressed && !disabled && { opacity: 0.88 },
+      ]}
+      onPress={onPress}
+      disabled={disabled}
+    >
+      {variant === 'primary' && !disabled && (
+        <LinearGradient
+          colors={[Colors.primary, '#18A84A']}
+          style={StyleSheet.absoluteFill}
+          start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+        />
+      )}
+      <Text style={[advanceStyles.btnText, variant === 'primary' && !disabled && { color: '#000' }, disabled && { color: Colors.textTertiary }]}>
+        {label}
+      </Text>
+    </Pressable>
+  );
+}
+
+// ─── STEP ROUTER ─────────────────────────────────────────────────────────────
+
 function StepRenderer({ step, onAdvance }: { step: any; onAdvance: (passed?: boolean) => void }) {
-  if (step.ui_variant) return <View style={stepStyles.container}><VariantRenderer step={step} onAdvance={onAdvance} /></View>;
+  if (step.ui_variant) return <View style={stepRouterStyles.interactiveWrap}><VariantRenderer step={step} onAdvance={onAdvance} /></View>;
   const adv = () => onAdvance();
   switch (step.type ?? '') {
-    case 'spark': case 'text': case 'action': return <SparkStep step={step} onAdvance={adv} />;
-    case 'choice': case 'scenario': case 'scenario_pick': case 'decision': case 'freeze_frame': return <ChoiceStep step={step} onAdvance={adv} />;
-    case 'checklist': case 'quick_reset': return <ChecklistStep step={step} onAdvance={adv} />;
-    case 'cue': case 'visualization': case 'reframe_builder': case 'pressureRep': return <VisualizationStep step={step} onAdvance={adv} />;
-    case 'timer': case 'pressure_rep': return <TimerStep step={step} onAdvance={adv} />;
-    case 'reflection': return <ReflectionStep step={step} onAdvance={adv} />;
-    case 'feedback': case 'reward': return <FeedbackStep step={step} onAdvance={adv} />;
-    case 'notice_wonder': return <NoticeWonderStep step={step} onAdvance={adv} />;
-    default: return <SparkStep step={step} onAdvance={adv} />;
+    case 'spark': case 'text': case 'action':
+      return <SparkStep step={step} onAdvance={adv} />;
+    case 'choice': case 'scenario': case 'scenario_pick': case 'decision': case 'freeze_frame':
+      return <ChoiceStep step={step} onAdvance={adv} />;
+    case 'checklist': case 'quick_reset':
+      return <ChecklistStep step={step} onAdvance={adv} />;
+    case 'cue': case 'visualization': case 'reframe_builder': case 'pressureRep':
+      return <VisualizationStep step={step} onAdvance={adv} />;
+    case 'timer': case 'pressure_rep':
+      return <TimerStep step={step} onAdvance={adv} />;
+    case 'reflection':
+      return <ReflectionStep step={step} onAdvance={adv} />;
+    case 'feedback': case 'reward':
+      return <FeedbackStep step={step} onAdvance={adv} />;
+    case 'notice_wonder':
+      return <NoticeWonderStep step={step} onAdvance={adv} />;
+    default:
+      return <SparkStep step={step} onAdvance={adv} />;
   }
 }
+
+// ─── COMPLETION OVERLAY ───────────────────────────────────────────────────────
 
 function CompletionOverlay({ lesson, passed, onClose }: { lesson: any; passed: boolean; onClose: () => void }) {
   const scaleAnim = useRef(new Animated.Value(0.7)).current;
@@ -342,15 +862,15 @@ function CompletionOverlay({ lesson, passed, onClose }: { lesson: any; passed: b
   useEffect(() => {
     Haptics.notificationAsync(passed ? Haptics.NotificationFeedbackType.Success : Haptics.NotificationFeedbackType.Warning);
     Animated.parallel([
-      Animated.spring(scaleAnim, { toValue:1, tension:80, friction:8, useNativeDriver:true }),
-      Animated.timing(fadeAnim, { toValue:1, duration:300, useNativeDriver:true }),
-    ]).start(() => Animated.spring(xpBounce, { toValue:1, tension:100, friction:6, useNativeDriver:true }).start());
+      Animated.spring(scaleAnim, { toValue: 1, tension: 80, friction: 8, useNativeDriver: true }),
+      Animated.timing(fadeAnim, { toValue: 1, duration: 300, useNativeDriver: true }),
+    ]).start(() => Animated.spring(xpBounce, { toValue: 1, tension: 100, friction: 6, useNativeDriver: true }).start());
   }, []);
   const xp = passed ? (lesson?.xp_reward ?? 50) : Math.floor((lesson?.xp_reward ?? 50) * 0.5);
   return (
     <Animated.View style={[completionStyles.overlay, { opacity: fadeAnim }]}>
       <Animated.View style={[completionStyles.card, { transform: [{ scale: scaleAnim }] }]}>
-        <Animated.View style={[completionStyles.xpBurst, { transform:[{ scale:xpBounce }] }, !passed && completionStyles.xpBurstPartial]}>
+        <Animated.View style={[completionStyles.xpBurst, { transform: [{ scale: xpBounce }] }, !passed && completionStyles.xpBurstPartial]}>
           <Ionicons name="flash" size={28} color={Colors.background} />
           <Text style={completionStyles.xpNum}>+{xp}</Text>
           <Text style={completionStyles.xpLabel}>XP</Text>
@@ -364,6 +884,7 @@ function CompletionOverlay({ lesson, passed, onClose }: { lesson: any; passed: b
           </Pressable>
         )}
         <Pressable style={completionStyles.nextBtn} onPress={onClose}>
+          <LinearGradient colors={[Colors.primary, '#18A84A']} style={StyleSheet.absoluteFill} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} />
           <Text style={completionStyles.nextBtnText}>{passed ? 'Back to Career →' : 'Continue anyway →'}</Text>
         </Pressable>
       </Animated.View>
@@ -383,10 +904,7 @@ export default function LessonPlayerScreen() {
   const [stepIndex, setStepIndex] = useState(0);
   const [sessionPassed, setSessionPassed] = useState(true);
   const [completionStage, setCompletionStage] = useState<'none'|'check_in'|'overlay'>('none');
-
-  // ── CRITICAL FIX: prevent advanceStep from firing after lesson is done ─────
   const completionTriggered = useRef(false);
-
   const stepFade = useRef(new Animated.Value(1)).current;
   const progressAnim = useRef(new Animated.Value(0)).current;
 
@@ -410,16 +928,14 @@ export default function LessonPlayerScreen() {
 
   useEffect(() => {
     if (totalSteps === 0) return;
-    Animated.spring(progressAnim, { toValue: (stepIndex + 1) / totalSteps, tension:60, friction:10, useNativeDriver:false }).start();
+    Animated.spring(progressAnim, { toValue: (stepIndex + 1) / totalSteps, tension: 60, friction: 10, useNativeDriver: false }).start();
   }, [stepIndex, totalSteps]);
 
   const advanceStep = useCallback((passed?: boolean) => {
-    // ── Never advance if completion already triggered (prevents blank screen) ─
     if (completionTriggered.current) return;
     if (passed === false) setSessionPassed(false);
-
     if (stepIndex >= totalSteps - 1) {
-      completionTriggered.current = true; // lock it
+      completionTriggered.current = true;
       const xp = lesson?.xp_reward ?? 50;
       const finalPassed = passed !== false && sessionPassed;
       if (athleteState && lesson) completeLesson(lesson.id ?? id, finalPassed ? xp : Math.floor(xp * 0.5));
@@ -427,10 +943,9 @@ export default function LessonPlayerScreen() {
       else { setCompletionStage('overlay'); }
       return;
     }
-
-    Animated.timing(stepFade, { toValue:0, duration:120, useNativeDriver:true }).start(() => {
+    Animated.timing(stepFade, { toValue: 0, duration: 100, useNativeDriver: true }).start(() => {
       setStepIndex((s) => s + 1);
-      Animated.timing(stepFade, { toValue:1, duration:200, useNativeDriver:true }).start();
+      Animated.timing(stepFade, { toValue: 1, duration: 220, useNativeDriver: true }).start();
     });
     Haptics.selectionAsync();
   }, [stepIndex, totalSteps, lesson, athleteState, completeLesson, id, sessionPassed]);
@@ -439,7 +954,10 @@ export default function LessonPlayerScreen() {
     if (!athleteState) { setCompletionStage('overlay'); return; }
     const current = athleteState.self_ratings;
     const merged: any = { ...current };
-    Object.entries(ratings).forEach(([key, val]) => { const existing = (current as any)[key] ?? 3; merged[key] = Math.round((val * 0.6 + existing * 0.4) * 10) / 10; });
+    Object.entries(ratings).forEach(([key, val]) => {
+      const existing = (current as any)[key] ?? 3;
+      merged[key] = Math.round((val * 0.6 + existing * 0.4) * 10) / 10;
+    });
     await updateAthleteState({ self_ratings: merged });
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     setCompletionStage('overlay');
@@ -447,217 +965,907 @@ export default function LessonPlayerScreen() {
 
   function handleExit() {
     if (completionStage !== 'none' || stepIndex === 0) { router.back(); return; }
-    Alert.alert('Exit lesson?', "Progress won't be saved.", [{ text: 'Keep going', style:'cancel' }, { text:'Exit', style:'destructive', onPress: () => router.back() }]);
+    Alert.alert('Exit lesson?', "Progress won't be saved.", [
+      { text: 'Keep going', style: 'cancel' },
+      { text: 'Exit', style: 'destructive', onPress: () => router.back() },
+    ]);
   }
 
-  if (loading) return <View style={[styles.center, { paddingTop:insets.top }]}><Text style={styles.loadingText}>Loading rep...</Text></View>;
-  if (error || !lesson) return <View style={[styles.center, { paddingTop:insets.top }]}><Text style={styles.errorText}>{error ?? 'Lesson not found'}</Text><Pressable style={styles.backBtn} onPress={() => router.back()}><Text style={styles.backBtnText}>← Go back</Text></Pressable></View>;
+  if (loading) return <View style={[screenStyles.center, { paddingTop: insets.top }]}><Text style={screenStyles.loadingText}>Loading rep...</Text></View>;
+  if (error || !lesson) return (
+    <View style={[screenStyles.center, { paddingTop: insets.top }]}>
+      <Text style={screenStyles.errorText}>{error ?? 'Lesson not found'}</Text>
+      <Pressable style={screenStyles.backBtn} onPress={() => router.back()}><Text style={screenStyles.backBtnText}>← Go back</Text></Pressable>
+    </View>
+  );
   if (totalSteps === 0) return (
-    <View style={[styles.container, { paddingTop:insets.top }]}>
-      <View style={styles.header}><Pressable onPress={handleExit} hitSlop={12} style={styles.closeBtn}><Ionicons name="close" size={22} color={Colors.textSecondary} /></Pressable></View>
-      <View style={styles.center}><Text style={styles.loadingText}>No steps in this lesson yet.</Text><Pressable style={styles.backBtn} onPress={() => router.back()}><Text style={styles.backBtnText}>← Go back</Text></Pressable></View>
+    <View style={[screenStyles.container, { paddingTop: insets.top }]}>
+      <View style={screenStyles.header}>
+        <Pressable onPress={handleExit} hitSlop={12} style={screenStyles.closeBtn}>
+          <Ionicons name="close" size={22} color={Colors.textSecondary} />
+        </Pressable>
+      </View>
+      <View style={screenStyles.center}>
+        <Text style={screenStyles.loadingText}>No steps in this lesson yet.</Text>
+        <Pressable style={screenStyles.backBtn} onPress={() => router.back()}><Text style={screenStyles.backBtnText}>← Go back</Text></Pressable>
+      </View>
     </View>
   );
 
-  // ── Safety clamp: never render undefined step ────────────────────────────────
   const safeIndex = Math.min(stepIndex, totalSteps - 1);
   const currentStep = steps[safeIndex] ?? null;
-
   const lessonFamily = lesson.lesson_family ?? lesson.pillar_id ?? 'Spark Card';
   const durationMin = Math.ceil((lesson.duration_sec ?? lesson.expected_time_sec ?? 90) / 60);
   const roleTag = (lesson.role_tags ?? [])[0] ?? '';
   const difficulty = lesson.difficulty_tier ?? lesson.difficulty ?? '';
+  const isBoss = !!lesson.is_boss;
+  const isCheckpoint = !!lesson.is_checkpoint;
 
   return (
-    <View style={[styles.container, { paddingTop:insets.top }]}>
-      <View style={styles.header}>
-        <Pressable onPress={handleExit} hitSlop={12} style={styles.closeBtn}><Ionicons name="close" size={22} color={Colors.textSecondary} /></Pressable>
-        <View style={styles.headerMeta}>
-          {roleTag !== '' && <View style={styles.roleTag}><Text style={styles.roleTagText}>{roleTag.toUpperCase()}</Text></View>}
-          {currentStep?.ui_variant && <View style={styles.interactiveBadge}><Ionicons name="game-controller" size={10} color={Colors.purple} /><Text style={styles.interactiveBadgeText}>INTERACTIVE</Text></View>}
-          {lesson.is_boss && <View style={styles.bossBadge}><Ionicons name="trophy" size={10} color={Colors.warning} /><Text style={styles.bossBadgeText}>BOSS</Text></View>}
-          {lesson.is_checkpoint && !lesson.is_boss && <View style={styles.checkpointBadge}><Ionicons name="flag" size={10} color={Colors.info} /><Text style={styles.checkpointBadgeText}>CHECKPOINT</Text></View>}
-          {difficulty !== '' && <Text style={styles.difficultyText}>{difficulty}</Text>}
-          <Text style={styles.durationText}>{durationMin} min</Text>
+    <View style={[screenStyles.container, { paddingTop: insets.top }]}>
+
+      {/* ── HEADER ── */}
+      <View style={screenStyles.header}>
+        <Pressable onPress={handleExit} hitSlop={12} style={screenStyles.closeBtn}>
+          <Ionicons name="close" size={20} color={Colors.textSecondary} />
+        </Pressable>
+        <View style={screenStyles.headerBadges}>
+          {roleTag !== '' && (
+            <View style={screenStyles.roleBadge}>
+              <Text style={screenStyles.roleBadgeText}>{roleTag.toUpperCase()}</Text>
+            </View>
+          )}
+          {currentStep?.ui_variant && (
+            <View style={screenStyles.interactiveBadge}>
+              <Ionicons name="game-controller" size={9} color={Colors.purple} />
+              <Text style={screenStyles.interactiveBadgeText}>INTERACTIVE</Text>
+            </View>
+          )}
+          {isBoss && (
+            <View style={screenStyles.bossBadge}>
+              <Ionicons name="trophy" size={9} color={Colors.warning} />
+              <Text style={screenStyles.bossBadgeText}>BOSS</Text>
+            </View>
+          )}
+          {isCheckpoint && !isBoss && (
+            <View style={screenStyles.checkpointBadge}>
+              <Ionicons name="flag" size={9} color={Colors.info} />
+              <Text style={screenStyles.checkpointBadgeText}>CHECKPOINT</Text>
+            </View>
+          )}
+          {difficulty !== '' && <Text style={screenStyles.diffText}>{difficulty}</Text>}
+          <Text style={screenStyles.durationText}>{durationMin} min</Text>
         </View>
       </View>
 
-      <View style={styles.progressTrack}>
-        <Animated.View style={[styles.progressFill, { width: progressAnim.interpolate({ inputRange:[0,1], outputRange:['0%','100%'] }), backgroundColor: lesson.is_boss ? Colors.warning : lesson.is_checkpoint ? Colors.info : Colors.primary }]} />
+      {/* ── PROGRESS BAR ── */}
+      <View style={screenStyles.progressTrack}>
+        <Animated.View style={[
+          screenStyles.progressFill,
+          {
+            width: progressAnim.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] }),
+            backgroundColor: isBoss ? Colors.warning : isCheckpoint ? Colors.info : Colors.primary,
+          },
+        ]} />
+        {/* Glow tip */}
+        <Animated.View style={[
+          screenStyles.progressTip,
+          {
+            left: progressAnim.interpolate({ inputRange: [0.01, 1], outputRange: ['1%', '98%'] }),
+            backgroundColor: isBoss ? Colors.warning : isCheckpoint ? Colors.info : Colors.primary,
+          },
+        ]} />
       </View>
 
+      {/* ── LESSON HEADER (first step only) ── */}
       {safeIndex === 0 && (
-        <View style={styles.lessonHeader}>
-          <Text style={styles.familyLabel}>{lessonFamily.toUpperCase()}</Text>
-          <Text style={styles.lessonTitle}>{lesson.title}</Text>
-          {lesson.subtitle && <Text style={styles.lessonSubtitle}>{lesson.subtitle}</Text>}
+        <View style={screenStyles.lessonHeader}>
+          <Text style={screenStyles.lessonFamily}>{lessonFamily.toUpperCase()}</Text>
+          <Text style={screenStyles.lessonTitle}>{lesson.title}</Text>
+          {lesson.subtitle && <Text style={screenStyles.lessonSubtitle}>{lesson.subtitle}</Text>}
         </View>
       )}
 
-      <View style={styles.stepCounter}>
-        <Text style={styles.stepCounterText}>{safeIndex + 1} / {totalSteps}</Text>
+      {/* ── STEP COUNTER ── */}
+      <View style={screenStyles.stepCounter}>
+        <Text style={screenStyles.stepCounterText}>{safeIndex + 1} / {totalSteps}</Text>
       </View>
 
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+      {/* ── STEP CONTENT ── */}
+      <ScrollView
+        style={screenStyles.scroll}
+        contentContainerStyle={screenStyles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
         <Animated.View style={{ opacity: stepFade }}>
           {currentStep && <StepRenderer step={currentStep} onAdvance={advanceStep} />}
         </Animated.View>
       </ScrollView>
 
-      {completionStage === 'check_in' && <SelfRatingCheckIn role={athleteState?.primary_role ?? 'default'} lessonTitle={lesson.title} isBoss={!!lesson.is_boss} onSubmit={handleRatingsSubmit} />}
-      {completionStage === 'overlay' && <CompletionOverlay lesson={lesson} passed={sessionPassed} onClose={() => router.back()} />}
+      {completionStage === 'check_in' && (
+        <SelfRatingCheckIn
+          role={athleteState?.primary_role ?? 'default'}
+          lessonTitle={lesson.title}
+          isBoss={isBoss}
+          onSubmit={handleRatingsSubmit}
+        />
+      )}
+      {completionStage === 'overlay' && (
+        <CompletionOverlay lesson={lesson} passed={sessionPassed} onClose={() => router.back()} />
+      )}
     </View>
   );
 }
 
-// ─── STYLES ──────────────────────────────────────────────────────────────────
+// ═════════════════════════════════════════════════════════════════════════════
+// STYLES
+// ═════════════════════════════════════════════════════════════════════════════
 
-const styles = StyleSheet.create({
-  container: { flex:1, backgroundColor:Colors.background },
-  center: { flex:1, alignItems:'center', justifyContent:'center', backgroundColor:Colors.background, gap:Spacing.lg, paddingHorizontal:Spacing.xl },
-  loadingText: { fontSize:16, fontFamily:'Inter_400Regular', color:Colors.textSecondary },
-  errorText: { fontSize:15, fontFamily:'Inter_400Regular', color:Colors.danger, textAlign:'center' },
-  backBtn: { paddingHorizontal:Spacing.lg, paddingVertical:Spacing.sm },
-  backBtnText: { fontSize:15, fontFamily:'Inter_600SemiBold', color:Colors.primary },
-  header: { flexDirection:'row', alignItems:'center', justifyContent:'space-between', paddingHorizontal:Spacing.xl, paddingVertical:Spacing.md },
-  closeBtn: { width:36, height:36, alignItems:'center', justifyContent:'center', backgroundColor:Colors.surface, borderRadius:Radius.sm, borderWidth:1, borderColor:Colors.border },
-  headerMeta: { flexDirection:'row', alignItems:'center', gap:Spacing.sm },
-  roleTag: { backgroundColor:Colors.primaryMuted, borderRadius:Radius.pill, paddingHorizontal:Spacing.sm, paddingVertical:3, borderWidth:1, borderColor:Colors.primaryBorder },
-  roleTagText: { fontSize:10, fontFamily:'Inter_700Bold', color:Colors.primary, letterSpacing:0.8 },
-  interactiveBadge: { flexDirection:'row', alignItems:'center', gap:3, backgroundColor:Colors.purpleMuted, borderRadius:Radius.pill, paddingHorizontal:Spacing.sm, paddingVertical:3, borderWidth:1, borderColor:`${Colors.purple}40` },
-  interactiveBadgeText: { fontSize:9, fontFamily:'Inter_700Bold', color:Colors.purple, letterSpacing:0.8 },
-  bossBadge: { flexDirection:'row', alignItems:'center', gap:3, backgroundColor:Colors.warningMuted, borderRadius:Radius.pill, paddingHorizontal:Spacing.sm, paddingVertical:3, borderWidth:1, borderColor:`${Colors.warning}50` },
-  bossBadgeText: { fontSize:9, fontFamily:'Inter_700Bold', color:Colors.warning, letterSpacing:0.8 },
-  checkpointBadge: { flexDirection:'row', alignItems:'center', gap:3, backgroundColor:Colors.infoMuted, borderRadius:Radius.pill, paddingHorizontal:Spacing.sm, paddingVertical:3, borderWidth:1, borderColor:`${Colors.info}50` },
-  checkpointBadgeText: { fontSize:9, fontFamily:'Inter_700Bold', color:Colors.info, letterSpacing:0.8 },
-  difficultyText: { fontSize:11, fontFamily:'Inter_400Regular', color:Colors.textTertiary, textTransform:'capitalize' },
-  durationText: { fontSize:11, fontFamily:'Inter_400Regular', color:Colors.textTertiary },
-  progressTrack: { height:3, backgroundColor:Colors.border, marginHorizontal:Spacing.xl, borderRadius:2 },
-  progressFill: { height:3, borderRadius:2 },
-  lessonHeader: { paddingHorizontal:Spacing.xl, paddingTop:Spacing.lg, paddingBottom:Spacing.sm, gap:4 },
-  familyLabel: { fontSize:10, fontFamily:'Inter_700Bold', color:Colors.primary, letterSpacing:1.2, marginBottom:2 },
-  lessonTitle: { fontSize:24, fontFamily:'Inter_700Bold', color:Colors.textPrimary, lineHeight:30 },
-  lessonSubtitle: { fontSize:14, fontFamily:'Inter_400Regular', color:Colors.textSecondary, lineHeight:20, marginTop:2 },
-  stepCounter: { paddingHorizontal:Spacing.xl, paddingTop:Spacing.sm },
-  stepCounterText: { fontSize:11, fontFamily:'Inter_600SemiBold', color:Colors.textTertiary, letterSpacing:0.5 },
-  scroll: { flex:1 },
-  scrollContent: { paddingHorizontal:Spacing.xl, paddingTop:Spacing.lg, paddingBottom:60 },
+// ─── Spark ────────────────────────────────────────────────────────────────────
+const sparkStyles = StyleSheet.create({
+  container: { gap: Spacing.lg },
+  topAccent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    marginBottom: 4,
+  },
+  accentLine: {
+    width: 28,
+    height: 2,
+    backgroundColor: Colors.primary,
+    borderRadius: 1,
+  },
+  accentLineFade: {
+    flex: 1,
+    height: 1,
+    backgroundColor: Colors.primary,
+    opacity: 0.15,
+    borderRadius: 1,
+  },
+  accentLabel: {
+    fontSize: 9,
+    fontFamily: 'Inter_700Bold',
+    color: Colors.primary,
+    letterSpacing: 2,
+  },
+  body: {
+    fontSize: 19,
+    fontFamily: 'Inter_500Medium',
+    color: Colors.textPrimary,
+    lineHeight: 30,
+    letterSpacing: -0.1,
+  },
+  actionBox: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: Spacing.sm,
+    backgroundColor: Colors.surfaceElevated,
+    borderRadius: Radius.md,
+    padding: Spacing.lg,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  actionText: {
+    fontSize: 14,
+    fontFamily: 'Inter_400Regular',
+    color: Colors.textSecondary,
+    flex: 1,
+    lineHeight: 20,
+  },
 });
 
-const stepStyles = StyleSheet.create({
-  container: { gap:Spacing.lg },
-  sparkAccent: { width:32, height:3, backgroundColor:Colors.primary, borderRadius:2, marginBottom:Spacing.sm },
-  sparkContent: { fontSize:18, fontFamily:'Inter_500Medium', color:Colors.textPrimary, lineHeight:28 },
-  cueBox: { backgroundColor:Colors.primaryMuted, borderRadius:Radius.md, padding:Spacing.lg, borderWidth:1, borderColor:Colors.primaryBorder, gap:4 },
-  cueLabel: { fontSize:10, fontFamily:'Inter_700Bold', color:Colors.primary, letterSpacing:1 },
-  cueText: { fontSize:15, fontFamily:'Inter_600SemiBold', color:Colors.textPrimary, lineHeight:22 },
-  actionBox: { flexDirection:'row', alignItems:'flex-start', gap:Spacing.sm, backgroundColor:Colors.surface, borderRadius:Radius.md, padding:Spacing.lg, borderWidth:1, borderColor:Colors.border },
-  actionText: { fontSize:14, fontFamily:'Inter_400Regular', color:Colors.textSecondary, flex:1, lineHeight:20 },
-  choicePrompt: { fontSize:17, fontFamily:'Inter_600SemiBold', color:Colors.textPrimary, lineHeight:24 },
-  choiceList: { gap:Spacing.sm },
-  choiceBtn: { borderRadius:Radius.md, borderWidth:1.5, padding:Spacing.lg, gap:4, backgroundColor:Colors.surface, borderColor:Colors.border },
-  choiceText: { fontSize:15, fontFamily:'Inter_500Medium', color:Colors.textPrimary, lineHeight:22 },
-  choiceFeedback: { fontSize:13, fontFamily:'Inter_400Regular', lineHeight:18, marginTop:4 },
-  checkList: { gap:Spacing.sm },
-  checkRow: { flexDirection:'row', alignItems:'flex-start', gap:Spacing.md, backgroundColor:Colors.surface, borderRadius:Radius.md, padding:Spacing.lg, borderWidth:1, borderColor:Colors.border },
-  checkBox: { width:22, height:22, borderRadius:6, borderWidth:1.5, borderColor:Colors.border, alignItems:'center', justifyContent:'center', marginTop:1 },
-  checkBoxDone: { backgroundColor:Colors.primary, borderColor:Colors.primary },
-  checkText: { fontSize:14, fontFamily:'Inter_400Regular', color:Colors.textPrimary, flex:1, lineHeight:20 },
-  checkTextDone: { color:Colors.textTertiary, textDecorationLine:'line-through' },
-  vizOrb: { width:80, height:80, borderRadius:40, backgroundColor:Colors.primaryMuted, borderWidth:2, borderColor:Colors.primaryBorder, alignItems:'center', justifyContent:'center', alignSelf:'center' },
-  vizBody: { fontSize:17, fontFamily:'Inter_500Medium', color:Colors.textPrimary, lineHeight:26, textAlign:'center' },
-  timerRing: { width:120, height:120, borderRadius:60, borderWidth:4, borderColor:Colors.border, alignItems:'center', justifyContent:'center', alignSelf:'center' },
-  timerNum: { fontSize:36, fontFamily:'Inter_700Bold', color:Colors.textPrimary, lineHeight:40 },
-  timerLabel: { fontSize:12, fontFamily:'Inter_400Regular', color:Colors.textTertiary },
-  timerRunning: { fontSize:16, fontFamily:'Inter_600SemiBold', color:Colors.primary, textAlign:'center', letterSpacing:1 },
-  reflectIcon: { width:52, height:52, borderRadius:26, backgroundColor:Colors.warningMuted, alignItems:'center', justifyContent:'center', alignSelf:'center' },
-  feedbackCard: { alignItems:'center', gap:Spacing.md, padding:Spacing.xl, backgroundColor:Colors.primaryMuted, borderRadius:Radius.lg, borderWidth:1, borderColor:Colors.primaryBorder },
-  feedbackText: { fontSize:16, fontFamily:'Inter_500Medium', color:Colors.textPrimary, textAlign:'center', lineHeight:24 },
-  advanceBtn: { backgroundColor:Colors.primary, borderRadius:Radius.lg, paddingVertical:Spacing.lg, alignItems:'center', marginTop:Spacing.sm },
-  advanceBtnDisabled: { backgroundColor:Colors.surfaceElevated },
-  advanceBtnText: { fontSize:16, fontFamily:'Inter_700Bold', color:Colors.background, letterSpacing:0.3 },
+// ─── Cue Box ─────────────────────────────────────────────────────────────────
+const cueStyles = StyleSheet.create({
+  wrap: {
+    borderRadius: Radius.lg,
+    borderWidth: 1,
+    borderColor: Colors.primaryBorder,
+    overflow: 'hidden',
+    flexDirection: 'row',
+    // Glow shadow
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.18,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+  leftBar: {
+    width: 3,
+    backgroundColor: Colors.primary,
+  },
+  inner: {
+    flex: 1,
+    padding: Spacing.lg,
+    gap: Spacing.sm,
+  },
+  labelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  labelPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: Colors.primaryMuted,
+    borderRadius: Radius.pill,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderWidth: 1,
+    borderColor: Colors.primaryBorder,
+  },
+  labelText: {
+    fontSize: 9,
+    fontFamily: 'Inter_700Bold',
+    color: Colors.primary,
+    letterSpacing: 1.2,
+  },
+  cueText: {
+    fontSize: 17,
+    fontFamily: 'Inter_700Bold',
+    color: Colors.textPrimary,
+    lineHeight: 24,
+    letterSpacing: -0.1,
+  },
 });
 
+// ─── Choice ───────────────────────────────────────────────────────────────────
+const choiceStyles = StyleSheet.create({
+  container: { gap: Spacing.lg },
+  prompt: {
+    fontSize: 18,
+    fontFamily: 'Inter_600SemiBold',
+    color: Colors.textPrimary,
+    lineHeight: 26,
+    letterSpacing: -0.2,
+  },
+  list: { gap: 10 },
+  btn: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: Spacing.md,
+    borderRadius: Radius.lg,
+    borderWidth: 1.5,
+    padding: Spacing.lg,
+    backgroundColor: Colors.surface,
+    borderColor: Colors.border,
+  },
+  optionLetter: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+    marginTop: 1,
+  },
+  optionLetterText: {
+    fontSize: 11,
+    fontFamily: 'Inter_700Bold',
+    letterSpacing: 0.5,
+  },
+  btnContent: { flex: 1, gap: 6 },
+  btnText: {
+    fontSize: 15,
+    fontFamily: 'Inter_500Medium',
+    color: Colors.textPrimary,
+    lineHeight: 22,
+  },
+  feedback: {
+    fontSize: 13,
+    fontFamily: 'Inter_400Regular',
+    lineHeight: 19,
+  },
+  correctGlow: {
+    position: 'absolute',
+    top: 0, left: 0, right: 0, bottom: 0,
+    borderRadius: Radius.lg,
+    borderWidth: 1.5,
+    borderColor: Colors.primary,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
+    pointerEvents: 'none',
+  },
+});
+
+// ─── Checklist ────────────────────────────────────────────────────────────────
+const checklistStyles = StyleSheet.create({
+  container: { gap: Spacing.lg },
+  prompt: {
+    fontSize: 17,
+    fontFamily: 'Inter_600SemiBold',
+    color: Colors.textPrimary,
+    lineHeight: 24,
+  },
+  progressWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  progressTrack: {
+    flex: 1,
+    height: 3,
+    backgroundColor: Colors.surfaceElevated,
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: 3,
+    backgroundColor: Colors.primary,
+    borderRadius: 2,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 4,
+  },
+  progressLabel: {
+    fontSize: 11,
+    fontFamily: 'Inter_600SemiBold',
+    color: Colors.primary,
+    minWidth: 30,
+    textAlign: 'right',
+  },
+  list: { gap: 8 },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: Spacing.md,
+    backgroundColor: Colors.surface,
+    borderRadius: Radius.md,
+    padding: Spacing.lg,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  rowDone: {
+    borderColor: Colors.primaryBorder,
+    backgroundColor: Colors.primaryGlow,
+  },
+  checkbox: {
+    width: 24,
+    height: 24,
+    borderRadius: 8,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+    marginTop: 1,
+  },
+  itemText: {
+    fontSize: 14,
+    fontFamily: 'Inter_400Regular',
+    color: Colors.textPrimary,
+    flex: 1,
+    lineHeight: 21,
+  },
+  itemTextDone: {
+    color: Colors.textTertiary,
+    textDecorationLine: 'line-through',
+  },
+});
+
+// ─── Visualization / Cue ──────────────────────────────────────────────────────
+const vizStyles = StyleSheet.create({
+  container: { gap: Spacing.xl, alignItems: 'center' },
+  orb: {
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    backgroundColor: Colors.primaryMuted,
+    borderWidth: 1.5,
+    borderColor: Colors.primaryBorder,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 6,
+  },
+  body: {
+    fontSize: 18,
+    fontFamily: 'Inter_500Medium',
+    color: Colors.textPrimary,
+    lineHeight: 27,
+    textAlign: 'center',
+    alignSelf: 'stretch',
+  },
+});
+
+// ─── Timer ────────────────────────────────────────────────────────────────────
+const timerStyles = StyleSheet.create({
+  container: { gap: Spacing.xl, alignItems: 'center' },
+  instruction: {
+    fontSize: 16,
+    fontFamily: 'Inter_500Medium',
+    color: Colors.textPrimary,
+    lineHeight: 24,
+    textAlign: 'center',
+    alignSelf: 'stretch',
+  },
+  ringWrap: {
+    width: 140,
+    height: 140,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  ringTrack: {
+    position: 'absolute',
+    width: 130,
+    height: 130,
+    borderRadius: 65,
+    borderWidth: 4,
+    borderColor: Colors.surfaceElevated,
+  },
+  ringGlow: {
+    position: 'absolute',
+    width: 130,
+    height: 130,
+    borderRadius: 65,
+    borderWidth: 4,
+    borderColor: Colors.primary,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.6,
+    shadowRadius: 12,
+  },
+  pulseRing: {
+    position: 'absolute',
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+    borderWidth: 2,
+    borderColor: Colors.primary,
+  },
+  ringCenter: {
+    alignItems: 'center',
+    gap: 2,
+  },
+  ringNum: {
+    fontSize: 44,
+    fontFamily: 'Inter_700Bold',
+    color: Colors.textPrimary,
+    lineHeight: 48,
+  },
+  ringUnit: {
+    fontSize: 12,
+    fontFamily: 'Inter_400Regular',
+    color: Colors.textTertiary,
+    letterSpacing: 0.5,
+  },
+  doneText: {
+    fontSize: 15,
+    fontFamily: 'Inter_600SemiBold',
+    color: Colors.primary,
+    letterSpacing: 0.5,
+  },
+  startBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    borderRadius: Radius.pill,
+    paddingVertical: 12,
+    paddingHorizontal: Spacing.xl,
+    overflow: 'hidden',
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.45,
+    shadowRadius: 10,
+  },
+  startBtnText: {
+    fontSize: 14,
+    fontFamily: 'Inter_700Bold',
+    color: '#000',
+    letterSpacing: 0.3,
+  },
+  runningLabel: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+  },
+  runningDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: Colors.primary,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 1,
+    shadowRadius: 6,
+  },
+  runningText: {
+    fontSize: 14,
+    fontFamily: 'Inter_600SemiBold',
+    color: Colors.primary,
+    letterSpacing: 1,
+  },
+});
+
+// ─── Reflection ───────────────────────────────────────────────────────────────
+const reflectStyles = StyleSheet.create({
+  container: { gap: Spacing.lg, alignItems: 'center' },
+  bulbWrap: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: Colors.warningMuted,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: `${Colors.warning}35`,
+  },
+  body: {
+    fontSize: 17,
+    fontFamily: 'Inter_500Medium',
+    color: Colors.textPrimary,
+    lineHeight: 26,
+    textAlign: 'center',
+    alignSelf: 'stretch',
+  },
+  exampleBox: {
+    alignSelf: 'stretch',
+    backgroundColor: Colors.warningMuted,
+    borderRadius: Radius.md,
+    padding: Spacing.lg,
+    borderWidth: 1,
+    borderColor: `${Colors.warning}35`,
+    gap: 5,
+  },
+  exampleLabel: {
+    fontSize: 9,
+    fontFamily: 'Inter_700Bold',
+    color: Colors.warning,
+    letterSpacing: 1.2,
+  },
+  exampleText: {
+    fontSize: 14,
+    fontFamily: 'Inter_400Regular',
+    color: Colors.textSecondary,
+    lineHeight: 20,
+  },
+});
+
+// ─── Feedback ────────────────────────────────────────────────────────────────
+const feedbackStyles = StyleSheet.create({
+  container: { gap: Spacing.xl, alignItems: 'center' },
+  iconWrap: { alignItems: 'center' },
+  text: {
+    fontSize: 17,
+    fontFamily: 'Inter_500Medium',
+    color: Colors.textPrimary,
+    textAlign: 'center',
+    lineHeight: 26,
+    alignSelf: 'stretch',
+  },
+});
+
+// ─── Notice/Wonder ────────────────────────────────────────────────────────────
 const nwStyles = StyleSheet.create({
-  container: { gap:Spacing.lg },
-  phaseWrap: { gap:Spacing.lg },
-  phaseBadge: { alignSelf:'flex-start', backgroundColor:Colors.primaryMuted, borderRadius:Radius.pill, paddingHorizontal:Spacing.md, paddingVertical:4, borderWidth:1, borderColor:Colors.primaryBorder },
-  phaseBadgeWonder: { backgroundColor:Colors.warningMuted, borderColor:`${Colors.warning}40` },
-  phaseBadgeReveal: { backgroundColor:Colors.infoMuted, borderColor:`${Colors.info}40` },
-  phaseBadgeText: { fontSize:10, fontFamily:'Inter_700Bold', color:Colors.primary, letterSpacing:1.5 },
-  situationLabel: { fontSize:10, fontFamily:'Inter_700Bold', color:Colors.textTertiary, letterSpacing:1 },
-  situationCard: { backgroundColor:Colors.surface, borderRadius:Radius.lg, borderWidth:1.5, borderColor:Colors.border, borderLeftWidth:4, borderLeftColor:Colors.primary, padding:Spacing.lg },
-  situationText: { fontSize:16, fontFamily:'Inter_500Medium', color:Colors.textPrimary, lineHeight:24 },
-  instruct: { fontSize:13, fontFamily:'Inter_400Regular', color:Colors.textSecondary, lineHeight:19 },
-  chipGrid: { flexDirection:'row', flexWrap:'wrap', gap:Spacing.sm },
-  chip: { flexDirection:'row', alignItems:'center', paddingHorizontal:Spacing.md, paddingVertical:Spacing.sm, borderRadius:Radius.pill, borderWidth:1.5, borderColor:Colors.border, backgroundColor:Colors.surface },
-  chipPicked: { borderColor:Colors.primary, backgroundColor:Colors.primaryMuted },
-  chipText: { fontSize:13, fontFamily:'Inter_500Medium', color:Colors.textSecondary },
-  chipTextPicked: { color:Colors.primary, fontFamily:'Inter_600SemiBold' },
-  wonderPrompt: { fontSize:17, fontFamily:'Inter_600SemiBold', color:Colors.textPrimary, lineHeight:24 },
-  wonderOptions: { gap:Spacing.sm },
-  wonderOption: { flexDirection:'row', alignItems:'center', gap:Spacing.md, backgroundColor:Colors.surface, borderRadius:Radius.md, padding:Spacing.lg, borderWidth:1.5, borderColor:Colors.border },
-  wonderOptionPicked: { borderColor:Colors.warning, backgroundColor:Colors.warningMuted },
-  wonderRadio: { width:20, height:20, borderRadius:10, borderWidth:2, borderColor:Colors.border },
-  wonderRadioFilled: { borderColor:Colors.warning, backgroundColor:Colors.warning },
-  wonderOptionText: { fontSize:15, fontFamily:'Inter_400Regular', color:Colors.textPrimary, flex:1 },
-  wonderOptionTextPicked: { fontFamily:'Inter_600SemiBold', color:Colors.textPrimary },
-  guessFeedback: { flexDirection:'row', alignItems:'center', gap:Spacing.sm, padding:Spacing.md, borderRadius:Radius.md, borderWidth:1 },
-  guessFeedbackRight: { backgroundColor:Colors.primaryMuted, borderColor:Colors.primaryBorder },
-  guessFeedbackWrong: { backgroundColor:Colors.warningMuted, borderColor:`${Colors.warning}40` },
-  guessFeedbackText: { fontSize:13, fontFamily:'Inter_600SemiBold', flex:1 },
-  revealCard: { backgroundColor:Colors.surface, borderRadius:Radius.lg, borderWidth:1, borderColor:Colors.border, borderLeftWidth:4, borderLeftColor:Colors.info, padding:Spacing.lg },
-  revealText: { fontSize:16, fontFamily:'Inter_500Medium', color:Colors.textPrimary, lineHeight:25 },
-  noticeRecap: { gap:6 },
-  noticeRecapLabel: { fontSize:9, fontFamily:'Inter_700Bold', color:Colors.textTertiary, letterSpacing:1.2 },
-  noticeRecapChips: { flexDirection:'row', flexWrap:'wrap', gap:5 },
-  noticeRecapChip: { backgroundColor:Colors.primaryMuted, borderRadius:Radius.pill, paddingHorizontal:Spacing.sm, paddingVertical:3, borderWidth:1, borderColor:Colors.primaryBorder },
-  noticeRecapChipText: { fontSize:11, fontFamily:'Inter_600SemiBold', color:Colors.primary },
-  cueBox: { backgroundColor:Colors.primaryMuted, borderRadius:Radius.md, padding:Spacing.lg, borderWidth:1, borderColor:Colors.primaryBorder, gap:4 },
-  cueLabel: { fontSize:9, fontFamily:'Inter_700Bold', color:Colors.primary, letterSpacing:1 },
-  cueText: { fontSize:15, fontFamily:'Inter_600SemiBold', color:Colors.textPrimary, lineHeight:22 },
-  nextBtn: { backgroundColor:Colors.primary, borderRadius:Radius.lg, paddingVertical:Spacing.lg, alignItems:'center' },
-  nextBtnDisabled: { backgroundColor:Colors.surfaceElevated },
-  nextBtnText: { fontSize:16, fontFamily:'Inter_700Bold', color:Colors.background },
+  container: { gap: Spacing.lg },
+
+  // Phase headers
+  noticeHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  wonderHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  revealHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+
+  noticePhaseBadge: {
+    flexDirection: 'row', alignItems: 'center', gap: 5,
+    backgroundColor: `${Colors.info}18`, borderRadius: Radius.pill,
+    paddingHorizontal: 10, paddingVertical: 4,
+    borderWidth: 1, borderColor: `${Colors.info}35`,
+  },
+  wonderPhaseBadge: {
+    flexDirection: 'row', alignItems: 'center', gap: 5,
+    backgroundColor: `${Colors.warning}18`, borderRadius: Radius.pill,
+    paddingHorizontal: 10, paddingVertical: 4,
+    borderWidth: 1, borderColor: `${Colors.warning}35`,
+  },
+  revealPhaseBadge: {
+    flexDirection: 'row', alignItems: 'center', gap: 5,
+    backgroundColor: Colors.primaryMuted, borderRadius: Radius.pill,
+    paddingHorizontal: 10, paddingVertical: 4,
+    borderWidth: 1, borderColor: Colors.primaryBorder,
+  },
+  phaseBadgeText: { fontSize: 10, fontFamily: 'Inter_700Bold', letterSpacing: 1.2 },
+  phaseStep: { fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.textTertiary },
+
+  // Situation card
+  situationCard: {
+    flexDirection: 'row',
+    backgroundColor: Colors.surface,
+    borderRadius: Radius.lg,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    overflow: 'hidden',
+  },
+  situationBorder: { width: 3 },
+  situationInner: { flex: 1, padding: Spacing.lg, gap: 6 },
+  situationLabel: { fontSize: 9, fontFamily: 'Inter_700Bold', color: Colors.textTertiary, letterSpacing: 1.2 },
+  situationText: { fontSize: 15, fontFamily: 'Inter_500Medium', color: Colors.textPrimary, lineHeight: 23 },
+
+  noticeInstruct: {
+    fontSize: 13,
+    fontFamily: 'Inter_400Regular',
+    color: Colors.textSecondary,
+    lineHeight: 19,
+  },
+
+  // Chips
+  chipGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  chip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: Radius.pill,
+    borderWidth: 1.5,
+    borderColor: Colors.border,
+    backgroundColor: Colors.surface,
+  },
+  chipPicked: { borderColor: Colors.primary, backgroundColor: Colors.primaryMuted },
+  chipText: { fontSize: 13, fontFamily: 'Inter_500Medium', color: Colors.textSecondary },
+  chipTextPicked: { color: Colors.primary, fontFamily: 'Inter_600SemiBold' },
+
+  // Wonder
+  wonderPrompt: {
+    fontSize: 18,
+    fontFamily: 'Inter_600SemiBold',
+    color: Colors.textPrimary,
+    lineHeight: 26,
+    letterSpacing: -0.2,
+  },
+  wonderList: { gap: 10 },
+  wonderOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+    backgroundColor: Colors.surface,
+    borderRadius: Radius.lg,
+    padding: Spacing.lg,
+    borderWidth: 1.5,
+    borderColor: Colors.border,
+  },
+  wonderOptionPicked: {
+    borderColor: Colors.warning,
+    backgroundColor: `${Colors.warning}10`,
+  },
+  wonderRadio: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 2,
+    borderColor: Colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  wonderRadioFilled: { borderColor: Colors.warning, backgroundColor: Colors.warning },
+  wonderRadioDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#000' },
+  wonderOptionText: {
+    fontSize: 15,
+    fontFamily: 'Inter_400Regular',
+    color: Colors.textSecondary,
+    flex: 1,
+    lineHeight: 22,
+  },
+
+  // Reveal
+  guessBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    padding: Spacing.md,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+  },
+  guessBannerRight: { backgroundColor: Colors.primaryMuted, borderColor: Colors.primaryBorder },
+  guessBannerWrong: { backgroundColor: Colors.warningMuted, borderColor: `${Colors.warning}40` },
+  guessText: { fontSize: 13, fontFamily: 'Inter_600SemiBold', flex: 1 },
+
+  revealCard: {
+    flexDirection: 'row',
+    backgroundColor: Colors.surface,
+    borderRadius: Radius.lg,
+    borderWidth: 1,
+    borderColor: Colors.primaryBorder,
+    overflow: 'hidden',
+  },
+  revealText: { fontSize: 16, fontFamily: 'Inter_500Medium', color: Colors.textPrimary, lineHeight: 25 },
+
+  recapWrap: { gap: 6 },
+  recapLabel: { fontSize: 9, fontFamily: 'Inter_700Bold', color: Colors.textTertiary, letterSpacing: 1.5 },
+  recapChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 5 },
+  recapChip: {
+    backgroundColor: Colors.primaryMuted,
+    borderRadius: Radius.pill,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 3,
+    borderWidth: 1,
+    borderColor: Colors.primaryBorder,
+  },
+  recapChipText: { fontSize: 11, fontFamily: 'Inter_600SemiBold', color: Colors.primary },
+
+  // Phase buttons
+  phaseBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: Colors.primary,
+    borderRadius: Radius.lg,
+    paddingVertical: Spacing.lg,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  phaseBtnWonder: { backgroundColor: Colors.warning, shadowColor: Colors.warning },
+  phaseBtnDisabled: {
+    backgroundColor: Colors.surfaceElevated,
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+  phaseBtnText: { fontSize: 15, fontFamily: 'Inter_700Bold', color: '#000' },
 });
 
+// ─── Advance Button ────────────────────────────────────────────────────────────
+const advanceStyles = StyleSheet.create({
+  btn: {
+    borderRadius: Radius.lg,
+    paddingVertical: Spacing.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.surfaceElevated,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    marginTop: Spacing.sm,
+    overflow: 'hidden',
+  },
+  btnPrimary: {
+    borderColor: Colors.primaryBorder,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  btnDisabled: {
+    backgroundColor: Colors.surface,
+    borderColor: Colors.border,
+    opacity: 0.5,
+  },
+  btnText: {
+    fontSize: 16,
+    fontFamily: 'Inter_700Bold',
+    color: Colors.textPrimary,
+    letterSpacing: 0.2,
+  },
+});
+
+// ─── Step Router ──────────────────────────────────────────────────────────────
+const stepRouterStyles = StyleSheet.create({
+  interactiveWrap: { gap: Spacing.lg },
+});
+
+// ─── Screen ───────────────────────────────────────────────────────────────────
+const screenStyles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: Colors.background },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.background, gap: Spacing.lg, paddingHorizontal: Spacing.xl },
+  loadingText: { fontSize: 16, fontFamily: 'Inter_400Regular', color: Colors.textSecondary },
+  errorText: { fontSize: 15, fontFamily: 'Inter_400Regular', color: Colors.danger, textAlign: 'center' },
+  backBtn: { paddingHorizontal: Spacing.lg, paddingVertical: Spacing.sm },
+  backBtnText: { fontSize: 15, fontFamily: 'Inter_600SemiBold', color: Colors.primary },
+
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.md,
+  },
+  closeBtn: {
+    width: 36, height: 36,
+    alignItems: 'center', justifyContent: 'center',
+    backgroundColor: Colors.surface,
+    borderRadius: Radius.sm,
+    borderWidth: 1, borderColor: Colors.border,
+  },
+  headerBadges: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
+  roleBadge: {
+    backgroundColor: Colors.primaryMuted, borderRadius: Radius.pill,
+    paddingHorizontal: Spacing.sm, paddingVertical: 3,
+    borderWidth: 1, borderColor: Colors.primaryBorder,
+  },
+  roleBadgeText: { fontSize: 9, fontFamily: 'Inter_700Bold', color: Colors.primary, letterSpacing: 0.8 },
+  interactiveBadge: {
+    flexDirection: 'row', alignItems: 'center', gap: 3,
+    backgroundColor: Colors.purpleMuted, borderRadius: Radius.pill,
+    paddingHorizontal: Spacing.sm, paddingVertical: 3,
+    borderWidth: 1, borderColor: `${Colors.purple}40`,
+  },
+  interactiveBadgeText: { fontSize: 9, fontFamily: 'Inter_700Bold', color: Colors.purple, letterSpacing: 0.8 },
+  bossBadge: {
+    flexDirection: 'row', alignItems: 'center', gap: 3,
+    backgroundColor: Colors.warningMuted, borderRadius: Radius.pill,
+    paddingHorizontal: Spacing.sm, paddingVertical: 3,
+    borderWidth: 1, borderColor: `${Colors.warning}50`,
+  },
+  bossBadgeText: { fontSize: 9, fontFamily: 'Inter_700Bold', color: Colors.warning, letterSpacing: 0.8 },
+  checkpointBadge: {
+    flexDirection: 'row', alignItems: 'center', gap: 3,
+    backgroundColor: Colors.infoMuted, borderRadius: Radius.pill,
+    paddingHorizontal: Spacing.sm, paddingVertical: 3,
+    borderWidth: 1, borderColor: `${Colors.info}50`,
+  },
+  checkpointBadgeText: { fontSize: 9, fontFamily: 'Inter_700Bold', color: Colors.info, letterSpacing: 0.8 },
+  diffText: { fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.textTertiary, textTransform: 'capitalize' },
+  durationText: { fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.textTertiary },
+
+  progressTrack: { height: 3, backgroundColor: Colors.border, marginHorizontal: Spacing.xl, borderRadius: 2, overflow: 'visible' },
+  progressFill: { height: 3, borderRadius: 2 },
+  progressTip: {
+    position: 'absolute',
+    top: -2, width: 7, height: 7, borderRadius: 4,
+    shadowOffset: { width: 0, height: 0 }, shadowOpacity: 1, shadowRadius: 6,
+  },
+
+  lessonHeader: { paddingHorizontal: Spacing.xl, paddingTop: Spacing.lg, paddingBottom: Spacing.sm, gap: 4 },
+  lessonFamily: { fontSize: 10, fontFamily: 'Inter_700Bold', color: Colors.primary, letterSpacing: 1.4, marginBottom: 2 },
+  lessonTitle: { fontSize: 24, fontFamily: 'Inter_700Bold', color: Colors.textPrimary, lineHeight: 30, letterSpacing: -0.3 },
+  lessonSubtitle: { fontSize: 14, fontFamily: 'Inter_400Regular', color: Colors.textSecondary, lineHeight: 20, marginTop: 2 },
+
+  stepCounter: { paddingHorizontal: Spacing.xl, paddingTop: Spacing.sm },
+  stepCounterText: { fontSize: 11, fontFamily: 'Inter_600SemiBold', color: Colors.textTertiary, letterSpacing: 0.5 },
+
+  scroll: { flex: 1 },
+  scrollContent: { paddingHorizontal: Spacing.xl, paddingTop: Spacing.lg, paddingBottom: 60 },
+});
+
+// ─── Completion ────────────────────────────────────────────────────────────────
 const completionStyles = StyleSheet.create({
-  overlay: { ...StyleSheet.absoluteFillObject, backgroundColor:'rgba(0,0,0,0.88)', alignItems:'center', justifyContent:'center', padding:Spacing.xl, zIndex:100 },
-  card: { backgroundColor:Colors.surface, borderRadius:Radius.xl, borderWidth:1, borderColor:Colors.primaryBorder, padding:Spacing.xxxl, alignItems:'center', gap:Spacing.lg, width:'100%' },
-  xpBurst: { width:88, height:88, borderRadius:44, backgroundColor:Colors.primary, alignItems:'center', justifyContent:'center' },
-  xpBurstPartial: { backgroundColor:Colors.warning },
-  xpNum: { fontSize:20, fontFamily:'Inter_700Bold', color:Colors.background, lineHeight:22 },
-  xpLabel: { fontSize:11, fontFamily:'Inter_700Bold', color:Colors.background, letterSpacing:1, lineHeight:14 },
-  title: { fontSize:26, fontFamily:'Inter_700Bold', color:Colors.textPrimary, textAlign:'center' },
-  feedback: { fontSize:15, fontFamily:'Inter_400Regular', color:Colors.textSecondary, textAlign:'center', lineHeight:22 },
-  retryBtn: { flexDirection:'row', alignItems:'center', gap:Spacing.sm, backgroundColor:Colors.primaryMuted, borderRadius:Radius.lg, paddingVertical:Spacing.md, paddingHorizontal:Spacing.xl, borderWidth:1, borderColor:Colors.primaryBorder },
-  retryBtnText: { fontSize:14, fontFamily:'Inter_600SemiBold', color:Colors.primary },
-  nextBtn: { backgroundColor:Colors.primary, borderRadius:Radius.lg, paddingVertical:Spacing.lg, paddingHorizontal:Spacing.xxl, marginTop:Spacing.sm, width:'100%', alignItems:'center' },
-  nextBtnText: { fontSize:16, fontFamily:'Inter_700Bold', color:Colors.background },
+  overlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.92)', alignItems: 'center', justifyContent: 'center', padding: Spacing.xl, zIndex: 100 },
+  card: { backgroundColor: Colors.surface, borderRadius: Radius.xl, borderWidth: 1, borderColor: Colors.primaryBorder, padding: Spacing.xxxl, alignItems: 'center', gap: Spacing.lg, width: '100%' },
+  xpBurst: { width: 88, height: 88, borderRadius: 44, backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center' },
+  xpBurstPartial: { backgroundColor: Colors.warning },
+  xpNum: { fontSize: 20, fontFamily: 'Inter_700Bold', color: Colors.background, lineHeight: 22 },
+  xpLabel: { fontSize: 11, fontFamily: 'Inter_700Bold', color: Colors.background, letterSpacing: 1, lineHeight: 14 },
+  title: { fontSize: 26, fontFamily: 'Inter_700Bold', color: Colors.textPrimary, textAlign: 'center' },
+  feedback: { fontSize: 15, fontFamily: 'Inter_400Regular', color: Colors.textSecondary, textAlign: 'center', lineHeight: 22 },
+  retryBtn: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, backgroundColor: Colors.primaryMuted, borderRadius: Radius.lg, paddingVertical: Spacing.md, paddingHorizontal: Spacing.xl, borderWidth: 1, borderColor: Colors.primaryBorder },
+  retryBtnText: { fontSize: 14, fontFamily: 'Inter_600SemiBold', color: Colors.primary },
+  nextBtn: { backgroundColor: Colors.primary, borderRadius: Radius.lg, paddingVertical: Spacing.lg, paddingHorizontal: Spacing.xxl, marginTop: Spacing.sm, width: '100%', alignItems: 'center', overflow: 'hidden' },
+  nextBtnText: { fontSize: 16, fontFamily: 'Inter_700Bold', color: '#000' },
 });
 
+// ─── Self-rating check-in ─────────────────────────────────────────────────────
 const checkInStyles = StyleSheet.create({
-  overlay: { ...StyleSheet.absoluteFillObject, backgroundColor:'rgba(0,0,0,0.92)', alignItems:'center', justifyContent:'center', padding:Spacing.xl, zIndex:100 },
-  card: { backgroundColor:Colors.surface, borderRadius:Radius.xl, borderWidth:1, borderColor:Colors.border, padding:Spacing.xl, width:'100%', gap:Spacing.lg },
-  headerRow: { flexDirection:'row', alignItems:'center', gap:Spacing.md },
-  iconWrap: { width:40, height:40, borderRadius:20, backgroundColor:Colors.warningMuted, alignItems:'center', justifyContent:'center', flexShrink:0 },
-  eyebrow: { fontSize:9, fontFamily:'Inter_700Bold', color:Colors.textTertiary, letterSpacing:1.2 },
-  title: { fontSize:16, fontFamily:'Inter_700Bold', color:Colors.textPrimary, marginTop:2 },
-  divider: { height:1, backgroundColor:Colors.border },
-  prompt: { fontSize:13, fontFamily:'Inter_400Regular', color:Colors.textSecondary, lineHeight:20, textAlign:'center' },
-  questions: { gap:Spacing.lg },
-  questionRow: { gap:Spacing.sm },
-  questionText: { fontSize:14, fontFamily:'Inter_500Medium', color:Colors.textPrimary, lineHeight:20 },
-  submitBtn: { backgroundColor:Colors.primary, borderRadius:Radius.lg, paddingVertical:Spacing.lg, alignItems:'center' },
-  submitBtnDisabled: { backgroundColor:Colors.surfaceElevated },
-  submitBtnBoss: { backgroundColor:Colors.warning },
-  submitBtnText: { fontSize:15, fontFamily:'Inter_700Bold', color:Colors.background },
-  hint: { fontSize:11, fontFamily:'Inter_400Regular', color:Colors.textTertiary, textAlign:'center', lineHeight:16 },
+  overlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.92)', alignItems: 'center', justifyContent: 'center', padding: Spacing.xl, zIndex: 100 },
+  card: { backgroundColor: Colors.surface, borderRadius: Radius.xl, borderWidth: 1, borderColor: Colors.border, padding: Spacing.xl, width: '100%', gap: Spacing.lg },
+  headerRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
+  iconWrap: { width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.warningMuted, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+  eyebrow: { fontSize: 9, fontFamily: 'Inter_700Bold', color: Colors.textTertiary, letterSpacing: 1.2 },
+  title: { fontSize: 16, fontFamily: 'Inter_700Bold', color: Colors.textPrimary, marginTop: 2 },
+  divider: { height: 1, backgroundColor: Colors.border },
+  prompt: { fontSize: 13, fontFamily: 'Inter_400Regular', color: Colors.textSecondary, lineHeight: 20, textAlign: 'center' },
+  questions: { gap: Spacing.lg },
+  questionRow: { gap: Spacing.sm },
+  questionText: { fontSize: 14, fontFamily: 'Inter_500Medium', color: Colors.textPrimary, lineHeight: 20 },
+  submitBtn: { backgroundColor: Colors.primary, borderRadius: Radius.lg, paddingVertical: Spacing.lg, alignItems: 'center' },
+  submitBtnDisabled: { backgroundColor: Colors.surfaceElevated },
+  submitBtnBoss: { backgroundColor: Colors.warning },
+  submitBtnText: { fontSize: 15, fontFamily: 'Inter_700Bold', color: Colors.background },
+  hint: { fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.textTertiary, textAlign: 'center', lineHeight: 16 },
 });
 
 const ratingStyles = StyleSheet.create({
-  dotsRow: { flexDirection:'row', alignItems:'center', gap:Spacing.sm },
-  dot: { width:28, height:28, borderRadius:14, borderWidth:2, alignItems:'center', justifyContent:'center' },
-  dotFill: { width:10, height:10, borderRadius:5 },
-  dotLabel: { fontSize:12, fontFamily:'Inter_600SemiBold', color:Colors.textTertiary, marginLeft:4, minWidth:40 },
+  dotsRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
+  dot: { width: 28, height: 28, borderRadius: 14, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
+  dotFill: { width: 10, height: 10, borderRadius: 5 },
+  dotLabel: { fontSize: 12, fontFamily: 'Inter_600SemiBold', color: Colors.textTertiary, marginLeft: 4, minWidth: 40 },
 });
