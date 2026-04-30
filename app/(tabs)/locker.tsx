@@ -15,6 +15,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { fetchContentCards, type ContentCard } from '@/lib/supabase';
 import { Colors, Radius, Spacing } from '@/constants/theme';
+import { SectionHeader } from '@/components/ui';
 
 // ─── CATEGORIES ───────────────────────────────────────────────────────────────
 
@@ -161,11 +162,7 @@ export default function LockerScreen() {
           {/* Featured strip */}
           {featured.length > 0 && (
             <View style={styles.section}>
-              <View style={styles.sectionHeader}>
-                <View style={styles.sectionDot} />
-                <Text style={styles.sectionTitle}>FOR YOU</Text>
-                <Text style={styles.sectionCount}>{featured.length}</Text>
-              </View>
+              <SectionHeader title="FOR YOU" count={featured.length} />
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
@@ -181,11 +178,7 @@ export default function LockerScreen() {
           {/* All cards list */}
           {rest.length > 0 && (
             <View style={styles.section}>
-              <View style={styles.sectionHeader}>
-                <View style={styles.sectionDot} />
-                <Text style={styles.sectionTitle}>ALL CONTENT</Text>
-                <Text style={styles.sectionCount}>{rest.length}</Text>
-              </View>
+              <SectionHeader title="ALL CONTENT" count={rest.length} />
               <View style={styles.cardList}>
                 {rest.map((card, i) => (
                   <ListCard key={card.id} card={card} index={i} onOpen={() => setSelectedCard(card)} />
@@ -597,27 +590,6 @@ const styles = StyleSheet.create({
   },
 
   section: { gap: Spacing.md },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-  },
-  sectionDot: {
-    width: 6, height: 6, borderRadius: 3,
-    backgroundColor: Colors.primary,
-  },
-  sectionTitle: {
-    fontSize: 12,
-    fontFamily: 'Inter_700Bold',
-    color: Colors.textPrimary,
-    flex: 1,
-    letterSpacing: 1,
-  },
-  sectionCount: {
-    fontSize: 11,
-    fontFamily: 'Inter_400Regular',
-    color: Colors.textTertiary,
-  },
 
   featuredRow: { gap: Spacing.sm },
   cardList: { gap: 8 },

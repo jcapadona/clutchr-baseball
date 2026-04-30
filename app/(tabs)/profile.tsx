@@ -14,6 +14,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAthlete } from '@/context/AthleteContext';
 import { Colors, Radius, Spacing } from '@/constants/theme';
+import { RolePill } from '@/components/ui';
 
 // ─── CONSTANTS ───────────────────────────────────────────────────────────────
 
@@ -262,11 +263,7 @@ export default function ProfileScreen() {
             <View style={styles.identityInfo}>
               <Text style={styles.identityName}>{athleteState.first_name}</Text>
               <View style={styles.identityMeta}>
-                <View style={styles.rolePill}>
-                  <Text style={styles.rolePillText}>
-                    {ROLE_LABELS[athleteState.primary_role]?.toUpperCase() ?? 'PLAYER'}
-                  </Text>
-                </View>
+                <RolePill label={ROLE_LABELS[athleteState.primary_role]?.toUpperCase() ?? 'PLAYER'} />
                 <Text style={styles.identityLevel}>
                   {LEVEL_LABELS[athleteState.level_band] ?? athleteState.level_band}
                 </Text>
@@ -443,12 +440,6 @@ const styles = StyleSheet.create({
   identityInfo: { flex: 1, gap: 4 },
   identityName: { fontSize: 20, fontFamily: 'Inter_700Bold', color: Colors.textPrimary },
   identityMeta: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  rolePill: {
-    backgroundColor: Colors.primaryMuted, borderRadius: Radius.pill,
-    paddingHorizontal: 7, paddingVertical: 3,
-    borderWidth: 1, borderColor: Colors.primaryBorder,
-  },
-  rolePillText: { fontSize: 8, fontFamily: 'Inter_700Bold', color: Colors.primary, letterSpacing: 0.8 },
   identityLevel: { fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.textSecondary },
   seasonLine: { fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.textTertiary },
   rankBlock: { alignItems: 'flex-end', gap: 4 },
