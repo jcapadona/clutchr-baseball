@@ -221,24 +221,32 @@ function LessonNode({ lesson, idx, isDone, isNext, isLocked, color, total }: {
     return () => { pulseAnim.stopAnimation(); glowAnim.stopAnimation(); };
   }, [isNext]);
 
-  // Tight left/center/right climb pattern for a premium compact ascent map
+  // Compact zig-zag climb rhythm (left/center/right) for an intentional ascent route.
   const pos = idx % 3;
-  const NODE_SIZE = lesson.is_boss ? 72 : lesson.is_checkpoint ? 64 : 58;
+  const NODE_SIZE = lesson.is_boss ? 80 : lesson.is_checkpoint ? 68 : isNext ? 66 : 58;
 
-  const align = pos === 0 ? 'flex-end' : pos === 1 ? 'center' : 'flex-start';
-  const marginRight = pos === 0 ? 14 : 0;
-  const marginLeft = pos === 2 ? 14 : 0;
-  const nodeTone = isDone ? color : isNext ? color : lesson.is_boss ? Colors.warning : lesson.is_checkpoint ? Colors.info : Colors.border;
+  const align = pos === 0 ? 'flex-start' : pos === 1 ? 'center' : 'flex-end';
+  const marginLeft = pos === 0 ? 8 : 0;
+  const marginRight = pos === 2 ? 8 : 0;
+  const nodeTone = isDone
+    ? color
+    : isNext
+    ? color
+    : lesson.is_boss
+    ? Colors.warning
+    : lesson.is_checkpoint
+    ? Colors.info
+    : Colors.border;
 
   return (
-    <View style={[nodeStyles.rowWrap, { alignItems: align, marginRight, marginLeft }]}> 
+    <View style={[nodeStyles.rowWrap, { alignItems: align, marginRight, marginLeft }]}>
       {/* Connected ascent rail segment */}
       {idx > 0 && (
         <View style={nodeStyles.connectorWrap}>
-          <View style={[nodeStyles.connectorStem, { backgroundColor: nodeTone + '7A' }]} />
+          <View style={[nodeStyles.connectorStem, { backgroundColor: nodeTone + '62' }]} />
           <View style={[nodeStyles.connectorDiag, {
-            borderTopColor: nodeTone + '66',
-            transform: [{ rotate: pos === 0 ? '-18deg' : pos === 2 ? '18deg' : '0deg' }],
+            borderTopColor: nodeTone + '52',
+            transform: [{ rotate: pos === 0 ? '-17deg' : pos === 2 ? '17deg' : '0deg' }],
           }]} />
         </View>
       )}
@@ -255,7 +263,7 @@ function LessonNode({ lesson, idx, isDone, isNext, isLocked, color, total }: {
               width: NODE_SIZE + 24,
               height: NODE_SIZE + 24,
               borderRadius: (NODE_SIZE + 24) / 2,
-              borderColor: color + '52',
+              borderColor: color + '58',
               opacity: glowAnim,
             },
           ]} />
@@ -275,7 +283,7 @@ function LessonNode({ lesson, idx, isDone, isNext, isLocked, color, total }: {
           {isDone ? (
             <View style={[nodeStyles.circleFill, {
               width: NODE_SIZE, height: NODE_SIZE, borderRadius: NODE_SIZE / 2,
-              backgroundColor: color,
+              backgroundColor: color + 'EB',
               borderWidth: 1,
               borderColor: color + '95',
             }]}>
@@ -284,13 +292,13 @@ function LessonNode({ lesson, idx, isDone, isNext, isLocked, color, total }: {
           ) : isNext ? (
             <View style={[nodeStyles.circleFill, {
               width: NODE_SIZE, height: NODE_SIZE, borderRadius: NODE_SIZE / 2,
-              backgroundColor: color + '18',
-              borderWidth: 2.5, borderColor: color,
+              backgroundColor: color + '1E',
+              borderWidth: 3, borderColor: color,
               shadowColor: color,
               shadowOffset: { width: 0, height: 0 },
-              shadowOpacity: 0.72,
-              shadowRadius: 18,
-              elevation: 10,
+              shadowOpacity: 0.8,
+              shadowRadius: 22,
+              elevation: 12,
             }]}> 
               {lesson.is_boss
                 ? <Ionicons name="trophy" size={24} color={color} />
@@ -302,22 +310,25 @@ function LessonNode({ lesson, idx, isDone, isNext, isLocked, color, total }: {
           ) : lesson.is_boss ? (
             <View style={[nodeStyles.circleFill, {
               width: NODE_SIZE, height: NODE_SIZE, borderRadius: NODE_SIZE / 2,
-              backgroundColor: Colors.warningMuted,
-              borderWidth: 2, borderColor: Colors.warning + '80',
+              backgroundColor: '#251909',
+              borderWidth: 2.5, borderColor: Colors.warning + 'A0',
               shadowColor: Colors.warning,
               shadowOffset: { width: 0, height: 0 },
-              shadowOpacity: 0.3,
-              shadowRadius: 12,
+              shadowOpacity: 0.34,
+              shadowRadius: 14,
             }]}> 
               <Ionicons name="trophy" size={24} color={Colors.warning} />
             </View>
           ) : lesson.is_checkpoint ? (
             <View style={[nodeStyles.circleFill, {
-              width: NODE_SIZE, height: NODE_SIZE, borderRadius: NODE_SIZE / 2,
-              backgroundColor: Colors.infoMuted,
-              borderWidth: 2, borderColor: Colors.info + '75',
+              width: NODE_SIZE, height: NODE_SIZE, borderRadius: 16,
+              backgroundColor: '#0A1D28',
+              borderWidth: 2.5, borderColor: Colors.info + '88',
+              transform: [{ rotate: '45deg' }],
             }]}> 
-              <Ionicons name="flag" size={20} color={Colors.info} />
+              <View style={{ transform: [{ rotate: '-45deg' }] }}>
+                <Ionicons name="flag" size={20} color={Colors.info} />
+              </View>
             </View>
           ) : (
             <View style={[nodeStyles.circleFill, {
@@ -334,7 +345,7 @@ function LessonNode({ lesson, idx, isDone, isNext, isLocked, color, total }: {
         {isNext && (
           <View style={[nodeStyles.badge, nodeStyles.startBadge, { backgroundColor: color, shadowColor: color }]}>
             <View style={nodeStyles.badgeDot} />
-            <Text style={nodeStyles.badgeText}>PLAY NOW</Text>
+            <Text style={nodeStyles.badgeText}>{isDone ? 'CONTINUE' : 'START'}</Text>
           </View>
         )}
 
@@ -342,7 +353,7 @@ function LessonNode({ lesson, idx, isDone, isNext, isLocked, color, total }: {
         {lesson.is_boss && !isDone && !isNext && (
           <View style={[nodeStyles.badge, nodeStyles.bossBadge, { backgroundColor: Colors.warning, shadowColor: Colors.warning }]}>
             <Ionicons name="trophy" size={8} color="#000" />
-            <Text style={nodeStyles.badgeText}>BOSS</Text>
+            <Text style={nodeStyles.badgeText}>PLAY BOSS</Text>
           </View>
         )}
 
@@ -593,22 +604,23 @@ const bannerStyles = StyleSheet.create({
 
 const mapStyles = StyleSheet.create({
   outerWrap: {
-    marginTop: -10,
-    paddingTop: Spacing.md,
-    paddingBottom: Spacing.xl,
+    marginTop: -16,
+    paddingTop: Spacing.lg,
+    paddingBottom: Spacing.xl + 4,
     marginHorizontal: Spacing.xl,
     borderRadius: Radius.xl,
     overflow: 'hidden',
     position: 'relative',
     borderWidth: 1,
     borderTopWidth: 0,
-    borderColor: Colors.border + '65',
+    borderColor: Colors.border + '7A',
     borderTopLeftRadius: 0,
     borderTopRightRadius: 0,
   },
   nodesWrap: {
-    gap: 2,
-    paddingHorizontal: 4,
+    gap: 0,
+    paddingHorizontal: 10,
+    paddingBottom: 8,
   },
   emptyWrap: {
     padding: Spacing.xl,
@@ -624,25 +636,25 @@ const mapStyles = StyleSheet.create({
 
 const nodeStyles = StyleSheet.create({
   rowWrap: {
-    paddingHorizontal: 12,
+    paddingHorizontal: 16,
     alignItems: 'center',
-    paddingVertical: 4,
+    paddingVertical: 6,
   },
   connectorWrap: {
     alignItems: 'center',
     justifyContent: 'flex-end',
-    height: 30,
+    height: 22,
     marginBottom: 2,
   },
   connectorStem: {
-    width: 2.5,
-    height: 20,
+    width: 2,
+    height: 14,
     borderRadius: 2,
   },
   connectorDiag: {
-    width: 14,
-    borderTopWidth: 2.5,
-    marginTop: -2,
+    width: 22,
+    borderTopWidth: 2,
+    marginTop: 0,
   },
   glowRing: {
     position: 'absolute',
@@ -675,7 +687,7 @@ const nodeStyles = StyleSheet.create({
     elevation: 4,
   },
   startBadge: {
-    paddingHorizontal: 12,
+    paddingHorizontal: 13,
   },
   bossBadge: {
     paddingHorizontal: 11,
@@ -689,7 +701,7 @@ const nodeStyles = StyleSheet.create({
   },
   label: {
     fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.textSecondary,
-    textAlign: 'center', marginTop: 6, lineHeight: 15, maxWidth: 126,
+    textAlign: 'center', marginTop: 8, lineHeight: 15, maxWidth: 138,
   },
   xpRow: { flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 3 },
   xpText: { fontSize: 10, fontFamily: 'Inter_600SemiBold', color: Colors.warning },
