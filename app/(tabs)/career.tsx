@@ -14,107 +14,29 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAthlete } from '@/context/AthleteContext';
 import { fetchLessons, type LegacyLesson } from '@/lib/supabase';
-import { Colors, Radius, Shadow, Spacing } from '@/constants/theme';
+import { Colors, Radius, Spacing } from '@/constants/theme';
 
 // ─── WORLD CONFIG ─────────────────────────────────────────────────────────────
 
 const WORLDS = [
-  {
-    pillar: 'foundation',
-    label: 'FOUNDATION',
-    subtitle: 'Mental framework every athlete needs',
-    color: Colors.primary,
-    worldNum: 1,
-    emoji: '🧠',
-  },
-  {
-    pillar: 'built-different',
-    label: 'BUILT DIFFERENT',
-    subtitle: 'Strength, nutrition, sleep, arm care',
-    color: '#E85D26',
-    worldNum: 2,
-    emoji: '💪',
-  },
-  {
-    pillar: 'pitcher-path',
-    label: 'PITCHER PATH',
-    subtitle: 'Command, tempo, game IQ',
-    color: Colors.purple,
-    worldNum: 3,
-    emoji: '⚾',
-  },
-  {
-    pillar: 'hitter-path',
-    label: 'HITTER PATH',
-    subtitle: 'Approach, zone discipline, at-bat process',
-    color: Colors.warning,
-    worldNum: 4,
-    emoji: '🏏',
-  },
-  {
-    pillar: 'catcher-path',
-    label: 'CATCHER PATH',
-    subtitle: 'Leadership, game management, trust',
-    color: Colors.info,
-    worldNum: 5,
-    emoji: '🛡️',
-  },
-  {
-    pillar: 'infield-path',
-    label: 'INFIELD PATH',
-    subtitle: 'Fielding IQ, ready position, decisions',
-    color: Colors.danger,
-    worldNum: 6,
-    emoji: '🎯',
-  },
-  {
-    pillar: 'outfield-path',
-    label: 'OUTFIELD PATH',
-    subtitle: 'First step reads, crow hop, tracking',
-    color: Colors.primary,
-    worldNum: 7,
-    emoji: '🏃',
-  },
-  {
-    pillar: 'baserunner-path',
-    label: 'BASERUNNER PATH',
-    subtitle: 'Leads, reads, green light, steal aggression',
-    color: Colors.warning,
-    worldNum: 8,
-    emoji: '💨',
-  },
-  {
-    pillar: 'pressure-resilience',
-    label: 'PRESSURE & RESILIENCE',
-    subtitle: 'Clutch moments, reset systems, slump repair',
-    color: '#E85D26',
-    worldNum: 9,
-    emoji: '🔥',
-  },
-  {
-    pillar: 'gamemode',
-    label: 'GAME MODE',
-    subtitle: 'Pregame, in-game, and postgame sessions',
-    color: Colors.warning,
-    worldNum: 10,
-    emoji: '🏆',
-  },
+  { pillar: 'foundation',         label: 'Foundation',          subtitle: 'Mental framework every athlete needs', color: Colors.primary,  worldNum: 1,  emoji: '🧠', darkBg: '#071409' },
+  { pillar: 'built-different',    label: 'Built Different',     subtitle: 'Strength, nutrition, sleep, arm care', color: '#E85D26',       worldNum: 2,  emoji: '💪', darkBg: '#140A05' },
+  { pillar: 'pitcher-path',       label: 'Pitcher Path',        subtitle: 'Command, tempo, game IQ',              color: Colors.purple,   worldNum: 3,  emoji: '⚾', darkBg: '#0F0714' },
+  { pillar: 'hitter-path',        label: 'Hitter Path',         subtitle: 'Approach, zone discipline, at-bat',    color: Colors.warning,  worldNum: 4,  emoji: '🏏', darkBg: '#141008' },
+  { pillar: 'catcher-path',       label: 'Catcher Path',        subtitle: 'Leadership, game management, trust',   color: Colors.info,     worldNum: 5,  emoji: '🛡️', darkBg: '#060C18' },
+  { pillar: 'infield-path',       label: 'Infield Path',        subtitle: 'Fielding IQ, ready position, decisions', color: Colors.danger, worldNum: 6,  emoji: '🎯', darkBg: '#140606' },
+  { pillar: 'outfield-path',      label: 'Outfield Path',       subtitle: 'First step reads, crow hop, tracking', color: Colors.primary,  worldNum: 7,  emoji: '🏃', darkBg: '#071409' },
+  { pillar: 'baserunner-path',    label: 'Baserunner Path',     subtitle: 'Leads, reads, green light, aggression', color: Colors.warning, worldNum: 8,  emoji: '💨', darkBg: '#141008' },
+  { pillar: 'pressure-resilience', label: 'Pressure & Resilience', subtitle: 'Clutch moments, reset, slump repair', color: '#E85D26',    worldNum: 9,  emoji: '🔥', darkBg: '#140A05' },
+  { pillar: 'gamemode',           label: 'Game Mode',           subtitle: 'Pregame, in-game, postgame sessions',  color: Colors.warning,  worldNum: 10, emoji: '🏆', darkBg: '#141008' },
 ];
 
 const ROLE_PILLAR: Record<string, string> = {
-  pitcher: 'pitcher-path',
-  catcher: 'catcher-path',
-  infielder: 'infield-path',
-  outfielder: 'outfield-path',
+  pitcher: 'pitcher-path', catcher: 'catcher-path',
+  infielder: 'infield-path', outfielder: 'outfield-path',
 };
 
-// ─── WORLD STATUS ─────────────────────────────────────────────────────────────
-
-function getWorldStatus(
-  lessons: LegacyLesson[],
-  completed: string[],
-  idx: number
-): 'locked' | 'active' | 'complete' {
+function getWorldStatus(lessons: LegacyLesson[], completed: string[], idx: number): 'locked' | 'active' | 'complete' {
   const pillar = WORLDS[idx].pillar;
   const mine = lessons.filter((l) => l.pillar_id === pillar);
   if (idx === 0) return mine.length > 0 && mine.every((l) => completed.includes(l.id)) ? 'complete' : 'active';
@@ -123,127 +45,103 @@ function getWorldStatus(
   return mine.length > 0 && mine.every((l) => completed.includes(l.id)) ? 'complete' : 'active';
 }
 
-// ─── WORLD BANNER — redesigned with more punch ────────────────────────────────
+// ─── WORLD BANNER ─────────────────────────────────────────────────────────────
+// Redesigned to feel like a game level select
 
-function WorldBanner({
-  world, status, isMyRole, done, total, expanded, onToggle,
-}: {
-  world: typeof WORLDS[0];
-  status: 'locked' | 'active' | 'complete';
-  isMyRole: boolean;
-  done: number;
-  total: number;
-  expanded: boolean;
-  onToggle: () => void;
+function WorldBanner({ world, status, isMyRole, done, total, expanded, onToggle }: {
+  world: typeof WORLDS[0]; status: 'locked' | 'active' | 'complete';
+  isMyRole: boolean; done: number; total: number;
+  expanded: boolean; onToggle: () => void;
 }) {
   const locked = status === 'locked';
   const complete = status === 'complete';
   const pct = total > 0 ? Math.min(1, done / total) : 0;
-  const color = locked ? Colors.textTertiary : world.color;
 
   return (
     <Pressable
       onPress={locked ? undefined : onToggle}
       disabled={locked}
-      style={[
-        bannerStyles.wrap,
-        complete && { borderColor: world.color + '40', backgroundColor: Colors.surfaceGlow },
-        locked && bannerStyles.wrapLocked,
-        !locked && !complete && { borderColor: world.color + '25' },
-      ]}
+      style={[bannerStyles.outer, locked && { opacity: 0.4 }]}
     >
-      {/* Gradient background — subtle tint from world color */}
-      {!locked && (
+      {/* Full card gradient background */}
+      {!locked ? (
         <LinearGradient
-          colors={[world.color + '0C', 'transparent']}
+          colors={[world.color + '18', world.color + '06', Colors.surface]}
           style={StyleSheet.absoluteFill}
           start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0.8 }}
+          end={{ x: 1, y: 1 }}
         />
+      ) : (
+        <View style={[StyleSheet.absoluteFill, { backgroundColor: Colors.surface }]} />
       )}
 
-      {/* Bold left color bar */}
-      <View style={[bannerStyles.colorBar, {
-        backgroundColor: locked ? Colors.border : world.color,
-        opacity: locked ? 0.3 : complete ? 1 : 0.7,
-      }]} />
+      {/* Left color slab — thick and bold */}
+      <View style={[bannerStyles.leftSlab, { backgroundColor: locked ? Colors.border : world.color }]} />
 
-      <View style={bannerStyles.inner}>
-        {/* Top section: world number + emoji + title */}
+      <View style={bannerStyles.content}>
+        {/* Top: world number + emoji + right side */}
         <View style={bannerStyles.topRow}>
-
-          {/* Emoji circle */}
-          <View style={[bannerStyles.emojiCircle, {
-            backgroundColor: locked ? Colors.surfaceElevated : world.color + '18',
-            borderColor: locked ? Colors.border : world.color + '35',
+          {/* Emoji in a circle */}
+          <View style={[bannerStyles.emojiBox, {
+            backgroundColor: locked ? Colors.surfaceElevated : world.color + '20',
+            borderColor: locked ? Colors.border : world.color + '40',
           }]}>
             {locked
-              ? <Ionicons name="lock-closed" size={16} color={Colors.textTertiary} />
+              ? <Ionicons name="lock-closed" size={18} color={Colors.textTertiary} />
               : complete
-              ? <Ionicons name="checkmark-circle" size={22} color={world.color} />
-              : <Text style={bannerStyles.emoji}>{world.emoji}</Text>
+              ? <Text style={bannerStyles.emojiText}>✅</Text>
+              : <Text style={bannerStyles.emojiText}>{world.emoji}</Text>
             }
           </View>
 
-          {/* Title block */}
-          <View style={bannerStyles.titleBlock}>
-            {/* World number — bold colored label */}
+          {/* Title */}
+          <View style={bannerStyles.titleCol}>
             <Text style={[bannerStyles.worldNum, { color: locked ? Colors.textTertiary : world.color }]}>
               WORLD {world.worldNum}
             </Text>
-            <Text style={[bannerStyles.worldLabel, locked && { color: Colors.textTertiary }]}>
+            <Text style={[bannerStyles.worldName, locked && { color: Colors.textTertiary }]}>
               {world.label}
             </Text>
-            <Text style={[bannerStyles.worldSub, locked && { color: Colors.textTertiary + '80' }]}>
+            <Text style={[bannerStyles.worldSub, locked && { color: Colors.textTertiary + '60' }]}>
               {locked ? 'Complete previous world to unlock' : world.subtitle}
             </Text>
           </View>
 
-          {/* Right side: badges + chevron */}
-          <View style={bannerStyles.rightCol}>
+          {/* Right badges + chevron */}
+          <View style={bannerStyles.rightStack}>
             {isMyRole && !locked && (
-              <View style={[bannerStyles.yourPathBadge, { backgroundColor: world.color, borderColor: world.color }]}>
-                <Text style={bannerStyles.yourPathText}>YOUR PATH</Text>
+              <View style={[bannerStyles.yourPathTag, { backgroundColor: world.color }]}>
+                <Text style={bannerStyles.yourPathTagText}>YOUR PATH</Text>
               </View>
             )}
             {complete && (
-              <View style={[bannerStyles.completeBadge, { borderColor: world.color + '50', backgroundColor: world.color + '15' }]}>
-                <Text style={[bannerStyles.completeBadgeText, { color: world.color }]}>DONE</Text>
+              <View style={[bannerStyles.doneTag, { borderColor: world.color + '60' }]}>
+                <Text style={[bannerStyles.doneTagText, { color: world.color }]}>DONE</Text>
               </View>
             )}
             {!locked && (
               <Ionicons
                 name={expanded ? 'chevron-up' : 'chevron-down'}
-                size={16}
-                color={Colors.textTertiary}
+                size={16} color={Colors.textTertiary}
               />
             )}
           </View>
         </View>
 
-        {/* Progress row */}
+        {/* Progress */}
         {!locked && total > 0 && (
           <View style={bannerStyles.progressRow}>
             <View style={bannerStyles.progressTrack}>
-              <View style={[
-                bannerStyles.progressFill,
-                { width: `${pct * 100}%`, backgroundColor: world.color },
-              ]} />
-              {/* Glowing tip */}
+              <View style={[bannerStyles.progressFill, { width: `${pct * 100}%`, backgroundColor: world.color }]} />
               {pct > 0 && pct < 1 && (
-                <View style={[
-                  bannerStyles.progressTip,
-                  {
-                    left: `${Math.min(98, pct * 100)}%` as any,
-                    backgroundColor: world.color,
-                    shadowColor: world.color,
-                  },
-                ]} />
+                <View style={[bannerStyles.progressTip, {
+                  left: `${Math.min(97, pct * 100)}%` as any,
+                  backgroundColor: world.color,
+                  shadowColor: world.color,
+                }]} />
               )}
             </View>
-            <Text style={[bannerStyles.progressLabel, { color: world.color }]}>
-              {done}/{total}
-            </Text>
+            <Text style={[bannerStyles.progressCount, { color: world.color }]}>{done}/{total}</Text>
           </View>
         )}
       </View>
@@ -251,218 +149,207 @@ function WorldBanner({
   );
 }
 
-// ─── LESSON NODE ─────────────────────────────────────────────────────────────
-// Bigger nodes, real path line, glow system on active/next
+// ─── WORLD MAP SECTION ────────────────────────────────────────────────────────
+// The open world — atmospheric background + center spine + zigzag nodes
 
-function LessonNode({
-  lesson, idx, isDone, isNext, isLocked, color, totalInPath,
-}: {
-  lesson: LegacyLesson;
-  idx: number;
-  isDone: boolean;
-  isNext: boolean;
-  isLocked: boolean;
-  color: string;
-  totalInPath: number;
+function WorldMapSection({ world, lessons, completed }: {
+  world: typeof WORLDS[0];
+  lessons: LegacyLesson[];
+  completed: string[];
 }) {
-  // Pulse animation for NEXT node
+  if (lessons.length === 0) {
+    return (
+      <View style={mapStyles.emptyWrap}>
+        <Text style={mapStyles.emptyText}>Lessons coming soon.</Text>
+      </View>
+    );
+  }
+
+  return (
+    <View style={mapStyles.outerWrap}>
+      {/* Atmospheric tinted background for the whole world section */}
+      <LinearGradient
+        colors={[world.darkBg, Colors.background, Colors.background]}
+        style={StyleSheet.absoluteFill}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 0.4 }}
+      />
+
+      {/* Center spine — the actual PATH running top to bottom */}
+      <View style={mapStyles.spineWrap}>
+        <View style={[mapStyles.spine, { backgroundColor: world.color + '20' }]} />
+      </View>
+
+      {/* Nodes */}
+      <View style={mapStyles.nodesWrap}>
+        {lessons.map((lesson, i) => {
+          const isDone = completed.includes(lesson.id);
+          const isNext = !isDone && lessons.slice(0, i).every((l) => completed.includes(l.id));
+          const isLocked = i > 0 && !completed.includes(lessons[i - 1].id) && !isDone;
+          return (
+            <LessonNode
+              key={lesson.id}
+              lesson={lesson}
+              idx={i}
+              isDone={isDone}
+              isNext={isNext}
+              isLocked={isLocked}
+              color={world.color}
+              total={lessons.length}
+            />
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
+// ─── LESSON NODE ─────────────────────────────────────────────────────────────
+
+function LessonNode({ lesson, idx, isDone, isNext, isLocked, color, total }: {
+  lesson: LegacyLesson; idx: number; isDone: boolean;
+  isNext: boolean; isLocked: boolean; color: string; total: number;
+}) {
   const pulseAnim = useRef(new Animated.Value(1)).current;
-  const glowAnim = useRef(new Animated.Value(0.4)).current;
+  const glowAnim = useRef(new Animated.Value(0.3)).current;
 
   useEffect(() => {
     if (!isNext) return;
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseAnim, { toValue: 1.10, duration: 1000, useNativeDriver: true }),
-        Animated.timing(pulseAnim, { toValue: 1, duration: 1000, useNativeDriver: true }),
-      ])
-    ).start();
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(glowAnim, { toValue: 1, duration: 1200, useNativeDriver: true }),
-        Animated.timing(glowAnim, { toValue: 0.4, duration: 1200, useNativeDriver: true }),
-      ])
-    ).start();
+    Animated.loop(Animated.sequence([
+      Animated.timing(pulseAnim, { toValue: 1.12, duration: 900, useNativeDriver: true }),
+      Animated.timing(pulseAnim, { toValue: 1, duration: 900, useNativeDriver: true }),
+    ])).start();
+    Animated.loop(Animated.sequence([
+      Animated.timing(glowAnim, { toValue: 1, duration: 1100, useNativeDriver: true }),
+      Animated.timing(glowAnim, { toValue: 0.3, duration: 1100, useNativeDriver: true }),
+    ])).start();
     return () => { pulseAnim.stopAnimation(); glowAnim.stopAnimation(); };
   }, [isNext]);
 
-  // Zigzag: right → center → left cycling
+  // Simple left/center/right — wider swing so it reads on screen
   const pos = idx % 3;
-  const offsetStyle = pos === 0
-    ? { alignSelf: 'flex-end' as const, marginRight: 32 }
-    : pos === 1
-    ? { alignSelf: 'center' as const }
-    : { alignSelf: 'flex-start' as const, marginLeft: 32 };
+  const NODE_SIZE = lesson.is_boss ? 76 : 62;
 
-  const isBoss = lesson.is_boss;
-  const isCheckpoint = lesson.is_checkpoint && !isBoss;
-
-  // Node sizes — bigger than before
-  const NODE_SIZE = isBoss ? 80 : 66;
-  const WRAP_SIZE = NODE_SIZE + 24;
-
-  // Colors per state
-  const circleBg = isDone
-    ? color
-    : isNext
-    ? Colors.surfaceGlow
-    : isBoss && !isDone
-    ? Colors.surfaceWarm
-    : Colors.surface;
-
-  const circleBorder = isDone
-    ? color
-    : isNext
-    ? color
-    : isBoss
-    ? Colors.warning
-    : isCheckpoint
-    ? Colors.info
-    : Colors.border;
-
-  const isLast = idx === totalInPath - 1;
+  const align = pos === 0 ? 'flex-end' : pos === 1 ? 'center' : 'flex-start';
+  const marginRight = pos === 0 ? 20 : 0;
+  const marginLeft = pos === 2 ? 20 : 0;
 
   return (
-    <View style={[nodeStyles.container, offsetStyle]}>
-
-      {/* PATH LINE — runs from this node up to the previous one */}
+    <View style={[nodeStyles.rowWrap, { alignItems: align, marginRight, marginLeft }]}>
+      {/* Connector line from previous node — centered above this node */}
       {idx > 0 && (
-        <View style={nodeStyles.pathLineWrap}>
-          {/* Track */}
-          <View style={[nodeStyles.pathTrack, {
-            backgroundColor: isDone ? color + '40' : Colors.border + '30',
-          }]} />
-          {/* Fill — shows progress */}
-          {isDone && (
-            <View style={[nodeStyles.pathFill, { backgroundColor: color + '60' }]} />
-          )}
-        </View>
+        <View style={[nodeStyles.connector, {
+          backgroundColor: isDone ? color + '70' : Colors.border + '50',
+        }]} />
       )}
-
-      {/* NODE */}
       <Pressable
         onPress={isLocked ? undefined : () => router.push(`/lesson/${lesson.id}`)}
         disabled={isLocked}
-        style={{ alignItems: 'center' }}
+        style={{ alignItems: 'center', opacity: isLocked ? 0.3 : 1 }}
       >
-        {/* Outer glow ring — only for NEXT node */}
+        {/* Outer glow ring for next node */}
         {isNext && (
           <Animated.View style={[
-            nodeStyles.glowRingOuter,
+            nodeStyles.glowRing,
             {
-              width: WRAP_SIZE + 16,
-              height: WRAP_SIZE + 16,
-              borderRadius: (WRAP_SIZE + 16) / 2,
-              borderColor: color + '30',
+              width: NODE_SIZE + 24,
+              height: NODE_SIZE + 24,
+              borderRadius: (NODE_SIZE + 24) / 2,
+              borderColor: color + '35',
               opacity: glowAnim,
             },
           ]} />
         )}
 
-        {/* Inner pulse wrapper */}
+        {/* Node circle */}
         <Animated.View style={[
-          nodeStyles.nodeWrap,
+          nodeStyles.circle,
           {
-            width: WRAP_SIZE,
-            height: WRAP_SIZE,
-            borderRadius: WRAP_SIZE / 2,
+            width: NODE_SIZE,
+            height: NODE_SIZE,
+            borderRadius: NODE_SIZE / 2,
           },
           isNext && { transform: [{ scale: pulseAnim }] },
         ]}>
-
-          {/* The circle */}
-          <View style={[
-            nodeStyles.circle,
-            {
-              width: NODE_SIZE,
-              height: NODE_SIZE,
-              borderRadius: NODE_SIZE / 2,
-              backgroundColor: circleBg,
-              borderColor: circleBorder,
-              borderWidth: isNext ? 2.5 : isDone ? 0 : 1.5,
-            },
-            isNext && {
+          {/* Circle fill */}
+          {isDone ? (
+            <View style={[nodeStyles.circleFill, {
+              width: NODE_SIZE, height: NODE_SIZE, borderRadius: NODE_SIZE / 2,
+              backgroundColor: color,
+            }]}>
+              <Ionicons name="checkmark" size={lesson.is_boss ? 28 : 22} color="#000" />
+            </View>
+          ) : isNext ? (
+            <View style={[nodeStyles.circleFill, {
+              width: NODE_SIZE, height: NODE_SIZE, borderRadius: NODE_SIZE / 2,
+              backgroundColor: color + '18',
+              borderWidth: 2.5, borderColor: color,
               shadowColor: color,
               shadowOffset: { width: 0, height: 0 },
-              shadowOpacity: 0.55,
-              shadowRadius: 16,
-              elevation: 10,
-            },
-            isBoss && !isDone && {
-              borderColor: Colors.warning,
+              shadowOpacity: 0.6,
+              shadowRadius: 14,
+              elevation: 8,
+            }]}>
+              {lesson.is_boss
+                ? <Ionicons name="trophy" size={24} color={color} />
+                : lesson.is_checkpoint
+                ? <Ionicons name="flag" size={20} color={color} />
+                : <Text style={[nodeStyles.nodeNum, { color }]}>{idx + 1}</Text>
+              }
+            </View>
+          ) : lesson.is_boss ? (
+            <View style={[nodeStyles.circleFill, {
+              width: NODE_SIZE, height: NODE_SIZE, borderRadius: NODE_SIZE / 2,
+              backgroundColor: Colors.warningMuted,
+              borderWidth: 1.5, borderColor: Colors.warning + '60',
               shadowColor: Colors.warning,
               shadowOffset: { width: 0, height: 0 },
-              shadowOpacity: 0.35,
-              shadowRadius: 12,
-              elevation: 6,
-            },
-            isCheckpoint && !isDone && {
-              borderColor: Colors.info,
-              shadowColor: Colors.info,
-              shadowOffset: { width: 0, height: 0 },
-              shadowOpacity: 0.28,
+              shadowOpacity: 0.25,
               shadowRadius: 10,
-              elevation: 4,
-            },
-            isLocked && { opacity: 0.25 },
-          ]}>
-
-            {/* Gradient fill for done nodes */}
-            {isDone && (
-              <LinearGradient
-                colors={[color, color + 'CC']}
-                style={StyleSheet.absoluteFill}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-              />
-            )}
-
-            {/* Icon / number */}
-            {isDone ? (
-              <Ionicons name="checkmark" size={isBoss ? 28 : 24} color="#000" />
-            ) : isBoss ? (
-              <Ionicons name="trophy" size={26} color={Colors.warning} />
-            ) : isCheckpoint ? (
-              <Ionicons name="flag" size={22} color={Colors.info} />
-            ) : isLocked ? (
-              <Ionicons name="lock-closed" size={18} color={Colors.textTertiary} />
-            ) : (
-              <Text style={[nodeStyles.nodeNum, {
-                color: isNext ? color : Colors.textTertiary,
-                fontSize: isBoss ? 22 : 18,
-              }]}>
-                {idx + 1}
-              </Text>
-            )}
-          </View>
+            }]}>
+              <Ionicons name="trophy" size={24} color={Colors.warning} />
+            </View>
+          ) : lesson.is_checkpoint ? (
+            <View style={[nodeStyles.circleFill, {
+              width: NODE_SIZE, height: NODE_SIZE, borderRadius: NODE_SIZE / 2,
+              backgroundColor: Colors.infoMuted,
+              borderWidth: 1.5, borderColor: Colors.info + '60',
+            }]}>
+              <Ionicons name="flag" size={20} color={Colors.info} />
+            </View>
+          ) : (
+            <View style={[nodeStyles.circleFill, {
+              width: NODE_SIZE, height: NODE_SIZE, borderRadius: NODE_SIZE / 2,
+              backgroundColor: Colors.surfaceElevated,
+              borderWidth: 1.5, borderColor: Colors.border,
+            }]}>
+              <Text style={[nodeStyles.nodeNum, { color: Colors.textTertiary }]}>{idx + 1}</Text>
+            </View>
+          )}
         </Animated.View>
 
-        {/* START badge — below the next node */}
+        {/* START badge on next node */}
         {isNext && (
-          <View style={[nodeStyles.startBadge, { backgroundColor: color, shadowColor: color }]}>
-            <View style={nodeStyles.startDot} />
-            <Text style={nodeStyles.startBadgeText}>START</Text>
+          <View style={[nodeStyles.badge, { backgroundColor: color, shadowColor: color }]}>
+            <View style={nodeStyles.badgeDot} />
+            <Text style={nodeStyles.badgeText}>START</Text>
           </View>
         )}
 
-        {/* BOSS badge */}
-        {isBoss && !isDone && !isNext && (
-          <View style={[nodeStyles.startBadge, { backgroundColor: Colors.warning, shadowColor: Colors.warning }]}>
-            <Ionicons name="trophy" size={9} color="#000" />
-            <Text style={nodeStyles.startBadgeText}>BOSS</Text>
+        {/* BOSS label */}
+        {lesson.is_boss && !isDone && !isNext && (
+          <View style={[nodeStyles.badge, { backgroundColor: Colors.warning, shadowColor: Colors.warning }]}>
+            <Ionicons name="trophy" size={8} color="#000" />
+            <Text style={nodeStyles.badgeText}>BOSS</Text>
           </View>
         )}
 
-        {/* Lesson title */}
-        <Text
-          style={[
-            nodeStyles.label,
-            isDone && { color: Colors.textTertiary },
-            isNext && { color: Colors.textPrimary, fontFamily: 'Inter_600SemiBold' },
-            isLocked && { color: Colors.textTertiary, opacity: 0.3 },
-          ]}
-          numberOfLines={2}
-        >
+        {/* Title */}
+        <Text style={[
+          nodeStyles.label,
+          isDone && { color: Colors.textTertiary },
+          isNext && { color: Colors.textPrimary, fontFamily: 'Inter_600SemiBold' },
+        ]} numberOfLines={2}>
           {lesson.title}
         </Text>
 
@@ -532,29 +419,29 @@ export default function CareerScreen() {
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
 
-      {/* ── HEADER ── */}
+      {/* HEADER */}
       <View style={styles.header}>
         <View>
           <Text style={styles.eyebrow}>YOUR JOURNEY</Text>
           <Text style={styles.title}>Career Path</Text>
         </View>
         <View style={styles.headerRight}>
-          <View style={styles.xpBadge}>
+          <View style={styles.xpPill}>
             <Ionicons name="flash" size={12} color={Colors.warning} />
             <Text style={styles.xpNum}>{athleteState?.total_xp ?? 0}</Text>
           </View>
-          <Text style={styles.xpSuffix}>XP</Text>
+          <Text style={styles.xpLabel}>XP</Text>
         </View>
       </View>
 
-      {/* ── OVERALL PROGRESS ── */}
-      <View style={styles.overallProgress}>
-        <View style={styles.overallTrack}>
-          <View style={[styles.overallFill, { width: `${overallPct}%` }]} />
+      {/* OVERALL PROGRESS */}
+      <View style={styles.progressWrap}>
+        <View style={styles.progressTrack}>
+          <View style={[styles.progressFill, { width: `${overallPct}%` }]} />
         </View>
-        <View style={styles.overallMeta}>
-          <Text style={styles.overallLabel}>{totalDone} of {totalAll} lessons</Text>
-          <Text style={styles.overallPct}>{overallPct}%</Text>
+        <View style={styles.progressMeta}>
+          <Text style={styles.progressLabel}>{totalDone} of {totalAll} lessons</Text>
+          <Text style={styles.progressPct}>{overallPct}%</Text>
         </View>
       </View>
 
@@ -571,9 +458,7 @@ export default function CareerScreen() {
           const isOpen = expanded.has(world.pillar);
 
           return (
-            <View key={world.pillar} style={styles.worldWrap}>
-
-              {/* ── WORLD BANNER ── */}
+            <View key={world.pillar} style={styles.worldBlock}>
               <WorldBanner
                 world={world}
                 status={status}
@@ -584,37 +469,13 @@ export default function CareerScreen() {
                 onToggle={() => toggle(world.pillar)}
               />
 
-              {/* ── LESSON NODE PATH ── */}
               {isOpen && status !== 'locked' && (
-                <View style={styles.pathWrap}>
-                  {worldLessons.length === 0 ? (
-                    <View style={styles.emptyWorld}>
-                      <Text style={styles.emptyText}>Lessons coming soon.</Text>
-                    </View>
-                  ) : (
-                    worldLessons.map((lesson, i) => {
-                      const isDone = completed.includes(lesson.id);
-                      const isNext = !isDone && worldLessons.slice(0, i).every((l) => completed.includes(l.id));
-                      const isLocked = i > 0 && !completed.includes(worldLessons[i - 1].id) && !isDone;
-                      return (
-                        <LessonNode
-                          key={lesson.id}
-                          lesson={lesson}
-                          idx={i}
-                          isDone={isDone}
-                          isNext={isNext}
-                          isLocked={isLocked}
-                          color={world.color}
-                          totalInPath={worldLessons.length}
-                        />
-                      );
-                    })
-                  )}
-                </View>
+                <WorldMapSection
+                  world={world}
+                  lessons={worldLessons}
+                  completed={completed}
+                />
               )}
-
-              {/* World divider */}
-              <View style={styles.worldDivider} />
             </View>
           );
         })}
@@ -629,7 +490,6 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.background },
 
-  // Header
   header: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -638,90 +498,35 @@ const styles = StyleSheet.create({
     paddingTop: Spacing.md,
     paddingBottom: Spacing.sm,
   },
-  eyebrow: {
-    fontSize: 9,
-    fontFamily: 'Inter_700Bold',
-    color: Colors.primary,
-    letterSpacing: 2,
-    marginBottom: 3,
-  },
-  title: {
-    fontSize: 26,
-    fontFamily: 'Inter_700Bold',
-    color: Colors.textPrimary,
-    letterSpacing: -0.3,
-  },
+  eyebrow: { fontSize: 9, fontFamily: 'Inter_700Bold', color: Colors.primary, letterSpacing: 2, marginBottom: 3 },
+  title: { fontSize: 26, fontFamily: 'Inter_700Bold', color: Colors.textPrimary, letterSpacing: -0.3 },
   headerRight: { alignItems: 'flex-end', paddingTop: 4, gap: 1 },
-  xpBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: Colors.warningMuted,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: Radius.pill,
-    borderWidth: 1,
-    borderColor: Colors.warningBorder,
+  xpPill: {
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    backgroundColor: Colors.warningMuted, paddingHorizontal: 10, paddingVertical: 6,
+    borderRadius: Radius.pill, borderWidth: 1, borderColor: 'rgba(245,166,35,0.28)',
   },
   xpNum: { fontSize: 16, fontFamily: 'Inter_700Bold', color: Colors.warning },
-  xpSuffix: { fontSize: 9, fontFamily: 'Inter_700Bold', color: Colors.textTertiary, letterSpacing: 1 },
+  xpLabel: { fontSize: 9, fontFamily: 'Inter_700Bold', color: Colors.textTertiary, letterSpacing: 1 },
 
-  // Overall progress
-  overallProgress: {
-    paddingHorizontal: Spacing.xl,
-    paddingBottom: Spacing.md,
-    gap: 6,
+  progressWrap: { paddingHorizontal: Spacing.xl, paddingBottom: Spacing.md, gap: 6 },
+  progressTrack: { height: 3, backgroundColor: Colors.surfaceElevated, borderRadius: 2, overflow: 'hidden' },
+  progressFill: {
+    height: 3, backgroundColor: Colors.primary, borderRadius: 2,
+    shadowColor: Colors.primary, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.8, shadowRadius: 4,
   },
-  overallTrack: {
-    height: 3,
-    backgroundColor: Colors.surfaceElevated,
-    borderRadius: 2,
-    overflow: 'hidden',
-  },
-  overallFill: {
-    height: 3,
-    backgroundColor: Colors.primary,
-    borderRadius: 2,
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 4,
-  },
-  overallMeta: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  overallLabel: { fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.textTertiary },
-  overallPct: { fontSize: 11, fontFamily: 'Inter_600SemiBold', color: Colors.primary },
+  progressMeta: { flexDirection: 'row', justifyContent: 'space-between' },
+  progressLabel: { fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.textTertiary },
+  progressPct: { fontSize: 11, fontFamily: 'Inter_600SemiBold', color: Colors.primary },
 
-  scroll: { paddingTop: 4 },
-
-  worldWrap: { marginBottom: 4 },
-
-  // Path container
-  pathWrap: {
-    paddingVertical: Spacing.lg,
-    paddingHorizontal: Spacing.xl,
-    gap: 0, // nodes manage their own spacing via path lines
-  },
-
-  worldDivider: {
-    height: 1,
-    backgroundColor: Colors.border,
-    marginHorizontal: Spacing.xl,
-    marginTop: Spacing.md,
-    opacity: 0.35,
-  },
-
-  emptyWorld: { paddingVertical: Spacing.xl, alignItems: 'center' },
-  emptyText: { fontSize: 13, fontFamily: 'Inter_400Regular', color: Colors.textTertiary },
+  scroll: { gap: 2 },
+  worldBlock: {},
 });
 
-// ─── WORLD BANNER STYLES ─────────────────────────────────────────────────────
+// ─── BANNER STYLES ────────────────────────────────────────────────────────────
 
 const bannerStyles = StyleSheet.create({
-  wrap: {
+  outer: {
     marginHorizontal: Spacing.xl,
     marginTop: Spacing.md,
     borderRadius: Radius.xl,
@@ -729,189 +534,121 @@ const bannerStyles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
     overflow: 'hidden',
-    // Subtle card shadow
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.20,
+    shadowOpacity: 0.22,
     shadowRadius: 6,
     elevation: 3,
   },
-  wrapLocked: { opacity: 0.45 },
-
-  colorBar: {
-    position: 'absolute',
-    left: 0,
-    top: 0,
-    bottom: 0,
-    width: 4,
+  leftSlab: {
+    position: 'absolute', left: 0, top: 0, bottom: 0,
+    width: 5,
     borderTopLeftRadius: Radius.xl,
     borderBottomLeftRadius: Radius.xl,
   },
-
-  inner: {
-    paddingLeft: 20,
-    paddingRight: Spacing.md,
-    paddingVertical: Spacing.lg,
+  content: {
+    paddingLeft: 22, paddingRight: Spacing.md, paddingVertical: Spacing.lg,
     gap: Spacing.md,
   },
-
-  topRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.md,
+  topRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
+  emojiBox: {
+    width: 54, height: 54, borderRadius: 27,
+    alignItems: 'center', justifyContent: 'center',
+    borderWidth: 1, flexShrink: 0,
   },
-
-  emojiCircle: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    flexShrink: 0,
-  },
-  emoji: { fontSize: 24 },
-
-  titleBlock: { flex: 1, gap: 2 },
-
-  worldNum: {
-    fontSize: 9,
-    fontFamily: 'Inter_700Bold',
-    letterSpacing: 1.8,
-    marginBottom: 1,
-  },
-  worldLabel: {
-    fontSize: 15,
-    fontFamily: 'Inter_700Bold',
-    color: Colors.textPrimary,
-    letterSpacing: 0.3,
-  },
-  worldSub: {
-    fontSize: 11,
-    fontFamily: 'Inter_400Regular',
-    color: Colors.textSecondary,
-    lineHeight: 16,
-  },
-
-  rightCol: {
-    alignItems: 'flex-end',
-    gap: 5,
-    flexShrink: 0,
-  },
-  yourPathBadge: {
-    paddingHorizontal: 7,
-    paddingVertical: 3,
+  emojiText: { fontSize: 26 },
+  titleCol: { flex: 1, gap: 2 },
+  worldNum: { fontSize: 9, fontFamily: 'Inter_700Bold', letterSpacing: 1.8, marginBottom: 1 },
+  worldName: { fontSize: 17, fontFamily: 'Inter_700Bold', color: Colors.textPrimary, letterSpacing: 0.1 },
+  worldSub: { fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.textSecondary, lineHeight: 16 },
+  rightStack: { alignItems: 'flex-end', gap: 5, flexShrink: 0 },
+  yourPathTag: {
+    paddingHorizontal: 7, paddingVertical: 3,
     borderRadius: Radius.pill,
-    borderWidth: 1,
   },
-  yourPathText: {
-    fontSize: 8,
-    fontFamily: 'Inter_700Bold',
-    color: '#000',
-    letterSpacing: 0.8,
+  yourPathTagText: { fontSize: 8, fontFamily: 'Inter_700Bold', color: '#000', letterSpacing: 0.8 },
+  doneTag: {
+    paddingHorizontal: 7, paddingVertical: 3,
+    borderRadius: Radius.pill, borderWidth: 1,
   },
-  completeBadge: {
-    paddingHorizontal: 7,
-    paddingVertical: 3,
-    borderRadius: Radius.pill,
-    borderWidth: 1,
-  },
-  completeBadgeText: {
-    fontSize: 8,
-    fontFamily: 'Inter_700Bold',
-    letterSpacing: 0.8,
-  },
-
-  progressRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-  },
+  doneTagText: { fontSize: 8, fontFamily: 'Inter_700Bold', letterSpacing: 0.8 },
+  progressRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
   progressTrack: {
-    flex: 1,
-    height: 4,
-    backgroundColor: Colors.surfaceElevated,
-    borderRadius: 2,
-    overflow: 'visible',
+    flex: 1, height: 4, backgroundColor: Colors.surfaceElevated,
+    borderRadius: 2, overflow: 'visible',
   },
-  progressFill: {
-    height: 4,
-    borderRadius: 2,
-  },
+  progressFill: { height: 4, borderRadius: 2 },
   progressTip: {
-    position: 'absolute',
-    top: -2,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.9,
-    shadowRadius: 6,
+    position: 'absolute', top: -2, width: 8, height: 8, borderRadius: 4,
+    shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.9, shadowRadius: 6,
   },
-  progressLabel: {
-    fontSize: 10,
-    fontFamily: 'Inter_700Bold',
-    minWidth: 32,
-    textAlign: 'right',
+  progressCount: { fontSize: 10, fontFamily: 'Inter_700Bold', minWidth: 32, textAlign: 'right' },
+});
+
+// ─── MAP STYLES ───────────────────────────────────────────────────────────────
+
+const mapStyles = StyleSheet.create({
+  outerWrap: {
+    marginTop: 0,
+    paddingTop: Spacing.lg,
+    paddingBottom: Spacing.xl,
+    marginHorizontal: Spacing.xl,
+    borderRadius: Radius.xl,
+    overflow: 'hidden',
+    position: 'relative',
+    borderWidth: 1,
+    borderTopWidth: 0,
+    borderColor: Colors.border + '50',
+    borderTopLeftRadius: 0,
+    borderTopRightRadius: 0,
+  },
+  // The center vertical spine — REMOVED, using node connectors instead
+  spineWrap: { display: 'none' },
+  spine: { display: 'none' },
+  nodesWrap: {
+    gap: 8,
+  },
+  emptyWrap: {
+    padding: Spacing.xl,
+    alignItems: 'center',
+    marginHorizontal: Spacing.xl,
+  },
+  emptyText: {
+    fontSize: 13, fontFamily: 'Inter_400Regular', color: Colors.textTertiary,
   },
 });
 
 // ─── NODE STYLES ─────────────────────────────────────────────────────────────
 
 const nodeStyles = StyleSheet.create({
-  container: {
-    alignItems: 'center',
-    maxWidth: 140,
-    paddingVertical: 4,
-  },
-
-  // Path line system — sits above each node (except first)
-  pathLineWrap: {
-    width: 3,
-    height: 28,
-    marginBottom: 4,
-    position: 'relative',
+  rowWrap: {
+    paddingHorizontal: 12,
     alignItems: 'center',
   },
-  pathTrack: {
-    position: 'absolute',
-    width: 3,
-    top: 0,
-    bottom: 0,
-    borderRadius: 2,
+  connector: {
+    width: 2,
+    height: 24,
+    borderRadius: 1,
+    marginBottom: 2,
   },
-  pathFill: {
-    position: 'absolute',
-    width: 3,
-    top: 0,
-    bottom: 0,
-    borderRadius: 2,
-  },
-
-  // Outer pulse ring — only visible on next node
-  glowRingOuter: {
+  glowRing: {
     position: 'absolute',
     borderWidth: 2,
-    zIndex: -1,
   },
-
-  nodeWrap: {
+  circle: {
     alignItems: 'center',
     justifyContent: 'center',
   },
-
-  circle: {
+  circleFill: {
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
   },
-
   nodeNum: {
+    fontSize: 18,
     fontFamily: 'Inter_700Bold',
   },
-
-  // START badge
-  startBadge: {
+  badge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
@@ -920,43 +657,21 @@ const nodeStyles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: Radius.pill,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.5,
+    shadowOpacity: 0.45,
     shadowRadius: 8,
     elevation: 4,
   },
-  startDot: {
-    width: 5,
-    height: 5,
-    borderRadius: 3,
-    backgroundColor: '#000',
-    opacity: 0.6,
+  badgeDot: {
+    width: 5, height: 5, borderRadius: 3,
+    backgroundColor: '#000', opacity: 0.5,
   },
-  startBadgeText: {
-    fontSize: 9,
-    fontFamily: 'Inter_700Bold',
-    color: '#000',
-    letterSpacing: 1.2,
+  badgeText: {
+    fontSize: 9, fontFamily: 'Inter_700Bold', color: '#000', letterSpacing: 1.2,
   },
-
   label: {
-    fontSize: 11,
-    fontFamily: 'Inter_400Regular',
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    marginTop: 7,
-    lineHeight: 16,
-    maxWidth: 110,
+    fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.textSecondary,
+    textAlign: 'center', marginTop: 6, lineHeight: 15, maxWidth: 110,
   },
-
-  xpRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 3,
-    marginTop: 3,
-  },
-  xpText: {
-    fontSize: 10,
-    fontFamily: 'Inter_600SemiBold',
-    color: Colors.warning,
-  },
+  xpRow: { flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 3 },
+  xpText: { fontSize: 10, fontFamily: 'Inter_600SemiBold', color: Colors.warning },
 });

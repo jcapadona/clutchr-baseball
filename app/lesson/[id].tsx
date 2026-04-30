@@ -1092,7 +1092,7 @@ export default function LessonPlayerScreen() {
         />
       )}
       {completionStage === 'overlay' && (
-        <CompletionOverlay lesson={lesson} passed={sessionPassed} onClose={() => router.back()} />
+        <CompletionOverlay lesson={lesson} passed={sessionPassed} onClose={() => router.push('/(tabs)/career')} />
       )}
     </View>
   );
@@ -1839,7 +1839,7 @@ const completionStyles = StyleSheet.create({
   feedback: { fontSize: 15, fontFamily: 'Inter_400Regular', color: Colors.textSecondary, textAlign: 'center', lineHeight: 22 },
   retryBtn: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, backgroundColor: Colors.primaryMuted, borderRadius: Radius.lg, paddingVertical: Spacing.md, paddingHorizontal: Spacing.xl, borderWidth: 1, borderColor: Colors.primaryBorder },
   retryBtnText: { fontSize: 14, fontFamily: 'Inter_600SemiBold', color: Colors.primary },
-  nextBtn: { backgroundColor: Colors.primary, borderRadius: Radius.lg, paddingVertical: Spacing.lg, paddingHorizontal: Spacing.xxl, marginTop: Spacing.sm, width: '100%', alignItems: 'center', overflow: 'hidden' },
+  nextBtn: { borderRadius: Radius.lg, paddingVertical: Spacing.lg, paddingHorizontal: Spacing.xxl, marginTop: Spacing.sm, width: '100%', alignItems: 'center', overflow: 'hidden', backgroundColor: Colors.primary },
   nextBtnText: { fontSize: 16, fontFamily: 'Inter_700Bold', color: '#000' },
 });
 

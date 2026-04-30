@@ -16,6 +16,7 @@ import { fetchLessons, type LegacyLesson } from '@/lib/supabase';
 import { Colors, Radius, Spacing } from '@/constants/theme';
 import type { PositionRole, SeasonPhase, Struggle } from '@/context/AthleteContext';
 import ToolShelfModal from '@/components/ToolShelfModal';
+import { pickNextLesson, type RoutingResult } from '@/lib/lessonRouter';
 
 // ─── PERSONALIZED FOCUS ENGINE ────────────────────────────────────────────────
 
@@ -154,9 +155,11 @@ function StreakBanner({ streakCount, streakStatus, completedToday, streakBest, o
 }
 
 // ─── HERO CONTINUE CARD ───────────────────────────────────────────────────────
+// Now accepts a RoutingResult so the "why it matters" reason shows on the card.
 
-function HeroContinueCard({ lesson, loading, onPress }: {
+function HeroContinueCard({ lesson, reason, loading, onPress }: {
   lesson: LegacyLesson | null;
+  reason: string;
   loading: boolean;
   onPress: () => void;
 }) {
@@ -164,7 +167,6 @@ function HeroContinueCard({ lesson, loading, onPress }: {
   const glowFade = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // Active dot pulse
     Animated.loop(
       Animated.sequence([
         Animated.timing(dotAnim, { toValue: 1, duration: 1000, useNativeDriver: true }),
@@ -251,11 +253,12 @@ function HeroContinueCard({ lesson, loading, onPress }: {
               <Text style={heroStyles.title} numberOfLines={3}>
                 {lesson?.title ?? 'Control the Controllables'}
               </Text>
-              {lesson?.subtitle && (
-                <Text style={heroStyles.subtitle} numberOfLines={2}>
-                  {lesson.subtitle}
-                </Text>
-              )}
+              {/* ── ROUTING REASON — the "why it matters" line ─────────────
+                  Previously showed lesson.subtitle (often null).
+                  Now shows the router's reason — always specific and relevant. */}
+              <Text style={heroStyles.subtitle} numberOfLines={2}>
+                {reason || lesson?.subtitle || 'Your next rep is ready.'}
+              </Text>
             </>
           )}
         </View>
@@ -289,7 +292,7 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { athleteState, streakStatus, completedTodayCount } = useAthlete();
   const [toolShelfOpen, setToolShelfOpen] = useState(false);
-  const [nextLesson, setNextLesson] = useState<LegacyLesson | null>(null);
+  const [routingResult, setRoutingResult] = useState<RoutingResult | null>(null);
   const [loadingLesson, setLoadingLesson] = useState(true);
 
   // Staggered entry animations
@@ -309,20 +312,34 @@ export default function HomeScreen() {
     ]).start();
   }, []);
 
+  // ── ROUTING ENGINE — replaces the old dumb find() ──────────────────────────
   useEffect(() => {
     if (!athleteState) return;
+    let cancelled = false;
     (async () => {
       try {
-        const lessons = await fetchLessons({ limit: 50 });
-        const next = lessons.find((l) => !athleteState.completed_lessons.includes(l.id));
-        setNextLesson(next ?? lessons[0] ?? null);
+        setLoadingLesson(true);
+        // Fetch a larger pool so the router has full visibility.
+        // The router handles all selection logic client-side.
+        const lessons = await fetchLessons({ limit: 200 });
+        if (cancelled) return;
+        const result = pickNextLesson(lessons, athleteState);
+        setRoutingResult(result);
       } catch (err) {
-        console.error('Failed to fetch lessons:', err);
+        console.error('Lesson routing failed:', err);
       } finally {
-        setLoadingLesson(false);
+        if (!cancelled) setLoadingLesson(false);
       }
     })();
-  }, [athleteState]);
+    return () => { cancelled = true; };
+  }, [
+    // Re-route whenever any of these change — covers lesson completion,
+    // phase change, or struggle update without requiring a full app restart.
+    athleteState?.completed_lessons?.length,
+    athleteState?.season_phase,
+    athleteState?.biggest_struggle?.join(','),
+    athleteState?.primary_role,
+  ]);
 
   if (!athleteState) return null;
 
@@ -340,8 +357,8 @@ export default function HomeScreen() {
   );
 
   function handleContinueCareer() {
-    if (!nextLesson) return;
-    router.push(`/lesson/${nextLesson.id}`);
+    if (!routingResult?.lesson) return;
+    router.push(`/lesson/${routingResult.lesson.id}`);
   }
 
   const FAB_BOTTOM = insets.bottom + 72;
@@ -406,7 +423,8 @@ export default function HomeScreen() {
         {/* ── HERO CARD — the centerpiece ── */}
         {animCard(anim2,
           <HeroContinueCard
-            lesson={nextLesson}
+            lesson={routingResult?.lesson ?? null}
+            reason={routingResult?.reason ?? ''}
             loading={loadingLesson}
             onPress={handleContinueCareer}
           />
@@ -558,11 +576,11 @@ const heroStyles = StyleSheet.create({
   },
   border: {
     position: 'absolute',
-    top: 0, left: 0, right: 0, bottom: 0,
+    inset: 0,
     borderRadius: Radius.xl,
     borderWidth: 1,
-    borderColor: 'rgba(34,204,94,0.22)',
-  },
+    borderColor: 'rgba(34,204,94,0.18)',
+  } as any,
   content: {
     padding: Spacing.xl,
     gap: Spacing.md,
@@ -575,17 +593,17 @@ const heroStyles = StyleSheet.create({
   liveBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 5,
     backgroundColor: 'rgba(34,204,94,0.12)',
-    borderWidth: 1,
-    borderColor: 'rgba(34,204,94,0.28)',
     borderRadius: Radius.pill,
-    paddingHorizontal: 10,
+    paddingHorizontal: 8,
     paddingVertical: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(34,204,94,0.20)',
   },
   liveDot: {
-    width: 5,
-    height: 5,
+    width: 6,
+    height: 6,
     borderRadius: 3,
     backgroundColor: Colors.primary,
   },
@@ -598,13 +616,13 @@ const heroStyles = StyleSheet.create({
   topMeta: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 6,
   },
   tierPill: {
     borderRadius: Radius.pill,
-    borderWidth: 1,
-    paddingHorizontal: 8,
+    paddingHorizontal: 7,
     paddingVertical: 3,
+    borderWidth: 1,
   },
   tierText: {
     fontSize: 9,
@@ -618,169 +636,116 @@ const heroStyles = StyleSheet.create({
     color: Colors.textTertiary,
   },
   titleBlock: {
-    paddingVertical: 4,
-    gap: 6,
-  },
-  title: {
-    fontSize: 28,
-    fontFamily: 'Inter_700Bold',
-    color: Colors.textPrimary,
-    lineHeight: 34,
-    letterSpacing: -0.4,
-  },
-  subtitle: {
-    fontSize: 14,
-    fontFamily: 'Inter_400Regular',
-    color: 'rgba(255,255,255,0.42)',
-    lineHeight: 20,
+    gap: 4,
   },
   skeletonLine: {
     backgroundColor: 'rgba(255,255,255,0.06)',
     borderRadius: 6,
   },
+  title: {
+    fontSize: 24,
+    fontFamily: 'Inter_700Bold',
+    color: Colors.textPrimary,
+    lineHeight: 30,
+    letterSpacing: -0.3,
+  },
+  subtitle: {
+    fontSize: 13,
+    fontFamily: 'Inter_400Regular',
+    color: Colors.primary,
+    lineHeight: 18,
+    opacity: 0.85,
+  },
   bottomRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: 4,
+    marginTop: Spacing.sm,
   },
   xpRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
+    gap: 4,
   },
   xpIconBox: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: 'rgba(245,166,35,0.18)',
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: Colors.warningMuted,
     alignItems: 'center',
     justifyContent: 'center',
   },
   xpAmount: {
-    fontSize: 16,
+    fontSize: 15,
     fontFamily: 'Inter_700Bold',
     color: Colors.warning,
   },
   xpUnit: {
-    fontSize: 10,
+    fontSize: 9,
     fontFamily: 'Inter_700Bold',
-    color: Colors.warning + '80',
-    letterSpacing: 0.8,
+    color: Colors.textTertiary,
+    letterSpacing: 1,
   },
   ctaBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 5,
     backgroundColor: Colors.primary,
-    borderRadius: Radius.pill,
-    paddingHorizontal: 18,
+    borderRadius: Radius.lg,
     paddingVertical: 10,
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.55,
-    shadowRadius: 10,
-    elevation: 6,
+    paddingHorizontal: Spacing.lg,
   },
   ctaText: {
     fontSize: 13,
     fontFamily: 'Inter_700Bold',
     color: '#000',
-    letterSpacing: 0.2,
+    letterSpacing: 0.3,
   },
   bottomGlow: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
     height: 2,
     backgroundColor: Colors.primary,
-    opacity: 0.45,
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 1,
-    shadowRadius: 6,
+    opacity: 0.25,
   },
 });
 
-// ─── SCREEN STYLES ────────────────────────────────────────────────────────────
+// ─── STYLES ──────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
-  scroll: { paddingHorizontal: Spacing.xl, gap: 12 },
+  scroll: { gap: Spacing.md, paddingHorizontal: Spacing.xl, paddingTop: Spacing.sm },
 
   // Header
   header: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'space-between',
-    paddingTop: Spacing.md,
-    paddingBottom: 4,
+    paddingVertical: Spacing.sm,
   },
-  headerLeft: { gap: 1 },
-  headerRight: { alignItems: 'flex-end', paddingTop: 6, gap: 1 },
-
+  headerLeft: { gap: 3 },
   clutchrWordmark: {
     fontSize: 10,
     fontFamily: 'Inter_700Bold',
     color: Colors.primary,
     letterSpacing: 2,
-    marginBottom: 6,
+    marginBottom: 2,
   },
-  greetingRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-  },
-  greetingLight: {
-    fontSize: 30,
-    fontFamily: 'Inter_400Regular',
-    color: Colors.textSecondary,
-    lineHeight: 36,
-  },
-  greetingBold: {
-    fontSize: 30,
-    fontFamily: 'Inter_700Bold',
-    color: Colors.textPrimary,
-    lineHeight: 36,
-    letterSpacing: -0.4,
-  },
-  metaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginTop: 5,
-  },
+  greetingRow: { flexDirection: 'row', alignItems: 'baseline' },
+  greetingLight: { fontSize: 26, fontFamily: 'Inter_300Light', color: Colors.textSecondary },
+  greetingBold: { fontSize: 26, fontFamily: 'Inter_700Bold', color: Colors.textPrimary },
+  metaRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 },
   rolePill: {
     backgroundColor: Colors.primaryMuted,
     borderRadius: Radius.pill,
-    paddingHorizontal: 8,
+    paddingHorizontal: 7,
     paddingVertical: 3,
     borderWidth: 1,
     borderColor: Colors.primaryBorder,
   },
-  rolePillText: {
-    fontSize: 9,
-    fontFamily: 'Inter_700Bold',
-    color: Colors.primary,
-    letterSpacing: 1.2,
-  },
+  rolePillText: { fontSize: 8, fontFamily: 'Inter_700Bold', color: Colors.primary, letterSpacing: 0.8 },
   metaSep: { fontSize: 11, color: Colors.textTertiary },
-  seasonText: {
-    fontSize: 11,
-    fontFamily: 'Inter_400Regular',
-    color: Colors.textSecondary,
-  },
-  xpBlock: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: 'rgba(245,166,35,0.14)',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: Radius.pill,
-    borderWidth: 1,
-    borderColor: 'rgba(245,166,35,0.22)',
-  },
+  seasonText: { fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.textSecondary },
+  headerRight: { alignItems: 'flex-end', paddingTop: 4, gap: 1 },
+  xpBlock: { flexDirection: 'row', alignItems: 'center', gap: 3 },
   xpNumber: {
     fontSize: 16,
     fontFamily: 'Inter_700Bold',
