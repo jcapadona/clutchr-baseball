@@ -356,10 +356,11 @@ export default function HomeScreen() {
     athleteState.season_phase
   );
 
-  function handleContinueCareer() {
-    if (!routingResult?.lesson) return;
-    router.push(`/lesson/${routingResult.lesson.id}`);
-  }
+function handleContinueCareer() {
+  if (!routingResult?.lesson) return;
+  const encodedReason = encodeURIComponent(routingResult.reason ?? '');
+  router.push(`/lesson/${routingResult.lesson.id}?reason=${encodedReason}`);
+}
 
   const FAB_BOTTOM = insets.bottom + 72;
 

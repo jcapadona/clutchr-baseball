@@ -16,6 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAthlete } from '@/context/AthleteContext';
 import { supabase } from '@/lib/supabase';
 import { Colors, Radius, Spacing } from '@/constants/theme';
+import { speakLessonIntro, stopSpeech } from '@/lib/lessonAudio';
 
 import StrikeZoneVisualizer from '@/components/StrikeZoneVisualizer';
 import PitchSequenceChess from '@/components/PitchSequenceChess';
@@ -895,7 +896,7 @@ function CompletionOverlay({ lesson, passed, onClose }: { lesson: any; passed: b
 // ─── MAIN SCREEN ─────────────────────────────────────────────────────────────
 
 export default function LessonPlayerScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, reason } = useLocalSearchParams<{ id: string; reason?: string }>();
   const insets = useSafeAreaInsets();
   const { athleteState, completeLesson, updateAthleteState } = useAthlete();
   const [lesson, setLesson] = useState<any>(null);
@@ -922,7 +923,11 @@ export default function LessonPlayerScreen() {
       finally { setLoading(false); }
     })();
   }, [id]);
-
+useEffect(() => {
+  if (!lesson) return;
+  speakLessonIntro(lesson, reason ?? undefined);
+  return () => { stopSpeech(); };
+}, [lesson]);
   const steps: any[] = lesson?.steps ?? [];
   const totalSteps = steps.length;
 
