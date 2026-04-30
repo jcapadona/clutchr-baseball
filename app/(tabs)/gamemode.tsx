@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Animated,
@@ -13,10 +14,11 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAthlete } from '@/context/AthleteContext';
 import { Colors, Radius, Spacing } from '@/constants/theme';
+import type { SeasonPhase } from '@/context/AthleteContext';
 
 // ─── TYPES ────────────────────────────────────────────────────────────────────
 
-type Bucket = 'pregame' | 'ingame' | 'postgame';
+type Bucket = 'pregame' | 'ingame' | 'between' | 'postgame';
 type RoleKey = 'pitcher' | 'catcher' | 'infielder' | 'outfielder';
 
 interface GameTool {
@@ -32,13 +34,15 @@ interface GameTool {
   steps: { cue: string; instruction: string; timer?: number }[];
   printCue: string;
   whenToUse: string;
+  // State tags — used for smart surfacing
+  state_tags?: Array<'slump' | 'return_to_throw' | 'preseason' | 'offseason' | 'nerves' | 'error' | 'postgame_tough'>;
 }
 
 // ─── ALL TOOLS ────────────────────────────────────────────────────────────────
 
 const GAME_TOOLS: GameTool[] = [
 
-  // ── PRE-GAME — phone OK ───────────────────────────────────────────────────
+  // ── PRE-GAME ─────────────────────────────────────────────────────────────
   {
     id: 'pregame_prime',
     name: 'Pregame Prime',
@@ -66,7 +70,7 @@ const GAME_TOOLS: GameTool[] = [
     icon: 'eye',
     color: Colors.info,
     bucket: 'pregame',
-    roles: ['hitter'],
+    roles: ['infielder', 'outfielder', 'catcher'],
     mode: 'interactive',
     duration: '2 min',
     whenToUse: 'Before first pitch. On-deck or in the dugout.',
@@ -109,6 +113,7 @@ const GAME_TOOLS: GameTool[] = [
     mode: 'interactive',
     duration: '2 min',
     whenToUse: 'When you feel pregame anxiety or tightness.',
+    state_tags: ['nerves', 'preseason'],
     steps: [
       { cue: 'FEEL IT', instruction: 'Notice where it lives. Chest tight? Stomach? Hands? Identify it. You cannot manage what you have not noticed.' },
       { cue: 'RENAME IT', instruction: 'That feeling is not fear. That is your body preparing to compete. Heart rate up, focus narrowing — that is called ready.' },
@@ -118,8 +123,29 @@ const GAME_TOOLS: GameTool[] = [
     ],
     printCue: 'FEEL IT · RENAME IT · BREATHE · GO',
   },
+  {
+    id: 'slump_pregame',
+    name: 'Slump Pregame Reset',
+    tagline: 'One process. One at-bat. One pitch.',
+    icon: 'refresh',
+    color: Colors.warning,
+    bucket: 'pregame',
+    roles: 'all',
+    mode: 'interactive',
+    duration: '2 min',
+    whenToUse: 'When you are in a slump and struggling to get mentally ready.',
+    state_tags: ['slump'],
+    steps: [
+      { cue: 'SHRINK IT', instruction: 'Stop thinking about the slump. Your only job today is one quality at-bat. Not the stats. Not the streak. One at-bat.' },
+      { cue: 'ONE PROCESS GOAL', instruction: 'Name your process goal for today: "See the ball early." "Stay back." "Attack first pitch." One. That is it.' },
+      { cue: 'BREATHE', instruction: 'Four counts in. Four counts out. Reset the nervous system.', timer: 16 },
+      { cue: 'REMEMBER WHO YOU ARE', instruction: 'You have done this before. You have had good at-bats. Name one. That player shows up today.' },
+      { cue: 'COMPETE', instruction: 'Slumps end when you stop chasing them and start competing. Do that today.' },
+    ],
+    printCue: 'SHRINK IT · ONE GOAL · BREATHE · COMPETE',
+  },
 
-  // ── IN-GAME — print cards only, no phone on field ────────────────────────
+  // ── IN-GAME ───────────────────────────────────────────────────────────────
   {
     id: 'ingame_pitch_reset',
     name: 'Between-Pitch Reset',
@@ -147,7 +173,7 @@ const GAME_TOOLS: GameTool[] = [
     icon: 'time',
     color: Colors.warning,
     bucket: 'ingame',
-    roles: ['hitter'],
+    roles: ['infielder', 'outfielder', 'catcher'],
     mode: 'print_card',
     duration: '30 sec',
     whenToUse: 'In the on-deck circle before every at-bat.',
@@ -167,10 +193,11 @@ const GAME_TOOLS: GameTool[] = [
     icon: 'refresh',
     color: Colors.warning,
     bucket: 'ingame',
-    roles: ['hitter'],
+    roles: ['infielder', 'outfielder', 'catcher'],
     mode: 'print_card',
     duration: '15 sec',
     whenToUse: 'Immediately after striking out. The walk back is your reset window.',
+    state_tags: ['slump'],
     steps: [
       { cue: 'EXHALE', instruction: 'Controlled breath leaving the box. Start the flush here.' },
       { cue: 'CHIN LEVEL', instruction: 'Not up, not down. Elite body language.' },
@@ -191,6 +218,7 @@ const GAME_TOOLS: GameTool[] = [
     mode: 'print_card',
     duration: '15 sec',
     whenToUse: 'Immediately after an error or misplay.',
+    state_tags: ['error'],
     steps: [
       { cue: 'GLOVE POP', instruction: 'One sharp clap. Your physical flush signal.' },
       { cue: 'SELF-TALK', instruction: '"Flush it. Next play." Say it quietly.' },
@@ -207,7 +235,7 @@ const GAME_TOOLS: GameTool[] = [
     icon: 'alert-circle',
     color: Colors.danger,
     bucket: 'ingame',
-    roles: ['hitter'],
+    roles: ['infielder', 'outfielder', 'catcher'],
     mode: 'print_card',
     duration: '10 sec',
     whenToUse: 'Before stepping back in at two strikes.',
@@ -241,7 +269,107 @@ const GAME_TOOLS: GameTool[] = [
     printCue: 'SLOW WALK · ONE CUE · I GOT YOU',
   },
 
-  // ── POST-GAME — phone OK ──────────────────────────────────────────────────
+  // ── BETWEEN INNINGS ───────────────────────────────────────────────────────
+  {
+    id: 'between_inning_pitcher',
+    name: 'Inning Transition',
+    tagline: 'Close the inning. Open the next one clean.',
+    icon: 'refresh-circle',
+    color: Colors.primary,
+    bucket: 'between',
+    roles: ['pitcher'],
+    mode: 'print_card',
+    duration: '60 sec',
+    whenToUse: 'Walking off the mound between innings. Before you sit down.',
+    steps: [
+      { cue: 'CLOSE IT', instruction: 'That inning is done. Good or bad — it is closed. Walk off with your chin up.' },
+      { cue: 'ONE WIN', instruction: 'Name one pitch or play that worked. Lock it in. That goes with you next inning.' },
+      { cue: 'ONE FIX', instruction: 'Name one thing to adjust. One. Not three. Not your whole mechanics. One thing.' },
+      { cue: 'RESET BREATH', instruction: 'One slow exhale on the bench. Clear the slate.' },
+      { cue: 'NEXT INNING PLAN', instruction: 'First hitter next inning: what is your plan? First pitch. Attack it.' },
+    ],
+    printCue: 'CLOSE IT · ONE WIN · ONE FIX · NEXT PLAN',
+  },
+  {
+    id: 'between_inning_defense',
+    name: 'Dugout Reset',
+    tagline: 'Come in locked. Go out ready.',
+    icon: 'people',
+    color: Colors.info,
+    bucket: 'between',
+    roles: ['infielder', 'outfielder', 'catcher'],
+    mode: 'print_card',
+    duration: '60 sec',
+    whenToUse: 'Between every defensive inning. In the dugout before going back out.',
+    steps: [
+      { cue: 'SHAKE IT OFF', instruction: 'Transition from offense to defense. Physically shake your hands. Clear mode.' },
+      { cue: 'SITUATION CHECK', instruction: 'Who is up? What is the score? What are the outs? Know the situation before the first pitch.' },
+      { cue: 'YOUR ASSIGNMENT', instruction: 'Name your first priority. Cutoff position. Bunt coverage. First step read on a line drive.' },
+      { cue: 'BODY LANGUAGE', instruction: 'Chin up. Eyes forward. Walk to your position like you own it.' },
+      { cue: 'READY HOP', instruction: 'Set your ready position before every pitch. Every single one.' },
+    ],
+    printCue: 'SHAKE OFF · SITUATION · ASSIGNMENT · READY',
+  },
+  {
+    id: 'between_long_inning',
+    name: 'Long Inning Focus Reset',
+    tagline: 'Long inning in the dugout? Re-lock before you go back out.',
+    icon: 'hourglass',
+    color: Colors.warning,
+    bucket: 'between',
+    roles: 'all',
+    mode: 'print_card',
+    duration: '30 sec',
+    whenToUse: 'After a long at-bat inning when focus can drift.',
+    steps: [
+      { cue: 'NOTICE THE DRIFT', instruction: 'Long inning. Mind wandered. That is normal. Notice it without judgment.' },
+      { cue: 'ONE BREATH', instruction: 'Single exhale. Restart the focus clock.' },
+      { cue: 'NEXT PITCH ONLY', instruction: 'Your only job when you walk back out: be ready for pitch one.' },
+      { cue: 'EYES UP', instruction: 'Look at the field. See the grass. Get your eyes out of your head.' },
+    ],
+    printCue: 'NOTICE · BREATHE · NEXT PITCH · EYES UP',
+  },
+  {
+    id: 'between_slump_reset',
+    name: 'Mid-Game Slump Shrink',
+    tagline: 'One at-bat is not the whole season.',
+    icon: 'trending-up',
+    color: Colors.primary,
+    bucket: 'between',
+    roles: 'all',
+    mode: 'print_card',
+    duration: '45 sec',
+    whenToUse: 'Between innings when the slump is weighing on you mid-game.',
+    state_tags: ['slump'],
+    steps: [
+      { cue: 'SHRINK THE PROBLEM', instruction: 'You are not in a slump in this at-bat. This at-bat has not happened yet.' },
+      { cue: 'ONE PROCESS GOAL', instruction: '"See the ball early." "Stay back." "Take a pitch." Pick one. That is your whole job.' },
+      { cue: 'EXHALE HARD', instruction: 'Exhale everything. Big release breath.' },
+      { cue: 'NEXT AT-BAT', instruction: 'Clean slate. Same player. Better information.' },
+    ],
+    printCue: 'SHRINK IT · ONE GOAL · EXHALE · CLEAN SLATE',
+  },
+  {
+    id: 'between_battery_sync',
+    name: 'Battery Sync',
+    tagline: 'Stay on the same page between innings.',
+    icon: 'sync',
+    color: Colors.purple,
+    bucket: 'between',
+    roles: ['pitcher', 'catcher'],
+    mode: 'print_card',
+    duration: '30 sec',
+    whenToUse: 'Quick communication check between pitcher and catcher each inning.',
+    steps: [
+      { cue: "WHAT'S WORKING", instruction: 'Catcher: name the one pitch that has been most effective this inning.' },
+      { cue: "WHAT'S NOT", instruction: 'Name one pitch to stay away from or adjust. One only.' },
+      { cue: 'NEXT 3 HITTERS', instruction: 'Quick mental scan: who is up? What did they struggle with last time?' },
+      { cue: 'ONE WORD', instruction: 'Set the tone for next inning together. "Attack." "Slow." "Trust." Say it together.' },
+    ],
+    printCue: "WHAT'S WORKING · ADJUST · NEXT 3 · ONE WORD",
+  },
+
+  // ── POST-GAME ─────────────────────────────────────────────────────────────
   {
     id: 'postgame_debrief',
     name: 'Postgame Debrief',
@@ -273,6 +401,7 @@ const GAME_TOOLS: GameTool[] = [
     mode: 'interactive',
     duration: '4 min',
     whenToUse: 'After a rough game or a night that is hard to shake.',
+    state_tags: ['slump', 'postgame_tough'],
     steps: [
       { cue: 'SAY IT', instruction: 'Rough night. It happened. Say it without trying to fix it yet: "That was rough."' },
       { cue: 'SAME PLAYER', instruction: 'One bad game does not change who you are. Name three things you know about yourself as a player that did not change tonight.' },
@@ -293,6 +422,7 @@ const GAME_TOOLS: GameTool[] = [
     mode: 'interactive',
     duration: '6 min',
     whenToUse: 'After every throwing session. Non-negotiable.',
+    state_tags: ['return_to_throw'],
     steps: [
       { cue: 'ARM CIRCLES', instruction: '10 forward, 10 backward. Both arms. Start small, get bigger.', timer: 30 },
       { cue: 'SLEEPER STRETCH', instruction: 'Lie on your throwing side. Push forearm toward the ground gently. 30 seconds each side.', timer: 60 },
@@ -309,10 +439,11 @@ const GAME_TOOLS: GameTool[] = [
     icon: 'medkit',
     color: Colors.info,
     bucket: 'postgame',
-    roles: ['hitter', 'catcher', 'infielder', 'outfielder'],
+    roles: ['infielder', 'outfielder', 'catcher'],
     mode: 'interactive',
     duration: '3 min',
     whenToUse: 'After every game. Your non-negotiable recovery routine.',
+    state_tags: ['return_to_throw'],
     steps: [
       { cue: 'FLUSH IT OUT', instruction: 'Light jog or walk for 2-3 minutes. Get the blood moving. Most underrated recovery tool.', timer: 60 },
       { cue: 'HIP FLEXORS', instruction: 'Kneeling hip flexor stretch. 30 seconds each side. Baseball destroys hip flexors.', timer: 60 },
@@ -323,16 +454,6 @@ const GAME_TOOLS: GameTool[] = [
     printCue: 'FLUSH · STRETCH · HYDRATE · SLEEP',
   },
 ];
-
-// ─── HELPERS ─────────────────────────────────────────────────────────────────
-
-function getTools(bucket: Bucket, role: RoleKey): GameTool[] {
-  return GAME_TOOLS.filter((t) => {
-    if (t.bucket !== bucket) return false;
-    if (t.roles === 'all') return true;
-    return (t.roles as RoleKey[]).includes(role);
-  });
-}
 
 // ─── BUCKET META ─────────────────────────────────────────────────────────────
 
@@ -351,7 +472,14 @@ const BUCKET_META: Record<Bucket, {
     icon: 'baseball', color: Colors.warning,
     label: 'IN-GAME',
     headline: 'No phone on the field.',
-    subtext: 'Generate your print card. Screenshot it. Fold to index card size. Keep in your back pocket or bat bag.',
+    subtext: 'Generate your print card. Screenshot and fold to index card size. Keep in your bat bag.',
+    phoneOk: false,
+  },
+  between: {
+    icon: 'hourglass', color: Colors.info,
+    label: 'BETWEEN',
+    headline: 'Between innings — 60 seconds.',
+    subtext: 'Print card or quick glance. Close the inning. Open the next one clean.',
     phoneOk: false,
   },
   postgame: {
@@ -363,6 +491,136 @@ const BUCKET_META: Record<Bucket, {
   },
 };
 
+// ─── STATE-AWARE SURFACING ────────────────────────────────────────────────────
+// Returns { banner, tools } — banner explains why these are surfaced,
+// tools is an ordered list of suggested tools for this athlete's state.
+
+interface SurfacedSet {
+  banner: { icon: string; color: string; headline: string; sub: string } | null;
+  tools: GameTool[];
+}
+
+function getSuggestedTools(
+  role: RoleKey,
+  phase: SeasonPhase,
+  struggles: string[]
+): SurfacedSet {
+  const all = GAME_TOOLS;
+
+  // Helper: tools matching a state_tag, filtered by role
+  function byTag(tag: GameTool['state_tags'][number]) {
+    return all.filter((t) => {
+      if (!t.state_tags?.includes(tag)) return false;
+      if (t.roles === 'all') return true;
+      return (t.roles as RoleKey[]).includes(role);
+    });
+  }
+
+  // Helper: role-appropriate tools for a bucket
+  function byBucket(bucket: Bucket, limit = 2) {
+    return all
+      .filter((t) => {
+        if (t.bucket !== bucket) return false;
+        if (t.roles === 'all') return true;
+        return (t.roles as RoleKey[]).includes(role);
+      })
+      .slice(0, limit);
+  }
+
+  if (phase === 'slump_reset') {
+    const slumpTools = byTag('slump');
+    return {
+      banner: {
+        icon: 'trending-up',
+        color: Colors.warning,
+        headline: 'Slump mode — tools selected for your situation.',
+        sub: 'Process-focused. One goal. Short memory.',
+      },
+      tools: slumpTools.length > 0 ? slumpTools.slice(0, 3) : byBucket('pregame', 2),
+    };
+  }
+
+  if (phase === 'return_to_throw') {
+    const recoveryTools = byTag('return_to_throw');
+    return {
+      banner: {
+        icon: 'fitness',
+        color: Colors.info,
+        headline: 'Return-to-throw mode — recovery first.',
+        sub: 'Patience is the work. Arm care tools prioritized.',
+      },
+      tools: recoveryTools.length > 0 ? recoveryTools.slice(0, 3) : byBucket('postgame', 2),
+    };
+  }
+
+  if (phase === 'preseason') {
+    return {
+      banner: {
+        icon: 'sunny',
+        color: Colors.primary,
+        headline: 'Preseason — build the habits now.',
+        sub: 'Routine and prep tools to install before the season starts.',
+      },
+      tools: [...byBucket('pregame', 2), ...byBucket('postgame', 1)],
+    };
+  }
+
+  if (struggles.includes('bouncing_back') || struggles.includes('confidence') || struggles.includes('pregame_nerves')) {
+    const nervesTools = byTag('nerves');
+    const slumpTools = byTag('slump');
+    const merged = [...nervesTools, ...slumpTools].slice(0, 3);
+    return {
+      banner: {
+        icon: 'pulse',
+        color: Colors.warning,
+        headline: 'Based on your focus area.',
+        sub: 'Reset tools matched to your biggest struggle.',
+      },
+      tools: merged.length > 0 ? merged : byBucket('pregame', 2),
+    };
+  }
+
+  // Default in-season: smart defaults by role
+  const defaults: GameTool[] = [];
+  if (role === 'pitcher') {
+    const pb = all.find((t) => t.id === 'pre_bullpen');
+    const bp = all.find((t) => t.id === 'ingame_pitch_reset');
+    const tr = all.find((t) => t.id === 'between_inning_pitcher');
+    if (pb) defaults.push(pb);
+    if (bp) defaults.push(bp);
+    if (tr) defaults.push(tr);
+  } else if (role === 'catcher') {
+    const pp = all.find((t) => t.id === 'pregame_prime');
+    const cv = all.find((t) => t.id === 'ingame_catcher_visit');
+    const bs = all.find((t) => t.id === 'between_battery_sync');
+    if (pp) defaults.push(pp);
+    if (cv) defaults.push(cv);
+    if (bs) defaults.push(bs);
+  } else {
+    const pp = all.find((t) => t.id === 'pregame_prime');
+    const ab = all.find((t) => t.id === 'ingame_pre_ab');
+    const dd = all.find((t) => t.id === 'between_inning_defense');
+    if (pp) defaults.push(pp);
+    if (ab) defaults.push(ab);
+    if (dd) defaults.push(dd);
+  }
+
+  return {
+    banner: null, // no special state — just show defaults quietly
+    tools: defaults.filter(Boolean),
+  };
+}
+
+// ─── HELPERS ─────────────────────────────────────────────────────────────────
+
+function getTools(bucket: Bucket, role: RoleKey): GameTool[] {
+  return GAME_TOOLS.filter((t) => {
+    if (t.bucket !== bucket) return false;
+    if (t.roles === 'all') return true;
+    return (t.roles as RoleKey[]).includes(role);
+  });
+}
+
 // ─── PRINT CARD SCREEN ────────────────────────────────────────────────────────
 
 function PrintCardScreen({ tool, onBack }: { tool: GameTool; onBack: () => void }) {
@@ -371,7 +629,7 @@ function PrintCardScreen({ tool, onBack }: { tool: GameTool; onBack: () => void 
       .map((s, i) => `${i + 1}. ${s.cue}  —  ${s.instruction}`)
       .join('\n');
     const text = [
-      '[ CLUTCHR BASEBALL — IN-GAME CARD ]',
+      '[ CLUTCHR BASEBALL — GAME CARD ]',
       tool.name.toUpperCase(),
       '',
       `WHEN: ${tool.whenToUse}`,
@@ -397,18 +655,17 @@ function PrintCardScreen({ tool, onBack }: { tool: GameTool; onBack: () => void 
       <View style={pStyles.warningBanner}>
         <Ionicons name="phone-portrait-outline" size={15} color={Colors.warning} />
         <Text style={pStyles.warningText}>
-          In-game tool — coaches do not allow phones on the field. Screenshot or print this card and keep it in your bat bag.
+          No phone on the field. Screenshot or print this card and keep it in your bat bag.
         </Text>
       </View>
 
-      {/* Card */}
       <View style={pStyles.card}>
         <View style={[pStyles.cardHeader, { borderLeftColor: tool.color, borderLeftWidth: 4 }]}>
           <View style={[pStyles.cardIconWrap, { backgroundColor: tool.color + '18' }]}>
             <Ionicons name={tool.icon as any} size={18} color={tool.color} />
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={pStyles.cardEyebrow}>CLUTCHR BASEBALL · IN-GAME</Text>
+            <Text style={pStyles.cardEyebrow}>CLUTCHR BASEBALL · {tool.bucket.toUpperCase()}</Text>
             <Text style={pStyles.cardTitle}>{tool.name}</Text>
             <Text style={pStyles.cardMeta}>{tool.duration} · {tool.whenToUse}</Text>
           </View>
@@ -444,7 +701,7 @@ function PrintCardScreen({ tool, onBack }: { tool: GameTool; onBack: () => void 
       </Pressable>
 
       <Text style={pStyles.hint}>
-        Fold to index card size (3×5) · Keep in back pocket or bat bag · No phone needed in the game
+        Fold to index card size (3×5) · Keep in back pocket or bat bag · No phone needed
       </Text>
     </View>
   );
@@ -564,26 +821,29 @@ function ToolRunner({ tool, onFinish }: { tool: GameTool; onFinish: () => void }
 
 // ─── TOOL CARD ────────────────────────────────────────────────────────────────
 
-function ToolCard({ tool, onPress }: { tool: GameTool; onPress: () => void }) {
+function ToolCard({ tool, onPress, compact = false }: {
+  tool: GameTool; onPress: () => void; compact?: boolean;
+}) {
   return (
     <Pressable
       style={({ pressed }) => [
         cStyles.card,
         tool.mode === 'print_card' && cStyles.printCard,
+        compact && cStyles.compactCard,
         pressed && { opacity: 0.82, transform: [{ scale: 0.99 }] },
       ]}
       onPress={() => { Haptics.selectionAsync(); onPress(); }}
     >
-      <View style={[cStyles.icon, { backgroundColor: tool.color + '18' }]}>
-        <Ionicons name={tool.icon as any} size={22} color={tool.color} />
+      <View style={[cStyles.icon, { backgroundColor: tool.color + '18' }, compact && cStyles.compactIcon]}>
+        <Ionicons name={tool.icon as any} size={compact ? 18 : 22} color={tool.color} />
       </View>
       <View style={cStyles.info}>
         <View style={cStyles.titleRow}>
-          <Text style={cStyles.name}>{tool.name}</Text>
+          <Text style={[cStyles.name, compact && cStyles.compactName]}>{tool.name}</Text>
           {tool.mode === 'print_card' ? (
             <View style={cStyles.printBadge}>
               <Ionicons name="print" size={9} color={Colors.warning} />
-              <Text style={[cStyles.badgeText, { color: Colors.warning }]}>PRINT CARD</Text>
+              <Text style={[cStyles.badgeText, { color: Colors.warning }]}>PRINT</Text>
             </View>
           ) : (
             <View style={cStyles.phoneBadge}>
@@ -592,15 +852,61 @@ function ToolCard({ tool, onPress }: { tool: GameTool; onPress: () => void }) {
             </View>
           )}
         </View>
-        <Text style={cStyles.tagline} numberOfLines={1}>{tool.tagline}</Text>
+        {!compact && <Text style={cStyles.tagline} numberOfLines={1}>{tool.tagline}</Text>}
         <Text style={[cStyles.duration, { color: tool.color }]}>{tool.duration}</Text>
       </View>
       <Ionicons
         name={tool.mode === 'print_card' ? 'print-outline' : 'play-circle'}
-        size={24}
+        size={compact ? 20 : 24}
         color={tool.color}
       />
     </Pressable>
+  );
+}
+
+// ─── SUGGESTED SECTION ───────────────────────────────────────────────────────
+
+function SuggestedSection({ role, phase, struggles, onOpen }: {
+  role: RoleKey;
+  phase: SeasonPhase;
+  struggles: string[];
+  onOpen: (tool: GameTool) => void;
+}) {
+  const { banner, tools } = getSuggestedTools(role, phase, struggles);
+  if (tools.length === 0) return null;
+
+  return (
+    <View style={sugStyles.wrap}>
+      {/* Section header */}
+      <View style={sugStyles.header}>
+        <View style={sugStyles.headerLeft}>
+          <Ionicons name="flash" size={11} color={Colors.primary} />
+          <Text style={sugStyles.headerLabel}>SUGGESTED FOR YOU</Text>
+        </View>
+        <Text style={sugStyles.headerSub}>{phase.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</Text>
+      </View>
+
+      {/* State banner — only shows when there's a special condition */}
+      {banner && (
+        <View style={[sugStyles.banner, { borderColor: banner.color + '40', backgroundColor: banner.color + '0A' }]}>
+          <LinearGradient
+            colors={[banner.color + '10', 'transparent']}
+            style={StyleSheet.absoluteFill}
+            start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+          />
+          <Ionicons name={banner.icon as any} size={14} color={banner.color} />
+          <View style={{ flex: 1 }}>
+            <Text style={[sugStyles.bannerHead, { color: banner.color }]}>{banner.headline}</Text>
+            <Text style={sugStyles.bannerSub}>{banner.sub}</Text>
+          </View>
+        </View>
+      )}
+
+      {/* Tools */}
+      {tools.map((tool) => (
+        <ToolCard key={tool.id} tool={tool} onPress={() => onOpen(tool)} compact />
+      ))}
+    </View>
   );
 }
 
@@ -614,6 +920,8 @@ export default function GameModeScreen() {
   const [view, setView] = useState<'runner' | 'print' | null>(null);
 
   const role = (athleteState?.primary_role ?? 'infielder') as RoleKey;
+  const phase = (athleteState?.season_phase ?? 'in_season') as SeasonPhase;
+  const struggles = athleteState?.biggest_struggle ?? [];
   const tools = getTools(bucket, role);
   const meta = BUCKET_META[bucket];
 
@@ -627,7 +935,7 @@ export default function GameModeScreen() {
     setView(null);
   }
 
-  // Active tool view
+  // ── Active tool view ──
   if (activeTool && view) {
     return (
       <View style={[s.container, { paddingTop: insets.top }]}>
@@ -661,9 +969,10 @@ export default function GameModeScreen() {
     );
   }
 
-  // List view
+  // ── List view ──
   return (
     <View style={[s.container, { paddingTop: insets.top }]}>
+
       {/* Header */}
       <View style={s.header}>
         <Text style={s.title}>GAME MODE</Text>
@@ -673,7 +982,7 @@ export default function GameModeScreen() {
         </Text>
       </View>
 
-      {/* Bucket tabs */}
+      {/* Bucket tabs — now 4 tabs */}
       <View style={s.bucketRow}>
         {(Object.keys(BUCKET_META) as Bucket[]).map((b) => {
           const m = BUCKET_META[b];
@@ -685,43 +994,63 @@ export default function GameModeScreen() {
                 s.bucketTab,
                 active && { borderColor: m.color + '60', backgroundColor: m.color + '12' },
               ]}
-              onPress={() => { setBucket(b); closeTool(); }}
+              onPress={() => { setBucket(b); closeTool(); Haptics.selectionAsync(); }}
             >
-              <Ionicons name={m.icon as any} size={13} color={active ? m.color : Colors.textTertiary} />
+              <Ionicons name={m.icon as any} size={12} color={active ? m.color : Colors.textTertiary} />
               <Text style={[s.bucketLabel, active && { color: m.color }]}>{m.label}</Text>
             </Pressable>
           );
         })}
       </View>
 
-      {/* Context banner */}
-      <View style={[
-        s.banner,
-        meta.phoneOk
-          ? { borderColor: meta.color + '30', backgroundColor: meta.color + '08' }
-          : { borderColor: Colors.warning + '40', backgroundColor: Colors.warning + '08' },
-      ]}>
-        <Ionicons
-          name={meta.phoneOk ? 'phone-portrait' : 'phone-portrait-outline'}
-          size={14}
-          color={meta.phoneOk ? meta.color : Colors.warning}
-        />
-        <View style={{ flex: 1 }}>
-          <Text style={[s.bannerHead, { color: meta.phoneOk ? meta.color : Colors.warning }]}>
-            {meta.headline}
-          </Text>
-          <Text style={s.bannerSub}>{meta.subtext}</Text>
-        </View>
-      </View>
-
       <ScrollView
         contentContainerStyle={[s.scroll, { paddingBottom: insets.bottom + 100 }]}
         showsVerticalScrollIndicator={false}
       >
+        {/* Context banner */}
+        <View style={[
+          s.banner,
+          meta.phoneOk
+            ? { borderColor: meta.color + '30', backgroundColor: meta.color + '08' }
+            : { borderColor: Colors.warning + '40', backgroundColor: Colors.warning + '08' },
+        ]}>
+          <Ionicons
+            name={meta.phoneOk ? 'phone-portrait' : 'phone-portrait-outline'}
+            size={14}
+            color={meta.phoneOk ? meta.color : Colors.warning}
+          />
+          <View style={{ flex: 1 }}>
+            <Text style={[s.bannerHead, { color: meta.phoneOk ? meta.color : Colors.warning }]}>
+              {meta.headline}
+            </Text>
+            <Text style={s.bannerSub}>{meta.subtext}</Text>
+          </View>
+        </View>
+
+        {/* Suggested section — only on pregame tab, state-aware */}
+        {bucket === 'pregame' && (
+          <SuggestedSection
+            role={role}
+            phase={phase}
+            struggles={struggles}
+            onOpen={openTool}
+          />
+        )}
+
+        {/* Divider when suggested section is shown */}
+        {bucket === 'pregame' && (
+          <View style={s.sectionDivider}>
+            <View style={s.dividerLine} />
+            <Text style={s.dividerLabel}>ALL {meta.label} TOOLS</Text>
+            <View style={s.dividerLine} />
+          </View>
+        )}
+
+        {/* Full tool list for bucket */}
         {tools.length === 0 ? (
           <View style={s.empty}>
             <Ionicons name="baseball-outline" size={40} color={Colors.textTertiary} />
-            <Text style={s.emptyTitle}>No tools for {role}s in this section yet.</Text>
+            <Text style={s.emptyTitle}>No tools for {role}s here yet.</Text>
             <Text style={s.emptySub}>More coming soon.</Text>
           </View>
         ) : (
@@ -741,35 +1070,76 @@ const s = StyleSheet.create({
   header: { paddingHorizontal: Spacing.xl, paddingVertical: Spacing.lg, gap: 3 },
   title: { fontSize: 18, fontFamily: 'Inter_700Bold', color: Colors.textPrimary, letterSpacing: 1 },
   subtitle: { fontSize: 12, fontFamily: 'Inter_400Regular', color: Colors.textSecondary },
-  bucketRow: { flexDirection: 'row', paddingHorizontal: Spacing.xl, gap: Spacing.sm, marginBottom: Spacing.sm },
-  bucketTab: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5, paddingVertical: Spacing.sm, borderRadius: Radius.md, borderWidth: 1, borderColor: Colors.border, backgroundColor: Colors.surface },
-  bucketLabel: { fontSize: 9, fontFamily: 'Inter_700Bold', color: Colors.textTertiary, letterSpacing: 0.8 },
-  banner: { flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.sm, marginHorizontal: Spacing.xl, marginBottom: Spacing.md, padding: Spacing.md, borderRadius: Radius.md, borderWidth: 1 },
+  bucketRow: { flexDirection: 'row', paddingHorizontal: Spacing.xl, gap: 6, marginBottom: Spacing.sm },
+  bucketTab: {
+    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    gap: 4, paddingVertical: Spacing.sm, borderRadius: Radius.md,
+    borderWidth: 1, borderColor: Colors.border, backgroundColor: Colors.surface,
+  },
+  bucketLabel: { fontSize: 8, fontFamily: 'Inter_700Bold', color: Colors.textTertiary, letterSpacing: 0.6 },
+  banner: {
+    flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.sm,
+    marginHorizontal: Spacing.xl, marginBottom: Spacing.sm,
+    padding: Spacing.md, borderRadius: Radius.md, borderWidth: 1,
+  },
   bannerHead: { fontSize: 12, fontFamily: 'Inter_700Bold', letterSpacing: 0.3 },
   bannerSub: { fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.textSecondary, lineHeight: 16, marginTop: 2 },
   scroll: { paddingHorizontal: Spacing.xl, gap: Spacing.sm },
+  sectionDivider: {
+    flexDirection: 'row', alignItems: 'center', gap: Spacing.sm,
+    marginTop: Spacing.sm, marginBottom: 2,
+  },
+  dividerLine: { flex: 1, height: 1, backgroundColor: Colors.border },
+  dividerLabel: { fontSize: 9, fontFamily: 'Inter_700Bold', color: Colors.textTertiary, letterSpacing: 1.2 },
   empty: { paddingVertical: 60, alignItems: 'center', gap: Spacing.md },
   emptyTitle: { fontSize: 15, fontFamily: 'Inter_600SemiBold', color: Colors.textSecondary, textAlign: 'center' },
   emptySub: { fontSize: 12, fontFamily: 'Inter_400Regular', color: Colors.textTertiary },
-  toolHeader: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, paddingHorizontal: Spacing.xl, paddingVertical: Spacing.md, borderBottomWidth: 1, borderBottomColor: Colors.border },
-  backBtn: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.surface, borderRadius: Radius.sm, borderWidth: 1, borderColor: Colors.border },
+  toolHeader: {
+    flexDirection: 'row', alignItems: 'center', gap: Spacing.sm,
+    paddingHorizontal: Spacing.xl, paddingVertical: Spacing.md,
+    borderBottomWidth: 1, borderBottomColor: Colors.border,
+  },
+  backBtn: {
+    width: 32, height: 32, alignItems: 'center', justifyContent: 'center',
+    backgroundColor: Colors.surface, borderRadius: Radius.sm, borderWidth: 1, borderColor: Colors.border,
+  },
   toolIcon: { width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
   toolHeaderName: { flex: 1, fontSize: 14, fontFamily: 'Inter_700Bold', color: Colors.textPrimary },
-  printTag: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: Colors.warningMuted, borderRadius: Radius.pill, paddingHorizontal: 7, paddingVertical: 3, borderWidth: 1, borderColor: Colors.warning + '40' },
+  printTag: {
+    flexDirection: 'row', alignItems: 'center', gap: 3,
+    backgroundColor: Colors.warningMuted, borderRadius: Radius.pill,
+    paddingHorizontal: 7, paddingVertical: 3, borderWidth: 1, borderColor: Colors.warning + '40',
+  },
   printTagText: { fontSize: 9, fontFamily: 'Inter_700Bold', color: Colors.warning, letterSpacing: 0.5 },
   toolDuration: { fontSize: 12, fontFamily: 'Inter_400Regular', color: Colors.textTertiary },
   toolScroll: { paddingHorizontal: Spacing.xl, paddingTop: Spacing.lg },
 });
 
 const cStyles = StyleSheet.create({
-  card: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.surface, borderRadius: Radius.lg, padding: Spacing.md, gap: Spacing.md, borderWidth: 1, borderColor: Colors.border },
+  card: {
+    flexDirection: 'row', alignItems: 'center',
+    backgroundColor: Colors.surface, borderRadius: Radius.lg,
+    padding: Spacing.md, gap: Spacing.md,
+    borderWidth: 1, borderColor: Colors.border,
+  },
+  compactCard: { padding: Spacing.sm, gap: Spacing.sm },
   printCard: { borderStyle: 'dashed', borderColor: Colors.warning + '50', backgroundColor: Colors.warningMuted + '25' },
   icon: { width: 46, height: 46, borderRadius: Radius.md, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+  compactIcon: { width: 36, height: 36 },
   info: { flex: 1, gap: 3 },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
   name: { fontSize: 14, fontFamily: 'Inter_600SemiBold', color: Colors.textPrimary, flex: 1 },
-  printBadge: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: Colors.warningMuted, borderRadius: Radius.pill, paddingHorizontal: 6, paddingVertical: 2, borderWidth: 1, borderColor: Colors.warning + '40' },
-  phoneBadge: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: Colors.primaryMuted, borderRadius: Radius.pill, paddingHorizontal: 6, paddingVertical: 2, borderWidth: 1, borderColor: Colors.primaryBorder },
+  compactName: { fontSize: 13 },
+  printBadge: {
+    flexDirection: 'row', alignItems: 'center', gap: 3,
+    backgroundColor: Colors.warningMuted, borderRadius: Radius.pill,
+    paddingHorizontal: 6, paddingVertical: 2, borderWidth: 1, borderColor: Colors.warning + '40',
+  },
+  phoneBadge: {
+    flexDirection: 'row', alignItems: 'center', gap: 3,
+    backgroundColor: Colors.primaryMuted, borderRadius: Radius.pill,
+    paddingHorizontal: 6, paddingVertical: 2, borderWidth: 1, borderColor: Colors.primaryBorder,
+  },
   badgeText: { fontSize: 8, fontFamily: 'Inter_700Bold', letterSpacing: 0.5 },
   tagline: { fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.textSecondary },
   duration: { fontSize: 10, fontFamily: 'Inter_700Bold', letterSpacing: 0.5 },
@@ -792,15 +1162,17 @@ const rStyles = StyleSheet.create({
   doneIcon: { width: 72, height: 72, borderRadius: 36, alignItems: 'center', justifyContent: 'center' },
   doneTitle: { fontSize: 28, fontFamily: 'Inter_700Bold', color: Colors.textPrimary },
   doneSub: { fontSize: 15, fontFamily: 'Inter_400Regular', color: Colors.textSecondary },
-  doneBtn: { borderRadius: Radius.lg, paddingVertical: Spacing.lg, width: '100%', alignItems: 'center' },
-  doneBtnText: { fontSize: 16, fontFamily: 'Inter_700Bold', color: '#fff' },
 });
 
 const pStyles = StyleSheet.create({
   container: { gap: Spacing.lg },
   backRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   backText: { fontSize: 14, fontFamily: 'Inter_600SemiBold', color: Colors.primary },
-  warningBanner: { flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.sm, backgroundColor: Colors.warningMuted, borderRadius: Radius.md, padding: Spacing.md, borderWidth: 1, borderColor: Colors.warning + '40' },
+  warningBanner: {
+    flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.sm,
+    backgroundColor: Colors.warningMuted, borderRadius: Radius.md,
+    padding: Spacing.md, borderWidth: 1, borderColor: Colors.warning + '40',
+  },
   warningText: { flex: 1, fontSize: 12, fontFamily: 'Inter_400Regular', color: Colors.textSecondary, lineHeight: 17 },
   card: { backgroundColor: Colors.surface, borderRadius: Radius.lg, borderWidth: 1.5, borderColor: Colors.border, overflow: 'hidden' },
   cardHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.md, padding: Spacing.lg },
@@ -822,4 +1194,18 @@ const pStyles = StyleSheet.create({
   shareBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm, borderRadius: Radius.lg, paddingVertical: Spacing.lg },
   shareBtnText: { fontSize: 15, fontFamily: 'Inter_700Bold', color: '#fff' },
   hint: { fontSize: 12, fontFamily: 'Inter_400Regular', color: Colors.textTertiary, textAlign: 'center', lineHeight: 18 },
+});
+
+const sugStyles = StyleSheet.create({
+  wrap: { gap: Spacing.sm, marginBottom: Spacing.sm },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  headerLabel: { fontSize: 10, fontFamily: 'Inter_700Bold', color: Colors.primary, letterSpacing: 1.2 },
+  headerSub: { fontSize: 10, fontFamily: 'Inter_400Regular', color: Colors.textTertiary },
+  banner: {
+    flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.sm,
+    borderRadius: Radius.md, borderWidth: 1, padding: Spacing.md, overflow: 'hidden',
+  },
+  bannerHead: { fontSize: 12, fontFamily: 'Inter_700Bold' },
+  bannerSub: { fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.textSecondary, lineHeight: 16, marginTop: 2 },
 });
