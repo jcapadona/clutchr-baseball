@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import {
   Alert,
   Animated,
@@ -202,6 +202,8 @@ export default function ProfileScreen() {
   const xpProgress   = phase >= PHASES.length - 1 ? 1 : Math.min((xp - currentPhaseData.xpNeeded) / (xpToNext - currentPhaseData.xpNeeded), 1);
   const playbookBuilt = !!(athleteState as any)?.playbook?.built_at;
   const ratings       = athleteState.self_ratings;
+  const [devTapCount, setDevTapCount] = useState(0);
+  const [devTapReset, setDevTapReset] = useState<ReturnType<typeof setTimeout> | null>(null);
 
   function handleSignOut() {
     Alert.alert('Sign Out', 'Are you sure?', [
@@ -210,13 +212,29 @@ export default function ProfileScreen() {
     ]);
   }
 
+  function handleDevTap() {
+    if (!__DEV__) return;
+    if (devTapReset) clearTimeout(devTapReset);
+    const next = devTapCount + 1;
+    if (next >= 7) {
+      setDevTapCount(0);
+      router.push('/dev-qa');
+      return;
+    }
+    setDevTapCount(next);
+    const timeout = setTimeout(() => setDevTapCount(0), 1800);
+    setDevTapReset(timeout);
+  }
+
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
 
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.clutchrLogo}>{'<< CLUTCHR'}</Text>
-        <Text style={styles.headerTitle}>PROFILE</Text>
+        <Pressable onPress={handleDevTap} hitSlop={10}>
+          <Text style={styles.headerTitle}>PROFILE</Text>
+        </Pressable>
       </View>
 
       <Animated.ScrollView
