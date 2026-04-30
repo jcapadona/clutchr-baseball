@@ -129,7 +129,7 @@ export default function LockerScreen() {
               {isActive && (
                 <LinearGradient
                   colors={[Colors.primary + '28', Colors.primary + '10']}
-                  style={StyleSheet.absoluteFill}
+                  style={styles.pillActiveGlow}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
                 />
@@ -547,13 +547,14 @@ const styles = StyleSheet.create({
   // Pills — KEY FIX: style is on the ScrollView itself (not contentContainer)
   // so it doesn't clip touch targets
   pillsScroll: {
-    marginBottom: Spacing.md,
+    marginTop: Spacing.xs,
+    marginBottom: Spacing.lg,
     flexGrow: 0,
   },
   pillsRow: {
     paddingHorizontal: Spacing.xl,
-    paddingVertical: 6,
-    gap: 8,
+    paddingVertical: 8,
+    gap: 10,
   },
   pill: {
     flexDirection: 'row',
@@ -567,10 +568,14 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
     backgroundColor: Colors.surface,
     justifyContent: 'center',
-    // NO overflow:hidden — it was clipping both visually and touch targets
+    overflow: 'hidden',
   },
   pillActive: {
     borderColor: Colors.primaryBorder,
+  },
+  pillActiveGlow: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: Radius.xl,
   },
   pillText: {
     // VISIBLE text — was #555 before, now proper secondary
