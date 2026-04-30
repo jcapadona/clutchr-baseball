@@ -713,14 +713,14 @@ const heroStyles = StyleSheet.create({
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
-  scroll: { gap: Spacing.md, paddingHorizontal: Spacing.xl, paddingTop: Spacing.sm },
+  scroll: { gap: Spacing.lg, paddingHorizontal: Spacing.xl, paddingTop: Spacing.md },
 
   // Header
   header: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'space-between',
-    paddingVertical: Spacing.sm,
+    paddingVertical: Spacing.md,
   },
   headerLeft: { gap: 3 },
   clutchrWordmark: {
@@ -731,8 +731,8 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   greetingRow: { flexDirection: 'row', alignItems: 'baseline' },
-  greetingLight: { fontSize: 26, fontFamily: 'Inter_300Light', color: Colors.textSecondary },
-  greetingBold: { fontSize: 26, fontFamily: 'Inter_700Bold', color: Colors.textPrimary },
+  greetingLight: { fontSize: 28, fontFamily: 'Inter_300Light', color: Colors.textSecondary },
+  greetingBold: { fontSize: 28, fontFamily: 'Inter_700Bold', color: Colors.textPrimary },
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 },
   rolePill: {
     backgroundColor: Colors.primaryMuted,
@@ -761,13 +761,13 @@ const styles = StyleSheet.create({
   },
 
   // Quick actions
-  quickRow: { flexDirection: 'row', gap: 10 },
+  quickRow: { flexDirection: 'row', gap: 12 },
   quickCard: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: Colors.surface,
-    borderRadius: Radius.lg,
+    borderRadius: Radius.xl,
     borderWidth: 1,
     borderColor: Colors.border,
     padding: Spacing.md,
@@ -799,7 +799,7 @@ const styles = StyleSheet.create({
   focusCard: {
     flexDirection: 'row',
     backgroundColor: Colors.surface,
-    borderRadius: Radius.lg,
+    borderRadius: Radius.xl,
     borderWidth: 1,
     borderColor: Colors.border,
     overflow: 'hidden',

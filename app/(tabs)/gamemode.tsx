@@ -1067,13 +1067,13 @@ export default function GameModeScreen() {
 
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
-  header: { paddingHorizontal: Spacing.xl, paddingVertical: Spacing.lg, gap: 3 },
-  title: { fontSize: 18, fontFamily: 'Inter_700Bold', color: Colors.textPrimary, letterSpacing: 1 },
+  header: { paddingHorizontal: Spacing.xl, paddingVertical: Spacing.xl, gap: 4 },
+  title: { fontSize: 20, fontFamily: 'Inter_700Bold', color: Colors.textPrimary, letterSpacing: 1 },
   subtitle: { fontSize: 12, fontFamily: 'Inter_400Regular', color: Colors.textSecondary },
-  bucketRow: { flexDirection: 'row', paddingHorizontal: Spacing.xl, gap: 6, marginBottom: Spacing.sm },
+  bucketRow: { flexDirection: 'row', paddingHorizontal: Spacing.xl, gap: 8, marginBottom: Spacing.md },
   bucketTab: {
     flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    gap: 4, paddingVertical: Spacing.sm, borderRadius: Radius.md,
+    gap: 4, paddingVertical: Spacing.sm, borderRadius: Radius.lg,
     borderWidth: 1, borderColor: Colors.border, backgroundColor: Colors.surface,
   },
   bucketLabel: { fontSize: 8, fontFamily: 'Inter_700Bold', color: Colors.textTertiary, letterSpacing: 0.6 },
@@ -1084,7 +1084,7 @@ const s = StyleSheet.create({
   },
   bannerHead: { fontSize: 12, fontFamily: 'Inter_700Bold', letterSpacing: 0.3 },
   bannerSub: { fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.textSecondary, lineHeight: 16, marginTop: 2 },
-  scroll: { paddingHorizontal: Spacing.xl, gap: Spacing.sm },
+  scroll: { paddingHorizontal: Spacing.xl, gap: Spacing.md },
   sectionDivider: {
     flexDirection: 'row', alignItems: 'center', gap: Spacing.sm,
     marginTop: Spacing.sm, marginBottom: 2,
@@ -1118,7 +1118,7 @@ const s = StyleSheet.create({
 const cStyles = StyleSheet.create({
   card: {
     flexDirection: 'row', alignItems: 'center',
-    backgroundColor: Colors.surface, borderRadius: Radius.lg,
+    backgroundColor: Colors.surface, borderRadius: Radius.xl,
     padding: Spacing.md, gap: Spacing.md,
     borderWidth: 1, borderColor: Colors.border,
   },

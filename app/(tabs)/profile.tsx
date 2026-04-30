@@ -419,12 +419,12 @@ const styles = StyleSheet.create({
   },
   clutchrLogo: { fontSize: 13, fontFamily: 'Inter_700Bold', color: Colors.primary, letterSpacing: 1 },
   headerTitle: { fontSize: 12, fontFamily: 'Inter_600SemiBold', color: Colors.textTertiary, letterSpacing: 1 },
-  scroll: { paddingHorizontal: Spacing.xl, gap: Spacing.lg },
+  scroll: { paddingHorizontal: Spacing.xl, gap: Spacing.xl },
 
   // Identity card
   identityCard: {
     flexDirection: 'row', alignItems: 'center',
-    backgroundColor: Colors.surface, borderRadius: Radius.lg,
+    backgroundColor: Colors.surface, borderRadius: Radius.xl,
     padding: Spacing.lg, borderWidth: 1, borderColor: Colors.primaryBorder,
     overflow: 'hidden',
   },
@@ -463,7 +463,7 @@ const styles = StyleSheet.create({
 
   // XP
   xpCard: {
-    backgroundColor: Colors.surface, borderRadius: Radius.lg,
+    backgroundColor: Colors.surface, borderRadius: Radius.xl,
     padding: Spacing.lg, gap: 8,
     borderWidth: 1, borderColor: Colors.border,
   },
@@ -488,7 +488,7 @@ const styles = StyleSheet.create({
   // Stats row
   statsRow: { flexDirection: 'row', gap: Spacing.sm },
   statCard: {
-    flex: 1, backgroundColor: Colors.surface, borderRadius: Radius.md,
+    flex: 1, backgroundColor: Colors.surface, borderRadius: Radius.lg,
     padding: Spacing.md, alignItems: 'center', gap: 4,
     borderWidth: 1, borderColor: Colors.border,
   },
@@ -501,7 +501,7 @@ const styles = StyleSheet.create({
   sectionTitle: { fontSize: 11, fontFamily: 'Inter_700Bold', color: Colors.textSecondary, letterSpacing: 1.2 },
   sectionSub: { fontSize: 10, fontFamily: 'Inter_400Regular', color: Colors.textTertiary },
   ratingsCard: {
-    backgroundColor: Colors.surface, borderRadius: Radius.lg,
+    backgroundColor: Colors.surface, borderRadius: Radius.xl,
     padding: Spacing.lg, gap: Spacing.md,
     borderWidth: 1, borderColor: Colors.border,
   },
@@ -514,7 +514,7 @@ const styles = StyleSheet.create({
   // Playbook
   playbookRow: {
     flexDirection: 'row', alignItems: 'center', gap: Spacing.sm,
-    backgroundColor: Colors.surface, borderRadius: Radius.lg,
+    backgroundColor: Colors.surface, borderRadius: Radius.xl,
     padding: Spacing.lg, borderWidth: 1, borderColor: Colors.purple + '30',
   },
   playbookIcon: { width: 36, height: 36, borderRadius: Radius.sm, alignItems: 'center', justifyContent: 'center' },

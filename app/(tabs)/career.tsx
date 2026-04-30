@@ -496,7 +496,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: Spacing.xl,
     paddingTop: Spacing.md,
-    paddingBottom: Spacing.sm,
+    paddingBottom: Spacing.md,
   },
   eyebrow: { fontSize: 9, fontFamily: 'Inter_700Bold', color: Colors.primary, letterSpacing: 2, marginBottom: 3 },
   title: { fontSize: 26, fontFamily: 'Inter_700Bold', color: Colors.textPrimary, letterSpacing: -0.3 },
@@ -509,7 +509,7 @@ const styles = StyleSheet.create({
   xpNum: { fontSize: 16, fontFamily: 'Inter_700Bold', color: Colors.warning },
   xpLabel: { fontSize: 9, fontFamily: 'Inter_700Bold', color: Colors.textTertiary, letterSpacing: 1 },
 
-  progressWrap: { paddingHorizontal: Spacing.xl, paddingBottom: Spacing.md, gap: 6 },
+  progressWrap: { paddingHorizontal: Spacing.xl, paddingBottom: Spacing.lg, gap: 8 },
   progressTrack: { height: 3, backgroundColor: Colors.surfaceElevated, borderRadius: 2, overflow: 'hidden' },
   progressFill: {
     height: 3, backgroundColor: Colors.primary, borderRadius: 2,
@@ -519,7 +519,7 @@ const styles = StyleSheet.create({
   progressLabel: { fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.textTertiary },
   progressPct: { fontSize: 11, fontFamily: 'Inter_600SemiBold', color: Colors.primary },
 
-  scroll: { gap: 2 },
+  scroll: { gap: 8 },
   worldBlock: {},
 });
 
@@ -528,7 +528,7 @@ const styles = StyleSheet.create({
 const bannerStyles = StyleSheet.create({
   outer: {
     marginHorizontal: Spacing.xl,
-    marginTop: Spacing.md,
+    marginTop: Spacing.lg,
     borderRadius: Radius.xl,
     backgroundColor: Colors.surface,
     borderWidth: 1,
@@ -536,8 +536,8 @@ const bannerStyles = StyleSheet.create({
     overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.22,
-    shadowRadius: 6,
+    shadowOpacity: 0.26,
+    shadowRadius: 8,
     elevation: 3,
   },
   leftSlab: {
