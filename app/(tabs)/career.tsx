@@ -175,11 +175,6 @@ function WorldMapSection({ world, lessons, completed }: {
         end={{ x: 0.5, y: 0.4 }}
       />
 
-      {/* Center spine — the actual PATH running top to bottom */}
-      <View style={mapStyles.spineWrap}>
-        <View style={[mapStyles.spine, { backgroundColor: world.color + '20' }]} />
-      </View>
-
       {/* Nodes */}
       <View style={mapStyles.nodesWrap}>
         {lessons.map((lesson, i) => {
@@ -226,26 +221,31 @@ function LessonNode({ lesson, idx, isDone, isNext, isLocked, color, total }: {
     return () => { pulseAnim.stopAnimation(); glowAnim.stopAnimation(); };
   }, [isNext]);
 
-  // Simple left/center/right — wider swing so it reads on screen
+  // Tight left/center/right climb pattern for a premium compact ascent map
   const pos = idx % 3;
-  const NODE_SIZE = lesson.is_boss ? 76 : 62;
+  const NODE_SIZE = lesson.is_boss ? 72 : lesson.is_checkpoint ? 64 : 58;
 
   const align = pos === 0 ? 'flex-end' : pos === 1 ? 'center' : 'flex-start';
-  const marginRight = pos === 0 ? 20 : 0;
-  const marginLeft = pos === 2 ? 20 : 0;
+  const marginRight = pos === 0 ? 14 : 0;
+  const marginLeft = pos === 2 ? 14 : 0;
+  const nodeTone = isDone ? color : isNext ? color : lesson.is_boss ? Colors.warning : lesson.is_checkpoint ? Colors.info : Colors.border;
 
   return (
-    <View style={[nodeStyles.rowWrap, { alignItems: align, marginRight, marginLeft }]}>
-      {/* Connector line from previous node — centered above this node */}
+    <View style={[nodeStyles.rowWrap, { alignItems: align, marginRight, marginLeft }]}> 
+      {/* Connected ascent rail segment */}
       {idx > 0 && (
-        <View style={[nodeStyles.connector, {
-          backgroundColor: isDone ? color + '70' : Colors.border + '50',
-        }]} />
+        <View style={nodeStyles.connectorWrap}>
+          <View style={[nodeStyles.connectorStem, { backgroundColor: nodeTone + '7A' }]} />
+          <View style={[nodeStyles.connectorDiag, {
+            borderTopColor: nodeTone + '66',
+            transform: [{ rotate: pos === 0 ? '-18deg' : pos === 2 ? '18deg' : '0deg' }],
+          }]} />
+        </View>
       )}
       <Pressable
         onPress={isLocked ? undefined : () => router.push(`/lesson/${lesson.id}`)}
         disabled={isLocked}
-        style={{ alignItems: 'center', opacity: isLocked ? 0.3 : 1 }}
+        style={{ alignItems: 'center', opacity: isLocked ? 0.38 : 1 }}
       >
         {/* Outer glow ring for next node */}
         {isNext && (
@@ -255,7 +255,7 @@ function LessonNode({ lesson, idx, isDone, isNext, isLocked, color, total }: {
               width: NODE_SIZE + 24,
               height: NODE_SIZE + 24,
               borderRadius: (NODE_SIZE + 24) / 2,
-              borderColor: color + '35',
+              borderColor: color + '52',
               opacity: glowAnim,
             },
           ]} />
@@ -276,6 +276,8 @@ function LessonNode({ lesson, idx, isDone, isNext, isLocked, color, total }: {
             <View style={[nodeStyles.circleFill, {
               width: NODE_SIZE, height: NODE_SIZE, borderRadius: NODE_SIZE / 2,
               backgroundColor: color,
+              borderWidth: 1,
+              borderColor: color + '95',
             }]}>
               <Ionicons name="checkmark" size={lesson.is_boss ? 28 : 22} color="#000" />
             </View>
@@ -286,10 +288,10 @@ function LessonNode({ lesson, idx, isDone, isNext, isLocked, color, total }: {
               borderWidth: 2.5, borderColor: color,
               shadowColor: color,
               shadowOffset: { width: 0, height: 0 },
-              shadowOpacity: 0.6,
-              shadowRadius: 14,
-              elevation: 8,
-            }]}>
+              shadowOpacity: 0.72,
+              shadowRadius: 18,
+              elevation: 10,
+            }]}> 
               {lesson.is_boss
                 ? <Ionicons name="trophy" size={24} color={color} />
                 : lesson.is_checkpoint
@@ -301,20 +303,20 @@ function LessonNode({ lesson, idx, isDone, isNext, isLocked, color, total }: {
             <View style={[nodeStyles.circleFill, {
               width: NODE_SIZE, height: NODE_SIZE, borderRadius: NODE_SIZE / 2,
               backgroundColor: Colors.warningMuted,
-              borderWidth: 1.5, borderColor: Colors.warning + '60',
+              borderWidth: 2, borderColor: Colors.warning + '80',
               shadowColor: Colors.warning,
               shadowOffset: { width: 0, height: 0 },
-              shadowOpacity: 0.25,
-              shadowRadius: 10,
-            }]}>
+              shadowOpacity: 0.3,
+              shadowRadius: 12,
+            }]}> 
               <Ionicons name="trophy" size={24} color={Colors.warning} />
             </View>
           ) : lesson.is_checkpoint ? (
             <View style={[nodeStyles.circleFill, {
               width: NODE_SIZE, height: NODE_SIZE, borderRadius: NODE_SIZE / 2,
               backgroundColor: Colors.infoMuted,
-              borderWidth: 1.5, borderColor: Colors.info + '60',
-            }]}>
+              borderWidth: 2, borderColor: Colors.info + '75',
+            }]}> 
               <Ionicons name="flag" size={20} color={Colors.info} />
             </View>
           ) : (
@@ -322,7 +324,7 @@ function LessonNode({ lesson, idx, isDone, isNext, isLocked, color, total }: {
               width: NODE_SIZE, height: NODE_SIZE, borderRadius: NODE_SIZE / 2,
               backgroundColor: Colors.surfaceElevated,
               borderWidth: 1.5, borderColor: Colors.border,
-            }]}>
+            }]}> 
               <Text style={[nodeStyles.nodeNum, { color: Colors.textTertiary }]}>{idx + 1}</Text>
             </View>
           )}
@@ -330,15 +332,15 @@ function LessonNode({ lesson, idx, isDone, isNext, isLocked, color, total }: {
 
         {/* START badge on next node */}
         {isNext && (
-          <View style={[nodeStyles.badge, { backgroundColor: color, shadowColor: color }]}>
+          <View style={[nodeStyles.badge, nodeStyles.startBadge, { backgroundColor: color, shadowColor: color }]}>
             <View style={nodeStyles.badgeDot} />
-            <Text style={nodeStyles.badgeText}>START</Text>
+            <Text style={nodeStyles.badgeText}>PLAY NOW</Text>
           </View>
         )}
 
         {/* BOSS label */}
         {lesson.is_boss && !isDone && !isNext && (
-          <View style={[nodeStyles.badge, { backgroundColor: Colors.warning, shadowColor: Colors.warning }]}>
+          <View style={[nodeStyles.badge, nodeStyles.bossBadge, { backgroundColor: Colors.warning, shadowColor: Colors.warning }]}>
             <Ionicons name="trophy" size={8} color="#000" />
             <Text style={nodeStyles.badgeText}>BOSS</Text>
           </View>
@@ -349,6 +351,8 @@ function LessonNode({ lesson, idx, isDone, isNext, isLocked, color, total }: {
           nodeStyles.label,
           isDone && { color: Colors.textTertiary },
           isNext && { color: Colors.textPrimary, fontFamily: 'Inter_600SemiBold' },
+          lesson.is_boss && !isDone && { color: Colors.warning },
+          lesson.is_checkpoint && !isDone && { color: Colors.info },
         ]} numberOfLines={2}>
           {lesson.title}
         </Text>
@@ -589,8 +593,8 @@ const bannerStyles = StyleSheet.create({
 
 const mapStyles = StyleSheet.create({
   outerWrap: {
-    marginTop: 0,
-    paddingTop: Spacing.lg,
+    marginTop: -10,
+    paddingTop: Spacing.md,
     paddingBottom: Spacing.xl,
     marginHorizontal: Spacing.xl,
     borderRadius: Radius.xl,
@@ -598,15 +602,13 @@ const mapStyles = StyleSheet.create({
     position: 'relative',
     borderWidth: 1,
     borderTopWidth: 0,
-    borderColor: Colors.border + '50',
+    borderColor: Colors.border + '65',
     borderTopLeftRadius: 0,
     borderTopRightRadius: 0,
   },
-  // The center vertical spine — REMOVED, using node connectors instead
-  spineWrap: { display: 'none' },
-  spine: { display: 'none' },
   nodesWrap: {
-    gap: 8,
+    gap: 2,
+    paddingHorizontal: 4,
   },
   emptyWrap: {
     padding: Spacing.xl,
@@ -624,12 +626,23 @@ const nodeStyles = StyleSheet.create({
   rowWrap: {
     paddingHorizontal: 12,
     alignItems: 'center',
+    paddingVertical: 4,
   },
-  connector: {
-    width: 2,
-    height: 24,
-    borderRadius: 1,
+  connectorWrap: {
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    height: 30,
     marginBottom: 2,
+  },
+  connectorStem: {
+    width: 2.5,
+    height: 20,
+    borderRadius: 2,
+  },
+  connectorDiag: {
+    width: 14,
+    borderTopWidth: 2.5,
+    marginTop: -2,
   },
   glowRing: {
     position: 'absolute',
@@ -661,6 +674,12 @@ const nodeStyles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
   },
+  startBadge: {
+    paddingHorizontal: 12,
+  },
+  bossBadge: {
+    paddingHorizontal: 11,
+  },
   badgeDot: {
     width: 5, height: 5, borderRadius: 3,
     backgroundColor: '#000', opacity: 0.5,
@@ -670,7 +689,7 @@ const nodeStyles = StyleSheet.create({
   },
   label: {
     fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.textSecondary,
-    textAlign: 'center', marginTop: 6, lineHeight: 15, maxWidth: 110,
+    textAlign: 'center', marginTop: 6, lineHeight: 15, maxWidth: 126,
   },
   xpRow: { flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 3 },
   xpText: { fontSize: 10, fontFamily: 'Inter_600SemiBold', color: Colors.warning },
