@@ -16,6 +16,7 @@ import { fetchLessons, type LegacyLesson } from '@/lib/supabase';
 import { Colors, Radius, Spacing } from '@/constants/theme';
 import type { PositionRole, SeasonPhase, Struggle } from '@/context/AthleteContext';
 import ToolShelfModal from '@/components/ToolShelfModal';
+import { RolePill } from '@/components/ui';
 import { pickNextLesson, type RoutingResult } from '@/lib/lessonRouter';
 
 // ─── PERSONALIZED FOCUS ENGINE ────────────────────────────────────────────────
@@ -391,9 +392,7 @@ function handleContinueCareer() {
                 <Text style={styles.greetingBold}>{athleteState.first_name}.</Text>
               </View>
               <View style={styles.metaRow}>
-                <View style={styles.rolePill}>
-                  <Text style={styles.rolePillText}>{getRoleLabel(athleteState.primary_role).toUpperCase()}</Text>
-                </View>
+                <RolePill label={getRoleLabel(athleteState.primary_role).toUpperCase()} />
                 <Text style={styles.metaSep}>·</Text>
                 <Text style={styles.seasonText}>
                   {athleteState.season_phase.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
@@ -713,14 +712,14 @@ const heroStyles = StyleSheet.create({
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
-  scroll: { gap: Spacing.md, paddingHorizontal: Spacing.xl, paddingTop: Spacing.sm },
+  scroll: { gap: Spacing.lg, paddingHorizontal: Spacing.xl, paddingTop: Spacing.md },
 
   // Header
   header: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'space-between',
-    paddingVertical: Spacing.sm,
+    paddingVertical: Spacing.md,
   },
   headerLeft: { gap: 3 },
   clutchrWordmark: {
@@ -731,18 +730,9 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   greetingRow: { flexDirection: 'row', alignItems: 'baseline' },
-  greetingLight: { fontSize: 26, fontFamily: 'Inter_300Light', color: Colors.textSecondary },
-  greetingBold: { fontSize: 26, fontFamily: 'Inter_700Bold', color: Colors.textPrimary },
+  greetingLight: { fontSize: 28, fontFamily: 'Inter_300Light', color: Colors.textSecondary },
+  greetingBold: { fontSize: 28, fontFamily: 'Inter_700Bold', color: Colors.textPrimary },
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 },
-  rolePill: {
-    backgroundColor: Colors.primaryMuted,
-    borderRadius: Radius.pill,
-    paddingHorizontal: 7,
-    paddingVertical: 3,
-    borderWidth: 1,
-    borderColor: Colors.primaryBorder,
-  },
-  rolePillText: { fontSize: 8, fontFamily: 'Inter_700Bold', color: Colors.primary, letterSpacing: 0.8 },
   metaSep: { fontSize: 11, color: Colors.textTertiary },
   seasonText: { fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.textSecondary },
   headerRight: { alignItems: 'flex-end', paddingTop: 4, gap: 1 },
@@ -761,13 +751,13 @@ const styles = StyleSheet.create({
   },
 
   // Quick actions
-  quickRow: { flexDirection: 'row', gap: 10 },
+  quickRow: { flexDirection: 'row', gap: 12 },
   quickCard: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: Colors.surface,
-    borderRadius: Radius.lg,
+    borderRadius: Radius.xl,
     borderWidth: 1,
     borderColor: Colors.border,
     padding: Spacing.md,
@@ -799,7 +789,7 @@ const styles = StyleSheet.create({
   focusCard: {
     flexDirection: 'row',
     backgroundColor: Colors.surface,
-    borderRadius: Radius.lg,
+    borderRadius: Radius.xl,
     borderWidth: 1,
     borderColor: Colors.border,
     overflow: 'hidden',

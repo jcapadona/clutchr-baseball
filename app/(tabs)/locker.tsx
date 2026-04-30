@@ -15,6 +15,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { fetchContentCards, type ContentCard } from '@/lib/supabase';
 import { Colors, Radius, Spacing } from '@/constants/theme';
+import { SectionHeader } from '@/components/ui';
 
 // ─── CATEGORIES ───────────────────────────────────────────────────────────────
 
@@ -129,7 +130,7 @@ export default function LockerScreen() {
               {isActive && (
                 <LinearGradient
                   colors={[Colors.primary + '28', Colors.primary + '10']}
-                  style={StyleSheet.absoluteFill}
+                  style={styles.pillActiveGlow}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
                 />
@@ -161,11 +162,7 @@ export default function LockerScreen() {
           {/* Featured strip */}
           {featured.length > 0 && (
             <View style={styles.section}>
-              <View style={styles.sectionHeader}>
-                <View style={styles.sectionDot} />
-                <Text style={styles.sectionTitle}>FOR YOU</Text>
-                <Text style={styles.sectionCount}>{featured.length}</Text>
-              </View>
+              <SectionHeader title="FOR YOU" count={featured.length} />
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
@@ -181,11 +178,7 @@ export default function LockerScreen() {
           {/* All cards list */}
           {rest.length > 0 && (
             <View style={styles.section}>
-              <View style={styles.sectionHeader}>
-                <View style={styles.sectionDot} />
-                <Text style={styles.sectionTitle}>ALL CONTENT</Text>
-                <Text style={styles.sectionCount}>{rest.length}</Text>
-              </View>
+              <SectionHeader title="ALL CONTENT" count={rest.length} />
               <View style={styles.cardList}>
                 {rest.map((card, i) => (
                   <ListCard key={card.id} card={card} index={i} onOpen={() => setSelectedCard(card)} />
@@ -495,8 +488,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: Spacing.xl,
-    paddingTop: Spacing.md,
-    paddingBottom: Spacing.sm,
+    paddingTop: Spacing.lg,
+    paddingBottom: Spacing.md,
   },
   eyebrow: {
     fontSize: 9,
@@ -530,7 +523,7 @@ const styles = StyleSheet.create({
     marginHorizontal: Spacing.xl,
     marginBottom: Spacing.md,
     backgroundColor: Colors.surface,
-    borderRadius: Radius.lg,
+    borderRadius: Radius.xl,
     borderWidth: 1,
     borderColor: Colors.border,
     paddingHorizontal: Spacing.md,
@@ -547,13 +540,14 @@ const styles = StyleSheet.create({
   // Pills — KEY FIX: style is on the ScrollView itself (not contentContainer)
   // so it doesn't clip touch targets
   pillsScroll: {
-    marginBottom: Spacing.md,
+    marginTop: Spacing.xs,
+    marginBottom: Spacing.lg,
     flexGrow: 0,
   },
   pillsRow: {
     paddingHorizontal: Spacing.xl,
-    paddingVertical: 6,
-    gap: 8,
+    paddingVertical: 8,
+    gap: 10,
   },
   pill: {
     flexDirection: 'row',
@@ -562,15 +556,19 @@ const styles = StyleSheet.create({
     height: 38,
     minWidth: 76,
     paddingHorizontal: 14,
-    borderRadius: Radius.pill,
+    borderRadius: Radius.xl,
     borderWidth: 1,
     borderColor: Colors.border,
     backgroundColor: Colors.surface,
     justifyContent: 'center',
-    // NO overflow:hidden — it was clipping both visually and touch targets
+    overflow: 'hidden',
   },
   pillActive: {
     borderColor: Colors.primaryBorder,
+  },
+  pillActiveGlow: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: Radius.xl,
   },
   pillText: {
     // VISIBLE text — was #555 before, now proper secondary
@@ -587,32 +585,11 @@ const styles = StyleSheet.create({
   loader: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   scroll: {
     paddingHorizontal: Spacing.xl,
-    paddingTop: Spacing.sm,
+    paddingTop: Spacing.md,
     gap: Spacing.xl,
   },
 
   section: { gap: Spacing.md },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-  },
-  sectionDot: {
-    width: 6, height: 6, borderRadius: 3,
-    backgroundColor: Colors.primary,
-  },
-  sectionTitle: {
-    fontSize: 12,
-    fontFamily: 'Inter_700Bold',
-    color: Colors.textPrimary,
-    flex: 1,
-    letterSpacing: 1,
-  },
-  sectionCount: {
-    fontSize: 11,
-    fontFamily: 'Inter_400Regular',
-    color: Colors.textTertiary,
-  },
 
   featuredRow: { gap: Spacing.sm },
   cardList: { gap: 8 },
