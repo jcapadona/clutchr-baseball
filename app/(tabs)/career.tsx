@@ -41,7 +41,7 @@ function getWorldStatus(lessons: LegacyLesson[], completed: string[], idx: numbe
   const mine = lessons.filter((l) => l.pillar_id === pillar);
   if (idx === 0) return mine.length > 0 && mine.every((l) => completed.includes(l.id)) ? 'complete' : 'active';
   const prev = lessons.filter((l) => l.pillar_id === WORLDS[idx - 1].pillar);
-  if (!prev.some((l) => completed.includes(l.id))) return 'locked';
+if (prev.length > 0 && !prev.some((l) => completed.includes(l.id))) return 'locked';
   return mine.length > 0 && mine.every((l) => completed.includes(l.id)) ? 'complete' : 'active';
 }
 
