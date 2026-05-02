@@ -1,9 +1,22 @@
+// ─── SUPABASE TABLE (run once in Supabase SQL editor) ────────────────────────
+// CREATE TABLE athlete_profiles (
+//   id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+//   state jsonb NOT NULL DEFAULT '{}',
+//   updated_at timestamptz DEFAULT now()
+// );
+// ALTER TABLE athlete_profiles ENABLE ROW LEVEL SECURITY;
+// CREATE POLICY "Users can read own profile" ON athlete_profiles FOR SELECT USING (auth.uid() = id);
+// CREATE POLICY "Users can upsert own profile" ON athlete_profiles FOR ALL USING (auth.uid() = id);
+// ─────────────────────────────────────────────────────────────────────────────
+
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { scheduleStreakReminder } from '@/lib/notifications';
 import React, {
   createContext,
   useCallback,
   useContext,
   useEffect,
+  useRef,
   useState,
 } from 'react';
 import { supabase } from '@/lib/supabase';
@@ -67,6 +80,7 @@ export interface AthleteState {
   last_lesson_date: string;      // ISO date string 'YYYY-MM-DD' of last completed lesson
   lessons_today: number;         // how many lessons completed today
   // ────────────────────────────────────────────────────────────────────────
+  last_session_date?: string;  // toDateString() format, for cross-device streak sync
   created_at: string;
   updated_at: string;
 }
@@ -176,9 +190,22 @@ export function buildDefaultState(name: string): AthleteState {
     streak_best: 0,
     last_lesson_date: '',
     lessons_today: 0,
+    last_session_date: '',
     created_at: now,
     updated_at: now,
   };
+}
+
+// ─── SUPABASE SYNC ───────────────────────────────────────────────────────────
+
+async function syncToSupabase(state: AthleteState, userId: string) {
+  try {
+    await supabase
+      .from('athlete_profiles')
+      .upsert({ id: userId, state, updated_at: new Date().toISOString() });
+  } catch (e) {
+    console.warn('Supabase sync failed silently:', e);
+  }
 }
 
 // ─── CONTEXT ─────────────────────────────────────────────────────────────────
@@ -189,13 +216,16 @@ export function AthleteProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [athleteState, setAthleteState] = useState<AthleteState | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  // Ref so callbacks with [] deps can always access the latest session without re-creating
+  const sessionRef = useRef<Session | null>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
+      sessionRef.current = session;
     });
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => setSession(session)
+      (_event, session) => { setSession(session); sessionRef.current = session; }
     );
     return () => subscription.unsubscribe();
   }, []);
@@ -204,6 +234,7 @@ export function AthleteProvider({ children }: { children: React.ReactNode }) {
     (async () => {
       try {
         const raw = await AsyncStorage.getItem(ATHLETE_KEY);
+        let local: AthleteState | null = null;
         if (raw) {
           const parsed = JSON.parse(raw);
           // Backfill streak fields for existing users who don't have them
@@ -213,7 +244,36 @@ export function AthleteProvider({ children }: { children: React.ReactNode }) {
             parsed.last_lesson_date = '';
             parsed.lessons_today = 0;
           }
+          local = parsed;
           setAthleteState(parsed);
+        }
+
+        // Merge with Supabase if logged in
+        const userId = sessionRef.current?.user?.id;
+        if (userId) {
+          try {
+            const { data } = await supabase
+              .from('athlete_profiles')
+              .select('state, updated_at')
+              .eq('id', userId)
+              .single();
+
+            if (data?.state) {
+              const remote = data.state as AthleteState;
+              const remoteTs = new Date(data.updated_at ?? 0).getTime();
+              const localTs  = new Date(local?.updated_at ?? 0).getTime();
+              if (remoteTs > localTs) {
+                // Remote is newer — use it and persist locally
+                setAthleteState(remote);
+                await AsyncStorage.setItem(ATHLETE_KEY, JSON.stringify(remote));
+              }
+            } else if (local) {
+              // No remote record yet — push local state up
+              syncToSupabase(local, userId);
+            }
+          } catch {
+            // Supabase unavailable — continue with local state
+          }
         }
       } catch (err) {
         console.error('Failed to load athlete state:', err);
@@ -227,6 +287,7 @@ export function AthleteProvider({ children }: { children: React.ReactNode }) {
     const updated = { ...state, updated_at: new Date().toISOString() };
     setAthleteState(updated);
     await AsyncStorage.setItem(ATHLETE_KEY, JSON.stringify(updated));
+    if (sessionRef.current?.user?.id) syncToSupabase(updated, sessionRef.current.user.id);
   }, []);
 
   const updateAthleteState = useCallback(
@@ -239,6 +300,7 @@ export function AthleteProvider({ children }: { children: React.ReactNode }) {
           updated_at: new Date().toISOString(),
         };
         AsyncStorage.setItem(ATHLETE_KEY, JSON.stringify(updated)).catch(console.error);
+        if (sessionRef.current?.user?.id) syncToSupabase(updated, sessionRef.current.user.id);
         return updated;
       });
     },
@@ -262,10 +324,13 @@ export function AthleteProvider({ children }: { children: React.ReactNode }) {
         completed_lessons: newCompleted,
         current_phase: newPhase,
         ...streakData,
+        last_session_date: new Date().toDateString(),
         updated_at: new Date().toISOString(),
       };
 
       AsyncStorage.setItem(ATHLETE_KEY, JSON.stringify(updated)).catch(console.error);
+      if (sessionRef.current?.user?.id) syncToSupabase(updated, sessionRef.current.user.id);
+      scheduleStreakReminder(streakData.streak_count).catch(() => {});
       return updated;
     });
   }, []);

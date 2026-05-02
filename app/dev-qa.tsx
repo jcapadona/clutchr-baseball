@@ -5,6 +5,7 @@ import { router } from 'expo-router';
 import { fetchContentCards, fetchLessons, type LegacyLesson } from '@/lib/supabase';
 import { useAthlete } from '@/context/AthleteContext';
 import { Colors, Radius, Spacing } from '@/constants/theme';
+import { triggerWorldClearCelebration } from './(tabs)/career';
 
 interface StepIssue {
   lessonId: string;
@@ -155,6 +156,15 @@ export default function DevQAScreen() {
             <Text style={styles.row}>Current phase: {(athleteState?.current_phase ?? 0) + 1}</Text>
           </Section>
 
+          <Section title="Feature Tests">
+            <Pressable
+              style={styles.testBtn}
+              onPress={() => triggerWorldClearCelebration('foundation', '#22CC5E')}
+            >
+              <Text style={styles.testBtnText}>Test World Clear Celebration</Text>
+            </Pressable>
+          </Section>
+
           <Section title="Unmatched completed IDs">{report.unmatchedCompleted.map((id) => <Text key={id} style={styles.issue}>{id}</Text>)}</Section>
           <Section title="Duplicate lesson IDs">{report.duplicateIds.map((id) => <Text key={id} style={styles.issue}>{id}</Text>)}</Section>
           <Section title="Lesson issues">{report.lessonIssues.map((i, idx) => <Text key={`${i.lessonId}-${idx}`} style={styles.issue}>{i.lessonId}: {i.message}</Text>)}</Section>
@@ -202,4 +212,17 @@ const styles = StyleSheet.create({
   issue: { color: Colors.warning, fontSize: 12 },
   ok: { color: Colors.textSecondary, fontSize: 12 },
   blocked: { color: Colors.textPrimary, textAlign: 'center' },
+  testBtn: {
+    backgroundColor: Colors.primary,
+    borderRadius: Radius.md,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    alignItems: 'center',
+  },
+  testBtnText: {
+    color: '#000',
+    fontFamily: 'Inter_700Bold',
+    fontSize: 13,
+    letterSpacing: 0.4,
+  },
 });

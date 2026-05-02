@@ -4,6 +4,7 @@ import { router } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Animated,
+  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -17,7 +18,10 @@ import { Colors, Radius, Spacing } from '@/constants/theme';
 import type { PositionRole, SeasonPhase, Struggle } from '@/context/AthleteContext';
 import ToolShelfModal from '@/components/ToolShelfModal';
 import { RolePill } from '@/components/ui';
+import { ClutchrLogo } from '@/components/ClutchrLogo';
+import { VoltChip } from '@/components/VoltChip';
 import { pickNextLesson, type RoutingResult } from '@/lib/lessonRouter';
+import { SkeletonBox, SkeletonCard } from '@/components/SkeletonLoader';
 
 // ─── PERSONALIZED FOCUS ENGINE ────────────────────────────────────────────────
 
@@ -152,6 +156,57 @@ function StreakBanner({ streakCount, streakStatus, completedToday, streakBest, o
         <Ionicons name="chevron-forward" size={14} color={Colors.textTertiary} />
       </View>
     </Pressable>
+  );
+}
+
+// ─── VOLT BANNER ─────────────────────────────────────────────────────────────
+
+function VoltBanner() {
+  const { athleteState } = useAthlete();
+  const pulseAnim = useRef(new Animated.Value(0.2)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, { toValue: 0.6, duration: 1800, useNativeDriver: false }),
+        Animated.timing(pulseAnim, { toValue: 0.2, duration: 1800, useNativeDriver: false }),
+      ])
+    ).start();
+  }, []);
+
+  const streak = athleteState?.streak_count ?? 0;
+  const phase  = athleteState?.season_phase;
+
+  let message = 'Next rep is ready. Lock in.';
+  if (streak >= 7) {
+    message = `Day ${streak} streak. You're locked in. Keep stacking.`;
+  } else if (streak >= 2) {
+    message = `Day ${streak} streak. Stack the rep. Don't break the chain.`;
+  } else if (streak === 1) {
+    message = 'First rep logged. Come back tomorrow and build something.';
+  } else if (phase === 'slump_reset') {
+    message = "Slumps don't last. Reps do. Next one.";
+  } else if (phase === 'return_to_throw') {
+    message = 'Smart return. One rep at a time. Control the process.';
+  }
+
+  const borderColor = pulseAnim.interpolate({
+    inputRange:  [0, 1],
+    outputRange: ['#22CC5E22', '#22CC5E99'],
+  });
+
+  return (
+    <Animated.View style={[voltStyles.container, { borderColor }]}>
+      <Image
+        source={require('../../assets/volt bust.png')}
+        style={voltStyles.avatar}
+        resizeMode="cover"
+      />
+      <View style={voltStyles.content}>
+        <Text style={voltStyles.label}>VOLT</Text>
+        <Text style={voltStyles.message}>{message}</Text>
+      </View>
+    </Animated.View>
   );
 }
 
@@ -291,13 +346,14 @@ function HeroContinueCard({ lesson, reason, loading, onPress }: {
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
-  const { athleteState, streakStatus, completedTodayCount } = useAthlete();
+  const { athleteState, isLoading, streakStatus, completedTodayCount } = useAthlete();
   const [toolShelfOpen, setToolShelfOpen] = useState(false);
   const [routingResult, setRoutingResult] = useState<RoutingResult | null>(null);
   const [loadingLesson, setLoadingLesson] = useState(true);
 
   // Staggered entry animations
   const anim0 = useRef(new Animated.Value(0)).current;
+  const animV = useRef(new Animated.Value(0)).current;
   const anim1 = useRef(new Animated.Value(0)).current;
   const anim2 = useRef(new Animated.Value(0)).current;
   const anim3 = useRef(new Animated.Value(0)).current;
@@ -306,6 +362,7 @@ export default function HomeScreen() {
   useEffect(() => {
     Animated.stagger(70, [
       Animated.spring(anim0, { toValue: 1, tension: 80, friction: 11, useNativeDriver: true }),
+      Animated.spring(animV, { toValue: 1, tension: 80, friction: 11, useNativeDriver: true }),
       Animated.spring(anim1, { toValue: 1, tension: 80, friction: 11, useNativeDriver: true }),
       Animated.spring(anim2, { toValue: 1, tension: 80, friction: 11, useNativeDriver: true }),
       Animated.spring(anim3, { toValue: 1, tension: 80, friction: 11, useNativeDriver: true }),
@@ -342,7 +399,29 @@ export default function HomeScreen() {
     athleteState?.primary_role,
   ]);
 
-  if (!athleteState) return null;
+  if (isLoading || !athleteState) {
+    return (
+      <View style={[styles.container, { paddingTop: insets.top }]}>
+        <View style={styles.header}>
+          <ClutchrLogo />
+        </View>
+        <ScrollView
+          contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 140, gap: 14 }]}
+          showsVerticalScrollIndicator={false}
+        >
+          <SkeletonBox width="55%" height={20} radius={6} />
+          <SkeletonBox width="75%" height={13} radius={5} style={{ marginTop: 4 }} />
+          <SkeletonCard style={{ marginTop: 10 }} />
+          <View style={{ flexDirection: 'row', gap: 12 }}>
+            <SkeletonBox width="47%" height={80} radius={12} />
+            <SkeletonBox width="47%" height={80} radius={12} />
+          </View>
+          <SkeletonCard />
+          <SkeletonCard />
+        </ScrollView>
+      </View>
+    );
+  }
 
   const greeting = getGreeting();
   const completedCount = athleteState.completed_lessons.length;
@@ -386,7 +465,7 @@ function handleContinueCareer() {
         {animCard(anim0,
           <View style={styles.header}>
             <View style={styles.headerLeft}>
-              <Text style={styles.clutchrWordmark}>{'<< CLUTCHR'}</Text>
+              <ClutchrLogo />
               <View style={styles.greetingRow}>
                 <Text style={styles.greetingLight}>{greeting}, </Text>
                 <Text style={styles.greetingBold}>{athleteState.first_name}.</Text>
@@ -403,11 +482,15 @@ function handleContinueCareer() {
               <View style={styles.xpBlock}>
                 <Ionicons name="flash" size={12} color={Colors.warning} />
                 <Text style={styles.xpNumber}>{athleteState.total_xp}</Text>
+                <Text style={styles.xpSuffix}>XP</Text>
               </View>
-              <Text style={styles.xpSuffix}>XP</Text>
+              <VoltChip />
             </View>
           </View>
         )}
+
+        {/* ── VOLT BANNER ── */}
+        {animCard(animV, <VoltBanner />)}
 
         {/* ── STREAK BANNER ── */}
         {animCard(anim1,
@@ -722,23 +805,16 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.md,
   },
   headerLeft: { gap: 3 },
-  clutchrWordmark: {
-    fontSize: 10,
-    fontFamily: 'Inter_700Bold',
-    color: Colors.primary,
-    letterSpacing: 2,
-    marginBottom: 2,
-  },
   greetingRow: { flexDirection: 'row', alignItems: 'baseline' },
   greetingLight: { fontSize: 28, fontFamily: 'Inter_300Light', color: Colors.textSecondary },
   greetingBold: { fontSize: 28, fontFamily: 'Inter_700Bold', color: Colors.textPrimary },
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 },
   metaSep: { fontSize: 11, color: Colors.textTertiary },
   seasonText: { fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.textSecondary },
-  headerRight: { alignItems: 'flex-end', paddingTop: 4, gap: 1 },
+  headerRight: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingTop: 0 },
   xpBlock: { flexDirection: 'row', alignItems: 'center', gap: 3 },
   xpNumber: {
-    fontSize: 16,
+    fontSize: 15,
     fontFamily: 'Inter_700Bold',
     color: Colors.warning,
   },
@@ -747,7 +823,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_700Bold',
     color: Colors.textTertiary,
     letterSpacing: 1,
-    textAlign: 'right',
   },
 
   // Quick actions
@@ -940,6 +1015,42 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_700Bold',
     color: '#000',
     letterSpacing: 1.2,
+  },
+});
+
+// ─── VOLT BANNER STYLES ───────────────────────────────────────────────────────
+
+const voltStyles = StyleSheet.create({
+  container: {
+    backgroundColor: '#0A1A0B',
+    borderWidth: 1,
+    borderRadius: 12,
+    marginHorizontal: 16,
+    marginBottom: 16,
+    padding: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  avatar: {
+    width: 52,
+    height: 52,
+    borderRadius: 8,
+  },
+  content: {
+    flex: 1,
+  },
+  label: {
+    color: '#22CC5E',
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 2,
+    marginBottom: 3,
+  },
+  message: {
+    color: '#aaaaaa',
+    fontSize: 12,
+    lineHeight: 18,
   },
 });
 

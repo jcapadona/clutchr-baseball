@@ -6,6 +6,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Animated,
+  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -893,6 +894,106 @@ function CompletionOverlay({ lesson, passed, onClose }: { lesson: any; passed: b
   );
 }
 
+// ─── CELEBRATION OVERLAYS ─────────────────────────────────────────────────────
+
+const VOLT_LINES = ['Stack that.', 'Clean rep.', 'Next play.', 'That travels.', 'Built different.', 'Charge up.'];
+const BOSS_QUOTES = [
+  'You came in locked. You left locked.',
+  'That was a boss-level rep. Feel that.',
+  'Built differently. Keep adding.',
+  'You earned this one. Stack it.',
+];
+
+function LessonCompleteContent({ lesson, xpDisplay, contentFadeAnim }: { lesson: any; xpDisplay: number; contentFadeAnim: Animated.Value }) {
+  const line = useRef(VOLT_LINES[Math.floor(Math.random() * VOLT_LINES.length)]).current;
+  const [imgError, setImgError] = useState(false);
+  return (
+    <Animated.View style={[celebStyles.contentCenter, { opacity: contentFadeAnim }]}>
+      {!imgError ? (
+        <Image
+          source={require('../../assets/volt bust.png')}
+          style={celebStyles.voltAvatar}
+          resizeMode="contain"
+          onError={() => setImgError(true)}
+        />
+      ) : (
+        <View style={[celebStyles.voltAvatar, { backgroundColor: '#0F1A0F', borderWidth: 1.5, borderColor: '#22CC5E', alignItems: 'center', justifyContent: 'center' }]}>
+          <Text style={{ color: '#22CC5E', fontSize: 20 }}>⚡</Text>
+        </View>
+      )}
+      <Text style={celebStyles.tierLabel}>REP COMPLETE</Text>
+      <Text style={celebStyles.lessonTitleText}>{lesson?.title}</Text>
+      <View style={celebStyles.xpPill}>
+        <Ionicons name="flash" size={14} color={Colors.primary} />
+        <Text style={celebStyles.xpPillText}>+{xpDisplay} XP</Text>
+      </View>
+      <Text style={celebStyles.voltLine}>{line}</Text>
+    </Animated.View>
+  );
+}
+
+function CheckpointCompleteContent({ lesson, xpDisplay, contentFadeAnim }: { lesson: any; xpDisplay: number; contentFadeAnim: Animated.Value }) {
+  return (
+    <Animated.View style={[celebStyles.contentCenter, { opacity: contentFadeAnim }]}>
+      <Ionicons name="shield-checkmark" size={64} color={Colors.info} />
+      <Text style={[celebStyles.tierLabel, { color: Colors.info }]}>CHECKPOINT CLEARED</Text>
+      <Text style={celebStyles.lessonTitleText}>{lesson?.title}</Text>
+      <View style={[celebStyles.xpPill, { borderColor: Colors.info }]}>
+        <Ionicons name="flash" size={14} color={Colors.info} />
+        <Text style={[celebStyles.xpPillText, { color: Colors.info }]}>+{xpDisplay} XP</Text>
+      </View>
+      <Text style={celebStyles.voltLine}>Checkpoint locked in. Keep building.</Text>
+    </Animated.View>
+  );
+}
+
+function BossCompleteContent({ lesson, xpDisplay, onContinue, contentFadeAnim }: { lesson: any; xpDisplay: number; onContinue: () => void; contentFadeAnim: Animated.Value }) {
+  const quote = useRef(BOSS_QUOTES[Math.floor(Math.random() * BOSS_QUOTES.length)]).current;
+  const crownPulse = useRef(new Animated.Value(1.0)).current;
+  const [imgError, setImgError] = useState(false);
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(crownPulse, { toValue: 1.15, duration: 600, useNativeDriver: true }),
+        Animated.timing(crownPulse, { toValue: 1.0, duration: 600, useNativeDriver: true }),
+      ])
+    ).start();
+  }, []);
+  return (
+    <Animated.View style={[celebStyles.bossScroll, { opacity: contentFadeAnim }]}>
+      <ScrollView contentContainerStyle={celebStyles.bossScrollContent} showsVerticalScrollIndicator={false}>
+        {!imgError ? (
+          <Image
+            source={require('../../assets/volt bust.png')}
+            style={celebStyles.voltAvatarLg}
+            resizeMode="contain"
+            onError={() => setImgError(true)}
+          />
+        ) : (
+          <View style={[celebStyles.voltAvatarLg, { backgroundColor: '#0F1A0F', borderWidth: 1.5, borderColor: '#22CC5E', alignItems: 'center', justifyContent: 'center' }]}>
+            <Text style={{ color: '#22CC5E', fontSize: 28 }}>⚡</Text>
+          </View>
+        )}
+        <Text style={celebStyles.voltLabel}>VOLT</Text>
+        <Text style={celebStyles.bossQuote}>{quote}</Text>
+        <View style={celebStyles.dividerLine} />
+        <Animated.Text style={[celebStyles.crown, { transform: [{ scale: crownPulse }] }]}>♛</Animated.Text>
+        <Text style={celebStyles.bossBattleLabel}>BOSS BATTLE</Text>
+        <Text style={celebStyles.defeatedLabel}>DEFEATED</Text>
+        <Text style={celebStyles.lessonTitleText}>{lesson?.title}</Text>
+        <View style={[celebStyles.xpPill, { borderColor: Colors.warning }]}>
+          <Ionicons name="flash" size={14} color={Colors.warning} />
+          <Text style={[celebStyles.xpPillText, { color: Colors.warning }]}>+{xpDisplay} XP</Text>
+        </View>
+        <Text style={[celebStyles.voltLine, { color: Colors.warning }]}>BONUS REP EARNED</Text>
+        <Pressable style={celebStyles.continueBtn} onPress={onContinue}>
+          <Text style={celebStyles.continueBtnText}>Continue →</Text>
+        </Pressable>
+      </ScrollView>
+    </Animated.View>
+  );
+}
+
 // ─── MAIN SCREEN ─────────────────────────────────────────────────────────────
 
 export default function LessonPlayerScreen() {
@@ -908,6 +1009,12 @@ export default function LessonPlayerScreen() {
   const completionTriggered = useRef(false);
   const stepFade = useRef(new Animated.Value(1)).current;
   const progressAnim = useRef(new Animated.Value(0)).current;
+  const [showComplete, setShowComplete] = useState<'lesson' | 'checkpoint' | 'boss' | null>(null);
+  const [xpDisplay, setXpDisplay] = useState(0);
+  const overlayFadeAnim = useRef(new Animated.Value(0)).current;
+  const contentFadeAnim = useRef(new Animated.Value(0)).current;
+  const xpCountAnim = useRef(new Animated.Value(0)).current;
+  const finalXPRef = useRef(0);
 
   useEffect(() => {
     if (!id) return;
@@ -936,6 +1043,26 @@ useEffect(() => {
     Animated.spring(progressAnim, { toValue: (stepIndex + 1) / totalSteps, tension: 60, friction: 10, useNativeDriver: false }).start();
   }, [stepIndex, totalSteps]);
 
+  useEffect(() => {
+    if (!showComplete) return;
+    overlayFadeAnim.setValue(0);
+    contentFadeAnim.setValue(0);
+    xpCountAnim.setValue(0);
+    setXpDisplay(0);
+    Animated.timing(overlayFadeAnim, { toValue: 1, duration: 350, useNativeDriver: true }).start();
+    setTimeout(() => {
+      Animated.timing(contentFadeAnim, { toValue: 1, duration: 400, useNativeDriver: true }).start();
+    }, 200);
+    const xp = finalXPRef.current;
+    if (xp > 0) {
+      const listenerId = xpCountAnim.addListener(({ value }) => setXpDisplay(Math.round(value)));
+      setTimeout(() => {
+        Animated.timing(xpCountAnim, { toValue: xp, duration: 800, useNativeDriver: false }).start();
+      }, 400);
+      return () => xpCountAnim.removeListener(listenerId);
+    }
+  }, [showComplete]);
+
   const advanceStep = useCallback((passed?: boolean) => {
     if (completionTriggered.current) return;
     if (passed === false) setSessionPassed(false);
@@ -943,9 +1070,16 @@ useEffect(() => {
       completionTriggered.current = true;
       const xp = lesson?.xp_reward ?? 50;
       const finalPassed = passed !== false && sessionPassed;
-      if (athleteState && lesson) completeLesson(lesson.id ?? id, finalPassed ? xp : Math.floor(xp * 0.5));
-      if (lesson?.is_boss || lesson?.is_checkpoint) { setCompletionStage('check_in'); }
-      else { setCompletionStage('overlay'); }
+      const awardedXP = finalPassed ? xp : Math.floor(xp * 0.5);
+      if (athleteState && lesson) completeLesson(lesson.id ?? id, awardedXP);
+      finalXPRef.current = awardedXP;
+      if (lesson?.is_boss || lesson?.is_checkpoint) {
+        setCompletionStage('check_in');
+      } else {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        setTimeout(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light), 250);
+        setShowComplete('lesson');
+      }
       return;
     }
     Animated.timing(stepFade, { toValue: 0, duration: 100, useNativeDriver: true }).start(() => {
@@ -956,7 +1090,7 @@ useEffect(() => {
   }, [stepIndex, totalSteps, lesson, athleteState, completeLesson, id, sessionPassed]);
 
   async function handleRatingsSubmit(ratings: Record<string, number>) {
-    if (!athleteState) { setCompletionStage('overlay'); return; }
+    if (!athleteState) { setShowComplete('lesson'); return; }
     const current = athleteState.self_ratings;
     const merged: any = { ...current };
     Object.entries(ratings).forEach(([key, val]) => {
@@ -964,8 +1098,16 @@ useEffect(() => {
       merged[key] = Math.round((val * 0.6 + existing * 0.4) * 10) / 10;
     });
     await updateAthleteState({ self_ratings: merged });
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    setCompletionStage('overlay');
+    if (lesson?.is_boss) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).then(() => {
+        setTimeout(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy), 200);
+        setTimeout(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium), 350);
+      });
+      setShowComplete('boss');
+    } else {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      setShowComplete('checkpoint');
+    }
   }
 
   function handleExit() {
@@ -1096,8 +1238,17 @@ useEffect(() => {
           onSubmit={handleRatingsSubmit}
         />
       )}
-      {completionStage === 'overlay' && (
-        <CompletionOverlay lesson={lesson} passed={sessionPassed} onClose={() => router.push('/(tabs)/career')} />
+      {showComplete !== null && (
+        <Animated.View style={[celebStyles.overlay, { opacity: overlayFadeAnim }]}>
+          {showComplete === 'lesson' && <LessonCompleteContent lesson={lesson} xpDisplay={xpDisplay} contentFadeAnim={contentFadeAnim} />}
+          {showComplete === 'checkpoint' && <CheckpointCompleteContent lesson={lesson} xpDisplay={xpDisplay} contentFadeAnim={contentFadeAnim} />}
+          {showComplete === 'boss' && <BossCompleteContent lesson={lesson} xpDisplay={xpDisplay} onContinue={() => router.push('/(tabs)/career')} contentFadeAnim={contentFadeAnim} />}
+          {showComplete !== 'boss' && (
+            <Pressable style={celebStyles.backBtn} onPress={() => router.push('/(tabs)/career')}>
+              <Text style={celebStyles.backBtnText}>Back to Career →</Text>
+            </Pressable>
+          )}
+        </Animated.View>
       )}
     </View>
   );
@@ -1873,4 +2024,139 @@ const ratingStyles = StyleSheet.create({
   dot: { width: 28, height: 28, borderRadius: 14, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
   dotFill: { width: 10, height: 10, borderRadius: 5 },
   dotLabel: { fontSize: 12, fontFamily: 'Inter_600SemiBold', color: Colors.textTertiary, marginLeft: 4, minWidth: 40 },
+});
+
+// ─── Celebration ──────────────────────────────────────────────────────────────
+const celebStyles = StyleSheet.create({
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.97)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 999,
+    paddingHorizontal: Spacing.xl,
+  },
+  contentCenter: {
+    alignItems: 'center',
+    gap: Spacing.md,
+  },
+  voltAvatar: {
+    width: 80,
+    height: 80,
+    borderRadius: 12,
+    marginBottom: 8,
+  },
+  voltAvatarLg: {
+    width: 110,
+    height: 110,
+    borderRadius: 14,
+    marginBottom: 8,
+  },
+  tierLabel: {
+    color: Colors.primary,
+    fontFamily: 'Inter_700Bold',
+    fontSize: 18,
+    letterSpacing: 1.2,
+  },
+  lessonTitleText: {
+    color: Colors.textPrimary,
+    fontFamily: 'Inter_600SemiBold',
+    fontSize: 16,
+    textAlign: 'center',
+    opacity: 0.9,
+  },
+  xpPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    borderWidth: 1.5,
+    borderColor: Colors.primary,
+    borderRadius: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+  },
+  xpPillText: {
+    color: Colors.primary,
+    fontFamily: 'Inter_700Bold',
+    fontSize: 16,
+  },
+  voltLine: {
+    color: Colors.textSecondary,
+    fontFamily: 'Inter_600SemiBold',
+    fontSize: 14,
+    textAlign: 'center',
+    fontStyle: 'italic',
+  },
+  voltLabel: {
+    color: Colors.primary,
+    fontFamily: 'Inter_700Bold',
+    fontSize: 11,
+    letterSpacing: 1.5,
+  },
+  bossScroll: { width: '100%', maxHeight: '90%' },
+  bossScrollContent: {
+    alignItems: 'center',
+    gap: Spacing.md,
+    paddingVertical: Spacing.xl,
+    paddingHorizontal: Spacing.xl,
+  },
+  bossQuote: {
+    color: Colors.textPrimary,
+    fontFamily: 'Inter_400Regular',
+    fontSize: 15,
+    textAlign: 'center',
+    lineHeight: 22,
+    opacity: 0.85,
+  },
+  dividerLine: {
+    width: 60,
+    height: 1,
+    backgroundColor: Colors.border,
+    marginVertical: Spacing.sm,
+  },
+  crown: {
+    fontSize: 36,
+    color: Colors.warning,
+  },
+  bossBattleLabel: {
+    color: Colors.warning,
+    fontFamily: 'Inter_700Bold',
+    fontSize: 11,
+    letterSpacing: 2,
+  },
+  defeatedLabel: {
+    color: Colors.textSecondary,
+    fontFamily: 'Inter_600SemiBold',
+    fontSize: 13,
+    letterSpacing: 1,
+  },
+  continueBtn: {
+    marginTop: Spacing.md,
+    backgroundColor: Colors.primary,
+    borderRadius: Radius.md,
+    paddingVertical: 12,
+    paddingHorizontal: 32,
+    alignItems: 'center',
+  },
+  continueBtnText: {
+    color: '#000',
+    fontFamily: 'Inter_700Bold',
+    fontSize: 15,
+    letterSpacing: 0.4,
+  },
+  backBtn: {
+    position: 'absolute',
+    bottom: 48,
+    alignSelf: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 28,
+    backgroundColor: Colors.primary,
+    borderRadius: Radius.md,
+  },
+  backBtnText: {
+    color: '#000',
+    fontFamily: 'Inter_700Bold',
+    fontSize: 15,
+    letterSpacing: 0.4,
+  },
 });

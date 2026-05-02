@@ -19,6 +19,7 @@ import {
   type Struggle,
 } from '@/context/AthleteContext';
 import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
+import { registerForPushNotifications } from '@/lib/notifications';
 
 // ─── CONFIG ──────────────────────────────────────────────────────────────────
 
@@ -123,6 +124,7 @@ export default function OnboardingScreen() {
         routine_consistency: ratings.recovery_discipline,
         updated_at: new Date().toISOString(),
       });
+      registerForPushNotifications().catch(() => {});
       router.replace('/(tabs)');
     } catch (err) {
       console.error('Failed to save:', err);
@@ -417,6 +419,8 @@ export default function OnboardingScreen() {
       {/* CTA */}
       <View style={[styles.ctaArea, { paddingBottom: insets.bottom + Spacing.md }]}>
         {step === 'complete' ? (
+          <>
+            <Text style={styles.notifHint}>Enable notifications to keep your streak alive.</Text>
           <Pressable
             style={({ pressed }) => [styles.cta, pressed && styles.ctaPressed]}
             onPress={handleComplete}
@@ -427,6 +431,7 @@ export default function OnboardingScreen() {
               {saving ? 'Building your path...' : 'Enter Clutchr'}
             </Text>
           </Pressable>
+          </>
         ) : (
           <Pressable
             style={({ pressed }) => [
@@ -527,4 +532,10 @@ const styles = StyleSheet.create({
   ctaPressed: { opacity: 0.85, transform: [{ scale: 0.98 }] },
   ctaDisabled: { backgroundColor: Colors.textTertiary },
   ctaText: { fontSize: 16, fontFamily: 'Inter_600SemiBold', color: Colors.background },
+  notifHint: {
+    color: 'rgba(255,255,255,0.35)',
+    fontSize: 12,
+    textAlign: 'center',
+    marginBottom: 8,
+  },
 });

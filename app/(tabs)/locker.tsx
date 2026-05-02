@@ -3,7 +3,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
   Modal,
   Pressable,
   ScrollView,
@@ -16,16 +15,17 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { fetchContentCards, type ContentCard } from '@/lib/supabase';
 import { Colors, Radius, Spacing } from '@/constants/theme';
 import { SectionHeader } from '@/components/ui';
+import { ErrorState, SkeletonCard } from '@/components/SkeletonLoader';
 
 // ─── CATEGORIES ───────────────────────────────────────────────────────────────
 
 const CATEGORIES = [
-  { id: 'all',        label: 'All',        icon: 'apps' },
-  { id: 'pregame',    label: 'Pregame',    icon: 'time' },
-  { id: 'ingame',     label: 'In-Game',    icon: 'baseball' },
-  { id: 'recovery',   label: 'Recovery',   icon: 'heart' },
-  { id: 'growth',     label: 'Mindset',    icon: 'bulb' },
-  { id: 'leadership', label: 'Leadership', icon: 'people' },
+  { id: 'all',      label: 'ALL',      icon: 'apps-outline',    color: '#22CC5E' },
+  { id: 'pregame',  label: 'PREGAME',  icon: 'sunny-outline',   color: '#F5A623' },
+  { id: 'mental',   label: 'MENTAL',   icon: 'bulb-outline',    color: '#BF5AF2' },
+  { id: 'drills',   label: 'DRILLS',   icon: 'fitness-outline', color: '#0A84FF' },
+  { id: 'recovery', label: 'RECOVERY', icon: 'moon-outline',    color: '#34C759' },
+  { id: 'film',     label: 'FILM',     icon: 'film-outline',    color: '#FF6B6B' },
 ];
 
 // ─── ICON + COLOR per card type ───────────────────────────────────────────────
@@ -44,26 +44,29 @@ export default function LockerScreen() {
   const insets = useSafeAreaInsets();
   const [cards, setCards] = useState<ContentCard[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [category, setCategory] = useState('all');
   const [search, setSearch] = useState('');
   const [selectedCard, setSelectedCard] = useState<ContentCard | null>(null);
 
-  useEffect(() => {
-    (async () => {
-      setLoading(true);
-      try {
-        const data = await fetchContentCards({
-          category: category === 'all' ? undefined : category,
-          limit: 50,
-        });
-        setCards(data);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, [category]);
+  const fetchData = async () => {
+    setLoading(true);
+    setLoadError(false);
+    try {
+      const data = await fetchContentCards({
+        category: category === 'all' ? undefined : category,
+        limit: 50,
+      });
+      setCards(data);
+    } catch (err) {
+      console.error(err);
+      setLoadError(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { fetchData(); }, [category]);
 
   const filtered = search
     ? cards.filter(
@@ -107,41 +110,27 @@ export default function LockerScreen() {
         )}
       </View>
 
-      {/* ── FILTER PILLS ──
-          KEY FIX: Do NOT use overflow:hidden on the parent.
-          Use paddingVertical on the ScrollView itself so touch targets are full height.
-          Pills have explicit height + minWidth so they never collapse.
-      ── */}
+      {/* ── FILTER TAB BAR ── */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.pillsRow}
-        style={styles.pillsScroll}
+        style={lockerTabStyles.container}
+        contentContainerStyle={lockerTabStyles.content}
       >
         {CATEGORIES.map((cat) => {
           const isActive = category === cat.id;
+          const count = isActive && !loading ? cards.length : null;
           return (
             <Pressable
               key={cat.id}
+              style={[lockerTabStyles.tab, isActive && { borderBottomWidth: 2, borderBottomColor: cat.color }]}
               onPress={() => setCategory(cat.id)}
-              style={[styles.pill, isActive && styles.pillActive]}
-              hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
             >
-              {isActive && (
-                <LinearGradient
-                  colors={[Colors.primary + '28', Colors.primary + '10']}
-                  style={styles.pillActiveGlow}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                />
-              )}
-              <Ionicons
-                name={cat.icon as any}
-                size={13}
-                color={isActive ? Colors.primary : Colors.textSecondary}
-              />
-              <Text style={[styles.pillText, isActive && styles.pillTextActive]}>
-                {cat.label}
+              <Ionicons name={cat.icon as any} size={13} color={isActive ? cat.color : 'rgba(255,255,255,0.35)'} />
+              <Text style={[lockerTabStyles.label, { color: isActive ? cat.color : 'rgba(255,255,255,0.35)' }]}>
+                {cat.label}{count !== null && count > 0 ? (
+                  <Text style={[lockerTabStyles.count, { color: cat.color }]}>{' '}{count}</Text>
+                ) : null}
               </Text>
             </Pressable>
           );
@@ -149,9 +138,11 @@ export default function LockerScreen() {
       </ScrollView>
 
       {/* ── CONTENT ── */}
-      {loading ? (
-        <View style={styles.loader}>
-          <ActivityIndicator color={Colors.primary} size="large" />
+      {loadError ? (
+        <ErrorState message="Could not load content." onRetry={fetchData} />
+      ) : loading ? (
+        <View style={[styles.loader, { paddingHorizontal: 16, paddingTop: 12 }]}>
+          {[0, 1, 2, 3, 4].map(i => <SkeletonCard key={i} />)}
         </View>
       ) : (
         <ScrollView
@@ -610,6 +601,38 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_400Regular',
     color: Colors.textTertiary,
     textAlign: 'center',
+  },
+});
+
+// ─── LOCKER TAB BAR STYLES ────────────────────────────────────────────────────
+
+const lockerTabStyles = StyleSheet.create({
+  container: {
+    backgroundColor: '#0D0D0D',
+    borderBottomWidth: 1,
+    borderBottomColor: '#1a1a1a',
+    flexGrow: 0,
+  },
+  content: {
+    flexDirection: 'row',
+  },
+  tab: {
+    flex: 1,
+    minWidth: 76,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    gap: 3,
+    paddingHorizontal: 12,
+  },
+  label: {
+    fontSize: 11,
+    fontFamily: 'Inter_700Bold',
+    letterSpacing: 1,
+  },
+  count: {
+    fontSize: 9,
+    fontFamily: 'Inter_700Bold',
   },
 });
 

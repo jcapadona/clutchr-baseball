@@ -2,15 +2,20 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React, { useRef, useEffect, useState } from 'react';
+import * as Notifications from 'expo-notifications';
 import {
   Alert,
   Animated,
   Pressable,
   ScrollView,
   StyleSheet,
+  Switch,
   Text,
   View,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { registerForPushNotifications, scheduleStreakReminder } from '@/lib/notifications';
+import Svg, { Polygon, Line, Text as SvgText, Circle } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAthlete } from '@/context/AthleteContext';
 import { Colors, Radius, Spacing } from '@/constants/theme';
@@ -60,6 +65,75 @@ const STRENGTH_CHIPS = [
   { id: 'clutch',         label: 'Clutch Moments',   icon: 'flash',       unlockAt: 27, color: Colors.warning  },
   { id: 'elite_mindset',  label: 'Elite Mindset',    icon: 'star',        unlockAt: 35, color: Colors.purple   },
 ];
+
+// ─── RADAR CHART ─────────────────────────────────────────────────────────────
+
+const RADAR_STATS = ['Confidence', 'Focus', 'Composure', 'Consistency', 'Mechanics', 'Mental Edge'];
+const RADAR_SIZE = 220;
+const CENTER = RADAR_SIZE / 2;
+const RADIUS = 80;
+
+function RadarChart({ ratings }: { ratings: Record<string, number> }) {
+  const values = [
+    ratings?.confidence ?? 3,
+    ratings?.focus ?? 3,
+    ratings?.composure ?? 3,
+    ratings?.consistency ?? 3,
+    ratings?.mechanics ?? 3,
+    ratings?.mental_edge ?? 3,
+  ];
+
+  const angleStep = (Math.PI * 2) / 6;
+
+  function getPoint(index: number, value: number, maxValue = 5) {
+    const angle = angleStep * index - Math.PI / 2;
+    const r = (value / maxValue) * RADIUS;
+    return { x: CENTER + r * Math.cos(angle), y: CENTER + r * Math.sin(angle) };
+  }
+
+  function getLabelPoint(index: number) {
+    const angle = angleStep * index - Math.PI / 2;
+    const r = RADIUS + 20;
+    return { x: CENTER + r * Math.cos(angle), y: CENTER + r * Math.sin(angle) };
+  }
+
+  const dataPoints = values.map((v, i) => getPoint(i, v));
+  const polygonPoints = dataPoints.map(p => `${p.x},${p.y}`).join(' ');
+  const gridLevels = [1, 2, 3, 4, 5];
+
+  return (
+    <View style={{ alignItems: 'center', marginVertical: 8 }}>
+      <Svg width={RADAR_SIZE} height={RADAR_SIZE}>
+        {gridLevels.map(level => {
+          const gridPoints = RADAR_STATS.map((_, i) => getPoint(i, level));
+          const gridPolygon = gridPoints.map(p => `${p.x},${p.y}`).join(' ');
+          return (
+            <Polygon key={level} points={gridPolygon} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
+          );
+        })}
+        {RADAR_STATS.map((_, i) => {
+          const outer = getPoint(i, 5);
+          return <Line key={i} x1={CENTER} y1={CENTER} x2={outer.x} y2={outer.y} stroke="rgba(255,255,255,0.1)" strokeWidth="1" />;
+        })}
+        <Polygon points={polygonPoints} fill="rgba(34,204,94,0.15)" stroke="#22CC5E" strokeWidth="2" />
+        {dataPoints.map((p, i) => (
+          <Circle key={i} cx={p.x} cy={p.y} r={4} fill="#22CC5E" />
+        ))}
+        {RADAR_STATS.map((label, i) => {
+          const lp = getLabelPoint(i);
+          return (
+            <SvgText key={i} x={lp.x} y={lp.y} textAnchor="middle" alignmentBaseline="middle" fontSize="9" fontWeight="600" fill="rgba(255,255,255,0.55)">
+              {label.toUpperCase()}
+            </SvgText>
+          );
+        })}
+      </Svg>
+      <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 10, marginTop: 4 }}>
+        Based on your self-ratings
+      </Text>
+    </View>
+  );
+}
 
 // ─── PHASE MAP COMPONENT ─────────────────────────────────────────────────────
 
@@ -205,6 +279,23 @@ export default function ProfileScreen() {
   const ratings       = athleteState.self_ratings;
   const [devTapCount, setDevTapCount] = useState(0);
   const [devTapReset, setDevTapReset] = useState<ReturnType<typeof setTimeout> | null>(null);
+  const [notifsOn, setNotifsOn] = useState(false);
+
+  useEffect(() => {
+    AsyncStorage.getItem('clutchr_notifs_setup').then(v => setNotifsOn(!!v));
+  }, []);
+
+  async function handleNotifToggle(val: boolean) {
+    setNotifsOn(val);
+    if (val) {
+      await registerForPushNotifications();
+      await scheduleStreakReminder(athleteState?.streak_count ?? 0);
+      await AsyncStorage.setItem('clutchr_notifs_setup', 'true');
+    } else {
+      await Notifications.cancelAllScheduledNotificationsAsync();
+      await AsyncStorage.removeItem('clutchr_notifs_setup');
+    }
+  }
 
   function handleSignOut() {
     Alert.alert('Sign Out', 'Are you sure?', [
@@ -330,33 +421,10 @@ export default function ProfileScreen() {
         <PhaseMap currentPhase={phase} xp={xp} />
 
         {/* ── MENTAL EDGE RATINGS ── */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>MENTAL EDGE</Text>
-            <Text style={styles.sectionSub}>Self-rated at onboarding · 1–5</Text>
-          </View>
-          <View style={styles.ratingsCard}>
-            {(
-              [
-                ['confidence',          'Confidence',  Colors.primary  ],
-                ['focus',               'Focus',       Colors.info     ],
-                ['composure',           'Composure',   Colors.purple   ],
-                ['recovery_discipline', 'Recovery',    Colors.warning  ],
-                ['reset_skill',         'Reset Skill', Colors.danger   ],
-              ] as [keyof typeof ratings, string, string][]
-            ).map(([key, label, color]) => (
-              <View key={key} style={styles.ratingRow}>
-                <Text style={styles.ratingLabel}>{label}</Text>
-                <View style={styles.ratingBar}>
-                  <View style={[styles.ratingFill, {
-                    width: `${(ratings[key] / 5) * 100}%`,
-                    backgroundColor: color,
-                  }]} />
-                </View>
-                <Text style={[styles.ratingNum, { color }]}>{ratings[key]}</Text>
-              </View>
-            ))}
-          </View>
+        <View style={{ backgroundColor: '#0D0D12', borderRadius: 12, padding: 16, marginHorizontal: 16, marginBottom: 16, borderWidth: 1, borderColor: '#1a1a1a' }}>
+          <Text style={{ color: '#22CC5E', fontSize: 11, fontWeight: '700', letterSpacing: 2, marginBottom: 4 }}>MENTAL EDGE</Text>
+          <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, marginBottom: 12 }}>Your performance profile</Text>
+          <RadarChart ratings={athleteState?.self_ratings ?? {}} />
         </View>
 
         {/* ── PLAYBOOK CTA ── */}
@@ -382,11 +450,22 @@ export default function ProfileScreen() {
 
         {/* ── ACTIONS ── */}
         <View style={styles.actionsSection}>
-          <Pressable style={styles.actionRow} onPress={() => router.push('/onboarding')}>
+          <Pressable style={styles.actionRow} onPress={() => router.push('/edit-profile')}>
             <Ionicons name="person-outline" size={18} color={Colors.textSecondary} />
-            <Text style={styles.actionLabel}>Update Profile</Text>
+            <Text style={styles.actionLabel}>Edit Profile</Text>
             <Ionicons name="chevron-forward" size={14} color={Colors.textTertiary} />
           </Pressable>
+          <View style={styles.actionDivider} />
+          <View style={styles.actionRow}>
+            <Ionicons name="notifications-outline" size={18} color={Colors.textSecondary} />
+            <Text style={[styles.actionLabel, { flex: 1 }]}>Streak Reminders</Text>
+            <Switch
+              value={notifsOn}
+              onValueChange={handleNotifToggle}
+              trackColor={{ false: '#222', true: '#22CC5E33' }}
+              thumbColor={notifsOn ? '#22CC5E' : '#555'}
+            />
+          </View>
           <View style={styles.actionDivider} />
           <Pressable style={styles.actionRow} onPress={() => router.push('/upgrade')}>
             <Ionicons name="flash-outline" size={18} color={Colors.warning} />

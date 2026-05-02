@@ -5,9 +5,11 @@ import {
   Inter_700Bold,
   useFonts,
 } from '@expo-google-fonts/inter';
+import * as Notifications from 'expo-notifications';
 import { Slot, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
+import { setupNotificationsOnce } from '@/lib/notifications';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AthleteProvider, useAthlete } from '@/context/AthleteContext';
@@ -45,6 +47,7 @@ function AuthGate() {
 // ─── ROOT LAYOUT ─────────────────────────────────────────────────────────────
 
 export default function RootLayout() {
+  const router = useRouter();
   const [fontsLoaded, fontError] = useFonts({
     Inter_400Regular,
     Inter_500Medium,
@@ -57,6 +60,18 @@ export default function RootLayout() {
       SplashScreen.hideAsync();
     }
   }, [fontsLoaded, fontError]);
+
+  useEffect(() => {
+    setupNotificationsOnce();
+
+    const sub = Notifications.addNotificationResponseReceivedListener((response) => {
+      const screen = response.notification.request.content.data?.screen;
+      if (screen === 'career') router.push('/(tabs)/career');
+      if (screen === 'gamemode') router.push('/(tabs)/gamemode');
+    });
+
+    return () => sub.remove();
+  }, []);
 
   if (!fontsLoaded && !fontError) return null;
 

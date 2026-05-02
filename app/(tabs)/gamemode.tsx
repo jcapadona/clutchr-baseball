@@ -15,6 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAthlete } from '@/context/AthleteContext';
 import { Colors, Radius, Spacing } from '@/constants/theme';
 import type { SeasonPhase } from '@/context/AthleteContext';
+import { SkeletonCard } from '@/components/SkeletonLoader';
 
 // ─── TYPES ────────────────────────────────────────────────────────────────────
 
@@ -463,28 +464,28 @@ const BUCKET_META: Record<Bucket, {
 }> = {
   pregame: {
     icon: 'sunny', color: Colors.primary,
-    label: 'PRE-GAME',
+    label: 'PRE',
     headline: 'Phone OK before first pitch.',
     subtext: 'Run these in the dugout or locker room before warmups.',
     phoneOk: true,
   },
   ingame: {
     icon: 'baseball', color: Colors.warning,
-    label: 'IN-GAME',
+    label: 'LIVE',
     headline: 'No phone on the field.',
     subtext: 'Generate your print card. Screenshot and fold to index card size. Keep in your bat bag.',
     phoneOk: false,
   },
   between: {
     icon: 'hourglass', color: Colors.info,
-    label: 'BETWEEN',
+    label: 'BTW',
     headline: 'Between innings — 60 seconds.',
     subtext: 'Print card or quick glance. Close the inning. Open the next one clean.',
     phoneOk: false,
   },
   postgame: {
     icon: 'moon', color: Colors.purple,
-    label: 'POST-GAME',
+    label: 'POST',
     headline: 'Phone OK after the final out.',
     subtext: 'Process the game, recover the body, reset for tomorrow.',
     phoneOk: true,
@@ -914,7 +915,7 @@ function SuggestedSection({ role, phase, struggles, onOpen }: {
 
 export default function GameModeScreen() {
   const insets = useSafeAreaInsets();
-  const { athleteState } = useAthlete();
+  const { athleteState, isLoading } = useAthlete();
   const [bucket, setBucket] = useState<Bucket>('pregame');
   const [activeTool, setActiveTool] = useState<GameTool | null>(null);
   const [view, setView] = useState<'runner' | 'print' | null>(null);
@@ -992,12 +993,12 @@ export default function GameModeScreen() {
               key={b}
               style={[
                 s.bucketTab,
-                active && { borderColor: m.color + '60', backgroundColor: m.color + '12' },
+                active && { borderBottomWidth: 2, borderBottomColor: '#22CC5E' },
               ]}
               onPress={() => { setBucket(b); closeTool(); Haptics.selectionAsync(); }}
             >
-              <Ionicons name={m.icon as any} size={12} color={active ? m.color : Colors.textTertiary} />
-              <Text style={[s.bucketLabel, active && { color: m.color }]}>{m.label}</Text>
+              <Ionicons name={m.icon as any} size={12} color={active ? '#22CC5E' : 'rgba(255,255,255,0.4)'} />
+              <Text style={[s.bucketLabel, active ? { color: '#22CC5E' } : { color: 'rgba(255,255,255,0.4)' }]}>{m.label}</Text>
             </Pressable>
           );
         })}
@@ -1047,7 +1048,9 @@ export default function GameModeScreen() {
         )}
 
         {/* Full tool list for bucket */}
-        {tools.length === 0 ? (
+        {isLoading ? (
+          [0, 1, 2, 3].map(i => <SkeletonCard key={i} />)
+        ) : tools.length === 0 ? (
           <View style={s.empty}>
             <Ionicons name="baseball-outline" size={40} color={Colors.textTertiary} />
             <Text style={s.emptyTitle}>No tools for {role}s here yet.</Text>
@@ -1070,13 +1073,16 @@ const s = StyleSheet.create({
   header: { paddingHorizontal: Spacing.xl, paddingVertical: Spacing.xl, gap: 4 },
   title: { fontSize: 20, fontFamily: 'Inter_700Bold', color: Colors.textPrimary, letterSpacing: 1 },
   subtitle: { fontSize: 12, fontFamily: 'Inter_400Regular', color: Colors.textSecondary },
-  bucketRow: { flexDirection: 'row', paddingHorizontal: Spacing.xl, gap: 8, marginBottom: Spacing.md },
+  bucketRow: {
+    flexDirection: 'row', backgroundColor: '#0D0D0D',
+    borderBottomWidth: 1, borderBottomColor: '#1a1a1a',
+    marginBottom: Spacing.md,
+  },
   bucketTab: {
     flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    gap: 4, paddingVertical: Spacing.sm, borderRadius: Radius.lg,
-    borderWidth: 1, borderColor: Colors.border, backgroundColor: Colors.surface,
+    gap: 4, paddingVertical: 10,
   },
-  bucketLabel: { fontSize: 8, fontFamily: 'Inter_700Bold', color: Colors.textTertiary, letterSpacing: 0.6 },
+  bucketLabel: { fontSize: 11, fontFamily: 'Inter_700Bold', color: 'rgba(255,255,255,0.4)', letterSpacing: 0.6 },
   banner: {
     flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.sm,
     marginHorizontal: Spacing.xl, marginBottom: Spacing.sm,
