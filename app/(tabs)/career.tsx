@@ -23,103 +23,466 @@ import { ErrorState, SkeletonCard } from '@/components/SkeletonLoader';
 
 // ─── WORLD CONFIG ─────────────────────────────────────────────────────────────
 
-const WORLDS = [
-  { pillar: 'foundation',          label: 'Foundation',           subtitle: 'Mental framework every athlete needs',   color: Colors.primary,  worldNum: 1,  emoji: '🧠', darkBg: '#071409' },
-  { pillar: 'built-different',     label: 'Built Different',      subtitle: 'Strength, nutrition, sleep, arm care',   color: '#E85D26',       worldNum: 2,  emoji: '💪', darkBg: '#140A05' },
-  { pillar: 'pitcher-path',        label: 'Pitcher Path',         subtitle: 'Command, tempo, game IQ',                color: Colors.purple,   worldNum: 3,  emoji: '⚾', darkBg: '#0F0714' },
-  { pillar: 'hitter-path',         label: 'Hitter Path',          subtitle: 'Approach, zone discipline, at-bat',      color: Colors.warning,  worldNum: 4,  emoji: '🏏', darkBg: '#141008' },
-  { pillar: 'catcher-path',        label: 'Catcher Path',         subtitle: 'Leadership, game management, trust',     color: Colors.info,     worldNum: 5,  emoji: '🛡️', darkBg: '#060C18' },
-  { pillar: 'infield-path',        label: 'Infield Path',         subtitle: 'Fielding IQ, ready position, decisions', color: Colors.danger,   worldNum: 6,  emoji: '🎯', darkBg: '#140606' },
-  { pillar: 'outfield-path',       label: 'Outfield Path',        subtitle: 'First step reads, crow hop, tracking',   color: Colors.primary,  worldNum: 7,  emoji: '🏃', darkBg: '#071409' },
-  { pillar: 'baserunner-path',     label: 'Baserunner Path',      subtitle: 'Leads, reads, green light, aggression',  color: Colors.warning,  worldNum: 8,  emoji: '💨', darkBg: '#141008' },
-  { pillar: 'pressure-resilience', label: 'Pressure & Resilience',subtitle: 'Clutch moments, reset, slump repair',    color: '#E85D26',       worldNum: 9,  emoji: '🔥', darkBg: '#140A05' },
-  { pillar: 'gamemode',            label: 'Game Mode',            subtitle: 'Pregame, in-game, postgame sessions',    color: Colors.warning,  worldNum: 10, emoji: '🏆', darkBg: '#141008' },
+type World = {
+  id: string;
+  label: string;
+  tagline: string;
+  color: string;
+  chapter: 'foundation' | 'your-craft' | 'edge' | 'the-grind' | 'signal';
+  roles: string[];
+  isStateTrigger: boolean;
+  triggerState: string | null;
+  isPremium: boolean;
+  worldNumber: number;
+  icon: React.ComponentProps<typeof Ionicons>['name'];
+};
+
+type WorldWithLockState = World & { lockState: 'active' | 'teaser' };
+
+const WORLDS: World[] = [
+  // ─── FOUNDATION ───────────────────────────────────────────────────────────
+  {
+    id: 'foundation',
+    label: 'Foundation',
+    tagline: 'Mental framework every athlete needs',
+    color: '#22CC5E',
+    chapter: 'foundation',
+    roles: [],
+    isStateTrigger: false,
+    triggerState: null,
+    isPremium: false,
+    worldNumber: 1,
+    icon: 'shield-outline',
+  },
+  {
+    id: 'readiness-routines',
+    label: 'Readiness & Routines',
+    tagline: 'Build routines that hold under pressure',
+    color: '#30D158',
+    chapter: 'foundation',
+    roles: [],
+    isStateTrigger: false,
+    triggerState: null,
+    isPremium: false,
+    worldNumber: 2,
+    icon: 'time-outline',
+  },
+  {
+    id: 'game-day-focus',
+    label: 'Game Day Focus',
+    tagline: 'Locked in from warmup to final out',
+    color: '#FFD60A',
+    chapter: 'foundation',
+    roles: [],
+    isStateTrigger: false,
+    triggerState: null,
+    isPremium: false,
+    worldNumber: 3,
+    icon: 'eye-outline',
+  },
+  {
+    id: 'baseball-iq',
+    label: 'Baseball IQ',
+    tagline: 'See the game faster. Make better decisions.',
+    color: '#BF5AF2',
+    chapter: 'foundation',
+    roles: [],
+    isStateTrigger: false,
+    triggerState: null,
+    isPremium: false,
+    worldNumber: 4,
+    icon: 'bulb-outline',
+  },
+  {
+    id: 'slump-recovery',
+    label: 'Slump Recovery',
+    tagline: "Slumps don't last. Reps do.",
+    color: '#FF6B6B',
+    chapter: 'foundation',
+    roles: [],
+    isStateTrigger: true,
+    triggerState: 'slump_reset',
+    isPremium: false,
+    worldNumber: 5,
+    icon: 'refresh-outline',
+  },
+  {
+    id: 'return-to-throw',
+    label: 'Return to Throwing',
+    tagline: 'Come back smarter than you left',
+    color: '#0A84FF',
+    chapter: 'foundation',
+    roles: [],
+    isStateTrigger: true,
+    triggerState: 'return_to_throw',
+    isPremium: false,
+    worldNumber: 6,
+    icon: 'medical-outline',
+  },
+
+  // ─── YOUR CRAFT ───────────────────────────────────────────────────────────
+  {
+    id: 'pitcher-path',
+    label: 'Pitcher Path',
+    tagline: 'Command, tempo, game IQ',
+    color: '#BF5AF2',
+    chapter: 'your-craft',
+    roles: ['pitcher'],
+    isStateTrigger: false,
+    triggerState: null,
+    isPremium: false,
+    worldNumber: 7,
+    icon: 'radio-button-on-outline',
+  },
+  {
+    id: 'pitching-mindset',
+    label: 'Pitching Mindset',
+    tagline: 'Control emotions, tempo, and the next pitch',
+    color: '#9B59B6',
+    chapter: 'your-craft',
+    roles: ['pitcher'],
+    isStateTrigger: false,
+    triggerState: null,
+    isPremium: false,
+    worldNumber: 8,
+    icon: 'pulse-outline',
+  },
+  {
+    id: 'pitching-strategy',
+    label: 'Pitching Strategy',
+    tagline: 'Attack hitters. Win counts.',
+    color: '#8E44AD',
+    chapter: 'your-craft',
+    roles: ['pitcher'],
+    isStateTrigger: false,
+    triggerState: null,
+    isPremium: false,
+    worldNumber: 9,
+    icon: 'map-outline',
+  },
+  {
+    id: 'hitter-path',
+    label: 'Hitter Path',
+    tagline: 'Approach, zone discipline, at-bat',
+    color: '#F5A623',
+    chapter: 'your-craft',
+    roles: ['hitter', 'infielder', 'outfielder', 'catcher'],
+    isStateTrigger: false,
+    triggerState: null,
+    isPremium: false,
+    worldNumber: 10,
+    icon: 'diamond-outline',
+  },
+  {
+    id: 'hitting-approach',
+    label: 'Hitting Approach',
+    tagline: 'Build a smarter plan for every at-bat',
+    color: '#E67E22',
+    chapter: 'your-craft',
+    roles: ['hitter', 'infielder', 'outfielder', 'catcher'],
+    isStateTrigger: false,
+    triggerState: null,
+    isPremium: false,
+    worldNumber: 11,
+    icon: 'stats-chart-outline',
+  },
+  {
+    id: 'catcher-path',
+    label: 'Catcher Path',
+    tagline: 'Leadership, game management, trust',
+    color: '#0A84FF',
+    chapter: 'your-craft',
+    roles: ['catcher'],
+    isStateTrigger: false,
+    triggerState: null,
+    isPremium: false,
+    worldNumber: 12,
+    icon: 'eye-outline',
+  },
+  {
+    id: 'catcher-leadership',
+    label: 'Catcher Leadership',
+    tagline: 'Lead the battery. Control the field.',
+    color: '#2980B9',
+    chapter: 'your-craft',
+    roles: ['catcher'],
+    isStateTrigger: false,
+    triggerState: null,
+    isPremium: false,
+    worldNumber: 13,
+    icon: 'megaphone-outline',
+  },
+  {
+    id: 'infield-path',
+    label: 'Infield Path',
+    tagline: 'Fielding IQ, ready position, decisions',
+    color: '#FF3B30',
+    chapter: 'your-craft',
+    roles: ['infielder'],
+    isStateTrigger: false,
+    triggerState: null,
+    isPremium: false,
+    worldNumber: 14,
+    icon: 'triangle-outline',
+  },
+  {
+    id: 'infield-play-iq',
+    label: 'Infield Play IQ',
+    tagline: 'Think faster. Move earlier. Make cleaner plays.',
+    color: '#E74C3C',
+    chapter: 'your-craft',
+    roles: ['infielder'],
+    isStateTrigger: false,
+    triggerState: null,
+    isPremium: false,
+    worldNumber: 15,
+    icon: 'git-network-outline',
+  },
+  {
+    id: 'outfield-path',
+    label: 'Outfield Path',
+    tagline: 'First step reads, crow hop, tracking',
+    color: '#34C759',
+    chapter: 'your-craft',
+    roles: ['outfielder'],
+    isStateTrigger: false,
+    triggerState: null,
+    isPremium: false,
+    worldNumber: 16,
+    icon: 'partly-sunny-outline',
+  },
+  {
+    id: 'outfield-reads',
+    label: 'Outfield Reads & Routes',
+    tagline: 'Better jumps. Better angles. Better recovery.',
+    color: '#27AE60',
+    chapter: 'your-craft',
+    roles: ['outfielder'],
+    isStateTrigger: false,
+    triggerState: null,
+    isPremium: false,
+    worldNumber: 17,
+    icon: 'trending-up-outline',
+  },
+  {
+    id: 'baserunner-path',
+    label: 'Baserunner Path',
+    tagline: 'Reads, jumps, aggression, decisions',
+    color: '#FF9F0A',
+    chapter: 'your-craft',
+    roles: [],
+    isStateTrigger: false,
+    triggerState: null,
+    isPremium: false,
+    worldNumber: 18,
+    icon: 'arrow-forward-outline',
+  },
+
+  // ─── EDGE ─────────────────────────────────────────────────────────────────
+  {
+    id: 'built-different',
+    label: 'Built Different',
+    tagline: 'Strength, nutrition, sleep, arm care',
+    color: '#E85D26',
+    chapter: 'edge',
+    roles: [],
+    isStateTrigger: false,
+    triggerState: null,
+    isPremium: false,
+    worldNumber: 19,
+    icon: 'flash-outline',
+  },
+  {
+    id: 'pressure-resilience',
+    label: 'Pressure & Resilience',
+    tagline: 'Slow the moment. Win it.',
+    color: '#FF6B6B',
+    chapter: 'edge',
+    roles: [],
+    isStateTrigger: false,
+    triggerState: null,
+    isPremium: false,
+    worldNumber: 20,
+    icon: 'flag-outline',
+  },
+  {
+    id: 'competitive-identity',
+    label: 'Competitive Identity',
+    tagline: "Built different. Standards don't move.",
+    color: '#E74C3C',
+    chapter: 'edge',
+    roles: [],
+    isStateTrigger: false,
+    triggerState: null,
+    isPremium: false,
+    worldNumber: 21,
+    icon: 'ribbon-outline',
+  },
+  {
+    id: 'pressure-proof',
+    label: 'Pressure Proof',
+    tagline: 'Advanced pressure. Elite composure.',
+    color: '#C0392B',
+    chapter: 'edge',
+    roles: [],
+    isStateTrigger: false,
+    triggerState: null,
+    isPremium: false,
+    worldNumber: 22,
+    icon: 'nuclear-outline',
+  },
+  {
+    id: 'leadership-dugout',
+    label: 'Leadership & Dugout',
+    tagline: 'Your energy sets the standard',
+    color: '#9B59B6',
+    chapter: 'edge',
+    roles: [],
+    isStateTrigger: false,
+    triggerState: null,
+    isPremium: false,
+    worldNumber: 23,
+    icon: 'people-outline',
+  },
+  {
+    id: 'bounce-back-player',
+    label: 'Bounce Back Player',
+    tagline: 'Respond to failure before it compounds',
+    color: '#E67E22',
+    chapter: 'edge',
+    roles: [],
+    isStateTrigger: false,
+    triggerState: null,
+    isPremium: false,
+    worldNumber: 24,
+    icon: 'reload-outline',
+  },
+
+  // ─── THE GRIND ────────────────────────────────────────────────────────────
+  {
+    id: 'arm-care-durability',
+    label: 'Arm Care & Durability',
+    tagline: 'Protect your arm. Build long-term durability.',
+    color: '#0A84FF',
+    chapter: 'the-grind',
+    roles: ['pitcher'],
+    isStateTrigger: false,
+    triggerState: null,
+    isPremium: false,
+    worldNumber: 25,
+    icon: 'body-outline',
+  },
+  {
+    id: 'strength-conditioning',
+    label: 'Strength & Conditioning',
+    tagline: 'Build the body that supports performance',
+    color: '#FF9F0A',
+    chapter: 'the-grind',
+    roles: [],
+    isStateTrigger: false,
+    triggerState: null,
+    isPremium: false,
+    worldNumber: 26,
+    icon: 'barbell-outline',
+  },
+  {
+    id: 'recovery-readiness',
+    label: 'Recovery & Readiness',
+    tagline: 'Train hard. Recover right. Stay ready.',
+    color: '#34C759',
+    chapter: 'the-grind',
+    roles: [],
+    isStateTrigger: false,
+    triggerState: null,
+    isPremium: false,
+    worldNumber: 27,
+    icon: 'moon-outline',
+  },
+
+  // ─── SIGNAL ───────────────────────────────────────────────────────────────
+  {
+    id: 'showcase-recruiting',
+    label: 'Showcase & Recruiting',
+    tagline: 'Get seen. Get offered. Get there.',
+    color: '#FFD60A',
+    chapter: 'signal',
+    roles: [],
+    isStateTrigger: false,
+    triggerState: null,
+    isPremium: true,
+    worldNumber: 28,
+    icon: 'star-outline',
+  },
+  {
+    id: 'coach-dynamics',
+    label: 'Coach Dynamics',
+    tagline: 'Navigate the relationship that shapes your career',
+    color: '#378ADD',
+    chapter: 'signal',
+    roles: [],
+    isStateTrigger: false,
+    triggerState: null,
+    isPremium: true,
+    worldNumber: 29,
+    icon: 'chatbubbles-outline',
+  },
+  {
+    id: 'what-the-pros-do',
+    label: 'What the Pros Do',
+    tagline: 'Study the standard. Match it.',
+    color: '#FFD60A',
+    chapter: 'signal',
+    roles: [],
+    isStateTrigger: false,
+    triggerState: null,
+    isPremium: true,
+    worldNumber: 30,
+    icon: 'trophy-outline',
+  },
 ];
 
-const ROLE_PILLAR: Record<string, string> = {
-  pitcher: 'pitcher-path', catcher: 'catcher-path',
-  infielder: 'infield-path', outfielder: 'outfield-path',
-};
-
-// ─── PER-WORLD DESIGN TOKENS ──────────────────────────────────────────────────
-
-const WORLD_COLOR: Record<string, string> = {
-  'foundation':          '#22CC5E',
-  'built-different':     '#E85D26',
-  'pitcher-path':        '#BF5AF2',
-  'hitter-path':         '#F5A623',
-  'catcher-path':        '#0A84FF',
-  'infield-path':        '#FF3B30',
-  'outfield-path':       '#34C759',
-  'baserunner-path':     '#FF9F0A',
-  'pressure-resilience': '#FF6B6B',
-  'gamemode':            '#FFD60A',
-};
-
-const WORLD_ICON: Record<string, React.ComponentProps<typeof Ionicons>['name']> = {
-  'foundation':          'shield-outline',
-  'built-different':     'flash-outline',
-  'pitcher-path':        'radio-button-on-outline',
-  'hitter-path':         'diamond-outline',
-  'catcher-path':        'disc-outline',
-  'infield-path':        'triangle-outline',
-  'outfield-path':       'water-outline',
-  'baserunner-path':     'arrow-forward-circle-outline',
-  'pressure-resilience': 'scan-outline',
-  'gamemode':            'grid-outline',
-};
-
-const WORLD_DESCRIPTIONS: Record<string, string> = {
-  'foundation':          'Builds the mental framework every competitor needs before stepping into the box or on the mound.',
-  'built-different':     'Trains the physical foundation — strength, nutrition, sleep discipline, and arm longevity.',
-  'pitcher-path':        'Develops command, tempo control, and in-game IQ for pitchers at every level.',
-  'hitter-path':         'Sharpens plate approach, zone discipline, and at-bat execution under pressure.',
-  'catcher-path':        'Trains leadership behind the dish, game management, and pitcher-catcher trust.',
-  'infield-path':        'Builds fielding IQ, ready position habits, and split-second decision making.',
-  'outfield-path':       'Develops first-step reads, crow-hop mechanics, and route efficiency on fly balls.',
-  'baserunner-path':     'Instills lead discipline, read-and-react instincts, and green-light aggression.',
-  'pressure-resilience': 'Prepares athletes for clutch moments, slump repair, and mental reset routines.',
-  'gamemode':            'Structures your pregame, in-game, and postgame mental and physical routines.',
-};
-
-const WORLD_TABS: Array<{ pillar: string; label: string; icon: React.ComponentProps<typeof Ionicons>['name'] }> = [
-  { pillar: 'foundation',          label: 'BASE',  icon: 'shield-outline'          },
-  { pillar: 'built-different',     label: 'BUILT', icon: 'flash-outline'           },
-  { pillar: 'pitcher-path',        label: 'PITCH', icon: 'radio-button-on-outline' },
-  { pillar: 'hitter-path',         label: 'HIT',   icon: 'diamond-outline'         },
-  { pillar: 'catcher-path',        label: 'CATCH', icon: 'eye-outline'             },
-  { pillar: 'infield-path',        label: 'INF',   icon: 'triangle-outline'        },
-  { pillar: 'outfield-path',       label: 'OUT',   icon: 'partly-sunny-outline'    },
-  { pillar: 'baserunner-path',     label: 'RUN',   icon: 'arrow-forward-outline'   },
-  { pillar: 'pressure-resilience', label: 'PRESS', icon: 'flag-outline'            },
-  { pillar: 'gamemode',            label: 'GAME',  icon: 'game-controller-outline' },
+const CHAPTERS = [
+  { id: 'foundation', label: 'FOUNDATION', icon: 'layers-outline' as const,  color: '#22CC5E' },
+  { id: 'your-craft', label: 'YOUR CRAFT', icon: 'construct-outline' as const, color: '#BF5AF2' },
+  { id: 'edge',       label: 'EDGE',       icon: 'flash-outline' as const,    color: '#FF6B6B' },
+  { id: 'the-grind',  label: 'THE GRIND',  icon: 'barbell-outline' as const,  color: '#FF9F0A' },
+  { id: 'signal',     label: 'SIGNAL',     icon: 'star-outline' as const,     color: '#FFD60A' },
 ];
 
-// Fixed star positions for background atmosphere (x: 0-390, y: 0-2100)
-const STARS = [
-  { x: 24,  y: 80   }, { x: 180, y: 45   }, { x: 340, y: 110  },
-  { x: 60,  y: 200  }, { x: 290, y: 185  }, { x: 150, y: 320  },
-  { x: 370, y: 290  }, { x: 80,  y: 440  }, { x: 220, y: 410  },
-  { x: 310, y: 500  }, { x: 45,  y: 580  }, { x: 170, y: 620  },
-  { x: 360, y: 650  }, { x: 100, y: 750  }, { x: 260, y: 730  },
-  { x: 380, y: 820  }, { x: 30,  y: 900  }, { x: 195, y: 880  },
-  { x: 320, y: 950  }, { x: 75,  y: 1040 }, { x: 240, y: 1020 },
-  { x: 355, y: 1100 }, { x: 55,  y: 1200 }, { x: 175, y: 1180 },
-  { x: 305, y: 1260 }, { x: 20,  y: 1350 }, { x: 210, y: 1320 },
-  { x: 375, y: 1400 }, { x: 90,  y: 1480 }, { x: 250, y: 1460 },
-  { x: 340, y: 1550 }, { x: 40,  y: 1640 }, { x: 185, y: 1620 },
-  { x: 320, y: 1700 }, { x: 70,  y: 1790 }, { x: 230, y: 1770 },
-  { x: 360, y: 1860 }, { x: 110, y: 1940 }, { x: 270, y: 1920 },
-  { x: 155, y: 2050 },
-];
+// ─── LOCK LOGIC ───────────────────────────────────────────────────────────────
 
-function getWorldStatus(lessons: LegacyLesson[], completed: string[], idx: number): 'locked' | 'active' | 'complete' {
-  const pillar = WORLDS[idx].pillar;
-  const mine = lessons.filter((l) => l.pillar_id === pillar);
-  if (idx === 0) return mine.length > 0 && mine.every((l) => completed.includes(l.id)) ? 'complete' : 'active';
-  const prev = lessons.filter((l) => l.pillar_id === WORLDS[idx - 1].pillar);
-  if (prev.length > 0 && !prev.some((l) => completed.includes(l.id))) return 'locked';
-  return mine.length > 0 && mine.every((l) => completed.includes(l.id)) ? 'complete' : 'active';
+function getWorldsForChapter(
+  chapterWorlds: World[],
+  lessonPillarIds: string[],
+  chapter: string,
+  athleteRole: string,
+  seasonPhase: string | null,
+  healthState: string | null,
+): WorldWithLockState[] {
+  const result: WorldWithLockState[] = [];
+  let foundFirstLocked = false;
+
+  for (const world of chapterWorlds) {
+    if (chapter === 'your-craft' && world.roles.length > 0 && !world.roles.includes(athleteRole)) {
+      continue;
+    }
+
+    const hasLessons = lessonPillarIds.includes(world.id);
+
+    if (world.isStateTrigger && !hasLessons) {
+      const stateMatch = world.triggerState === seasonPhase || world.triggerState === healthState;
+      if (!stateMatch) continue;
+    }
+
+    if (hasLessons) {
+      result.push({ ...world, lockState: 'active' });
+    } else if (!foundFirstLocked) {
+      foundFirstLocked = true;
+      result.push({ ...world, lockState: 'teaser' });
+    }
+  }
+
+  return result;
 }
 
 function getWorldTotalXP(nodes: LegacyLesson[]): number {
@@ -141,45 +504,93 @@ export async function triggerWorldClearCelebration(worldId: string, _color: stri
 
 // ─── WORLD BANNER ─────────────────────────────────────────────────────────────
 
-function WorldBanner({ world, status, isMyRole, done, total, worldLessons, expanded, onToggle, nextWorldLabel, onNextWorldPress }: {
-  world: typeof WORLDS[0]; status: 'locked' | 'active' | 'complete';
-  isMyRole: boolean; done: number; total: number;
+function WorldBanner({
+  world,
+  done,
+  total,
+  worldLessons,
+  expanded,
+  onToggle,
+}: {
+  world: WorldWithLockState;
+  done: number;
+  total: number;
   worldLessons: LegacyLesson[];
-  expanded: boolean; onToggle: () => void;
-  nextWorldLabel: string | null;
-  onNextWorldPress?: () => void;
+  expanded: boolean;
+  onToggle: () => void;
 }) {
-  const locked = status === 'locked';
-  const color = WORLD_COLOR[world.pillar] ?? world.color;
-  const icon = WORLD_ICON[world.pillar] ?? 'star-outline';
+  const { color, icon, worldNumber, label, tagline, isPremium, lockState } = world;
   const pct = total > 0 ? Math.min(1, done / total) : 0;
-  const isCleared = done > 0 && done >= total;
-  const isExpanded = expanded && !locked;
+  const isCleared = lockState === 'active' && done > 0 && done >= total;
+  const isExpanded = expanded && lockState === 'active';
   const totalXP = getWorldTotalXP(worldLessons);
-  const celebrationKey = `world_cleared_${world.pillar}`;
+  const celebrationKey = `world_cleared_${world.id}`;
 
   useEffect(() => {
-    if (!isCleared) return;
+    if (lockState !== 'active' || !isCleared) return;
     AsyncStorage.getItem(celebrationKey).then(already => {
       if (already) return;
       AsyncStorage.setItem(celebrationKey, 'true');
-      triggerWorldClearCelebration(world.pillar, color);
+      triggerWorldClearCelebration(world.id, color);
     });
-  }, [isCleared]);
+  }, [isCleared, lockState]);
 
+  if (lockState === 'teaser') {
+    return (
+      <View style={[cardStyles.card, teaserStyles.card]}>
+        <LinearGradient
+          colors={['#1a1a1a', '#111111']}
+          style={StyleSheet.absoluteFill}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 0, y: 1 }}
+        />
+        <View style={cardStyles.header}>
+          <View style={cardStyles.titleCol}>
+            <Text style={[cardStyles.worldNum, { color: 'rgba(255,255,255,0.25)' }]}>
+              WORLD {worldNumber}
+            </Text>
+            <View style={cardStyles.nameRow}>
+              <Text style={[cardStyles.worldName, { color: 'rgba(255,255,255,0.4)' }]}>
+                {label.toUpperCase()}
+              </Text>
+            </View>
+            <Text style={[cardStyles.tagline, { color: 'rgba(255,255,255,0.25)' }]}>{tagline}</Text>
+          </View>
+          <View style={[cardStyles.rightCol, { gap: 6 }]}>
+            <Ionicons
+              name="lock-closed-outline"
+              size={18}
+              color={isPremium ? 'rgba(255,214,10,0.4)' : 'rgba(255,255,255,0.3)'}
+            />
+            <View style={[teaserStyles.pill, isPremium && teaserStyles.pillPremium]}>
+              <Text style={[teaserStyles.pillText, isPremium && teaserStyles.pillTextPremium]}>
+                {isPremium ? 'SIGNAL' : 'COMING SOON'}
+              </Text>
+            </View>
+          </View>
+        </View>
+        <View style={teaserStyles.hintRow}>
+          <Text style={teaserStyles.hintText}>
+            {isPremium
+              ? 'Unlock with Clutchr Pro'
+              : 'Complete previous worlds to unlock'}
+          </Text>
+        </View>
+      </View>
+    );
+  }
+
+  // ACTIVE
   return (
     <Pressable
-      onPress={locked ? undefined : onToggle}
-      disabled={locked}
+      onPress={onToggle}
       style={[
         cardStyles.card,
         { borderTopColor: color },
         isExpanded && cardStyles.cardExpanded,
-        locked && { opacity: 0.35 },
         isCleared && { shadowColor: color, shadowOpacity: 0.4, shadowRadius: 16, elevation: 6 },
       ]}
     >
-      {/* Cleared world tint */}
       {isCleared && (
         <LinearGradient
           colors={[color + '25', '#0D0D12']}
@@ -191,39 +602,23 @@ function WorldBanner({ world, status, isMyRole, done, total, worldLessons, expan
 
       <View style={cardStyles.header}>
         <View style={cardStyles.titleCol}>
-          <Text style={cardStyles.worldNum}>WORLD {world.worldNum}</Text>
+          <Text style={[cardStyles.worldNum, { color }]}>WORLD {worldNumber}</Text>
           <View style={cardStyles.nameRow}>
-            {locked && (
-              <Ionicons name="lock-closed" size={12} color="rgba(255,255,255,0.35)" style={{ marginRight: 5 }} />
-            )}
-            <Text style={[cardStyles.worldName, { color }]}>
-              {world.label.toUpperCase()}
-            </Text>
+            <Text style={[cardStyles.worldName, { color }]}>{label.toUpperCase()}</Text>
           </View>
-          <Text style={cardStyles.tagline}>{world.subtitle}</Text>
+          <Text style={cardStyles.tagline}>{tagline}</Text>
         </View>
-
         <View style={cardStyles.rightCol}>
           <Ionicons name={icon} size={20} color={color} />
-          {!locked && (
-            <>
-              {isMyRole && !isCleared && (
-                <View style={[cardStyles.yourPathBadge, { backgroundColor: color }]}>
-                  <Text style={cardStyles.yourPathText}>YOUR PATH</Text>
-                </View>
-              )}
-              <Ionicons
-                name={expanded ? 'chevron-up' : 'chevron-down'}
-                size={14}
-                color="rgba(255,255,255,0.35)"
-              />
-            </>
-          )}
+          <Ionicons
+            name={isExpanded ? 'chevron-up' : 'chevron-down'}
+            size={14}
+            color="rgba(255,255,255,0.35)"
+          />
         </View>
       </View>
 
-      {/* Progress bar — active non-cleared worlds only */}
-      {!locked && !isCleared && total > 0 && (
+      {!isCleared && total > 0 && (
         <View style={cardStyles.progressRow}>
           <View style={cardStyles.progressTrack}>
             <View style={[cardStyles.progressFill, { width: `${pct * 100}%` as any, backgroundColor: color }]} />
@@ -232,7 +627,6 @@ function WorldBanner({ world, status, isMyRole, done, total, worldLessons, expan
         </View>
       )}
 
-      {/* Cleared badge row */}
       {isCleared && (
         <View style={clearedStyles.badgeRow}>
           <View style={clearedStyles.badgeLeft}>
@@ -246,26 +640,50 @@ function WorldBanner({ world, status, isMyRole, done, total, worldLessons, expan
           </View>
         </View>
       )}
-
-      {/* Next world hint */}
-      {isCleared && nextWorldLabel && (
-        <Pressable style={clearedStyles.nextHintRow} onPress={onNextWorldPress}>
-          <Text style={clearedStyles.nextHintText}>Next: {nextWorldLabel} →</Text>
-        </Pressable>
-      )}
     </Pressable>
   );
 }
 
-// ─── WORLD MAP SECTION — LEFT-SPINE VERTICAL TIMELINE ────────────────────────
+// ─── SIGNAL PREMIUM BANNER ────────────────────────────────────────────────────
+
+function SignalBanner() {
+  return (
+    <View style={signalStyles.banner}>
+      <Ionicons name="trophy-outline" size={20} color="#FFD60A" style={{ marginRight: 10 }} />
+      <View style={{ flex: 1 }}>
+        <Text style={signalStyles.label}>SIGNAL</Text>
+        <Text style={signalStyles.description}>
+          Elite habits. Pro-level content. Coming with Clutchr Pro.
+        </Text>
+      </View>
+      <View style={signalStyles.proPill}>
+        <Text style={signalStyles.proText}>PRO</Text>
+      </View>
+    </View>
+  );
+}
+
+// ─── YOUR CRAFT HEADER ────────────────────────────────────────────────────────
+
+function YourCraftHeader({ role, color }: { role: string; color: string }) {
+  return (
+    <View style={craftStyles.wrap}>
+      <Text style={craftStyles.label}>Showing worlds for your role:</Text>
+      <View style={[craftStyles.rolePill, { backgroundColor: color + '20', borderColor: color + '40' }]}>
+        <Text style={[craftStyles.roleText, { color }]}>{role.toUpperCase()}</Text>
+      </View>
+    </View>
+  );
+}
+
+// ─── WORLD MAP SECTION — LEFT-SPINE VERTICAL TIMELINE ─────────────────────────
 
 function WorldMapSection({ world, lessons, completed }: {
-  world: typeof WORLDS[0];
+  world: World;
   lessons: LegacyLesson[];
   completed: string[];
 }) {
-  const color = WORLD_COLOR[world.pillar] ?? world.color;
-  const description = WORLD_DESCRIPTIONS[world.pillar] ?? 'Train your skills and unlock your potential.';
+  const { color, label, tagline } = world;
 
   if (lessons.length === 0) {
     return (
@@ -277,21 +695,19 @@ function WorldMapSection({ world, lessons, completed }: {
 
   return (
     <View style={mapStyles.outerWrap}>
-      {/* World Guide Banner */}
       <Pressable
         style={[mapStyles.guideBanner, { backgroundColor: color + '15', borderColor: color + '40' }]}
-        onPress={() => Alert.alert(world.label, description)}
+        onPress={() => Alert.alert(label, tagline)}
       >
         <View style={{ flex: 1 }}>
-          <Text style={[mapStyles.guideBannerTitle, { color }]}>{world.label.toUpperCase()}</Text>
-          <Text style={mapStyles.guideBannerTagline}>{world.subtitle}</Text>
+          <Text style={[mapStyles.guideBannerTitle, { color }]}>{label.toUpperCase()}</Text>
+          <Text style={mapStyles.guideBannerTagline}>{tagline}</Text>
         </View>
         <View style={[mapStyles.guidePill, { backgroundColor: color }]}>
           <Text style={mapStyles.guidePillText}>GUIDE</Text>
         </View>
       </Pressable>
 
-      {/* Timeline container — spine is absolute inside here */}
       <View style={mapStyles.timelineContainer}>
         <View style={[mapStyles.spineLine, { backgroundColor: color }]} />
 
@@ -366,7 +782,6 @@ function TimelineNode({ lesson, idx, isDone, isNext, isLocked, isBoss, color }: 
 
   return (
     <Pressable style={tlStyles.row} onPress={handlePress}>
-      {/* LEFT — 72px column, node centered on spine at x=36 */}
       <View style={tlStyles.nodeCol}>
         {isBoss && !isDone && (
           <Text style={[tlStyles.crownText, { color }]}>♛</Text>
@@ -407,10 +822,10 @@ function TimelineNode({ lesson, idx, isDone, isNext, isLocked, isBoss, color }: 
             isNext && { transform: [{ scale: pulseAnim }] },
           ]}
         >
-          {isDone   ? <Text style={tlStyles.checkmark}>✓</Text>
-          : isNext  ? <Text style={tlStyles.playIcon}>▶</Text>
-          : isLocked? <Text style={tlStyles.lockIcon}>🔒</Text>
-          :           <Text style={tlStyles.nodeNumText}>{idx + 1}</Text>}
+          {isDone    ? <Text style={tlStyles.checkmark}>✓</Text>
+          : isNext   ? <Text style={tlStyles.playIcon}>▶</Text>
+          : isLocked ? <Text style={tlStyles.lockIcon}>🔒</Text>
+          :            <Text style={tlStyles.nodeNumText}>{idx + 1}</Text>}
         </Animated.View>
 
         {isBoss && !isDone && (
@@ -418,9 +833,7 @@ function TimelineNode({ lesson, idx, isDone, isNext, isLocked, isBoss, color }: 
         )}
       </View>
 
-      {/* RIGHT — lesson card */}
       <View style={[tlStyles.card, { borderColor: cardBorderColor }]}>
-        {/* Family tag */}
         <View style={tlStyles.cardTopRow}>
           <View style={[
             tlStyles.familyPill,
@@ -435,7 +848,6 @@ function TimelineNode({ lesson, idx, isDone, isNext, isLocked, isBoss, color }: 
           </View>
         </View>
 
-        {/* Title */}
         <Text
           style={[tlStyles.cardTitle, isLocked && tlStyles.cardTitleLocked]}
           numberOfLines={2}
@@ -454,7 +866,6 @@ function TimelineNode({ lesson, idx, isDone, isNext, isLocked, isBoss, color }: 
           </View>
         )}
 
-        {/* Active bottom accent strip */}
         {isNext && (
           <View style={[tlStyles.activeStrip, { backgroundColor: color }]} />
         )}
@@ -471,8 +882,8 @@ export default function CareerScreen() {
   const [lessons, setLessons] = useState<LegacyLesson[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
-  const [activeWorldIndex, setActiveWorldIndex] = useState(0);
-  const autoSelectedRef = useRef(false);
+  const [activeChapter, setActiveChapter] = useState('foundation');
+  const [expandedWorldId, setExpandedWorldId] = useState<string | null>(null);
 
   const fetchData = async () => {
     setLoading(true);
@@ -491,31 +902,22 @@ export default function CareerScreen() {
   useEffect(() => { fetchData(); }, []);
 
   const completed = athleteState?.completed_lessons ?? [];
-  const myPillar = ROLE_PILLAR[athleteState?.primary_role ?? ''] ?? '';
-
-  useEffect(() => {
-    if (autoSelectedRef.current || !myPillar) return;
-    const idx = WORLDS.findIndex(w => w.pillar === myPillar);
-    if (idx >= 0) {
-      setActiveWorldIndex(idx);
-      autoSelectedRef.current = true;
-    }
-  }, [myPillar]);
+  const athleteRole = athleteState?.primary_role ?? 'pitcher';
+  const seasonPhase = (athleteState as any)?.season_phase ?? null;
+  const healthState = (athleteState as any)?.health_state ?? null;
 
   const totalDone = completed.length;
   const totalAll  = lessons.length;
   const overallPct = totalAll > 0 ? Math.min(100, Math.round((totalDone / totalAll) * 100)) : 0;
 
-  const activeWorld = WORLDS[activeWorldIndex];
-  const activeWorldLessons = lessons
-    .filter((l) => l.pillar_id === activeWorld.pillar)
-    .sort((a, b) => a.order_index - b.order_index);
-  const activeWorldDone = activeWorldLessons.filter((l) => completed.includes(l.id)).length;
-  const activeWorldStatus = getWorldStatus(lessons, completed, activeWorldIndex);
-  const nextWorldEntry = activeWorldIndex + 1 < WORLDS.length ? WORLDS[activeWorldIndex + 1] : null;
-  const nextWorldStatus = nextWorldEntry ? getWorldStatus(lessons, completed, activeWorldIndex + 1) : null;
-  const activeNextWorldLabel = nextWorldEntry && nextWorldStatus !== 'complete' ? nextWorldEntry.label : null;
+  const lessonPillarIds = [...new Set(lessons.map(l => l.pillar_id).filter(Boolean))];
 
+  const chapterWorlds = WORLDS.filter(w => w.chapter === activeChapter);
+  const filteredWorlds = getWorldsForChapter(
+    chapterWorlds, lessonPillarIds, activeChapter, athleteRole, seasonPhase, healthState
+  );
+
+  const activeChapterConfig = CHAPTERS.find(c => c.id === activeChapter)!;
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -547,32 +949,41 @@ export default function CareerScreen() {
         </View>
       </View>
 
-      {/* ── WORLD TAB BAR ── */}
+      {/* CHAPTER TAB BAR */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        style={worldTabStyles.container}
-        contentContainerStyle={worldTabStyles.content}
+        style={chapterTabStyles.container}
+        contentContainerStyle={chapterTabStyles.content}
       >
-        {WORLD_TABS.map((tab, idx) => {
-          const active = activeWorldIndex === idx;
-          const color = WORLD_COLOR[tab.pillar] ?? '#22CC5E';
+        {CHAPTERS.map((chapter) => {
+          const active = activeChapter === chapter.id;
+          const isSignal = chapter.id === 'signal';
+          const labelColor = isSignal
+            ? '#FFD60A'
+            : active ? chapter.color : 'rgba(255,255,255,0.35)';
           return (
             <Pressable
-              key={tab.pillar}
-              style={[worldTabStyles.tab, active && { borderBottomWidth: 2, borderBottomColor: color }]}
-              onPress={() => setActiveWorldIndex(idx)}
+              key={chapter.id}
+              style={[
+                chapterTabStyles.tab,
+                active && { borderBottomWidth: 2, borderBottomColor: chapter.color },
+              ]}
+              onPress={() => {
+                setActiveChapter(chapter.id);
+                setExpandedWorldId(null);
+              }}
             >
-              <Ionicons name={tab.icon} size={13} color={active ? color : 'rgba(255,255,255,0.35)'} />
-              <Text style={[worldTabStyles.label, { color: active ? color : 'rgba(255,255,255,0.35)' }]}>
-                {tab.label}
+              <Ionicons name={chapter.icon} size={14} color={labelColor} />
+              <Text style={[chapterTabStyles.label, { color: labelColor }]}>
+                {isSignal && active ? '✦ ' : ''}{chapter.label}
               </Text>
             </Pressable>
           );
         })}
       </ScrollView>
 
-      {/* ── ACTIVE WORLD CONTENT ── */}
+      {/* ACTIVE CHAPTER CONTENT */}
       {loadError ? (
         <ErrorState message="Could not load lessons." onRetry={fetchData} />
       ) : loading ? (
@@ -585,44 +996,67 @@ export default function CareerScreen() {
           {[0, 1, 2].map(i => <SkeletonCard key={i} />)}
         </ScrollView>
       ) : (
-      <ScrollView
-        contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 100 }]}
-        showsVerticalScrollIndicator={false}
-        style={styles.scrollView}
-      >
-        <View style={styles.worldBlock}>
-          <WorldBanner
-            world={activeWorld}
-            status={activeWorldStatus}
-            isMyRole={myPillar === activeWorld.pillar}
-            done={activeWorldDone}
-            total={activeWorldLessons.length}
-            worldLessons={activeWorldLessons}
-            expanded={true}
-            onToggle={() => {}}
-            nextWorldLabel={activeNextWorldLabel}
-            onNextWorldPress={nextWorldEntry ? () => setActiveWorldIndex(activeWorldIndex + 1) : undefined}
-          />
-          {activeWorldStatus !== 'locked' && (
-            <WorldMapSection
-              world={activeWorld}
-              lessons={activeWorldLessons}
-              completed={completed}
-            />
+        <ScrollView
+          contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 100 }]}
+          showsVerticalScrollIndicator={false}
+          style={styles.scrollView}
+        >
+          {activeChapter === 'your-craft' && (
+            <YourCraftHeader role={athleteRole} color={activeChapterConfig.color} />
           )}
-        </View>
-      </ScrollView>
+
+          {activeChapter === 'signal' && <SignalBanner />}
+
+          {filteredWorlds.map((world) => {
+            const worldLessons = lessons
+              .filter(l => l.pillar_id === world.id)
+              .sort((a, b) => a.order_index - b.order_index);
+            const worldDone = worldLessons.filter(l => completed.includes(l.id)).length;
+            const isExpanded = expandedWorldId === world.id;
+
+            return (
+              <View key={world.id} style={styles.worldBlock}>
+                <WorldBanner
+                  world={world}
+                  done={worldDone}
+                  total={worldLessons.length}
+                  worldLessons={worldLessons}
+                  expanded={isExpanded}
+                  onToggle={() => {
+                    if (world.lockState === 'teaser') {
+                      Alert.alert('Keep stacking.', 'This world unlocks as you progress.');
+                      return;
+                    }
+                    setExpandedWorldId(isExpanded ? null : world.id);
+                  }}
+                />
+                {world.lockState === 'active' && isExpanded && (
+                  <WorldMapSection
+                    world={world}
+                    lessons={worldLessons}
+                    completed={completed}
+                  />
+                )}
+              </View>
+            );
+          })}
+
+          {filteredWorlds.length === 0 && (
+            <View style={styles.emptyChapter}>
+              <Text style={styles.emptyChapterText}>No worlds available for your role yet.</Text>
+            </View>
+          )}
+        </ScrollView>
       )}
     </View>
   );
 }
 
-// ─── STYLES ──────────────────────────────────────────────────────────────────
+// ─── STYLES ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  container:   { flex: 1, backgroundColor: '#080810' },
-  center:      { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#080810' },
-  scrollView:  { backgroundColor: '#080810' },
+  container:        { flex: 1, backgroundColor: '#080810' },
+  scrollView:       { backgroundColor: '#080810' },
 
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
@@ -649,11 +1083,42 @@ const styles = StyleSheet.create({
   progressLabel: { fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.textTertiary },
   progressPct:   { fontSize: 11, fontFamily: 'Inter_600SemiBold', color: Colors.primary },
 
-  scroll:     { gap: 0, paddingTop: 8 },
-  worldBlock: { marginBottom: 12 },
+  scroll:        { gap: 0, paddingTop: 8 },
+  worldBlock:    { marginBottom: 12 },
+
+  emptyChapter: { paddingTop: 40, alignItems: 'center' },
+  emptyChapterText: {
+    fontSize: 13, fontFamily: 'Inter_400Regular',
+    color: 'rgba(255,255,255,0.3)', textAlign: 'center',
+  },
 });
 
-// ─── CARD STYLES (collapsed world banner — unchanged) ────────────────────────
+// ─── CHAPTER TAB BAR STYLES ──────────────────────────────────────────────────
+
+const chapterTabStyles = StyleSheet.create({
+  container: {
+    backgroundColor: '#0D0D0D',
+    borderBottomWidth: 1,
+    borderBottomColor: '#1a1a1a',
+    flexGrow: 0,
+  },
+  content: {
+    flexDirection: 'row',
+  },
+  tab: {
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    gap: 3,
+  },
+  label: {
+    fontSize: 11,
+    fontFamily: 'Inter_700Bold',
+    letterSpacing: 1,
+  },
+});
+
+// ─── CARD STYLES ─────────────────────────────────────────────────────────────
 
 const cardStyles = StyleSheet.create({
   card: {
@@ -662,12 +1127,14 @@ const cardStyles = StyleSheet.create({
     backgroundColor: '#0D0D12',
     borderWidth: 1,
     borderTopWidth: 3,
+    borderTopColor: '#2a2a2a',
     borderColor: 'rgba(255,255,255,0.07)',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.45,
     shadowRadius: 12,
     elevation: 6,
+    overflow: 'hidden',
   },
   cardExpanded: {
     borderBottomLeftRadius: 0,
@@ -680,8 +1147,7 @@ const cardStyles = StyleSheet.create({
   },
   titleCol: { flex: 1, gap: 3 },
   worldNum: {
-    fontSize: 9, fontFamily: 'Inter_700Bold',
-    color: 'rgba(255,255,255,0.28)', letterSpacing: 1.8,
+    fontSize: 10, fontFamily: 'Inter_700Bold', letterSpacing: 2,
   },
   nameRow:   { flexDirection: 'row', alignItems: 'center' },
   worldName: { fontSize: 16, fontFamily: 'Inter_700Bold', letterSpacing: 1 },
@@ -690,8 +1156,6 @@ const cardStyles = StyleSheet.create({
     color: 'rgba(255,255,255,0.4)', lineHeight: 16,
   },
   rightCol: { alignItems: 'flex-end', gap: 8, paddingLeft: 12, flexShrink: 0 },
-  yourPathBadge: { paddingHorizontal: 7, paddingVertical: 3, borderRadius: Radius.pill },
-  yourPathText:  { fontSize: 8, fontFamily: 'Inter_700Bold', color: '#000', letterSpacing: 0.8 },
   progressRow: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
     paddingHorizontal: 16, paddingBottom: 14,
@@ -702,6 +1166,119 @@ const cardStyles = StyleSheet.create({
   },
   progressFill:  { height: 3, borderRadius: 2 },
   progressCount: { fontSize: 10, fontFamily: 'Inter_700Bold', minWidth: 32, textAlign: 'right' },
+});
+
+// ─── TEASER STYLES ────────────────────────────────────────────────────────────
+
+const teaserStyles = StyleSheet.create({
+  card: {
+    opacity: 0.55,
+    borderTopColor: '#2a2a2a',
+  },
+  pill: {
+    backgroundColor: '#1a1a1a',
+    borderWidth: 1,
+    borderColor: '#2a2a2a',
+    borderRadius: 20,
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+  },
+  pillPremium: {
+    borderColor: 'rgba(255,214,10,0.3)',
+  },
+  pillText: {
+    fontSize: 9,
+    fontFamily: 'Inter_700Bold',
+    color: 'rgba(255,255,255,0.25)',
+    letterSpacing: 0.5,
+  },
+  pillTextPremium: {
+    color: 'rgba(255,214,10,0.5)',
+  },
+  hintRow: {
+    paddingHorizontal: 16,
+    paddingBottom: 14,
+  },
+  hintText: {
+    fontSize: 10,
+    fontFamily: 'Inter_400Regular',
+    color: 'rgba(255,255,255,0.2)',
+    fontStyle: 'italic',
+  },
+});
+
+// ─── SIGNAL STYLES ────────────────────────────────────────────────────────────
+
+const signalStyles = StyleSheet.create({
+  banner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1A1500',
+    borderWidth: 1,
+    borderColor: 'rgba(255,214,10,0.2)',
+    borderRadius: 12,
+    padding: 14,
+    marginHorizontal: 16,
+    marginBottom: 12,
+  },
+  label: {
+    fontSize: 11,
+    fontFamily: 'Inter_700Bold',
+    color: '#FFD60A',
+    letterSpacing: 2,
+  },
+  description: {
+    fontSize: 11,
+    fontFamily: 'Inter_400Regular',
+    color: 'rgba(255,255,255,0.4)',
+    marginTop: 2,
+  },
+  proPill: {
+    backgroundColor: '#1A1500',
+    borderWidth: 1,
+    borderColor: '#FFD60A',
+    borderRadius: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    marginLeft: 10,
+  },
+  proText: {
+    fontSize: 11,
+    fontFamily: 'Inter_700Bold',
+    color: '#FFD60A',
+    letterSpacing: 1,
+  },
+});
+
+// ─── YOUR CRAFT HEADER STYLES ─────────────────────────────────────────────────
+
+const craftStyles = StyleSheet.create({
+  wrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#0D0D12',
+    borderRadius: 10,
+    marginHorizontal: 16,
+    marginBottom: 10,
+    padding: 10,
+  },
+  label: {
+    fontSize: 11,
+    fontFamily: 'Inter_400Regular',
+    color: 'rgba(255,255,255,0.4)',
+  },
+  rolePill: {
+    borderWidth: 1,
+    borderRadius: 20,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  roleText: {
+    fontSize: 10,
+    fontFamily: 'Inter_700Bold',
+    letterSpacing: 0.5,
+  },
 });
 
 // ─── MAP STYLES ───────────────────────────────────────────────────────────────
@@ -811,28 +1388,11 @@ const tlStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  checkmark: {
-    fontSize: 16,
-    color: '#fff',
-    fontWeight: '700',
-  },
-  playIcon: {
-    fontSize: 14,
-    color: '#fff',
-    marginLeft: 2,
-  },
-  lockIcon: {
-    fontSize: 12,
-  },
-  nodeNumText: {
-    fontSize: 13,
-    fontFamily: 'Inter_700Bold',
-    color: 'rgba(255,255,255,0.4)',
-  },
-  crownText: {
-    fontSize: 14,
-    marginBottom: 2,
-  },
+  checkmark:     { fontSize: 16, color: '#fff', fontWeight: '700' },
+  playIcon:      { fontSize: 14, color: '#fff', marginLeft: 2 },
+  lockIcon:      { fontSize: 12 },
+  nodeNumText:   { fontSize: 13, fontFamily: 'Inter_700Bold', color: 'rgba(255,255,255,0.4)' },
+  crownText:     { fontSize: 14, marginBottom: 2 },
   voltMarker: {
     width: 10,
     height: 10,
@@ -855,146 +1415,36 @@ const tlStyles = StyleSheet.create({
     padding: 12,
     overflow: 'hidden',
   },
-  cardTopRow: {
-    flexDirection: 'row',
-  },
-  familyPill: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  familyPillText: {
-    fontSize: 9,
-    fontFamily: 'Inter_700Bold',
-    letterSpacing: 0.5,
-  },
+  cardTopRow:      { flexDirection: 'row' },
+  familyPill:      { paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
+  familyPillText:  { fontSize: 9, fontFamily: 'Inter_700Bold', letterSpacing: 0.5 },
   cardTitle: {
-    fontSize: 14,
-    fontFamily: 'Inter_700Bold',
-    color: '#fff',
-    marginTop: 4,
-    lineHeight: 18,
+    fontSize: 14, fontFamily: 'Inter_700Bold', color: '#fff', marginTop: 4, lineHeight: 18,
   },
-  cardTitleLocked: {
-    color: 'rgba(255,255,255,0.3)',
-  },
+  cardTitleLocked: { color: 'rgba(255,255,255,0.3)' },
   lockedHint: {
-    fontSize: 10,
-    fontFamily: 'Inter_400Regular',
-    color: 'rgba(255,255,255,0.2)',
-    fontStyle: 'italic',
-    marginTop: 3,
+    fontSize: 10, fontFamily: 'Inter_400Regular',
+    color: 'rgba(255,255,255,0.2)', fontStyle: 'italic', marginTop: 3,
   },
   cardBottomRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: 6,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 6,
   },
-  xpText: {
-    fontSize: 11,
-    fontFamily: 'Inter_600SemiBold',
-    color: '#F5A623',
-  },
-  timeText: {
-    fontSize: 11,
-    fontFamily: 'Inter_400Regular',
-    color: 'rgba(255,255,255,0.35)',
-  },
-  activeStrip: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 2,
-  },
+  xpText:    { fontSize: 11, fontFamily: 'Inter_600SemiBold', color: '#F5A623' },
+  timeText:  { fontSize: 11, fontFamily: 'Inter_400Regular',  color: 'rgba(255,255,255,0.35)' },
+  activeStrip: { position: 'absolute', bottom: 0, left: 0, right: 0, height: 2 },
 });
 
-// ─── CLEARED WORLD STYLES ────────────────────────────────────────────────────
+// ─── CLEARED WORLD STYLES ─────────────────────────────────────────────────────
 
 const clearedStyles = StyleSheet.create({
   badgeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingBottom: 12,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingHorizontal: 16, paddingBottom: 12,
   },
-  badgeLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  checkCircle: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  checkMark: {
-    fontSize: 13,
-    fontWeight: '800',
-    color: '#fff',
-    lineHeight: 16,
-  },
-  clearedLabel: {
-    fontSize: 13,
-    fontFamily: 'Inter_700Bold',
-    letterSpacing: 1,
-  },
-  xpPill: {
-    borderWidth: 1,
-    borderRadius: 20,
-    paddingHorizontal: 10,
-    paddingVertical: 3,
-  },
-  xpPillText: {
-    fontSize: 11,
-    fontFamily: 'Inter_700Bold',
-  },
-  nextHintRow: {
-    paddingHorizontal: 16,
-    paddingBottom: 12,
-  },
-  nextHintText: {
-    fontSize: 11,
-    fontFamily: 'Inter_400Regular',
-    color: 'rgba(255,255,255,0.35)',
-  },
-});
-
-// ─── STAR STYLES ─────────────────────────────────────────────────────────────
-
-const starStyles = StyleSheet.create({
-  star: {
-    position: 'absolute',
-    width: 2, height: 2, borderRadius: 1,
-  },
-});
-
-// ─── WORLD TAB BAR STYLES ────────────────────────────────────────────────────
-
-const worldTabStyles = StyleSheet.create({
-  container: {
-    backgroundColor: '#0D0D0D',
-    borderBottomWidth: 1,
-    borderBottomColor: '#1a1a1a',
-    flexGrow: 0,
-  },
-  content: {
-    flexDirection: 'row',
-  },
-  tab: {
-    width: 80,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 10,
-    gap: 3,
-  },
-  label: {
-    fontSize: 11,
-    fontFamily: 'Inter_700Bold',
-    letterSpacing: 1,
-  },
+  badgeLeft:   { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  checkCircle: { width: 22, height: 22, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
+  checkMark:   { fontSize: 13, fontWeight: '800', color: '#fff', lineHeight: 16 },
+  clearedLabel:{ fontSize: 13, fontFamily: 'Inter_700Bold', letterSpacing: 1 },
+  xpPill:      { borderWidth: 1, borderRadius: 20, paddingHorizontal: 10, paddingVertical: 3 },
+  xpPillText:  { fontSize: 11, fontFamily: 'Inter_700Bold' },
 });

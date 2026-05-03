@@ -218,7 +218,14 @@ function CueBox({ cue, label = 'YOUR CUE' }: { cue: string; label?: string }) {
 function ChoiceStep({ step, onAdvance }: { step: any; onAdvance: () => void }) {
   const [selected, setSelected] = useState<string | null>(null);
   const [revealed, setRevealed] = useState(false);
-  const choices = step.choices ?? step.options ?? [];
+
+  // Shuffle once on mount so the correct answer doesn't always appear at position B
+  const shuffledRef = useRef<any[] | null>(null);
+  if (shuffledRef.current === null) {
+    const raw = step.choices ?? step.options ?? [];
+    shuffledRef.current = [...raw].sort(() => Math.random() - 0.5);
+  }
+  const choices = shuffledRef.current;
 
   function handlePick(id: string, outcome?: string) {
     if (revealed) return;
@@ -1226,7 +1233,7 @@ useEffect(() => {
         keyboardShouldPersistTaps="handled"
       >
         <Animated.View style={{ opacity: stepFade }}>
-          {currentStep && <StepRenderer step={currentStep} onAdvance={advanceStep} />}
+          {currentStep && <StepRenderer key={stepIndex} step={currentStep} onAdvance={advanceStep} />}
         </Animated.View>
       </ScrollView>
 

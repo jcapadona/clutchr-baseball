@@ -2,6 +2,7 @@ import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Constants from 'expo-constants';
 
 const PUSH_TOKEN_KEY = 'clutchr_push_token';
 const NOTIF_SETUP_KEY = 'clutchr_notifs_setup';
@@ -15,7 +16,10 @@ Notifications.setNotificationHandler({
 });
 
 export async function registerForPushNotifications(): Promise<string | null> {
-  if (!Device.isDevice) return null;
+  if (!Device.isDevice || Constants.appOwnership === 'expo') {
+    console.log('Push notifications skipped in Expo Go')
+    return null
+  }
 
   const { status: existingStatus } = await Notifications.getPermissionsAsync();
   let finalStatus = existingStatus;
