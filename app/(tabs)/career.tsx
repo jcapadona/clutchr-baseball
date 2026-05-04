@@ -269,7 +269,7 @@ const WORLDS: World[] = [
     label: 'Baserunner Path',
     tagline: 'Reads, jumps, aggression, decisions',
     color: '#FF9F0A',
-    chapter: 'your-craft',
+    chapter: 'foundation',
     roles: [],
     isStateTrigger: false,
     triggerState: null,
