@@ -17,6 +17,7 @@ import { fetchLessons } from '@/lib/supabase';
 import { Colors } from '@/constants/theme';
 import ToolShelfModal from '@/components/ToolShelfModal';
 import { pickNextLesson, type RoutingResult } from '@/lib/lessonRouter';
+import { getBestCue } from '@/lib/personalCue';
 import { SkeletonBox, SkeletonCard } from '@/components/SkeletonLoader';
 import { ClutchrLogo } from '@/components/ClutchrLogo';
 
@@ -194,6 +195,7 @@ export default function HomeScreen() {
   const level    = Math.floor(totalXp / XP_PER_LEVEL) + 1;
   const streak   = athleteState?.streak_count ?? 0;
   const xpLineOpacity = Math.min(1, totalXp / (level * 500));
+  const focusCue = getBestCue(athleteState, 'focus');
 
   if (isLoading || !athleteState) {
     return (
@@ -336,6 +338,11 @@ export default function HomeScreen() {
             </Pressable>
           </Pressable>
         )}
+
+        <View style={{ borderWidth: 1, borderColor: '#22CC5E33', backgroundColor: '#0F1612', borderRadius: 12, padding: 12, marginBottom: 12 }}>
+          <Text style={{ color: '#22CC5E', fontSize: 11, fontWeight: '700', letterSpacing: 1 }}>TODAY'S CUE</Text>
+          <Text style={{ color: 'rgba(255,255,255,0.9)', marginTop: 4 }}>{focusCue}</Text>
+        </View>
 
         {/* ── DAILY MISSIONS ── */}
         {animCard(anim2,
