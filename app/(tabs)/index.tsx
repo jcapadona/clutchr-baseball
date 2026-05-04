@@ -18,6 +18,7 @@ import { Colors } from '@/constants/theme';
 import ToolShelfModal from '@/components/ToolShelfModal';
 import { pickNextLesson, type RoutingResult } from '@/lib/lessonRouter';
 import { SkeletonBox, SkeletonCard } from '@/components/SkeletonLoader';
+import { ClutchrLogo } from '@/components/ClutchrLogo';
 
 const XP_PER_LEVEL = 200;
 const MISSIONS_DATE_KEY  = 'missions_date';
@@ -149,9 +150,28 @@ export default function HomeScreen() {
     athleteState?.primary_role,
   ]);
 
+  const totalXp  = athleteState?.total_xp ?? 0;
+  const level    = Math.floor(totalXp / XP_PER_LEVEL) + 1;
+  const streak   = athleteState?.streak_count ?? 0;
+  const xpLineOpacity = Math.min(1, totalXp / (level * 500));
+
   if (isLoading || !athleteState) {
     return (
-      <View style={[s.container, { paddingTop: insets.top }]}>
+      <View style={s.container}>
+        <View style={[s.navBar, { paddingTop: insets.top + 12 }]}>
+          <ClutchrLogo />
+          <View style={s.navRight}>
+            <View style={s.streakPill}>
+              <Text>🔥</Text>
+              <Text style={s.pillStat}>0</Text>
+            </View>
+            <View style={s.xpPillNav}>
+              <Text style={s.xpIconText}>⚡</Text>
+              <Text style={s.pillStat}>0</Text>
+            </View>
+          </View>
+        </View>
+        <View style={[s.xpLine, { opacity: 0 }]} />
         <ScrollView
           contentContainerStyle={[s.scroll, { paddingBottom: insets.bottom + 140 }]}
           showsVerticalScrollIndicator={false}
@@ -169,8 +189,6 @@ export default function HomeScreen() {
     );
   }
 
-  const totalXp       = athleteState.total_xp ?? 0;
-  const level         = Math.floor(totalXp / XP_PER_LEVEL) + 1;
   const levelProgress = (totalXp % XP_PER_LEVEL) / XP_PER_LEVEL;
   const lesson        = routingResult?.lesson ?? null;
   const reason        = routingResult?.reason ?? '';
@@ -198,33 +216,36 @@ export default function HomeScreen() {
   );
 
   return (
-    <View style={[s.container, { paddingTop: insets.top }]}>
+    <View style={s.container}>
+
+      {/* ── BRANDED NAV BAR ── */}
+      <View style={[s.navBar, { paddingTop: insets.top + 12 }]}>
+        <ClutchrLogo />
+        <View style={s.navRight}>
+          <View style={s.streakPill}>
+            <Text>🔥</Text>
+            <Text style={s.pillStat}>{streak}</Text>
+          </View>
+          <View style={s.xpPillNav}>
+            <Text style={s.xpIconText}>⚡</Text>
+            <Text style={s.pillStat}>{totalXp}</Text>
+          </View>
+        </View>
+      </View>
+
+      {/* ── XP PROGRESS LINE ── */}
+      <View style={[s.xpLine, { opacity: xpLineOpacity }]} />
+
       <ScrollView
         contentContainerStyle={[s.scroll, { paddingBottom: insets.bottom + 120 }]}
         showsVerticalScrollIndicator={false}
       >
 
-        {/* ── HEADER ── */}
+        {/* ── GREETING ── */}
         {animCard(anim0,
-          <View style={s.headerWrap}>
-            <View style={s.headerTopRow}>
-              <View>
-                <Text style={s.goodWork}>GOOD WORK, {(athleteState.first_name ?? 'ATHLETE').toUpperCase()}.</Text>
-                <Text style={s.missionControl}>MISSION CONTROL</Text>
-              </View>
-              <View style={s.xpPill}>
-                <Ionicons name="flash" size={12} color="#F5A623" />
-                <Text style={s.xpPillNumber}>{totalXp}</Text>
-                <Text style={s.xpPillLabel}>XP</Text>
-              </View>
-            </View>
-            <View style={s.progressTrack}>
-              <View style={[s.progressFill, { width: `${Math.min(100, levelProgress * 100)}%` as any }]} />
-            </View>
-            <View style={s.progressMeta}>
-              <Text style={s.progressMetaText}>LEVEL {level}</Text>
-              <Text style={s.progressMetaText}>{totalXp} XP</Text>
-            </View>
+          <View>
+            <Text style={s.goodWork}>GOOD WORK, {(athleteState.first_name ?? 'ATHLETE').toUpperCase()}.</Text>
+            <Text style={s.missionControl}>MISSION CONTROL</Text>
           </View>
         )}
 
@@ -363,75 +384,73 @@ const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
   scroll:    { paddingTop: 8 },
 
-  // Header
-  headerWrap: {
+  // Branded nav bar
+  navBar: {
+    backgroundColor: '#000',
+    borderBottomWidth: 1,
+    borderBottomColor: '#1a1a1a',
     paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 4,
-  },
-  headerTopRow: {
+    paddingBottom: 12,
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 14,
   },
+  navRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  streakPill: {
+    backgroundColor: '#1a1a1a',
+    borderRadius: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  xpPillNav: {
+    backgroundColor: '#1A1200',
+    borderRadius: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  pillStat: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '700',
+    fontFamily: 'Inter_700Bold',
+  },
+  xpIconText: {
+    color: '#F5A623',
+    fontSize: 13,
+  },
+
+  // XP progress line
+  xpLine: {
+    height: 2,
+    backgroundColor: '#22CC5E',
+  },
+
+  // Greeting
   goodWork: {
     fontSize: 12,
-    color: 'rgba(255,255,255,0.5)',
+    color: 'rgba(255,255,255,0.4)',
     letterSpacing: 2,
-    fontWeight: '600',
-    fontFamily: 'Inter_600SemiBold',
-    marginBottom: 4,
+    marginTop: 16,
+    marginLeft: 16,
   },
   missionControl: {
-    fontSize: 28,
+    fontSize: 26,
     color: '#FFFFFF',
     fontWeight: '900',
     letterSpacing: 1,
     fontFamily: 'Inter_700Bold',
-  },
-  xpPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#1A1A1A',
-    borderRadius: 20,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    gap: 4,
-    marginTop: 4,
-  },
-  xpPillNumber: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    fontFamily: 'Inter_700Bold',
-  },
-  xpPillLabel: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: 'rgba(255,255,255,0.45)',
-    fontFamily: 'Inter_700Bold',
-  },
-  progressTrack: {
-    height: 2,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    borderRadius: 1,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: 2,
-    backgroundColor: '#22CC5E',
-    borderRadius: 1,
-  },
-  progressMeta: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 5,
-  },
-  progressMetaText: {
-    fontSize: 11,
-    color: 'rgba(255,255,255,0.35)',
-    fontFamily: 'Inter_600SemiBold',
+    marginLeft: 16,
+    marginBottom: 4,
   },
 
   // Missions
