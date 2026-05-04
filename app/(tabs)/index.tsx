@@ -78,7 +78,7 @@ function VoltBanner() {
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
-  const { athleteState, isLoading, completedTodayCount } = useAthlete();
+  const { athleteState, isLoading, completedTodayCount, updateAthleteState } = useAthlete();
   const [toolShelfOpen, setToolShelfOpen]   = useState(false);
   const [routingResult, setRoutingResult]   = useState<RoutingResult | null>(null);
   const [loadingLesson, setLoadingLesson]   = useState(true);
@@ -149,6 +149,46 @@ export default function HomeScreen() {
     athleteState?.biggest_struggle?.join(','),
     athleteState?.primary_role,
   ]);
+
+  const [gmDoneToday, setGmDoneToday] = useState(false);
+
+  useEffect(() => {
+    const checkGM = async () => {
+      const date = await AsyncStorage.getItem('gm_completed_date');
+      setGmDoneToday(date === new Date().toDateString());
+    };
+    checkGM();
+  }, []);
+
+  const lessonsToday    = completedTodayCount;
+  const mission1Progress = Math.min(lessonsToday, 2);
+  const mission1Done    = mission1Progress >= 2;
+  const mission2Progress = gmDoneToday ? 1 : 0;
+  const mission2Done    = gmDoneToday;
+
+  useEffect(() => {
+    if (!athleteState || !mission1Done) return;
+    const today = new Date().toDateString();
+    const key = `mission1_awarded_${today}`;
+    (async () => {
+      const already = await AsyncStorage.getItem(key);
+      if (already) return;
+      await updateAthleteState({ total_xp: (athleteState.total_xp ?? 0) + 30 });
+      await AsyncStorage.setItem(key, '1');
+    })();
+  }, [mission1Done]);
+
+  useEffect(() => {
+    if (!athleteState || !mission2Done) return;
+    const today = new Date().toDateString();
+    const key = `mission2_awarded_${today}`;
+    (async () => {
+      const already = await AsyncStorage.getItem(key);
+      if (already) return;
+      await updateAthleteState({ total_xp: (athleteState.total_xp ?? 0) + 15 });
+      await AsyncStorage.setItem(key, '1');
+    })();
+  }, [mission2Done]);
 
   const totalXp  = athleteState?.total_xp ?? 0;
   const level    = Math.floor(totalXp / XP_PER_LEVEL) + 1;
@@ -306,7 +346,7 @@ export default function HomeScreen() {
             </View>
 
             {/* Complete 2 lessons */}
-            <View style={m.row}>
+            <View style={[m.row, mission1Done && { backgroundColor: '#0F2410' }]}>
               <View style={[m.iconBox, { backgroundColor: 'rgba(34,204,94,0.10)' }]}>
                 <Ionicons name="book" size={16} color="#22CC5E" />
               </View>
@@ -315,13 +355,13 @@ export default function HomeScreen() {
                 <Text style={m.xp}>+30 XP</Text>
               </View>
               <View style={m.right}>
-                <Text style={m.progress}>{Math.min(2, missions.lessonsCompleted)}/2</Text>
-                <Text style={m.tag}>IN PROGRESS</Text>
+                <Text style={[m.progress, mission1Done && { color: '#22CC5E' }]}>{mission1Progress}/2</Text>
+                <Text style={m.tag}>{mission1Done ? 'COMPLETE ✓' : 'IN PROGRESS'}</Text>
               </View>
             </View>
 
             {/* Run a Game Mode tool */}
-            <View style={m.row}>
+            <View style={[m.row, mission2Done && { backgroundColor: '#0F2410' }]}>
               <View style={[m.iconBox, { backgroundColor: 'rgba(245,166,35,0.10)' }]}>
                 <Ionicons name="flash" size={16} color="#F5A623" />
               </View>
@@ -330,8 +370,8 @@ export default function HomeScreen() {
                 <Text style={m.xp}>+15 XP</Text>
               </View>
               <View style={m.right}>
-                <Text style={m.progress}>{missions.gameModeOpened ? '1' : '0'}/1</Text>
-                <Text style={m.tag}>IN PROGRESS</Text>
+                <Text style={[m.progress, mission2Done && { color: '#22CC5E' }]}>{mission2Progress}/1</Text>
+                <Text style={m.tag}>{mission2Done ? 'COMPLETE ✓' : 'IN PROGRESS'}</Text>
               </View>
             </View>
           </View>

@@ -265,7 +265,7 @@ function ChoiceStep({ step, onAdvance }: { step: any; onAdvance: () => void }) {
         })}
       </View>
 
-      {revealed && <AdvanceButton label="Next →" onPress={onAdvance} />}
+      <AdvanceButton label="Next →" onPress={onAdvance} disabled={!revealed} />
     </View>
   );
 }
@@ -1022,6 +1022,17 @@ export default function LessonPlayerScreen() {
   const contentFadeAnim = useRef(new Animated.Value(0)).current;
   const xpCountAnim = useRef(new Animated.Value(0)).current;
   const finalXPRef = useRef(0);
+  const lessonStartTime = useRef(Date.now());
+  const visitedSteps = useRef(new Set<number>());
+
+  useEffect(() => {
+    lessonStartTime.current = Date.now();
+    visitedSteps.current = new Set<number>();
+  }, [id]);
+
+  useEffect(() => {
+    visitedSteps.current.add(stepIndex);
+  }, [stepIndex]);
 
   useEffect(() => {
     if (!id) return;
@@ -1074,6 +1085,10 @@ useEffect(() => {
     if (completionTriggered.current) return;
     if (passed === false) setSessionPassed(false);
     if (stepIndex >= totalSteps - 1) {
+      const elapsed = Date.now() - lessonStartTime.current;
+      if (elapsed < 45000 && !__DEV__) return;
+      const allVisited = visitedSteps.current.size >= totalSteps - 1;
+      if (!allVisited && !__DEV__) return;
       completionTriggered.current = true;
       const xp = lesson?.xp_reward ?? 50;
       const finalPassed = passed !== false && sessionPassed;

@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -713,6 +714,7 @@ function PrintCardScreen({ tool, onBack }: { tool: GameTool; onBack: () => void 
 function ToolRunner({ tool, onFinish }: { tool: GameTool; onFinish: () => void }) {
   const [stepIdx, setStepIdx] = useState(0);
   const [done, setDone] = useState(false);
+  const { athleteState, updateAthleteState } = useAthlete();
   const [timerSec, setTimerSec] = useState<number | null>(null);
   const [timerRunning, setTimerRunning] = useState(false);
   const [timerDone, setTimerDone] = useState(false);
@@ -749,12 +751,29 @@ function ToolRunner({ tool, onFinish }: { tool: GameTool; onFinish: () => void }
     }, 1000);
   }
 
+  async function handleToolComplete() {
+    if (tool.mode === 'print_card') return;
+    const GM_KEY = 'gm_completed_today';
+    const DATE_KEY = 'gm_completed_date';
+    const today = new Date().toDateString();
+    const lastDate = await AsyncStorage.getItem(DATE_KEY);
+    const completedToday: string[] = lastDate === today
+      ? JSON.parse(await AsyncStorage.getItem(GM_KEY) ?? '[]')
+      : [];
+    if (completedToday.includes(tool.id)) return;
+    await updateAthleteState({ total_xp: (athleteState?.total_xp ?? 0) + 25 });
+    completedToday.push(tool.id);
+    await AsyncStorage.setItem(GM_KEY, JSON.stringify(completedToday));
+    await AsyncStorage.setItem(DATE_KEY, today);
+  }
+
   function advance() {
     if (intervalRef.current) clearInterval(intervalRef.current);
     Haptics.selectionAsync();
     if (stepIdx >= tool.steps.length - 1) {
       setDone(true);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      handleToolComplete();
       return;
     }
     Animated.timing(fadeAnim, { toValue: 0, duration: 100, useNativeDriver: true }).start(() => {
@@ -867,6 +886,16 @@ function ToolCard({ tool, onPress, compact = false }: {
 
 // ─── SUGGESTED SECTION ───────────────────────────────────────────────────────
 
+const struggleTriggerMap: Record<string, string[]> = {
+  pregame_nerves:    ['pregame', 'nerves', 'lock-in', 'breathing'],
+  confidence:        ['confidence', 'identity', 'reset', 'self-talk'],
+  bouncing_back:     ['reset', 'bounce', 'short-memory', 'next-play'],
+  staying_locked_in: ['focus', 'lock-in', 'between-inning', 'present'],
+  throwing_strikes:  ['command', 'zone', 'tempo', 'attack'],
+  plate_approach:    ['approach', 'zone', 'two-strike', 'plan'],
+  reading_hitters:   ['sequencing', 'read', 'tendencies', 'plan'],
+};
+
 function SuggestedSection({ role, phase, struggles, onOpen }: {
   role: RoleKey;
   phase: SeasonPhase;
@@ -875,6 +904,19 @@ function SuggestedSection({ role, phase, struggles, onOpen }: {
 }) {
   const { banner, tools } = getSuggestedTools(role, phase, struggles);
   if (tools.length === 0) return null;
+
+  const priorityKeywords = struggles.flatMap(s => struggleTriggerMap[s] ?? []);
+  const sortedTools = [...tools].sort((a, b) => {
+    const aMatch = priorityKeywords.some(k =>
+      a.name?.toLowerCase().includes(k) || a.state_tags?.includes(k as any)
+    );
+    const bMatch = priorityKeywords.some(k =>
+      b.name?.toLowerCase().includes(k) || b.state_tags?.includes(k as any)
+    );
+    if (aMatch && !bMatch) return -1;
+    if (!aMatch && bMatch) return 1;
+    return 0;
+  });
 
   return (
     <View style={sugStyles.wrap}>
@@ -904,7 +946,7 @@ function SuggestedSection({ role, phase, struggles, onOpen }: {
       )}
 
       {/* Tools */}
-      {tools.map((tool) => (
+      {sortedTools.map((tool) => (
         <ToolCard key={tool.id} tool={tool} onPress={() => onOpen(tool)} compact />
       ))}
     </View>
