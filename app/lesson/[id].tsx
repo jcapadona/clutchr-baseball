@@ -1,7 +1,9 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
+import * as Speech from 'expo-speech';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Alert,
@@ -935,6 +937,12 @@ function LessonCompleteContent({ lesson, xpDisplay, contentFadeAnim }: { lesson:
         <Text style={celebStyles.xpPillText}>+{xpDisplay} XP</Text>
       </View>
       <Text style={celebStyles.voltLine}>{line}</Text>
+      <Pressable
+        onPress={() => { router.push('/rep-mode?type=pitch-sequence') }}
+        style={{ marginTop: 8, borderWidth: 1, borderColor: '#22CC5E44', borderRadius: 20, paddingHorizontal: 20, paddingVertical: 8 }}
+      >
+        <Text style={{ color: '#22CC5E', fontSize: 12, fontWeight: '600' }}>Rep it out → 5 more scenarios</Text>
+      </Pressable>
     </Animated.View>
   );
 }
@@ -1001,6 +1009,14 @@ function BossCompleteContent({ lesson, xpDisplay, onContinue, contentFadeAnim }:
   );
 }
 
+// ─── STEP TEXT EXTRACTOR ─────────────────────────────────────────────────────
+
+function getStepReadText(step: any): string | null {
+  if (!step) return null;
+  return step.content ?? step.text ?? step.prompt ??
+         step.question ?? step.body ?? step.title ?? null;
+}
+
 // ─── MAIN SCREEN ─────────────────────────────────────────────────────────────
 
 export default function LessonPlayerScreen() {
@@ -1034,6 +1050,26 @@ export default function LessonPlayerScreen() {
     visitedSteps.current.add(stepIndex);
   }, [stepIndex]);
 
+  const [isMuted, setIsMuted] = useState(false);
+
+  useEffect(() => {
+    AsyncStorage.getItem('lesson_tts_muted').then(val => {
+      if (val === 'true') setIsMuted(true);
+    });
+  }, []);
+
+  useEffect(() => {
+    return () => { Speech.stop(); };
+  }, []);
+
+  async function toggleMute() {
+    const next = !isMuted;
+    setIsMuted(next);
+    await AsyncStorage.setItem('lesson_tts_muted', String(next));
+    if (next) Speech.stop();
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  }
+
   useEffect(() => {
     if (!id) return;
     (async () => {
@@ -1055,6 +1091,16 @@ useEffect(() => {
 }, [lesson]);
   const steps: any[] = lesson?.steps ?? [];
   const totalSteps = steps.length;
+
+  useEffect(() => {
+    if (!lesson || totalSteps === 0) return;
+    const step = steps[Math.min(stepIndex, totalSteps - 1)];
+    const text = getStepReadText(step);
+    if (text && !isMuted) {
+      Speech.stop();
+      Speech.speak(text, { language: 'en-US', pitch: 1.0, rate: 0.92 });
+    }
+  }, [stepIndex, isMuted, totalSteps]);
 
   useEffect(() => {
     if (totalSteps === 0) return;
@@ -1177,6 +1223,26 @@ useEffect(() => {
       <View style={screenStyles.header}>
         <Pressable onPress={handleExit} hitSlop={12} style={screenStyles.closeBtn}>
           <Ionicons name="close" size={20} color={Colors.textSecondary} />
+        </Pressable>
+        <Pressable
+          onPress={toggleMute}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          style={{
+            width: 32, height: 32,
+            borderRadius: 16,
+            backgroundColor: isMuted ? '#1a1a1a' : '#0F2410',
+            borderWidth: 1,
+            borderColor: isMuted ? '#333' : '#22CC5E44',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginRight: 8,
+          }}
+        >
+          <Ionicons
+            name={isMuted ? 'volume-mute-outline' : 'volume-medium-outline'}
+            size={15}
+            color={isMuted ? '#555' : '#22CC5E'}
+          />
         </Pressable>
         <View style={screenStyles.headerBadges}>
           {roleTag !== '' && (

@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
+import { router } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Animated,
@@ -1067,6 +1068,29 @@ export default function GameModeScreen() {
               {meta.headline}
             </Text>
             <Text style={s.bannerSub}>{meta.subtext}</Text>
+          </View>
+        </View>
+
+        {/* Drill mode entry points */}
+        <View style={{ marginBottom: 20 }}>
+          <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, fontWeight: '700', letterSpacing: 2, marginBottom: 10 }}>DRILL MODE</Text>
+          <View style={{ flexDirection: 'row', gap: 10 }}>
+            <Pressable
+              onPress={() => router.push('/rep-mode?type=pitch-sequence')}
+              style={{ flex: 1, backgroundColor: '#12101A', borderRadius: 12, padding: 14, borderWidth: 1, borderColor: '#BF5AF244' }}
+            >
+              <Text style={{ fontSize: 18, marginBottom: 4 }}>🎯</Text>
+              <Text style={{ color: '#BF5AF2', fontSize: 12, fontWeight: '700' }}>PITCH IQ</Text>
+              <Text style={{ color: 'rgba(255,255,255,0.35)', fontSize: 11 }}>5 pitch decisions</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => router.push('/rep-mode?type=field-iq')}
+              style={{ flex: 1, backgroundColor: '#12101A', borderRadius: 12, padding: 14, borderWidth: 1, borderColor: '#FF3B3044' }}
+            >
+              <Text style={{ fontSize: 18, marginBottom: 4 }}>⚾</Text>
+              <Text style={{ color: '#FF3B30', fontSize: 12, fontWeight: '700' }}>FIELD IQ</Text>
+              <Text style={{ color: 'rgba(255,255,255,0.35)', fontSize: 11 }}>5 fielding reads</Text>
+            </Pressable>
           </View>
         </View>
 
