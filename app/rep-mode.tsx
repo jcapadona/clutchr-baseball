@@ -5,6 +5,9 @@ import * as Haptics from 'expo-haptics'
 import { useAthlete } from '@/context/AthleteContext'
 import PitchSequenceChess from '@/components/PitchSequenceChess'
 import FieldIQBoard from '@/components/FieldIQBoard'
+import StrikeZoneVisualizer from '@/components/StrikeZoneVisualizer'
+import ThrowDecisionBoard from '@/components/ThrowDecisionBoard'
+import LeverageLadder from '@/components/LeverageLadder'
 import { useRef, useState, useEffect } from 'react'
 
 // ─── SCENARIO BANKS ──────────────────────────────────────────────────────────
@@ -12,39 +15,39 @@ import { useRef, useState, useEffect } from 'react'
 const PITCH_SEQUENCE_SCENARIOS = [
   {
     data: {
-      prompt: "Runner on 2nd. 1-1 count. Right-handed hitter is sitting fastball.",
+      prompt: "0-2 count. Hitter expanded on slider last AB. Goal: expand with purpose, don't miss middle.",
       mode: 'choose_next_pitch',
-      context: { count: '1-1', outs: 1, runners: ['2nd'], batter_side: 'right' },
-      previous_pitches: [{ pitch: '4_seam', location: 'up', result: 'foul' }],
-      pitch_options: ['4_seam', 'slider', 'changeup', 'curveball'],
-      target_options: ['down_away', 'back_foot', 'waste_up', 'middle_down'],
+      context: { count: '0-2', outs: 1, runners: [], batter_side: 'right' },
+      previous_pitches: [{ pitch: '4_seam', location: 'up', result: 'foul' }, { pitch: 'slider', location: 'down_away', result: 'swing_miss' }],
+      pitch_options: ['slider', 'changeup', '4_seam', 'curveball'],
+      target_options: ['back_foot', 'down_away', 'waste_up', 'middle'],
     },
     responses: { best_combo: { pitch: 'slider', target: 'back_foot' }, acceptable_combos: [{ pitch: 'changeup', target: 'down_away' }] },
-    feedback: { correct: "Back foot slider. He can't get to it.", acceptable: 'Changeup away works too. Good thought.', wrong: "Don't throw him another fastball. Change the look." }
+    feedback: { correct: 'Back-foot breaker. Purposeful expansion gets chase without a hanger.', acceptable: 'Changeup away can still finish him.', wrong: "Don't waste 0-2 in the middle." }
   },
   {
     data: {
-      prompt: "0-2 count. Left-handed hitter. Bases empty.",
+      prompt: "2-0 count. Hitter hunts fastball middle-in. Goal: get back in count without feeding damage zone.",
       mode: 'choose_next_pitch',
-      context: { count: '0-2', outs: 2, runners: [], batter_side: 'left' },
-      previous_pitches: [{ pitch: '4_seam', location: 'up', result: 'strike' }, { pitch: 'slider', location: 'down_away', result: 'strike' }],
+      context: { count: '2-0', outs: 2, runners: [], batter_side: 'left' },
+      previous_pitches: [{ pitch: '4_seam', location: 'middle', result: 'ball' }, { pitch: 'slider', location: 'down', result: 'ball' }],
+      pitch_options: ['2_seam', 'changeup', '4_seam', 'slider'],
+      target_options: ['glove_side_knee', 'down_away', 'middle_down', 'middle_in'],
+    },
+    responses: { best_combo: { pitch: '2_seam', target: 'glove_side_knee' }, acceptable_combos: [{ pitch: 'changeup', target: 'down_away' }] },
+    feedback: { correct: 'Competitive strike at the knee. Back in count, low damage.', acceptable: 'Good miss profile away from barrel.', wrong: '2-0 is not a cookie count. Stay out of his lane.' }
+  },
+  {
+    data: {
+      prompt: "Runner on 2nd, 2 outs. Hitter late on velocity and sitting off-speed. Goal: end inning with conviction.",
+      mode: 'choose_next_pitch',
+      context: { count: '1-2', outs: 2, runners: ['2nd'], batter_side: 'right' },
+      previous_pitches: [{ pitch: 'changeup', location: 'down', result: 'foul' }],
       pitch_options: ['4_seam', 'slider', 'changeup', 'curveball'],
-      target_options: ['waste_up', 'down_away', 'back_foot', 'middle_down'],
+      target_options: ['up_away', 'down_away', 'back_foot', 'middle'],
     },
-    responses: { best_combo: { pitch: 'curveball', target: 'waste_up' }, acceptable_combos: [{ pitch: 'changeup', target: 'down_away' }] },
-    feedback: { correct: 'Waste it up. Make him chase out of the zone.', acceptable: 'Changeup low and away. Good put-away thought.', wrong: "Don't give him a strike to hit 0-2. Expand the zone." }
-  },
-  {
-    data: {
-      prompt: "Bases loaded. 3-2 count. Tie game. Right-handed hitter.",
-      mode: 'choose_next_pitch',
-      context: { count: '3-2', outs: 1, runners: ['1st', '2nd', '3rd'], batter_side: 'right' },
-      previous_pitches: [{ pitch: '4_seam', location: 'middle', result: 'foul' }],
-      pitch_options: ['4_seam', 'slider', 'changeup', 'sinker'],
-      target_options: ['down_away', 'glove_side_knee', 'middle_down', 'back_foot'],
-    },
-    responses: { best_combo: { pitch: 'sinker', target: 'glove_side_knee' }, acceptable_combos: [{ pitch: '4_seam', target: 'down_away' }] },
-    feedback: { correct: "Sinker glove-side knee. Ground ball. That's the pitch.", acceptable: 'Fastball away. Trust your stuff.', wrong: "Don't leave it in the middle with bases loaded." }
+    responses: { best_combo: { pitch: '4_seam', target: 'up_away' }, acceptable_combos: [{ pitch: 'slider', target: 'down_away' }] },
+    feedback: { correct: 'He is late on velo. Fastball up-away finishes the inning.', acceptable: 'Slider away also tunnels off speed.', wrong: 'Do not feed the middle with R2 in scoring position.' }
   },
   {
     data: {
@@ -110,45 +113,32 @@ const PITCH_SEQUENCE_SCENARIOS = [
 
 const FIELD_IQ_SCENARIOS = [
   {
-    data: { prompt: 'Ground ball to shortstop. Runner on 1st. 1 out. Where does the throw go?', mode: 'field', context: { outs: 1, runners: ['1st'] } },
-    responses: { correct_target: '2b', acceptable_targets: ['1b'] },
-    feedback: { correct: 'Turn two. You had time.', acceptable: 'Safe play. Got the out.', wrong: 'Double play opportunity. Go to second first.' }
+    data: { prompt: 'Position: SS. 6th inning, 1 out, runner on 1st, tie game. Ground ball up middle. Decision target?', instruction: 'Read speed + feed for force/turn two.', mode: 'throw_priority', context: { position: 'SS', inning: '6th', outs: 1, runners: ['1st'], score_state: 'tie_game', ball_location: 'up middle' } },
+    responses: { correct_target: '2B', acceptable_targets: ['1B'] },
+    feedback: { correct: 'Force at 2B first, then turn if feed is clean.', acceptable: 'Take sure out at 1B if no turn chance.', wrong: 'Middle-infield force is priority here.' }
   },
   {
-    data: { prompt: 'Bunt down 3rd base line. Runner on 1st. No outs. 3rd baseman charges.', mode: 'field', context: { outs: 0, runners: ['1st'] } },
-    responses: { correct_target: '1b', acceptable_targets: [] },
-    feedback: { correct: 'Right call. Get the sure out at first.', acceptable: '', wrong: "Don't try to get cute. Take the out at first." }
+    data: { prompt: 'Position: 3B. 7th inning, runner on 3rd, 1 out. Slow roller/bunt toward line. Decision target?', instruction: 'Less than 2 outs: prevent run first when possible.', mode: 'throw_priority', context: { position: '3B', inning: '7th', outs: 1, runners: ['3rd'], score_state: 'down_1', ball_location: '3B line slow roller' } },
+    responses: { correct_target: 'home', acceptable_targets: ['1B'] },
+    feedback: { correct: 'Attack and go home if you can cut lead run.', acceptable: 'If no play at plate, take sure out at 1B.', wrong: 'Know game state: lead runner matters most.' }
   },
   {
-    data: { prompt: 'Bases loaded. 1 out. Ground ball to 2nd baseman.', mode: 'field', context: { outs: 1, runners: ['1st', '2nd', '3rd'] } },
-    responses: { correct_target: 'home', acceptable_targets: ['2b'] },
-    feedback: { correct: 'Home first. Cut the run off.', acceptable: 'Double play works too if you have time.', wrong: 'Bases loaded — check the runner at home first.' }
+    data: { prompt: 'Position: RF. 8th inning, runner on 1st, 1 out. Gap ball to right-center. Decision target?', instruction: 'Prevent extra base and stop big inning.', mode: 'throw_priority', context: { position: 'RF', inning: '8th', outs: 1, runners: ['1st'], score_state: 'up_1', ball_location: 'right-center gap' } },
+    responses: { correct_target: 'cutoff_2B', acceptable_targets: ['3B'] },
+    feedback: { correct: 'Hit cutoff clean to keep batter-runner to two and control lead runner.', acceptable: 'Direct to 3B can work with strong lane.', wrong: 'Wild hero throw can open big inning.' }
   },
-  {
-    data: { prompt: 'Fly ball to right field. Runner on 3rd. Less than 2 outs. Shallow fly.', mode: 'field', context: { outs: 1, runners: ['3rd'] } },
-    responses: { correct_target: 'home', acceptable_targets: ['2b'] },
-    feedback: { correct: 'Throw home. Hold the runner or nail him.', acceptable: 'Play it safe if runner holds.', wrong: 'Runner tags — you need to be ready to throw home.' }
-  },
-  {
-    data: { prompt: 'Line drive to center. Runners on 1st and 2nd. 0 outs.', mode: 'field', context: { outs: 0, runners: ['1st', '2nd'] } },
-    responses: { correct_target: '3b', acceptable_targets: ['2b'] },
-    feedback: { correct: 'Hit the cutoff to 3rd. Keep the lead runner.', acceptable: '2nd base if lead runner already scored.', wrong: 'You need to cut off the lead runner. Think ahead.' }
-  },
-  {
-    data: { prompt: 'Wild pitch. Runner on 3rd. 2 outs. Catcher retrieves.', mode: 'field', context: { outs: 2, runners: ['3rd'] } },
-    responses: { correct_target: '1b', acceptable_targets: ['home'] },
-    feedback: { correct: 'Pitcher covers first. Get the batter.', acceptable: 'If runner breaks, go home.', wrong: "Pitcher covers 1st on wild pitch. That's the play." }
-  },
-  {
-    data: { prompt: 'Swinging bunt. Runner on 2nd. 0 outs. First baseman charges hard.', mode: 'field', context: { outs: 0, runners: ['2nd'] } },
-    responses: { correct_target: '1b', acceptable_targets: [] },
-    feedback: { correct: 'Bare-handed to first. Sold it.', acceptable: '', wrong: 'You have to make that play. Charge and throw.' }
-  },
-  {
-    data: { prompt: 'Double to left-center gap. Runner on 1st. Relay throw coming in.', mode: 'field', context: { outs: 1, runners: ['1st'] } },
-    responses: { correct_target: '3b', acceptable_targets: ['home'] },
-    feedback: { correct: 'Relay to 3rd. Hold him there.', acceptable: 'If he rounds 3rd hard, go home.', wrong: 'Cut it off and relay to the right base.' }
-  },
+]
+
+const STRIKE_ZONE_SCENARIOS = [
+  { data: { prompt: 'Count 1-1, runner on 2nd. Hunt lane.', mode: 'hunt_zone' }, responses: { correct_zones: ['down_away'], acceptable_zones: ['middle_away'] }, feedback: { correct: 'Damage lane identified.', wrong: 'Stay off middle-middle.' } },
+  { data: { prompt: '2-0 take/attack decision.', mode: 'swing_take' }, responses: { correct_action: 'take', acceptable_actions: ['swing'] }, feedback: { correct: 'Win the count first.', acceptable: 'Only swing if perfect pitch.', wrong: 'No chase in advantage count.' } },
+  { data: { prompt: '0-2 protect edge pitch.', mode: 'swing_take' }, responses: { correct_action: 'take', acceptable_actions: ['swing'] }, feedback: { correct: 'Good discipline.', acceptable: 'Battle swing can work.', wrong: 'Don’t expand for pitcher.' } },
+]
+const THROW_DECISION_SCENARIOS = [
+  { data: { prompt: 'SS, 1 out, runner 1st, hard grounder. Where first?', inning: '6th', outs: 1, score_state: 'Tie', runners: '1st', ball_location: 'Up middle', role: 'Shortstop', targets: [{ id: '2B', label: 'Force at 2B', short_label: '2B', quality: 'correct', feedback: 'Start double play.' }, { id: '1B', label: 'Sure out at 1B', short_label: '1B', quality: 'acceptable', feedback: 'Take safe out if needed.' }, { id: 'home', label: 'Throw Home', short_label: 'H', quality: 'poor', feedback: 'No lead-runner threat.' }] }, responses: { correct_id: '2B', acceptable_ids: ['1B'] }, feedback: { correct: 'Middle force first.', acceptable: 'Sure out is acceptable.', poor: 'Wrong priority.' } },
+]
+const LEVERAGE_LADDER_SCENARIOS = [
+  { data: { prompt: 'Rank priorities with R3, <2 outs.', situation: 'Bottom 7, tie game, infield in', instruction: 'Highest priority first.', items: [{ id: 'run_prevention', label: 'Cut run at plate' }, { id: 'clean_feed', label: 'Secure transfer' }, { id: 'speed_throw', label: 'Rush throw' }] }, responses: { correct_order: ['run_prevention', 'clean_feed', 'speed_throw'] }, feedback: { correct: 'Right leverage order.', acceptable: 'Mostly right order.', poor: 'Re-rank by run value.' } },
 ]
 
 // ─── COMPONENT ───────────────────────────────────────────────────────────────
@@ -169,9 +159,12 @@ export default function RepModeScreen() {
   const { athleteState, updateAthleteState } = useAthlete()
 
   useEffect(() => {
-    const bank = type === 'pitch-sequence' ? PITCH_SEQUENCE_SCENARIOS
+    const bank = (type === 'pitch-sequence' || type === 'pitch-iq') ? PITCH_SEQUENCE_SCENARIOS
       : type === 'field-iq' ? FIELD_IQ_SCENARIOS
-      : PITCH_SEQUENCE_SCENARIOS
+      : type === 'strike-zone' ? STRIKE_ZONE_SCENARIOS
+      : type === 'throw-decision' ? THROW_DECISION_SCENARIOS
+      : type === 'leverage-ladder' ? LEVERAGE_LADDER_SCENARIOS
+      : []
     const shuffled = [...bank].sort(() => Math.random() - 0.5)
     setScenarios(shuffled.slice(0, TOTAL_REPS))
   }, [type])
@@ -206,8 +199,11 @@ export default function RepModeScreen() {
 
   const repTypeLabel: Record<string, string> = {
     'pitch-sequence': 'PITCH IQ',
+    'pitch-iq': 'PITCH IQ',
     'field-iq': 'FIELD IQ',
     'strike-zone': 'ZONE READ',
+    'throw-decision': 'THROW DECISION',
+    'leverage-ladder': 'LEVERAGE LADDER',
   }
   const label = repTypeLabel[type ?? ''] ?? 'DRILL'
 
@@ -280,7 +276,7 @@ export default function RepModeScreen() {
 
       {/* INTERACTIVE COMPONENT */}
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16 }}>
-        {type === 'pitch-sequence' && (
+        {(type === 'pitch-sequence' || type === 'pitch-iq') && (
           <PitchSequenceChess
             key={repIndex}
             data={currentScenario.data}
@@ -297,6 +293,21 @@ export default function RepModeScreen() {
             feedback={currentScenario.feedback}
             onComplete={handleRepComplete}
           />
+        )}
+        {type === 'strike-zone' && (
+          <StrikeZoneVisualizer {...currentScenario} onComplete={handleRepComplete} />
+        )}
+        {type === 'throw-decision' && (
+          <ThrowDecisionBoard {...currentScenario} onComplete={handleRepComplete} />
+        )}
+        {type === 'leverage-ladder' && (
+          <LeverageLadder {...currentScenario} onComplete={handleRepComplete} />
+        )}
+        {!['pitch-sequence','pitch-iq','field-iq','strike-zone','throw-decision','leverage-ladder'].includes(type ?? '') && (
+          <View style={{ padding: 24, gap: 12 }}>
+            <Text style={{ color: 'white' }}>Unknown drill type.</Text>
+            <Pressable onPress={() => router.back()}><Text style={{ color: '#22CC5E' }}>Go back</Text></Pressable>
+          </View>
         )}
       </ScrollView>
 

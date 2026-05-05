@@ -19,6 +19,7 @@ import Svg, { Polygon, Line, Text as SvgText, Circle } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAthlete } from '@/context/AthleteContext';
 import { Colors, Radius, Spacing } from '@/constants/theme';
+import { getBestCue } from '@/lib/personalCue';
 import { RolePill } from '@/components/ui';
 
 // ─── CONSTANTS ───────────────────────────────────────────────────────────────
@@ -277,6 +278,9 @@ export default function ProfileScreen() {
   const xpProgress   = phase >= PHASES.length - 1 ? 1 : Math.min((xp - currentPhaseData.xpNeeded) / (xpToNext - currentPhaseData.xpNeeded), 1);
   const playbookBuilt = !!(athleteState as any)?.playbook?.built_at;
   const ratings       = athleteState.self_ratings;
+  const focusCue = getBestCue(athleteState, 'focus');
+  const pressureCue = getBestCue(athleteState, 'pressure');
+  const confidenceCue = getBestCue(athleteState, 'confidence');
   const [devTapCount, setDevTapCount] = useState(0);
   const [devTapReset, setDevTapReset] = useState<ReturnType<typeof setTimeout> | null>(null);
   const [notifsOn, setNotifsOn] = useState(false);
@@ -416,6 +420,15 @@ export default function ProfileScreen() {
 
         {/* ── STRENGTHS DEVELOPING ── */}
         <StrengthsSection completedCount={completedCount} />
+
+
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>COACH'S EYE · SNAPSHOT</Text>
+          <Text style={styles.cardBody}>Strengths: {athleteState.self_ratings.focus >= 4 ? 'Focus under reps' : 'Process commitment'}, {athleteState.streak_count >= 3 ? 'Consistency streak' : 'Daily return mindset'}, {athleteState.routine_consistency >= 4 ? 'Routine discipline' : 'Coachable adjustments'}</Text>
+          <Text style={styles.cardBody}>Growth: {athleteState.self_ratings.confidence <= 3 ? 'Pre-pitch confidence' : 'Pressure execution'}, {athleteState.routine_consistency <= 3 ? 'Pregame routine quality' : 'Late-game composure'}</Text>
+          <Text style={styles.cardBody}>Focus cue: {focusCue} · Pressure cue: {pressureCue}</Text>
+          <Text style={styles.cardBody}>Recommended next rep: {athleteState.primary_role === 'pitcher' ? 'Pitch IQ' : 'Field IQ'} · Cue: {confidenceCue}</Text>
+        </View>
 
         {/* ── PHASE / CAREER MAP ── */}
         <PhaseMap currentPhase={phase} xp={xp} />

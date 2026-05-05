@@ -18,6 +18,7 @@ import { useAthlete } from '@/context/AthleteContext';
 import { Colors, Radius, Spacing } from '@/constants/theme';
 import type { SeasonPhase } from '@/context/AthleteContext';
 import { SkeletonCard } from '@/components/SkeletonLoader';
+import { getBestCue } from '@/lib/personalCue';
 
 // ─── TYPES ────────────────────────────────────────────────────────────────────
 
@@ -960,6 +961,9 @@ export default function GameModeScreen() {
   const insets = useSafeAreaInsets();
   const { athleteState, isLoading } = useAthlete();
   const [bucket, setBucket] = useState<Bucket>('pregame');
+  const [intel, setIntel] = useState<any>({ opponent:'', roleToday:'', watchFor:'', firstRepPlan:'', pressureCue:'' });
+  const [debrief, setDebrief] = useState<any>({ win:'', miss:'', confidence:'3', rhythm:'3', routine:'3', tomorrowRep:'', carryCue:'' });
+  const pressureCue = getBestCue(athleteState, 'pressure');
   const [activeTool, setActiveTool] = useState<GameTool | null>(null);
   const [view, setView] = useState<'runner' | 'print' | null>(null);
 
@@ -1074,14 +1078,14 @@ export default function GameModeScreen() {
         {/* Drill mode entry points */}
         <View style={{ marginBottom: 20 }}>
           <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, fontWeight: '700', letterSpacing: 2, marginBottom: 10 }}>DRILL MODE</Text>
-          <View style={{ flexDirection: 'row', gap: 10 }}>
+          <View style={{ flexDirection: 'row', gap: 10, flexWrap: 'wrap' }}>
             <Pressable
-              onPress={() => router.push('/rep-mode?type=pitch-sequence')}
+              onPress={() => router.push('/rep-mode?type=pitch-iq')}
               style={{ flex: 1, backgroundColor: '#12101A', borderRadius: 12, padding: 14, borderWidth: 1, borderColor: '#BF5AF244' }}
             >
               <Text style={{ fontSize: 18, marginBottom: 4 }}>🎯</Text>
               <Text style={{ color: '#BF5AF2', fontSize: 12, fontWeight: '700' }}>PITCH IQ</Text>
-              <Text style={{ color: 'rgba(255,255,255,0.35)', fontSize: 11 }}>5 pitch decisions</Text>
+              <Text style={{ color: 'rgba(255,255,255,0.35)', fontSize: 11 }}>5 rep decisions</Text>
             </Pressable>
             <Pressable
               onPress={() => router.push('/rep-mode?type=field-iq')}
@@ -1091,8 +1095,24 @@ export default function GameModeScreen() {
               <Text style={{ color: '#FF3B30', fontSize: 12, fontWeight: '700' }}>FIELD IQ</Text>
               <Text style={{ color: 'rgba(255,255,255,0.35)', fontSize: 11 }}>5 fielding reads</Text>
             </Pressable>
+            <Pressable onPress={() => router.push('/rep-mode?type=strike-zone')} style={{ width: '48%', backgroundColor: '#12101A', borderRadius: 12, padding: 14, borderWidth: 1, borderColor: '#22CC5E44' }}><Text style={{ fontSize: 18, marginBottom: 4 }}>🧠</Text><Text style={{ color: '#22CC5E', fontSize: 12, fontWeight: '700' }}>ZONE READ</Text><Text style={{ color: 'rgba(255,255,255,0.35)', fontSize: 11 }}>Strike zone decisions</Text></Pressable>
+            <Pressable onPress={() => router.push('/rep-mode?type=throw-decision')} style={{ width: '48%', backgroundColor: '#12101A', borderRadius: 12, padding: 14, borderWidth: 1, borderColor: '#4BA3E344' }}><Text style={{ fontSize: 18, marginBottom: 4 }}>🎯</Text><Text style={{ color: '#4BA3E3', fontSize: 12, fontWeight: '700' }}>THROW DECISION</Text><Text style={{ color: 'rgba(255,255,255,0.35)', fontSize: 11 }}>Fast throw choices</Text></Pressable>
+            <Pressable onPress={() => router.push('/rep-mode?type=leverage-ladder')} style={{ width: '48%', backgroundColor: '#12101A', borderRadius: 12, padding: 14, borderWidth: 1, borderColor: '#F5A62344' }}><Text style={{ fontSize: 18, marginBottom: 4 }}>📈</Text><Text style={{ color: '#F5A623', fontSize: 12, fontWeight: '700' }}>LEVERAGE LADDER</Text><Text style={{ color: 'rgba(255,255,255,0.35)', fontSize: 11 }}>Prioritize the moment</Text></Pressable>
           </View>
         </View>
+
+        <View style={[s.banner, { borderColor: '#22CC5E55', backgroundColor: '#0F1612' }]}>
+          <Text style={[s.bannerHead, { color: '#22CC5E' }]}>PERSONAL PRESSURE CUE</Text>
+          <Text style={[s.bannerSub, { color: 'rgba(255,255,255,0.88)' }]}>{pressureCue || 'Compete.'}</Text>
+        </View>
+
+        {bucket === 'pregame' && (
+          <View style={{ backgroundColor: Colors.surface, borderRadius: Radius.lg, borderWidth: 1, borderColor: Colors.border, padding: Spacing.md }}>
+            <Text style={s.title}>TODAY'S PLAN</Text>
+            <Text style={[s.bannerSub, { color: 'rgba(255,255,255,0.72)' }]}>Opponent Intel Builder coming soon.</Text>
+          </View>
+        )}
+
 
         {/* Suggested section — only on pregame tab, state-aware */}
         {bucket === 'pregame' && (
