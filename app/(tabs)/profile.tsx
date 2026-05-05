@@ -577,6 +577,16 @@ const styles = StyleSheet.create({
   },
   statValue: { fontSize: 18, fontFamily: 'Inter_700Bold', color: Colors.textPrimary },
   statLabel: { fontSize: 10, fontFamily: 'Inter_400Regular', color: Colors.textTertiary },
+  card: {
+    backgroundColor: Colors.surface,
+    borderRadius: Radius.lg,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    padding: Spacing.lg,
+    gap: 8,
+  },
+  cardTitle: { fontSize: 11, fontFamily: 'Inter_700Bold', color: Colors.primary, letterSpacing: 1.2 },
+  cardBody: { fontSize: 12, fontFamily: 'Inter_400Regular', color: Colors.textSecondary, lineHeight: 18 },
 
   // Mental Edge
   section: { gap: Spacing.sm },
