@@ -278,6 +278,9 @@ export default function ProfileScreen() {
   const xpProgress   = phase >= PHASES.length - 1 ? 1 : Math.min((xp - currentPhaseData.xpNeeded) / (xpToNext - currentPhaseData.xpNeeded), 1);
   const playbookBuilt = !!(athleteState as any)?.playbook?.built_at;
   const ratings       = athleteState.self_ratings;
+  const focusCue = getBestCue(athleteState, 'focus');
+  const pressureCue = getBestCue(athleteState, 'pressure');
+  const confidenceCue = getBestCue(athleteState, 'confidence');
   const [devTapCount, setDevTapCount] = useState(0);
   const [devTapReset, setDevTapReset] = useState<ReturnType<typeof setTimeout> | null>(null);
   const [notifsOn, setNotifsOn] = useState(false);
@@ -423,6 +426,7 @@ export default function ProfileScreen() {
           <Text style={styles.cardTitle}>COACH'S EYE · SNAPSHOT</Text>
           <Text style={styles.cardBody}>Strengths: {athleteState.self_ratings.focus >= 4 ? 'Focus under reps' : 'Process commitment'}, {athleteState.streak_count >= 3 ? 'Consistency streak' : 'Daily return mindset'}, {athleteState.routine_consistency >= 4 ? 'Routine discipline' : 'Coachable adjustments'}</Text>
           <Text style={styles.cardBody}>Growth: {athleteState.self_ratings.confidence <= 3 ? 'Pre-pitch confidence' : 'Pressure execution'}, {athleteState.routine_consistency <= 3 ? 'Pregame routine quality' : 'Late-game composure'}</Text>
+          <Text style={styles.cardBody}>Focus cue: {focusCue} · Pressure cue: {pressureCue}</Text>
           <Text style={styles.cardBody}>Recommended next rep: {athleteState.primary_role === 'pitcher' ? 'Pitch IQ' : 'Field IQ'} · Cue: {confidenceCue}</Text>
         </View>
 
@@ -573,6 +577,16 @@ const styles = StyleSheet.create({
   },
   statValue: { fontSize: 18, fontFamily: 'Inter_700Bold', color: Colors.textPrimary },
   statLabel: { fontSize: 10, fontFamily: 'Inter_400Regular', color: Colors.textTertiary },
+  card: {
+    backgroundColor: Colors.surface,
+    borderRadius: Radius.lg,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    padding: Spacing.lg,
+    gap: 8,
+  },
+  cardTitle: { fontSize: 11, fontFamily: 'Inter_700Bold', color: Colors.primary, letterSpacing: 1.2 },
+  cardBody: { fontSize: 12, fontFamily: 'Inter_400Regular', color: Colors.textSecondary, lineHeight: 18 },
 
   // Mental Edge
   section: { gap: Spacing.sm },
