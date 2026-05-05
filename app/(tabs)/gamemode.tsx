@@ -1080,7 +1080,7 @@ export default function GameModeScreen() {
           <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, fontWeight: '700', letterSpacing: 2, marginBottom: 10 }}>DRILL MODE</Text>
           <View style={{ flexDirection: 'row', gap: 10, flexWrap: 'wrap' }}>
             <Pressable
-              onPress={() => router.push('/rep-mode?type=pitch-sequence')}
+              onPress={() => router.push('/rep-mode?type=pitch-iq')}
               style={{ flex: 1, backgroundColor: '#12101A', borderRadius: 12, padding: 14, borderWidth: 1, borderColor: '#BF5AF244' }}
             >
               <Text style={{ fontSize: 18, marginBottom: 4 }}>🎯</Text>
@@ -1101,12 +1101,15 @@ export default function GameModeScreen() {
           </View>
         </View>
 
-        <View style={s.banner}><Text style={s.bannerHead}>PERSONAL PRESSURE CUE</Text><Text style={s.bannerSub}>{pressureCue}</Text></View>
+        <View style={[s.banner, { borderColor: '#22CC5E55', backgroundColor: '#0F1612' }]}>
+          <Text style={[s.bannerHead, { color: '#22CC5E' }]}>PERSONAL PRESSURE CUE</Text>
+          <Text style={[s.bannerSub, { color: 'rgba(255,255,255,0.88)' }]}>{pressureCue || 'Compete.'}</Text>
+        </View>
 
         {bucket === 'pregame' && (
           <View style={{ backgroundColor: Colors.surface, borderRadius: Radius.lg, borderWidth: 1, borderColor: Colors.border, padding: Spacing.md }}>
             <Text style={s.title}>TODAY'S PLAN</Text>
-            <Text style={s.bannerSub}>Opponent Intel (local)</Text>
+            <Text style={[s.bannerSub, { color: 'rgba(255,255,255,0.72)' }]}>Opponent Intel Builder coming soon.</Text>
           </View>
         )}
 

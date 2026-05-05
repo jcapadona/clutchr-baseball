@@ -1,316 +1,139 @@
 import { useLocalSearchParams, useRouter } from 'expo-router'
-import { SafeAreaView, ScrollView, Pressable, View, Text, Animated, Image } from 'react-native'
-import { Ionicons } from '@expo/vector-icons'
-import * as Haptics from 'expo-haptics'
-import { useAthlete } from '@/context/AthleteContext'
-import PitchSequenceChess from '@/components/PitchSequenceChess'
-import FieldIQBoard from '@/components/FieldIQBoard'
-import { useRef, useState, useEffect } from 'react'
+import React, { useMemo, useState } from 'react'
+import { SafeAreaView, View, Text, Pressable, StyleSheet, ScrollView } from 'react-native'
+import { Colors } from '@/constants/theme'
 
-// ─── SCENARIO BANKS ──────────────────────────────────────────────────────────
+type DrillType = 'pitch-iq' | 'field-iq' | 'strike-zone' | 'throw-decision' | 'leverage-ladder'
+type Rep = { title: string; context: string; choices: string[]; correct: number; feedback: string }
 
-const PITCH_SEQUENCE_SCENARIOS = [
-  {
-    data: {
-      prompt: "Runner on 2nd. 1-1 count. Right-handed hitter is sitting fastball.",
-      mode: 'choose_next_pitch',
-      context: { count: '1-1', outs: 1, runners: ['2nd'], batter_side: 'right' },
-      previous_pitches: [{ pitch: '4_seam', location: 'up', result: 'foul' }],
-      pitch_options: ['4_seam', 'slider', 'changeup', 'curveball'],
-      target_options: ['down_away', 'back_foot', 'waste_up', 'middle_down'],
-    },
-    responses: { best_combo: { pitch: 'slider', target: 'back_foot' }, acceptable_combos: [{ pitch: 'changeup', target: 'down_away' }] },
-    feedback: { correct: "Back foot slider. He can't get to it.", acceptable: 'Changeup away works too. Good thought.', wrong: "Don't throw him another fastball. Change the look." }
-  },
-  {
-    data: {
-      prompt: "0-2 count. Left-handed hitter. Bases empty.",
-      mode: 'choose_next_pitch',
-      context: { count: '0-2', outs: 2, runners: [], batter_side: 'left' },
-      previous_pitches: [{ pitch: '4_seam', location: 'up', result: 'strike' }, { pitch: 'slider', location: 'down_away', result: 'strike' }],
-      pitch_options: ['4_seam', 'slider', 'changeup', 'curveball'],
-      target_options: ['waste_up', 'down_away', 'back_foot', 'middle_down'],
-    },
-    responses: { best_combo: { pitch: 'curveball', target: 'waste_up' }, acceptable_combos: [{ pitch: 'changeup', target: 'down_away' }] },
-    feedback: { correct: 'Waste it up. Make him chase out of the zone.', acceptable: 'Changeup low and away. Good put-away thought.', wrong: "Don't give him a strike to hit 0-2. Expand the zone." }
-  },
-  {
-    data: {
-      prompt: "Bases loaded. 3-2 count. Tie game. Right-handed hitter.",
-      mode: 'choose_next_pitch',
-      context: { count: '3-2', outs: 1, runners: ['1st', '2nd', '3rd'], batter_side: 'right' },
-      previous_pitches: [{ pitch: '4_seam', location: 'middle', result: 'foul' }],
-      pitch_options: ['4_seam', 'slider', 'changeup', 'sinker'],
-      target_options: ['down_away', 'glove_side_knee', 'middle_down', 'back_foot'],
-    },
-    responses: { best_combo: { pitch: 'sinker', target: 'glove_side_knee' }, acceptable_combos: [{ pitch: '4_seam', target: 'down_away' }] },
-    feedback: { correct: "Sinker glove-side knee. Ground ball. That's the pitch.", acceptable: 'Fastball away. Trust your stuff.', wrong: "Don't leave it in the middle with bases loaded." }
-  },
-  {
-    data: {
-      prompt: "1-0 count. Left-handed hitter who pulls everything.",
-      mode: 'choose_next_pitch',
-      context: { count: '1-0', outs: 0, runners: [], batter_side: 'left' },
-      previous_pitches: [{ pitch: '4_seam', location: 'up_away', result: 'ball' }],
-      pitch_options: ['4_seam', 'cutter', 'changeup', 'curveball'],
-      target_options: ['back_foot', 'down_away', 'up_away', 'middle_down'],
-    },
-    responses: { best_combo: { pitch: 'cutter', target: 'back_foot' }, acceptable_combos: [{ pitch: 'changeup', target: 'down_away' }] },
-    feedback: { correct: "Cutter back foot. Jams him. Can't pull that.", acceptable: 'Changeup away changes his timing.', wrong: "He's sitting on something he can pull. Go back foot." }
-  },
-  {
-    data: {
-      prompt: "First pitch of at-bat. Right-handed hitter, 0-0 count.",
-      mode: 'choose_next_pitch',
-      context: { count: '0-0', outs: 1, runners: ['1st'], batter_side: 'right' },
-      previous_pitches: [],
-      pitch_options: ['4_seam', 'slider', 'changeup', '2_seam'],
-      target_options: ['down_away', 'glove_side_knee', 'up_away', 'middle'],
-    },
-    responses: { best_combo: { pitch: '4_seam', target: 'down_away' }, acceptable_combos: [{ pitch: '2_seam', target: 'glove_side_knee' }] },
-    feedback: { correct: 'First pitch fastball away. Attack the zone early.', acceptable: '2-seam low gets you a ground ball. Smart.', wrong: "Don't start with a breaking ball 0-0. Get ahead." }
-  },
-  {
-    data: {
-      prompt: "2-0 count. Must throw a strike. Left-handed hitter.",
-      mode: 'choose_next_pitch',
-      context: { count: '2-0', outs: 2, runners: [], batter_side: 'left' },
-      previous_pitches: [{ pitch: '4_seam', location: 'up', result: 'ball' }, { pitch: 'slider', location: 'down', result: 'ball' }],
-      pitch_options: ['4_seam', 'slider', 'changeup', 'sinker'],
-      target_options: ['down_away', 'middle', 'glove_side_knee', 'middle_down'],
-    },
-    responses: { best_combo: { pitch: '4_seam', target: 'down_away' }, acceptable_combos: [{ pitch: 'sinker', target: 'glove_side_knee' }] },
-    feedback: { correct: 'Fastball away. Competitive strike. Back in the count.', acceptable: 'Sinker for a strike. Works.', wrong: "2-0 you need a strike. Don't miss again." }
-  },
-  {
-    data: {
-      prompt: "Runner stealing. 1-2 count. Right-handed hitter.",
-      mode: 'choose_next_pitch',
-      context: { count: '1-2', outs: 1, runners: ['1st'], batter_side: 'right' },
-      previous_pitches: [{ pitch: 'slider', location: 'down_away', result: 'foul' }],
-      pitch_options: ['4_seam', 'slider', 'changeup', 'curveball'],
-      target_options: ['waste_up', 'back_foot', 'down_away', 'middle_down'],
-    },
-    responses: { best_combo: { pitch: '4_seam', target: 'waste_up' }, acceptable_combos: [{ pitch: 'slider', target: 'back_foot' }] },
-    feedback: { correct: 'Fastball up and out. Quick to plate. Controls the runner.', acceptable: 'Slider back foot. Gets you a whiff.', wrong: "Runner's going. You need to get to the plate fast." }
-  },
-  {
-    data: {
-      prompt: "0-1 count. Right-handed hitter who chases sliders.",
-      mode: 'choose_next_pitch',
-      context: { count: '0-1', outs: 0, runners: ['2nd'], batter_side: 'right' },
-      previous_pitches: [{ pitch: '4_seam', location: 'up', result: 'strike' }],
-      pitch_options: ['4_seam', 'slider', 'changeup', 'curveball'],
-      target_options: ['back_foot', 'down_away', 'waste_up', 'middle_down'],
-    },
-    responses: { best_combo: { pitch: 'slider', target: 'down_away' }, acceptable_combos: [{ pitch: 'curveball', target: 'middle_down' }] },
-    feedback: { correct: "Slider away. He'll chase it. That's your out pitch.", acceptable: 'Curveball down. Makes him adjust.', wrong: 'He chases sliders. Use your best weapon.' }
-  },
-]
-
-const FIELD_IQ_SCENARIOS = [
-  {
-    data: { prompt: 'Ground ball to shortstop. Runner on 1st. 1 out. Where does the throw go?', mode: 'field', context: { outs: 1, runners: ['1st'] } },
-    responses: { correct_target: '2b', acceptable_targets: ['1b'] },
-    feedback: { correct: 'Turn two. You had time.', acceptable: 'Safe play. Got the out.', wrong: 'Double play opportunity. Go to second first.' }
-  },
-  {
-    data: { prompt: 'Bunt down 3rd base line. Runner on 1st. No outs. 3rd baseman charges.', mode: 'field', context: { outs: 0, runners: ['1st'] } },
-    responses: { correct_target: '1b', acceptable_targets: [] },
-    feedback: { correct: 'Right call. Get the sure out at first.', acceptable: '', wrong: "Don't try to get cute. Take the out at first." }
-  },
-  {
-    data: { prompt: 'Bases loaded. 1 out. Ground ball to 2nd baseman.', mode: 'field', context: { outs: 1, runners: ['1st', '2nd', '3rd'] } },
-    responses: { correct_target: 'home', acceptable_targets: ['2b'] },
-    feedback: { correct: 'Home first. Cut the run off.', acceptable: 'Double play works too if you have time.', wrong: 'Bases loaded — check the runner at home first.' }
-  },
-  {
-    data: { prompt: 'Fly ball to right field. Runner on 3rd. Less than 2 outs. Shallow fly.', mode: 'field', context: { outs: 1, runners: ['3rd'] } },
-    responses: { correct_target: 'home', acceptable_targets: ['2b'] },
-    feedback: { correct: 'Throw home. Hold the runner or nail him.', acceptable: 'Play it safe if runner holds.', wrong: 'Runner tags — you need to be ready to throw home.' }
-  },
-  {
-    data: { prompt: 'Line drive to center. Runners on 1st and 2nd. 0 outs.', mode: 'field', context: { outs: 0, runners: ['1st', '2nd'] } },
-    responses: { correct_target: '3b', acceptable_targets: ['2b'] },
-    feedback: { correct: 'Hit the cutoff to 3rd. Keep the lead runner.', acceptable: '2nd base if lead runner already scored.', wrong: 'You need to cut off the lead runner. Think ahead.' }
-  },
-  {
-    data: { prompt: 'Wild pitch. Runner on 3rd. 2 outs. Catcher retrieves.', mode: 'field', context: { outs: 2, runners: ['3rd'] } },
-    responses: { correct_target: '1b', acceptable_targets: ['home'] },
-    feedback: { correct: 'Pitcher covers first. Get the batter.', acceptable: 'If runner breaks, go home.', wrong: "Pitcher covers 1st on wild pitch. That's the play." }
-  },
-  {
-    data: { prompt: 'Swinging bunt. Runner on 2nd. 0 outs. First baseman charges hard.', mode: 'field', context: { outs: 0, runners: ['2nd'] } },
-    responses: { correct_target: '1b', acceptable_targets: [] },
-    feedback: { correct: 'Bare-handed to first. Sold it.', acceptable: '', wrong: 'You have to make that play. Charge and throw.' }
-  },
-  {
-    data: { prompt: 'Double to left-center gap. Runner on 1st. Relay throw coming in.', mode: 'field', context: { outs: 1, runners: ['1st'] } },
-    responses: { correct_target: '3b', acceptable_targets: ['home'] },
-    feedback: { correct: 'Relay to 3rd. Hold him there.', acceptable: 'If he rounds 3rd hard, go home.', wrong: 'Cut it off and relay to the right base.' }
-  },
-]
-
-// ─── COMPONENT ───────────────────────────────────────────────────────────────
-
-const TOTAL_REPS = 5
+const BANKS: Record<DrillType, Rep[]> = {
+  'pitch-iq': [
+    { title: '0-2 put-away', context: 'Hitter chased slider earlier. Runner on 2nd, 2 outs.', choices: ['Slider off back foot', 'Fastball middle', 'Curve in zone'], correct: 0, feedback: 'Expand with intent. Avoid middle mistakes.' },
+    { title: '2-0 damage control', context: 'Hitter hunts heater middle-in. Bases empty.', choices: ['2-seam to knee', 'Fastball middle-in', 'Hanging slider'], correct: 0, feedback: 'Competitive strike with low damage risk.' },
+    { title: '1-2 finish inning', context: 'Runner on 2nd, 2 outs. Hitter late on velo.', choices: ['Fastball up-away', 'Changeup middle', 'Curve middle'], correct: 0, feedback: 'Use timing weakness to finish clean.' },
+    { title: '3-1 count management', context: 'Leadoff hitter taking close pitches.', choices: ['Get-me-over edge strike', 'Waste ball up', 'Nip middle'], correct: 0, feedback: 'Regain count leverage without feeding barrels.' },
+    { title: '0-0 aggression', context: 'First-pitch swinger with runner on 1st.', choices: ['2-seam at knee', 'Center-cut fastball', 'Float breaker middle'], correct: 0, feedback: 'Early weak contact profile beats hero pitch.' },
+  ],
+  'field-iq': [
+    { title: 'SS force priority', context: '6th inning, 1 out, runner on 1st, hard one-hop up middle.', choices: ['Force at 2nd first', 'Throw home', 'Only to 1st'], correct: 0, feedback: 'Middle force first, then turn two if clean.' },
+    { title: '3B lead-run', context: '7th inning, down 1, runner on 3rd, 1 out, slow roller.', choices: ['Attack plate if play is there', 'Auto throw to 1st', 'Hold ball'], correct: 0, feedback: 'Game state favors cutting lead run.' },
+    { title: 'RF gap ball', context: '8th inning, up 1, runner on 1st, ball in right-center.', choices: ['Hit cutoff to stop extra base', 'Hero throw home', 'Airmail 3rd'], correct: 0, feedback: 'Control throw prevents big inning.' },
+    { title: '2B lead runner', context: '5th inning tie, 0 outs, runners 1st/2nd, grounder right side.', choices: ['Check lead at 3rd', 'Auto 1st', 'Fake then no throw'], correct: 0, feedback: 'Prioritize inning leverage, not autopilot out.' },
+    { title: 'CF shallow single', context: '9th inning tie, runner on 2nd, 1 out, shallow center hit.', choices: ['Attack plate lane', 'Casual to cutoff', 'Eat the ball'], correct: 0, feedback: 'Preventing run is top priority.' },
+  ],
+  'strike-zone': [
+    { title: '2-0 hunt', context: 'Fastball middle-up. Runner on 2nd, 1 out.', choices: ['Swing', 'Take', 'Bail out'], correct: 0, feedback: 'Advantage count plus damage location = attack.' },
+    { title: '0-2 edge', context: 'Slider off away edge. Bases empty.', choices: ['Take', 'Big swing', 'Step out'], correct: 0, feedback: 'Discipline wins versus expand pitch.' },
+    { title: '1-1 runner 3rd', context: 'Changeup down-middle, less than 2 outs.', choices: ['Swing for productive contact', 'Take only', 'Auto bunt'], correct: 0, feedback: 'Hittable pitch for run creation.' },
+    { title: '3-1 borderline', context: 'Cutter on black away in tie game late.', choices: ['Take', 'Chase it', 'Guess pull'], correct: 0, feedback: 'Keep advantage count discipline.' },
+    { title: '1-0 hanger', context: 'Curve hangs middle-down, runner on 1st.', choices: ['Swing', 'Take', 'Call timeout'], correct: 0, feedback: 'Mistake pitch in hitter count should be attacked.' },
+  ],
+  'throw-decision': [
+    { title: 'Throw Decision #1', context: 'SS, 1 out, runner 1st, hard grounder.', choices: ['2nd base force', '1st base only', 'Home'], correct: 0, feedback: 'Force progression first.' },
+    { title: 'Throw Decision #2', context: '3B, runner 3rd, 1 out, slow roller.', choices: ['Home if playable', '1st no matter what', 'No throw'], correct: 0, feedback: 'Lead-run prevention priority.' },
+    { title: 'Throw Decision #3', context: 'RF gap ball, runner 1st, up 1.', choices: ['Cutoff throw', 'Home hero throw', 'High-risk 3rd'], correct: 0, feedback: 'Keep inning small with control.' },
+    { title: 'Throw Decision #4', context: 'Catcher block, runner breaks from 3rd.', choices: ['Quick read then home/1st', 'Panic throw', 'Freeze'], correct: 0, feedback: 'Fast, controlled decision beats panic.' },
+    { title: 'Throw Decision #5', context: '2B chopper with runners 1st/2nd.', choices: ['Lead runner check', 'Auto 1st', 'Pocket it'], correct: 0, feedback: 'Leverage base awareness matters.' },
+  ],
+  'leverage-ladder': [
+    { title: 'Leverage 1', context: 'Tie 8th, 1 out, runners 2nd/3rd, pitcher role.', choices: ['Execute target pitch first', 'Chase strikeout only', 'Rush mechanics'], correct: 0, feedback: 'Process-first execution drives outcomes.' },
+    { title: 'Leverage 2', context: 'Up 1 in 9th, runner 1st, SS role.', choices: ['Secure ball/feet first', 'Rush throw', 'Blind tag play'], correct: 0, feedback: 'Control before speed.' },
+    { title: 'Leverage 3', context: 'Down 1, 7th, runner 3rd, hitter role.', choices: ['Productive contact priority', 'HR-only swing', 'Passive take'], correct: 0, feedback: 'Run production beats hero-ball.' },
+    { title: 'Leverage 4', context: 'Tie 6th, 2 outs, bases loaded, catcher role.', choices: ['Best conviction pitch call', 'Trick play first', 'Frame only'], correct: 0, feedback: 'Right call + conviction is top value.' },
+    { title: 'Leverage 5', context: 'Up 2, 8th, runner 2nd, RF role.', choices: ['Hit cutoff chest-high', 'Hero throw home', 'Airmail 3B'], correct: 0, feedback: 'Contain inning with controllable throw.' },
+  ],
+}
 
 export default function RepModeScreen() {
-  const { type } = useLocalSearchParams<{ type: string }>()
+  const { type } = useLocalSearchParams<{ type?: string }>()
   const router = useRouter()
+  const drillType = (type ?? 'pitch-iq') as DrillType
+  const reps = useMemo(() => BANKS[drillType] ?? [], [drillType])
 
-  const [repIndex, setRepIndex] = useState(0)
-  const [score, setScore] = useState(0)
-  const [showFeedback, setShowFeedback] = useState(false)
-  const [lastCorrect, setLastCorrect] = useState(false)
-  const [done, setDone] = useState(false)
-  const [scenarios, setScenarios] = useState<any[]>([])
-  const feedbackAnim = useRef(new Animated.Value(0)).current
-  const { athleteState, updateAthleteState } = useAthlete()
+  const [currentRepIndex, setCurrentRepIndex] = useState(0)
+  const [selectedChoice, setSelectedChoice] = useState<number | null>(null)
+  const [isComplete, setIsComplete] = useState(false)
 
-  useEffect(() => {
-    const bank = type === 'pitch-sequence' ? PITCH_SEQUENCE_SCENARIOS
-      : type === 'field-iq' ? FIELD_IQ_SCENARIOS
-      : PITCH_SEQUENCE_SCENARIOS
-    const shuffled = [...bank].sort(() => Math.random() - 0.5)
-    setScenarios(shuffled.slice(0, TOTAL_REPS))
-  }, [type])
+  const rep = reps[currentRepIndex]
 
-  function handleRepComplete(passed: boolean) {
-    setLastCorrect(passed)
-    if (passed) setScore(s => s + 1)
-    setShowFeedback(true)
-
-    Animated.sequence([
-      Animated.timing(feedbackAnim, { toValue: 1, duration: 200, useNativeDriver: true }),
-      Animated.delay(900),
-      Animated.timing(feedbackAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
-    ]).start(() => {
-      setShowFeedback(false)
-      if (repIndex + 1 >= TOTAL_REPS) {
-        setDone(true)
-        handleSessionComplete(passed ? score + 1 : score)
-      } else {
-        setRepIndex(i => i + 1)
-      }
-    })
+  function nextRep() {
+    if (currentRepIndex >= 4) {
+      setIsComplete(true)
+      return
+    }
+    setCurrentRepIndex((i) => i + 1)
+    setSelectedChoice(null)
   }
 
-  async function handleSessionComplete(finalScore: number) {
-    const xpEarned = finalScore * 10 + (finalScore === TOTAL_REPS ? 25 : 0)
-    await updateAthleteState({ total_xp: (athleteState?.total_xp ?? 0) + xpEarned })
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
-  }
-
-  const currentScenario = scenarios[repIndex]
-
-  const repTypeLabel: Record<string, string> = {
-    'pitch-sequence': 'PITCH IQ',
-    'field-iq': 'FIELD IQ',
-    'strike-zone': 'ZONE READ',
-  }
-  const label = repTypeLabel[type ?? ''] ?? 'DRILL'
-
-  if (done) {
-    const finalScore = score
-    const xpEarned = finalScore * 10 + (finalScore === TOTAL_REPS ? 25 : 0)
-    const voltLines = [
-      "That's a rep. Stack it.",
-      'Clean session. Keep building.',
-      "Reps add up. You're building something.",
-      "That's the standard. Do it again.",
-    ]
-    const voltLine = voltLines[Math.floor(Math.random() * voltLines.length)]
-
+  if (!reps.length || !rep) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#080810' }}>
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32 }}>
-          <Image source={require('../assets/volt bust.png')} style={{ width: 80, height: 80, borderRadius: 10, marginBottom: 20 }} resizeMode="contain" />
-          <Text style={{ color: '#22CC5E', fontSize: 11, fontWeight: '700', letterSpacing: 2, marginBottom: 4 }}>VOLT</Text>
-          <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, fontStyle: 'italic', textAlign: 'center', marginBottom: 32 }}>{voltLine}</Text>
+      <SafeAreaView style={s.wrap}>
+        <View style={s.center}><Text style={s.title}>Rep Mode unavailable</Text><Text style={s.sub}>This drill type is missing.</Text><Pressable style={s.btn} onPress={() => router.replace('/(tabs)/gamemode')}><Text style={s.btnText}>Back to Game Mode</Text></Pressable></View>
+      </SafeAreaView>
+    )
+  }
 
-          <View style={{ backgroundColor: '#0D0D12', borderRadius: 16, padding: 24, width: '100%', alignItems: 'center', borderWidth: 1, borderColor: '#1a1a1a', marginBottom: 24 }}>
-            <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, letterSpacing: 2, marginBottom: 8 }}>SESSION COMPLETE</Text>
-            <Text style={{ color: 'white', fontSize: 48, fontWeight: '900' }}>{finalScore}<Text style={{ fontSize: 24, color: 'rgba(255,255,255,0.3)' }}>/{TOTAL_REPS}</Text></Text>
-            <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginBottom: 16 }}>CORRECT</Text>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#1A1200', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 8, borderWidth: 1, borderColor: '#FFD60A44' }}>
-              <Text style={{ fontSize: 16 }}>⚡</Text>
-              <Text style={{ color: '#F5A623', fontSize: 20, fontWeight: '800' }}>+{xpEarned} XP</Text>
-            </View>
-            {finalScore === TOTAL_REPS && (
-              <Text style={{ color: '#FFD60A', fontSize: 11, fontWeight: '700', letterSpacing: 1, marginTop: 8 }}>PERFECT REP ✦</Text>
-            )}
-          </View>
-
-          <Pressable
-            onPress={() => { setRepIndex(0); setScore(0); setDone(false); setScenarios([...scenarios].sort(() => Math.random() - 0.5)) }}
-            style={{ backgroundColor: '#111', borderRadius: 12, paddingVertical: 14, paddingHorizontal: 24, width: '100%', alignItems: 'center', marginBottom: 12, borderWidth: 1, borderColor: '#333' }}
-          >
-            <Text style={{ color: 'white', fontSize: 15, fontWeight: '700' }}>Run it again →</Text>
-          </Pressable>
-
-          <Pressable
-            onPress={() => router.back()}
-            style={{ backgroundColor: '#22CC5E', borderRadius: 12, paddingVertical: 14, paddingHorizontal: 24, width: '100%', alignItems: 'center' }}
-          >
-            <Text style={{ color: '#000', fontSize: 15, fontWeight: '800' }}>Done</Text>
-          </Pressable>
+  if (isComplete) {
+    return (
+      <SafeAreaView style={s.wrap}>
+        <View style={s.center}>
+          <Text style={s.title}>Drill complete</Text>
+          <Text style={s.sub}>5 reps finished</Text>
+          <Text style={s.sub}>Takeaway: stack clean decisions, one rep at a time.</Text>
+          <Pressable style={s.btn} onPress={() => router.replace('/(tabs)/gamemode')}><Text style={s.btnText}>Back to Game Mode</Text></Pressable>
         </View>
       </SafeAreaView>
     )
   }
 
-  if (!currentScenario) return null
-
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#080810' }}>
-      {/* HEADER */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#1a1a1a' }}>
-        <Pressable onPress={() => router.back()} hitSlop={8}>
-          <Ionicons name="close" size={22} color="rgba(255,255,255,0.5)" />
-        </Pressable>
-        <Text style={{ color: 'white', fontSize: 13, fontWeight: '700', letterSpacing: 1 }}>{label} · REP {repIndex + 1} OF {TOTAL_REPS}</Text>
-        <Text style={{ color: '#22CC5E', fontSize: 13, fontWeight: '700' }}>{score}/{repIndex}</Text>
+    <SafeAreaView style={s.wrap}>
+      <View style={s.header}>
+        <Pressable onPress={() => router.replace('/(tabs)/gamemode')}><Text style={s.back}>Back</Text></Pressable>
+        <Text style={s.headerText}>Rep {currentRepIndex + 1} of 5</Text>
+        <View style={{ width: 36 }} />
       </View>
+      <ScrollView contentContainerStyle={s.content}>
+        <Text style={s.kicker}>{drillType.toUpperCase()}</Text>
+        <Text style={s.repTitle}>{rep.title}</Text>
+        <Text style={s.context}>{rep.context}</Text>
 
-      {/* PROGRESS BAR */}
-      <View style={{ height: 3, backgroundColor: '#1a1a1a' }}>
-        <View style={{ height: 3, backgroundColor: '#22CC5E', width: `${(repIndex / TOTAL_REPS) * 100}%` }} />
-      </View>
+        {rep.choices.map((c, i) => (
+          <Pressable key={i} onPress={() => setSelectedChoice(i)} style={[s.choice, selectedChoice === i && s.choiceSelected]}>
+            <Text style={s.choiceText}>{c}</Text>
+          </Pressable>
+        ))}
 
-      {/* INTERACTIVE COMPONENT */}
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16 }}>
-        {type === 'pitch-sequence' && (
-          <PitchSequenceChess
-            key={repIndex}
-            data={currentScenario.data}
-            responses={currentScenario.responses}
-            feedback={currentScenario.feedback}
-            onComplete={handleRepComplete}
-          />
+        {selectedChoice !== null && (
+          <View style={s.feedback}><Text style={s.feedbackText}>{selectedChoice === rep.correct ? 'Good rep. ' : ''}{rep.feedback}</Text></View>
         )}
-        {type === 'field-iq' && (
-          <FieldIQBoard
-            key={repIndex}
-            data={currentScenario.data}
-            responses={currentScenario.responses}
-            feedback={currentScenario.feedback}
-            onComplete={handleRepComplete}
-          />
-        )}
+
+        <Pressable style={s.btn} onPress={nextRep}><Text style={s.btnText}>{currentRepIndex === 4 ? 'Finish Drill' : 'Next Rep'}</Text></Pressable>
+        <Pressable style={s.btnAlt} onPress={() => router.replace('/(tabs)/gamemode')}><Text style={s.btnAltText}>Back to Game Mode</Text></Pressable>
       </ScrollView>
-
-      {/* FEEDBACK FLASH OVERLAY */}
-      {showFeedback && (
-        <Animated.View style={{
-          position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-          backgroundColor: lastCorrect ? 'rgba(34,204,94,0.15)' : 'rgba(255,59,48,0.15)',
-          alignItems: 'center', justifyContent: 'center',
-          opacity: feedbackAnim, pointerEvents: 'none',
-        }}>
-          <Text style={{ fontSize: 64 }}>{lastCorrect ? '✓' : '✗'}</Text>
-        </Animated.View>
-      )}
     </SafeAreaView>
   )
 }
+
+const s = StyleSheet.create({
+  wrap: { flex: 1, backgroundColor: '#080810' },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 14, borderBottomWidth: 1, borderBottomColor: '#1a1a1a' },
+  back: { color: Colors.textSecondary, fontWeight: '700' },
+  headerText: { color: Colors.textPrimary, fontWeight: '700' },
+  content: { padding: 16, gap: 10 },
+  kicker: { color: Colors.primary, fontWeight: '700', letterSpacing: 1 },
+  repTitle: { color: Colors.textPrimary, fontSize: 20, fontWeight: '800' },
+  context: { color: Colors.textSecondary, fontSize: 14, lineHeight: 20 },
+  choice: { borderWidth: 1, borderColor: Colors.border, borderRadius: 10, padding: 12, backgroundColor: Colors.surface },
+  choiceSelected: { borderColor: Colors.primary, backgroundColor: Colors.primary + '15' },
+  choiceText: { color: Colors.textPrimary },
+  feedback: { borderRadius: 10, borderWidth: 1, borderColor: Colors.warning + '66', backgroundColor: Colors.warning + '12', padding: 12 },
+  feedbackText: { color: Colors.textSecondary },
+  btn: { marginTop: 10, borderRadius: 10, padding: 12, backgroundColor: Colors.primary, alignItems: 'center' },
+  btnText: { color: '#000', fontWeight: '800' },
+  btnAlt: { borderRadius: 10, padding: 12, backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border, alignItems: 'center' },
+  btnAltText: { color: Colors.textPrimary, fontWeight: '700' },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24, gap: 8 },
+  title: { color: Colors.textPrimary, fontSize: 24, fontWeight: '800' },
+  sub: { color: Colors.textSecondary, textAlign: 'center' },
+})
