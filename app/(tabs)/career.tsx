@@ -17,8 +17,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAthlete } from '@/context/AthleteContext';
 import { fetchLessons, type LegacyLesson } from '@/lib/supabase';
 import { Colors, Radius, Spacing } from '@/constants/theme';
-import { ClutchrLogo } from '@/components/ClutchrLogo';
-import { VoltChip } from '@/components/VoltChip';
+import { ClutchrHeader } from '@/components/ClutchrHeader';
 import { ErrorState, SkeletonCard } from '@/components/SkeletonLoader';
 
 // ─── WORLD CONFIG ─────────────────────────────────────────────────────────────
@@ -923,31 +922,21 @@ export default function CareerScreen() {
     <View style={[styles.container, { paddingTop: insets.top }]}>
 
       {/* HEADER */}
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <ClutchrLogo />
-          <Text style={styles.title}>Career Path</Text>
-        </View>
-        <View style={styles.headerRight}>
+      <ClutchrHeader
+        variant="mainTab"
+        kicker="CAREER"
+        title="Build Your Path"
+        subtitle="One rep at a time."
+        statusPill={`${totalDone} / ${totalAll}`}
+        progress={overallPct / 100}
+        rightAction={
           <View style={styles.xpPill}>
             <Ionicons name="flash" size={12} color={Colors.warning} />
             <Text style={styles.xpNum}>{athleteState?.total_xp ?? 0}</Text>
             <Text style={styles.xpLabel}>XP</Text>
           </View>
-          <VoltChip />
-        </View>
-      </View>
-
-      {/* OVERALL PROGRESS */}
-      <View style={styles.progressWrap}>
-        <View style={styles.progressTrack}>
-          <View style={[styles.progressFill, { width: `${overallPct}%` as any }]} />
-        </View>
-        <View style={styles.progressMeta}>
-          <Text style={styles.progressLabel}>{totalDone} of {totalAll} lessons</Text>
-          <Text style={styles.progressPct}>{overallPct}%</Text>
-        </View>
-      </View>
+        }
+      />
 
       {/* CHAPTER TAB BAR */}
       <ScrollView

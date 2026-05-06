@@ -21,6 +21,7 @@ import { useAthlete } from '@/context/AthleteContext';
 import { Colors, Radius, Spacing } from '@/constants/theme';
 import { getBestCue } from '@/lib/personalCue';
 import { RolePill } from '@/components/ui';
+import { ClutchrHeader } from '@/components/ClutchrHeader';
 
 // ─── CONSTANTS ───────────────────────────────────────────────────────────────
 
@@ -326,12 +327,15 @@ export default function ProfileScreen() {
     <View style={[styles.container, { paddingTop: insets.top }]}>
 
       {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.clutchrLogo}>{'<< CLUTCHR'}</Text>
-        <Pressable onPress={handleDevTap} hitSlop={10}>
-          <Text style={styles.headerTitle}>PROFILE</Text>
-        </Pressable>
-      </View>
+      <Pressable onPress={handleDevTap}>
+        <ClutchrHeader
+          variant="mainTab"
+          kicker="PROFILE"
+          title="Your Player OS"
+          subtitle="Role, routines, progress."
+          statusPill={rank.toUpperCase()}
+        />
+      </Pressable>
 
       <Animated.ScrollView
         style={{ opacity: fadeAnim }}

@@ -19,7 +19,7 @@ import ToolShelfModal from '@/components/ToolShelfModal';
 import { pickNextLesson, type RoutingResult } from '@/lib/lessonRouter';
 import { getBestCue } from '@/lib/personalCue';
 import { SkeletonBox, SkeletonCard } from '@/components/SkeletonLoader';
-import { ClutchrLogo } from '@/components/ClutchrLogo';
+import { ClutchrHeader } from '@/components/ClutchrHeader';
 
 const XP_PER_LEVEL = 200;
 const MISSIONS_DATE_KEY  = 'missions_date';
@@ -85,7 +85,6 @@ export default function HomeScreen() {
   const [loadingLesson, setLoadingLesson]   = useState(true);
   const [missions, setMissions]             = useState<MissionsProgress>({ lessonsCompleted: 0, gameModeOpened: false });
 
-  const anim0 = useRef(new Animated.Value(0)).current;
   const anim1 = useRef(new Animated.Value(0)).current;
   const anim2 = useRef(new Animated.Value(0)).current;
   const anim3 = useRef(new Animated.Value(0)).current;
@@ -93,7 +92,6 @@ export default function HomeScreen() {
 
   useEffect(() => {
     Animated.stagger(70, [
-      Animated.spring(anim0, { toValue: 1, tension: 80, friction: 11, useNativeDriver: true }),
       Animated.spring(anim1, { toValue: 1, tension: 80, friction: 11, useNativeDriver: true }),
       Animated.spring(anim2, { toValue: 1, tension: 80, friction: 11, useNativeDriver: true }),
       Animated.spring(anim3, { toValue: 1, tension: 80, friction: 11, useNativeDriver: true }),
@@ -194,26 +192,32 @@ export default function HomeScreen() {
   const totalXp  = athleteState?.total_xp ?? 0;
   const level    = Math.floor(totalXp / XP_PER_LEVEL) + 1;
   const streak   = athleteState?.streak_count ?? 0;
-  const xpLineOpacity = Math.min(1, totalXp / (level * 500));
   const focusCue = getBestCue(athleteState, 'focus');
 
   if (isLoading || !athleteState) {
     return (
       <View style={s.container}>
-        <View style={[s.navBar, { paddingTop: insets.top + 12 }]}>
-          <ClutchrLogo />
-          <View style={s.navRight}>
-            <View style={s.streakPill}>
-              <Text>🔥</Text>
-              <Text style={s.pillStat}>0</Text>
+        <ClutchrHeader
+          variant="home"
+          kicker="CLUTCHR BASEBALL"
+          title="Your Next Rep"
+          subtitle="Train. Track. Clutch."
+          statusPill="LOADING"
+          progress={0}
+          style={{ paddingTop: insets.top + 12 }}
+          rightAction={
+            <View style={s.navRight}>
+              <View style={s.streakPill}>
+                <Text>🔥</Text>
+                <Text style={s.pillStat}>0</Text>
+              </View>
+              <View style={s.xpPillNav}>
+                <Text style={s.xpIconText}>⚡</Text>
+                <Text style={s.pillStat}>0</Text>
+              </View>
             </View>
-            <View style={s.xpPillNav}>
-              <Text style={s.xpIconText}>⚡</Text>
-              <Text style={s.pillStat}>0</Text>
-            </View>
-          </View>
-        </View>
-        <View style={[s.xpLine, { opacity: 0 }]} />
+          }
+        />
         <ScrollView
           contentContainerStyle={[s.scroll, { paddingBottom: insets.bottom + 140 }]}
           showsVerticalScrollIndicator={false}
@@ -232,6 +236,13 @@ export default function HomeScreen() {
   }
 
   const levelProgress = (totalXp % XP_PER_LEVEL) / XP_PER_LEVEL;
+
+  const roleLabel = athleteState.primary_role
+    ? athleteState.primary_role.charAt(0).toUpperCase() + athleteState.primary_role.slice(1)
+    : 'Player';
+  const phaseLabel = athleteState.season_phase
+    ? athleteState.season_phase.replace(/_/g, ' ').replace(/\w/g, (char) => char.toUpperCase())
+    : 'Train';
   const lesson        = routingResult?.lesson ?? null;
   const reason        = routingResult?.reason ?? '';
 
@@ -260,36 +271,33 @@ export default function HomeScreen() {
   return (
     <View style={s.container}>
 
-      {/* ── BRANDED NAV BAR ── */}
-      <View style={[s.navBar, { paddingTop: insets.top + 12 }]}>
-        <ClutchrLogo />
-        <View style={s.navRight}>
-          <View style={s.streakPill}>
-            <Text>🔥</Text>
-            <Text style={s.pillStat}>{streak}</Text>
+      {/* ── COMMAND HEADER ── */}
+      <ClutchrHeader
+        variant="home"
+        kicker="CLUTCHR BASEBALL"
+        title="Your Next Rep"
+        subtitle={`${phaseLabel} · ${roleLabel}`}
+        statusPill={`LVL ${level}`}
+        progress={levelProgress}
+        style={{ paddingTop: insets.top + 12 }}
+        rightAction={
+          <View style={s.navRight}>
+            <View style={s.streakPill}>
+              <Text>🔥</Text>
+              <Text style={s.pillStat}>{streak}</Text>
+            </View>
+            <View style={s.xpPillNav}>
+              <Text style={s.xpIconText}>⚡</Text>
+              <Text style={s.pillStat}>{totalXp}</Text>
+            </View>
           </View>
-          <View style={s.xpPillNav}>
-            <Text style={s.xpIconText}>⚡</Text>
-            <Text style={s.pillStat}>{totalXp}</Text>
-          </View>
-        </View>
-      </View>
-
-      {/* ── XP PROGRESS LINE ── */}
-      <View style={[s.xpLine, { opacity: xpLineOpacity }]} />
+        }
+      />
 
       <ScrollView
         contentContainerStyle={[s.scroll, { paddingBottom: insets.bottom + 120 }]}
         showsVerticalScrollIndicator={false}
       >
-
-        {/* ── GREETING ── */}
-        {animCard(anim0,
-          <View>
-            <Text style={s.goodWork}>GOOD WORK, {(athleteState.first_name ?? 'ATHLETE').toUpperCase()}.</Text>
-            <Text style={s.missionControl}>MISSION CONTROL</Text>
-          </View>
-        )}
 
         {/* ── CONTINUE CAREER CARD ── */}
         {animCard(anim1,
