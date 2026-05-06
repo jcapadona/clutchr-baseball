@@ -20,6 +20,7 @@ import { useAthlete } from '@/context/AthleteContext';
 import { supabase } from '@/lib/supabase';
 import { Colors, Radius, Spacing } from '@/constants/theme';
 import { speakLessonIntro, stopSpeech } from '@/lib/lessonAudio';
+import { ClutchrHeader } from '@/components/ClutchrHeader';
 
 import StrikeZoneVisualizer from '@/components/StrikeZoneVisualizer';
 import PitchSequenceChess from '@/components/PitchSequenceChess';
@@ -1195,11 +1196,15 @@ useEffect(() => {
   );
   if (totalSteps === 0) return (
     <View style={[screenStyles.container, { paddingTop: insets.top }]}>
-      <View style={screenStyles.header}>
-        <Pressable onPress={handleExit} hitSlop={12} style={screenStyles.closeBtn}>
-          <Ionicons name="close" size={22} color={Colors.textSecondary} />
-        </Pressable>
-      </View>
+      <ClutchrHeader
+        variant="flow"
+        title={lesson?.title ?? 'Finish the Rep'}
+        leftAction={
+          <Pressable onPress={handleExit} hitSlop={12} style={screenStyles.closeBtn}>
+            <Ionicons name="close" size={22} color={Colors.textSecondary} />
+          </Pressable>
+        }
+      />
       <View style={screenStyles.center}>
         <Text style={screenStyles.loadingText}>No steps in this lesson yet.</Text>
         <Pressable style={screenStyles.backBtn} onPress={() => router.back()}><Text style={screenStyles.backBtnText}>← Go back</Text></Pressable>
@@ -1210,9 +1215,6 @@ useEffect(() => {
   const safeIndex = Math.min(stepIndex, totalSteps - 1);
   const currentStep = steps[safeIndex] ?? null;
   const lessonFamily = lesson.lesson_family ?? lesson.pillar_id ?? 'Spark Card';
-  const durationMin = Math.ceil((lesson.duration_sec ?? lesson.expected_time_sec ?? 90) / 60);
-  const roleTag = (lesson.role_tags ?? [])[0] ?? '';
-  const difficulty = lesson.difficulty_tier ?? lesson.difficulty ?? '';
   const isBoss = !!lesson.is_boss;
   const isCheckpoint = !!lesson.is_checkpoint;
 
@@ -1220,58 +1222,38 @@ useEffect(() => {
     <View style={[screenStyles.container, { paddingTop: insets.top }]}>
 
       {/* ── HEADER ── */}
-      <View style={screenStyles.header}>
-        <Pressable onPress={handleExit} hitSlop={12} style={screenStyles.closeBtn}>
-          <Ionicons name="close" size={20} color={Colors.textSecondary} />
-        </Pressable>
-        <Pressable
-          onPress={toggleMute}
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          style={{
-            width: 32, height: 32,
-            borderRadius: 16,
-            backgroundColor: isMuted ? '#1a1a1a' : '#0F2410',
-            borderWidth: 1,
-            borderColor: isMuted ? '#333' : '#22CC5E44',
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginRight: 8,
-          }}
-        >
-          <Ionicons
-            name={isMuted ? 'volume-mute-outline' : 'volume-medium-outline'}
-            size={15}
-            color={isMuted ? '#555' : '#22CC5E'}
-          />
-        </Pressable>
-        <View style={screenStyles.headerBadges}>
-          {roleTag !== '' && (
-            <View style={screenStyles.roleBadge}>
-              <Text style={screenStyles.roleBadgeText}>{roleTag.toUpperCase()}</Text>
-            </View>
-          )}
-          {currentStep?.ui_variant && (
-            <View style={screenStyles.interactiveBadge}>
-              <Ionicons name="game-controller" size={9} color={Colors.purple} />
-              <Text style={screenStyles.interactiveBadgeText}>INTERACTIVE</Text>
-            </View>
-          )}
-          {isBoss && (
-            <View style={screenStyles.bossBadge}>
-              <Ionicons name="trophy" size={9} color={Colors.warning} />
-              <Text style={screenStyles.bossBadgeText}>BOSS</Text>
-            </View>
-          )}
-          {isCheckpoint && !isBoss && (
-            <View style={screenStyles.checkpointBadge}>
-              <Ionicons name="flag" size={9} color={Colors.info} />
-              <Text style={screenStyles.checkpointBadgeText}>CHECKPOINT</Text>
-            </View>
-          )}
-          {difficulty !== '' && <Text style={screenStyles.diffText}>{difficulty}</Text>}
-          <Text style={screenStyles.durationText}>{durationMin} min</Text>
-        </View>
-      </View>
+      <ClutchrHeader
+        variant="flow"
+        kicker={lessonFamily.toUpperCase()}
+        title={lesson.title}
+        leftAction={
+          <Pressable onPress={handleExit} hitSlop={12} style={screenStyles.closeBtn}>
+            <Ionicons name="close" size={20} color={Colors.textSecondary} />
+          </Pressable>
+        }
+        rightAction={
+          <View style={screenStyles.flowRightActions}>
+            <Pressable
+              onPress={toggleMute}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              style={[
+                screenStyles.muteBtn,
+                {
+                  backgroundColor: isMuted ? '#1a1a1a' : '#0F2410',
+                  borderColor: isMuted ? '#333' : '#22CC5E44',
+                },
+              ]}
+            >
+              <Ionicons
+                name={isMuted ? 'volume-mute-outline' : 'volume-medium-outline'}
+                size={15}
+                color={isMuted ? '#555' : '#22CC5E'}
+              />
+            </Pressable>
+            <Text style={screenStyles.durationText}>{safeIndex + 1} / {totalSteps}</Text>
+          </View>
+        }
+      />
 
       {/* ── PROGRESS BAR ── */}
       <View style={screenStyles.progressTrack}>
@@ -1296,7 +1278,6 @@ useEffect(() => {
       {safeIndex === 0 && (
         <View style={screenStyles.lessonHeader}>
           <Text style={screenStyles.lessonFamily}>{lessonFamily.toUpperCase()}</Text>
-          <Text style={screenStyles.lessonTitle}>{lesson.title}</Text>
           {lesson.subtitle && <Text style={screenStyles.lessonSubtitle}>{lesson.subtitle}</Text>}
         </View>
       )}
@@ -2019,6 +2000,14 @@ const screenStyles = StyleSheet.create({
     backgroundColor: Colors.surface,
     borderRadius: Radius.sm,
     borderWidth: 1, borderColor: Colors.border,
+  },
+  flowRightActions: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: Spacing.sm },
+  muteBtn: {
+    width: 32, height: 32,
+    borderRadius: 16,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   headerBadges: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
   roleBadge: {

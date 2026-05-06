@@ -16,6 +16,7 @@ import { fetchContentCards, type ContentCard } from '@/lib/supabase';
 import { Colors, Radius, Spacing } from '@/constants/theme';
 import { SectionHeader } from '@/components/ui';
 import { ErrorState, SkeletonCard } from '@/components/SkeletonLoader';
+import { ClutchrHeader } from '@/components/ClutchrHeader';
 
 // ─── CATEGORIES ───────────────────────────────────────────────────────────────
 
@@ -83,15 +84,12 @@ export default function LockerScreen() {
     <View style={[styles.container, { paddingTop: insets.top }]}>
 
       {/* ── HEADER ── */}
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.eyebrow}>YOUR RESOURCES</Text>
-          <Text style={styles.title}>The Locker</Text>
-        </View>
-        <View style={styles.headerIcon}>
-          <Ionicons name="library" size={20} color={Colors.primary} />
-        </View>
-      </View>
+      <ClutchrHeader
+        variant="mainTab"
+        kicker="RESOURCES"
+        title="Baseball Tools"
+        subtitle="Dugout. Bullpen. The Grind."
+      />
 
       {/* ── SEARCH ── */}
       <View style={styles.searchWrap}>

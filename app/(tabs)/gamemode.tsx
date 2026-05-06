@@ -18,6 +18,7 @@ import { useAthlete } from '@/context/AthleteContext';
 import { Colors, Radius, Spacing } from '@/constants/theme';
 import type { SeasonPhase } from '@/context/AthleteContext';
 import { SkeletonCard } from '@/components/SkeletonLoader';
+import { ClutchrHeader } from '@/components/ClutchrHeader';
 import { getBestCue } from '@/lib/personalCue';
 
 // ─── TYPES ────────────────────────────────────────────────────────────────────
@@ -987,15 +988,16 @@ export default function GameModeScreen() {
   if (activeTool && view) {
     return (
       <View style={[s.container, { paddingTop: insets.top }]}>
-        <View style={s.toolHeader}>
-          <Pressable onPress={closeTool} hitSlop={12} style={s.backBtn}>
-            <Ionicons name="arrow-back" size={18} color={Colors.textSecondary} />
-          </Pressable>
-          <View style={[s.toolIcon, { backgroundColor: activeTool.color + '18' }]}>
-            <Ionicons name={activeTool.icon as any} size={14} color={activeTool.color} />
-          </View>
-          <Text style={s.toolHeaderName}>{activeTool.name}</Text>
-          {activeTool.mode === 'print_card' ? (
+        <ClutchrHeader
+          variant="flow"
+          kicker={activeTool.bucket.toUpperCase()}
+          title={activeTool.name}
+          leftAction={
+            <Pressable onPress={closeTool} hitSlop={12} style={s.backBtn}>
+              <Ionicons name="arrow-back" size={18} color={Colors.textSecondary} />
+            </Pressable>
+          }
+          rightAction={activeTool.mode === 'print_card' ? (
             <View style={s.printTag}>
               <Ionicons name="print" size={10} color={Colors.warning} />
               <Text style={s.printTagText}>PRINT CARD</Text>
@@ -1003,7 +1005,7 @@ export default function GameModeScreen() {
           ) : (
             <Text style={s.toolDuration}>{activeTool.duration}</Text>
           )}
-        </View>
+        />
         <ScrollView
           contentContainerStyle={[s.toolScroll, { paddingBottom: insets.bottom + 40 }]}
           showsVerticalScrollIndicator={false}
@@ -1022,13 +1024,13 @@ export default function GameModeScreen() {
     <View style={[s.container, { paddingTop: insets.top }]}>
 
       {/* Header */}
-      <View style={s.header}>
-        <Text style={s.title}>GAME MODE</Text>
-        <Text style={s.subtitle}>
-          {athleteState?.first_name ? `${athleteState.first_name} · ` : ''}
-          {role.charAt(0).toUpperCase() + role.slice(1)}
-        </Text>
-      </View>
+      <ClutchrHeader
+        variant="mainTab"
+        kicker="GAME MODE"
+        title="Get Game Ready"
+        subtitle="Prep. Reset. Recover."
+        statusPill={role.charAt(0).toUpperCase() + role.slice(1)}
+      />
 
       {/* Bucket tabs — now 4 tabs */}
       <View style={s.bucketRow}>
