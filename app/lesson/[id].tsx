@@ -21,6 +21,7 @@ import { supabase } from '@/lib/supabase';
 import { Colors, Radius, Spacing } from '@/constants/theme';
 import { speakLessonIntro, stopSpeech } from '@/lib/lessonAudio';
 import { ClutchrHeader } from '@/components/ClutchrHeader';
+import { CompletionInteraction, type CompletionIntent } from '@/components/CompletionInteraction';
 
 import StrikeZoneVisualizer from '@/components/StrikeZoneVisualizer';
 import PitchSequenceChess from '@/components/PitchSequenceChess';
@@ -139,7 +140,7 @@ function VariantRenderer({ step, onAdvance }: { step: any; onAdvance: (passed?: 
 // ─── SPARK STEP — Editorial pull-quote style ──────────────────────────────────
 // The "here's the insight" moment. Big, bold, almost like a magazine spread.
 
-function SparkStep({ step, onAdvance }: { step: any; onAdvance: () => void }) {
+function SparkStep({ step, onAdvance, finalAction }: { step: any; onAdvance: () => void; finalAction?: React.ReactNode }) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(16)).current;
 
@@ -177,7 +178,7 @@ function SparkStep({ step, onAdvance }: { step: any; onAdvance: () => void }) {
         </View>
       )}
 
-      <AdvanceButton label="Got it →" onPress={onAdvance} />
+      {finalAction ?? <AdvanceButton label="Got it →" onPress={onAdvance} />}
     </Animated.View>
   );
 }
@@ -218,7 +219,7 @@ function CueBox({ cue, label = 'YOUR CUE' }: { cue: string; label?: string }) {
 // ─── CHOICE STEP — High-stakes decision cards ────────────────────────────────
 // Before: clean bordered tiles. After: dramatic success/fail states.
 
-function ChoiceStep({ step, onAdvance }: { step: any; onAdvance: () => void }) {
+function ChoiceStep({ step, onAdvance, finalAction }: { step: any; onAdvance: () => void; finalAction?: React.ReactNode }) {
   const [selected, setSelected] = useState<string | null>(null);
   const [revealed, setRevealed] = useState(false);
 
@@ -268,7 +269,7 @@ function ChoiceStep({ step, onAdvance }: { step: any; onAdvance: () => void }) {
         })}
       </View>
 
-      <AdvanceButton label="Next →" onPress={onAdvance} disabled={!revealed} />
+      {revealed && finalAction ? finalAction : <AdvanceButton label="Next →" onPress={onAdvance} disabled={!revealed} />}
     </View>
   );
 }
@@ -370,7 +371,7 @@ function ChoiceButton({ label, feedback, isSelected, isRevealed, isCorrect, inde
 
 // ─── CHECKLIST STEP — Pregame card, satisfying completion ────────────────────
 
-function ChecklistStep({ step, onAdvance }: { step: any; onAdvance: () => void }) {
+function ChecklistStep({ step, onAdvance, finalAction }: { step: any; onAdvance: () => void; finalAction?: React.ReactNode }) {
   const items: string[] = step.instructions ?? step.items ?? step.steps ?? [];
   const [checked, setChecked] = useState<Set<number>>(new Set());
   const allDone = checked.size >= items.length && items.length > 0;
@@ -410,11 +411,13 @@ function ChecklistStep({ step, onAdvance }: { step: any; onAdvance: () => void }
         })}
       </View>
 
-      <AdvanceButton
-        label={allDone ? 'Done →' : `${checked.size}/${items.length} checked`}
-        onPress={allDone ? onAdvance : undefined}
-        disabled={!allDone}
-      />
+      {allDone && finalAction ? finalAction : (
+        <AdvanceButton
+          label={allDone ? 'Done →' : `${checked.size}/${items.length} checked`}
+          onPress={allDone ? onAdvance : undefined}
+          disabled={!allDone}
+        />
+      )}
     </View>
   );
 }
@@ -453,7 +456,7 @@ function ChecklistRow({ text, done, index, onToggle }: { text: string; done: boo
 
 // ─── VISUALIZATION / CUE STEP — Focused, meditative ─────────────────────────
 
-function VisualizationStep({ step, onAdvance }: { step: any; onAdvance: () => void }) {
+function VisualizationStep({ step, onAdvance, finalAction }: { step: any; onAdvance: () => void; finalAction?: React.ReactNode }) {
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -486,14 +489,14 @@ function VisualizationStep({ step, onAdvance }: { step: any; onAdvance: () => vo
 
       {cue !== '' && <CueBox cue={cue} />}
 
-      <AdvanceButton label="Locked in →" onPress={onAdvance} />
+      {finalAction ?? <AdvanceButton label="Locked in →" onPress={onAdvance} />}
     </Animated.View>
   );
 }
 
 // ─── TIMER STEP — Athletic game clock ────────────────────────────────────────
 
-function TimerStep({ step, onAdvance }: { step: any; onAdvance: () => void }) {
+function TimerStep({ step, onAdvance, finalAction }: { step: any; onAdvance: () => void; finalAction?: React.ReactNode }) {
   const duration = step.timer_sec ?? step.duration ?? 15;
   const [seconds, setSeconds] = useState(duration);
   const [running, setRunning] = useState(false);
@@ -579,14 +582,14 @@ function TimerStep({ step, onAdvance }: { step: any; onAdvance: () => void }) {
         </View>
       )}
 
-      {done && <AdvanceButton label="Done →" onPress={onAdvance} />}
+      {done && (finalAction ?? <AdvanceButton label="Done →" onPress={onAdvance} />)}
     </View>
   );
 }
 
 // ─── REFLECTION STEP ─────────────────────────────────────────────────────────
 
-function ReflectionStep({ step, onAdvance }: { step: any; onAdvance: () => void }) {
+function ReflectionStep({ step, onAdvance, finalAction }: { step: any; onAdvance: () => void; finalAction?: React.ReactNode }) {
   return (
     <View style={reflectStyles.container}>
       <View style={reflectStyles.bulbWrap}>
@@ -604,14 +607,14 @@ function ReflectionStep({ step, onAdvance }: { step: any; onAdvance: () => void 
           <Text style={reflectStyles.exampleText}>{step.example_reframe}</Text>
         </View>
       )}
-      <AdvanceButton label="Got it →" onPress={onAdvance} />
+      {finalAction ?? <AdvanceButton label="Got it →" onPress={onAdvance} />}
     </View>
   );
 }
 
 // ─── FEEDBACK STEP ───────────────────────────────────────────────────────────
 
-function FeedbackStep({ step, onAdvance }: { step: any; onAdvance: () => void }) {
+function FeedbackStep({ step, onAdvance, finalAction }: { step: any; onAdvance: () => void; finalAction?: React.ReactNode }) {
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
   useEffect(() => {
     Animated.spring(scaleAnim, { toValue: 1, tension: 80, friction: 8, useNativeDriver: true }).start();
@@ -622,14 +625,14 @@ function FeedbackStep({ step, onAdvance }: { step: any; onAdvance: () => void })
         <Ionicons name="checkmark-circle" size={44} color={Colors.primary} />
       </Animated.View>
       <Text style={feedbackStyles.text}>{step.content ?? step.text ?? step.message ?? ''}</Text>
-      <AdvanceButton label="Continue →" onPress={onAdvance} />
+      {finalAction ?? <AdvanceButton label="Continue →" onPress={onAdvance} />}
     </View>
   );
 }
 
 // ─── NOTICE/WONDER STEP — Three completely different phase identities ─────────
 
-function NoticeWonderStep({ step, onAdvance }: { step: any; onAdvance: () => void }) {
+function NoticeWonderStep({ step, onAdvance, finalAction }: { step: any; onAdvance: () => void; finalAction?: React.ReactNode }) {
   type Phase = 'notice' | 'wonder' | 'reveal';
   const [phase, setPhase] = useState<Phase>('notice');
   const [noticePicks, setNoticePicks] = useState<string[]>([]);
@@ -803,7 +806,7 @@ function NoticeWonderStep({ step, onAdvance }: { step: any; onAdvance: () => voi
         <CueBox cue={step.reveal_cue ?? step.cue} label="LOCK IN YOUR CUE" />
       )}
 
-      <AdvanceButton label="Locked in →" onPress={onAdvance} variant="primary" />
+      {finalAction ?? <AdvanceButton label="Locked in →" onPress={onAdvance} variant="primary" />}
     </Animated.View>
   );
 }
@@ -840,173 +843,170 @@ function AdvanceButton({ label, onPress, disabled = false, variant = 'default' }
 
 // ─── STEP ROUTER ─────────────────────────────────────────────────────────────
 
-function StepRenderer({ step, onAdvance }: { step: any; onAdvance: (passed?: boolean) => void }) {
-  if (step.ui_variant) return <View style={stepRouterStyles.interactiveWrap}><VariantRenderer step={step} onAdvance={onAdvance} /></View>;
+function StepRenderer({
+  step,
+  onAdvance,
+  isFinal = false,
+  completionIntent = 'rep',
+}: {
+  step: any;
+  onAdvance: (passed?: boolean) => void;
+  isFinal?: boolean;
+  completionIntent?: CompletionIntent;
+}) {
+  const [finalVariantPassed, setFinalVariantPassed] = useState<boolean | null>(null);
   const adv = () => onAdvance();
+  const finalAction = isFinal ? (
+    <CompletionInteraction
+      variant={completionIntent === 'boss' ? 'card-swipe' : completionIntent === 'lesson' ? 'hold' : 'swipe'}
+      intent={completionIntent}
+      fallbackLabel="Complete Lesson"
+      onComplete={() => onAdvance(finalVariantPassed ?? undefined)}
+    />
+  ) : undefined;
+  if (step.ui_variant) {
+    return (
+      <View style={stepRouterStyles.interactiveWrap}>
+        <VariantRenderer
+          step={step}
+          onAdvance={(passed) => {
+            if (isFinal) setFinalVariantPassed(passed ?? true);
+            else onAdvance(passed);
+          }}
+        />
+        {finalVariantPassed !== null && finalAction}
+      </View>
+    );
+  }
   switch (step.type ?? '') {
     case 'spark': case 'text': case 'action':
-      return <SparkStep step={step} onAdvance={adv} />;
+      return <SparkStep step={step} onAdvance={adv} finalAction={finalAction} />;
     case 'choice': case 'scenario': case 'scenario_pick': case 'decision': case 'freeze_frame':
-      return <ChoiceStep step={step} onAdvance={adv} />;
+      return <ChoiceStep step={step} onAdvance={adv} finalAction={finalAction} />;
     case 'checklist': case 'quick_reset':
-      return <ChecklistStep step={step} onAdvance={adv} />;
+      return <ChecklistStep step={step} onAdvance={adv} finalAction={finalAction} />;
     case 'cue': case 'visualization': case 'reframe_builder': case 'pressureRep':
-      return <VisualizationStep step={step} onAdvance={adv} />;
+      return <VisualizationStep step={step} onAdvance={adv} finalAction={finalAction} />;
     case 'timer': case 'pressure_rep':
-      return <TimerStep step={step} onAdvance={adv} />;
+      return <TimerStep step={step} onAdvance={adv} finalAction={finalAction} />;
     case 'reflection':
-      return <ReflectionStep step={step} onAdvance={adv} />;
+      return <ReflectionStep step={step} onAdvance={adv} finalAction={finalAction} />;
     case 'feedback': case 'reward':
-      return <FeedbackStep step={step} onAdvance={adv} />;
+      return <FeedbackStep step={step} onAdvance={adv} finalAction={finalAction} />;
     case 'notice_wonder':
-      return <NoticeWonderStep step={step} onAdvance={adv} />;
+      return <NoticeWonderStep step={step} onAdvance={adv} finalAction={finalAction} />;
     default:
-      return <SparkStep step={step} onAdvance={adv} />;
+      return <SparkStep step={step} onAdvance={adv} finalAction={finalAction} />;
   }
 }
 
-// ─── COMPLETION OVERLAY ───────────────────────────────────────────────────────
+type CompletionKind = 'lesson' | 'checkpoint' | 'boss';
 
-function CompletionOverlay({ lesson, passed, onClose }: { lesson: any; passed: boolean; onClose: () => void }) {
-  const scaleAnim = useRef(new Animated.Value(0.7)).current;
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const xpBounce = useRef(new Animated.Value(0.5)).current;
+function LessonCompletionPayoff({
+  lesson,
+  xpDisplay,
+  contentFadeAnim,
+  type,
+  onContinue,
+  athleteState,
+}: {
+  lesson: any;
+  xpDisplay: number;
+  contentFadeAnim: Animated.Value;
+  type: CompletionKind;
+  onContinue: () => void;
+  athleteState: any;
+}) {
+  const insets = useSafeAreaInsets();
+  const slideAnim = useRef(new Animated.Value(18)).current;
+  const pathFill = useRef(new Animated.Value(0)).current;
+  const badgeFill = useRef(new Animated.Value(0)).current;
+
   useEffect(() => {
-    Haptics.notificationAsync(passed ? Haptics.NotificationFeedbackType.Success : Haptics.NotificationFeedbackType.Warning);
     Animated.parallel([
-      Animated.spring(scaleAnim, { toValue: 1, tension: 80, friction: 8, useNativeDriver: true }),
-      Animated.timing(fadeAnim, { toValue: 1, duration: 300, useNativeDriver: true }),
-    ]).start(() => Animated.spring(xpBounce, { toValue: 1, tension: 100, friction: 6, useNativeDriver: true }).start());
+      Animated.spring(slideAnim, { toValue: 0, tension: 70, friction: 12, useNativeDriver: true }),
+      Animated.timing(pathFill, { toValue: Math.min(0.92, ((athleteState?.completed_lessons?.length ?? 0) % 5 + 1) / 5), duration: 780, useNativeDriver: false }),
+      Animated.timing(badgeFill, { toValue: Math.min(0.88, ((athleteState?.total_xp ?? 0) % 500) / 500), duration: 900, useNativeDriver: false }),
+    ]).start();
   }, []);
-  const xp = passed ? (lesson?.xp_reward ?? 50) : Math.floor((lesson?.xp_reward ?? 50) * 0.5);
+
+  const isBoss = type === 'boss';
+  const title = isBoss ? 'Closeout Finished' : type === 'checkpoint' ? 'Checkpoint Cleared' : 'Rep Finished';
+  const currentPathName = lesson?.path_name ?? lesson?.lesson_family ?? lesson?.pillar_id ?? 'Career Path';
+  const badgeName = isBoss ? 'Gold Glove Track' : 'Rank Progress';
+  const pathWidth = pathFill.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] });
+  const badgeWidth = badgeFill.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] });
+  const secondary = isBoss ? { label: 'Back Home', route: '/(tabs)' } : { label: 'Open Playbook', route: '/playbook' };
+  const topSafePadding = Math.max(insets.top + Spacing.lg, Spacing.xxxl);
+
   return (
-    <Animated.View style={[completionStyles.overlay, { opacity: fadeAnim }]}>
-      <Animated.View style={[completionStyles.card, { transform: [{ scale: scaleAnim }] }]}>
-        <Animated.View style={[completionStyles.xpBurst, { transform: [{ scale: xpBounce }] }, !passed && completionStyles.xpBurstPartial]}>
-          <Ionicons name="flash" size={28} color={Colors.background} />
-          <Text style={completionStyles.xpNum}>+{xp}</Text>
-          <Text style={completionStyles.xpLabel}>XP</Text>
-        </Animated.View>
-        <Text style={completionStyles.title}>{passed ? 'Rep Complete.' : 'Keep Working.'}</Text>
-        <Text style={completionStyles.feedback}>{passed ? 'Rep complete. Keep stacking.' : 'Good effort. Come back and run it again.'}</Text>
-        {!passed && (
-          <Pressable style={completionStyles.retryBtn} onPress={() => router.replace(`/lesson/${lesson?.id}`)}>
-            <Ionicons name="refresh" size={16} color={Colors.primary} />
-            <Text style={completionStyles.retryBtnText}>Run it again</Text>
-          </Pressable>
-        )}
-        <Pressable style={completionStyles.nextBtn} onPress={onClose}>
-          <LinearGradient colors={[Colors.primary, '#18A84A']} style={StyleSheet.absoluteFill} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} />
-          <Text style={completionStyles.nextBtnText}>{passed ? 'Back to Career →' : 'Continue anyway →'}</Text>
-        </Pressable>
-      </Animated.View>
-    </Animated.View>
-  );
-}
-
-// ─── CELEBRATION OVERLAYS ─────────────────────────────────────────────────────
-
-const VOLT_LINES = ['Stack that.', 'Clean rep.', 'Next play.', 'That travels.', 'Built different.', 'Charge up.'];
-const BOSS_QUOTES = [
-  'You came in locked. You left locked.',
-  'That was a boss-level rep. Feel that.',
-  'Built differently. Keep adding.',
-  'You earned this one. Stack it.',
-];
-
-function LessonCompleteContent({ lesson, xpDisplay, contentFadeAnim }: { lesson: any; xpDisplay: number; contentFadeAnim: Animated.Value }) {
-  const line = useRef(VOLT_LINES[Math.floor(Math.random() * VOLT_LINES.length)]).current;
-  const [imgError, setImgError] = useState(false);
-  return (
-    <Animated.View style={[celebStyles.contentCenter, { opacity: contentFadeAnim }]}>
-      {!imgError ? (
-        <Image
-          source={require('../../assets/volt bust.png')}
-          style={celebStyles.voltAvatar}
-          resizeMode="contain"
-          onError={() => setImgError(true)}
-        />
-      ) : (
-        <View style={[celebStyles.voltAvatar, { backgroundColor: '#0F1A0F', borderWidth: 1.5, borderColor: '#22CC5E', alignItems: 'center', justifyContent: 'center' }]}>
-          <Text style={{ color: '#22CC5E', fontSize: 20 }}>⚡</Text>
-        </View>
-      )}
-      <Text style={celebStyles.tierLabel}>REP COMPLETE</Text>
-      <Text style={celebStyles.lessonTitleText}>{lesson?.title}</Text>
-      <View style={celebStyles.xpPill}>
-        <Ionicons name="flash" size={14} color={Colors.primary} />
-        <Text style={celebStyles.xpPillText}>+{xpDisplay} XP</Text>
-      </View>
-      <Text style={celebStyles.voltLine}>{line}</Text>
-      <Pressable
-        onPress={() => { router.push('/rep-mode?type=pitch-sequence') }}
-        style={{ marginTop: 8, borderWidth: 1, borderColor: '#22CC5E44', borderRadius: 20, paddingHorizontal: 20, paddingVertical: 8 }}
-      >
-        <Text style={{ color: '#22CC5E', fontSize: 12, fontWeight: '600' }}>Rep it out → 5 more scenarios</Text>
-      </Pressable>
-    </Animated.View>
-  );
-}
-
-function CheckpointCompleteContent({ lesson, xpDisplay, contentFadeAnim }: { lesson: any; xpDisplay: number; contentFadeAnim: Animated.Value }) {
-  return (
-    <Animated.View style={[celebStyles.contentCenter, { opacity: contentFadeAnim }]}>
-      <Ionicons name="shield-checkmark" size={64} color={Colors.info} />
-      <Text style={[celebStyles.tierLabel, { color: Colors.info }]}>CHECKPOINT CLEARED</Text>
-      <Text style={celebStyles.lessonTitleText}>{lesson?.title}</Text>
-      <View style={[celebStyles.xpPill, { borderColor: Colors.info }]}>
-        <Ionicons name="flash" size={14} color={Colors.info} />
-        <Text style={[celebStyles.xpPillText, { color: Colors.info }]}>+{xpDisplay} XP</Text>
-      </View>
-      <Text style={celebStyles.voltLine}>Checkpoint locked in. Keep building.</Text>
-    </Animated.View>
-  );
-}
-
-function BossCompleteContent({ lesson, xpDisplay, onContinue, contentFadeAnim }: { lesson: any; xpDisplay: number; onContinue: () => void; contentFadeAnim: Animated.Value }) {
-  const quote = useRef(BOSS_QUOTES[Math.floor(Math.random() * BOSS_QUOTES.length)]).current;
-  const crownPulse = useRef(new Animated.Value(1.0)).current;
-  const [imgError, setImgError] = useState(false);
-  useEffect(() => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(crownPulse, { toValue: 1.15, duration: 600, useNativeDriver: true }),
-        Animated.timing(crownPulse, { toValue: 1.0, duration: 600, useNativeDriver: true }),
-      ])
-    ).start();
-  }, []);
-  return (
-    <Animated.View style={[celebStyles.bossScroll, { opacity: contentFadeAnim }]}>
-      <ScrollView contentContainerStyle={celebStyles.bossScrollContent} showsVerticalScrollIndicator={false}>
-        {!imgError ? (
-          <Image
-            source={require('../../assets/volt bust.png')}
-            style={celebStyles.voltAvatarLg}
-            resizeMode="contain"
-            onError={() => setImgError(true)}
-          />
-        ) : (
-          <View style={[celebStyles.voltAvatarLg, { backgroundColor: '#0F1A0F', borderWidth: 1.5, borderColor: '#22CC5E', alignItems: 'center', justifyContent: 'center' }]}>
-            <Text style={{ color: '#22CC5E', fontSize: 28 }}>⚡</Text>
+    <Animated.View style={[payoffStyles.wrap, { opacity: contentFadeAnim, transform: [{ translateY: slideAnim }] }]}>
+      <ScrollView contentContainerStyle={[payoffStyles.scrollContent, { paddingTop: topSafePadding }]} showsVerticalScrollIndicator={false}>
+        <View style={payoffStyles.heroCard}>
+          <LinearGradient colors={['rgba(35,209,96,0.16)', 'rgba(5,8,6,0)']} style={StyleSheet.absoluteFill} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} />
+          <View style={payoffStyles.signalLine} />
+          <View style={payoffStyles.heroTopRow}>
+            <View>
+              <Text style={payoffStyles.kicker}>{isBoss ? 'CLOSE IT OUT' : 'LESSON COMPLETE'}</Text>
+              <Text style={payoffStyles.title}>{title}</Text>
+            </View>
+            <CoachCapMoment />
           </View>
-        )}
-        <Text style={celebStyles.voltLabel}>VOLT</Text>
-        <Text style={celebStyles.bossQuote}>{quote}</Text>
-        <View style={celebStyles.dividerLine} />
-        <Animated.Text style={[celebStyles.crown, { transform: [{ scale: crownPulse }] }]}>♛</Animated.Text>
-        <Text style={celebStyles.bossBattleLabel}>BOSS BATTLE</Text>
-        <Text style={celebStyles.defeatedLabel}>DEFEATED</Text>
-        <Text style={celebStyles.lessonTitleText}>{lesson?.title}</Text>
-        <View style={[celebStyles.xpPill, { borderColor: Colors.warning }]}>
-          <Ionicons name="flash" size={14} color={Colors.warning} />
-          <Text style={[celebStyles.xpPillText, { color: Colors.warning }]}>+{xpDisplay} XP</Text>
+          <Text style={payoffStyles.lessonTitle} numberOfLines={2}>{lesson?.title}</Text>
+          <View style={payoffStyles.xpRow}>
+            <Text style={payoffStyles.xpText}>+{xpDisplay}</Text>
+            <Text style={payoffStyles.xpLabel}>XP</Text>
+          </View>
         </View>
-        <Text style={[celebStyles.voltLine, { color: Colors.warning }]}>BONUS REP EARNED</Text>
-        <Pressable style={celebStyles.continueBtn} onPress={onContinue}>
-          <Text style={celebStyles.continueBtnText}>Continue →</Text>
-        </Pressable>
+
+        <View style={payoffStyles.card}>
+          <View style={payoffStyles.cardHeaderRow}>
+            <Text style={payoffStyles.cardLabel}>{currentPathName}</Text>
+            <Text style={payoffStyles.cardValue}>Next rep loaded</Text>
+          </View>
+          <View style={payoffStyles.progressTrack}><Animated.View style={[payoffStyles.progressFill, { width: pathWidth }]} /></View>
+        </View>
+
+        <View style={payoffStyles.card}>
+          <View style={payoffStyles.cardHeaderRow}>
+            <Text style={payoffStyles.cardLabel}>{badgeName}</Text>
+            <Text style={[payoffStyles.cardValue, { color: Colors.warning }]}>Gold progress</Text>
+          </View>
+          <View style={payoffStyles.badgeRow}>
+            <View style={payoffStyles.badgeMark}><Ionicons name="trophy" size={18} color={Colors.warning} /></View>
+            <View style={{ flex: 1 }}>
+              <View style={payoffStyles.rankTrack}><Animated.View style={[payoffStyles.rankFill, { width: badgeWidth }]} /></View>
+              <Text style={payoffStyles.helperText}>Badge ring moved. Keep stacking clean reps.</Text>
+            </View>
+          </View>
+        </View>
+
+        <View style={payoffStyles.takeCard}>
+          <Text style={payoffStyles.takeLabel}>CC’S TAKE</Text>
+          <Text style={payoffStyles.takeText}>{lesson?.cc_take ?? 'You stayed with the cue. Next time the count gets loud, shrink it: target, breath, attack.'}</Text>
+        </View>
+
+        <View style={payoffStyles.actions}>
+          <Pressable style={payoffStyles.primaryCta} onPress={onContinue}>
+            <LinearGradient colors={['#23D160', '#18A84A']} style={StyleSheet.absoluteFill} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} />
+            <Text style={payoffStyles.primaryCtaText}>Continue Career</Text>
+            <Ionicons name="arrow-forward" size={18} color="#050806" />
+          </Pressable>
+          <Pressable style={payoffStyles.secondaryCta} onPress={() => router.push(secondary.route as any)}>
+            <Text style={payoffStyles.secondaryCtaText}>{secondary.label}</Text>
+          </Pressable>
+        </View>
       </ScrollView>
     </Animated.View>
+  );
+}
+
+function CoachCapMoment() {
+  return (
+    <View style={payoffStyles.ccHook}>
+      <View style={payoffStyles.ccCap} />
+      <Text style={payoffStyles.ccText}>CC</Text>
+    </View>
   );
 }
 
@@ -1217,6 +1217,12 @@ useEffect(() => {
   const lessonFamily = lesson.lesson_family ?? lesson.pillar_id ?? 'Spark Card';
   const isBoss = !!lesson.is_boss;
   const isCheckpoint = !!lesson.is_checkpoint;
+  const finalStepType = String(currentStep?.type ?? currentStep?.ui_variant ?? '');
+  const completionIntent: CompletionIntent = isBoss || isCheckpoint
+    ? 'boss'
+    : finalStepType.includes('cue') || finalStepType.includes('routine')
+      ? 'save'
+      : 'rep';
 
   return (
     <View style={[screenStyles.container, { paddingTop: insets.top }]}>
@@ -1295,7 +1301,15 @@ useEffect(() => {
         keyboardShouldPersistTaps="handled"
       >
         <Animated.View style={{ opacity: stepFade }}>
-          {currentStep && <StepRenderer key={stepIndex} step={currentStep} onAdvance={advanceStep} />}
+          {currentStep && (
+            <StepRenderer
+              key={stepIndex}
+              step={currentStep}
+              onAdvance={advanceStep}
+              isFinal={safeIndex === totalSteps - 1}
+              completionIntent={completionIntent}
+            />
+          )}
         </Animated.View>
       </ScrollView>
 
@@ -1309,14 +1323,14 @@ useEffect(() => {
       )}
       {showComplete !== null && (
         <Animated.View style={[celebStyles.overlay, { opacity: overlayFadeAnim }]}>
-          {showComplete === 'lesson' && <LessonCompleteContent lesson={lesson} xpDisplay={xpDisplay} contentFadeAnim={contentFadeAnim} />}
-          {showComplete === 'checkpoint' && <CheckpointCompleteContent lesson={lesson} xpDisplay={xpDisplay} contentFadeAnim={contentFadeAnim} />}
-          {showComplete === 'boss' && <BossCompleteContent lesson={lesson} xpDisplay={xpDisplay} onContinue={() => router.push('/(tabs)/career')} contentFadeAnim={contentFadeAnim} />}
-          {showComplete !== 'boss' && (
-            <Pressable style={celebStyles.backBtn} onPress={() => router.push('/(tabs)/career')}>
-              <Text style={celebStyles.backBtnText}>Back to Career →</Text>
-            </Pressable>
-          )}
+          <LessonCompletionPayoff
+            lesson={lesson}
+            xpDisplay={xpDisplay}
+            contentFadeAnim={contentFadeAnim}
+            type={showComplete}
+            athleteState={athleteState}
+            onContinue={() => router.push('/(tabs)/career')}
+          />
         </Animated.View>
       )}
     </View>
@@ -2104,6 +2118,126 @@ const ratingStyles = StyleSheet.create({
 });
 
 // ─── Celebration ──────────────────────────────────────────────────────────────
+
+const payoffStyles = StyleSheet.create({
+  wrap: {
+    flex: 1,
+    width: '100%',
+    backgroundColor: '#050806',
+  },
+  scrollContent: {
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.xxl,
+    paddingBottom: Spacing.xxxl,
+    gap: Spacing.md,
+  },
+  heroCard: {
+    backgroundColor: '#111612',
+    borderColor: '#242B26',
+    borderWidth: 1,
+    borderRadius: Radius.xl,
+    padding: Spacing.lg,
+    overflow: 'hidden',
+    gap: Spacing.md,
+  },
+  signalLine: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    height: 2,
+    backgroundColor: '#39FF88',
+    shadowColor: '#39FF88',
+    shadowOpacity: 0.6,
+    shadowRadius: 12,
+  },
+  heroTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: Spacing.md },
+  kicker: { color: '#23D160', fontFamily: 'Inter_700Bold', fontSize: 10, letterSpacing: 1.8 },
+  title: { color: '#F7FFF9', fontFamily: 'Inter_700Bold', fontSize: 34, lineHeight: 38, letterSpacing: -0.8, marginTop: 4 },
+  lessonTitle: { color: '#A8B3AA', fontFamily: 'Inter_500Medium', fontSize: 14, lineHeight: 20 },
+  xpRow: { flexDirection: 'row', alignItems: 'flex-end', gap: Spacing.sm, marginTop: Spacing.xs },
+  xpText: { color: '#39FF88', fontFamily: 'Inter_700Bold', fontSize: 44, lineHeight: 48, letterSpacing: -1 },
+  xpLabel: { color: '#23D160', fontFamily: 'Inter_700Bold', fontSize: 14, letterSpacing: 1.8, paddingBottom: 7 },
+  ccHook: {
+    width: 54,
+    height: 54,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: 'rgba(35,209,96,0.3)',
+    backgroundColor: '#0B100C',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  ccCap: {
+    position: 'absolute',
+    top: 11,
+    width: 28,
+    height: 8,
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+    backgroundColor: '#23D160',
+  },
+  ccText: { color: '#F7FFF9', fontFamily: 'Inter_700Bold', fontSize: 13, letterSpacing: 1, marginTop: 10 },
+  card: {
+    backgroundColor: '#111612',
+    borderColor: '#242B26',
+    borderWidth: 1,
+    borderRadius: Radius.lg,
+    padding: Spacing.lg,
+    gap: Spacing.md,
+  },
+  cardHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: Spacing.md },
+  cardLabel: { color: '#F7FFF9', fontFamily: 'Inter_700Bold', fontSize: 14, flex: 1 },
+  cardValue: { color: '#A8B3AA', fontFamily: 'Inter_600SemiBold', fontSize: 12 },
+  progressTrack: { height: 9, borderRadius: 5, backgroundColor: '#050806', borderWidth: 1, borderColor: '#242B26', overflow: 'hidden' },
+  progressFill: { height: '100%', backgroundColor: '#23D160', shadowColor: '#39FF88', shadowOpacity: 0.55, shadowRadius: 9 },
+  badgeRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
+  badgeMark: {
+    width: 42,
+    height: 42,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(245,166,35,0.42)',
+    backgroundColor: 'rgba(245,166,35,0.10)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  rankTrack: { height: 8, borderRadius: 4, backgroundColor: '#050806', overflow: 'hidden', borderWidth: 1, borderColor: '#2A2518' },
+  rankFill: { height: '100%', backgroundColor: Colors.warning },
+  helperText: { color: '#A8B3AA', fontFamily: 'Inter_400Regular', fontSize: 12, lineHeight: 17, marginTop: Spacing.sm },
+  takeCard: {
+    backgroundColor: '#0B100C',
+    borderColor: 'rgba(35,209,96,0.24)',
+    borderWidth: 1,
+    borderRadius: Radius.lg,
+    padding: Spacing.lg,
+    gap: Spacing.sm,
+  },
+  takeLabel: { color: '#23D160', fontFamily: 'Inter_700Bold', fontSize: 10, letterSpacing: 1.6 },
+  takeText: { color: '#F7FFF9', fontFamily: 'Inter_500Medium', fontSize: 15, lineHeight: 23 },
+  actions: { gap: Spacing.sm, marginTop: Spacing.sm },
+  primaryCta: {
+    minHeight: 54,
+    borderRadius: Radius.md,
+    overflow: 'hidden',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.sm,
+  },
+  primaryCtaText: { color: '#050806', fontFamily: 'Inter_700Bold', fontSize: 15, letterSpacing: 0.3 },
+  secondaryCta: {
+    minHeight: 48,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: '#242B26',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#111612',
+  },
+  secondaryCtaText: { color: '#A8B3AA', fontFamily: 'Inter_700Bold', fontSize: 13, letterSpacing: 0.4 },
+});
+
 const celebStyles = StyleSheet.create({
   overlay: {
     ...StyleSheet.absoluteFillObject,
