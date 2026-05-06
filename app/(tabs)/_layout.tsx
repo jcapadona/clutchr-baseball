@@ -56,7 +56,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="locker"
         options={{
-          title: 'Locker',
+          title: 'Resources',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="library" size={size} color={color} />
           ),

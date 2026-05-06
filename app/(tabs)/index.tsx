@@ -459,8 +459,8 @@ function handleContinueCareer() {
                 <Ionicons name="library" size={17} color={Colors.primary} />
               </View>
               <View style={styles.quickMeta}>
-                <Text style={styles.quickTitle}>LOCKER</Text>
-                <Text style={styles.quickDesc}>Articles · tools</Text>
+                <Text style={styles.quickTitle}>RESOURCES</Text>
+                <Text style={styles.quickDesc}>Cues · plans</Text>
               </View>
               <Ionicons name="chevron-forward" size={12} color={Colors.primary + '60'} />
             </Pressable>

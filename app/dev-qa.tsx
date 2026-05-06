@@ -85,7 +85,7 @@ export default function DevQAScreen() {
         const cards = await fetchContentCards({ limit: 500 });
         setContentCount(cards.length);
       } catch (err) {
-        errors.push(`Locker content fetch failed: ${err instanceof Error ? err.message : String(err)}`);
+        errors.push(`Resources content fetch failed: ${err instanceof Error ? err.message : String(err)}`);
       }
 
       setFetchErrors(errors);
@@ -138,7 +138,7 @@ export default function DevQAScreen() {
       ) : (
         <ScrollView contentContainerStyle={styles.scroll}>
           <Stat label="Fetched lessons" value={String(lessons.length)} />
-          <Stat label="Fetched Locker cards" value={String(contentCount)} />
+          <Stat label="Fetched Resources cards" value={String(contentCount)} />
           <Stat label="Completed lesson IDs" value={String(report.completedCount)} />
           <Stat label="Completed IDs not in fetched lessons" value={String(report.unmatchedCompleted.length)} />
           <Stat label="Lessons missing required fields" value={String(report.lessonIssues.length)} />

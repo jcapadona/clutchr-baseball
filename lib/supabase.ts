@@ -36,6 +36,7 @@ export interface ContentCard {
   audio_url: string | null;
   youtube_url: string | null;
   visibility: string | null;
+  resource_group?: string | null;
 }
 
 export interface LegacyLesson {
