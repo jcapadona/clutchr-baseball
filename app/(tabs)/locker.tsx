@@ -4,7 +4,6 @@ import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
-  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -17,16 +16,85 @@ import { fetchContentCards, type ContentCard } from '@/lib/supabase';
 import { Colors, Radius, Spacing } from '@/constants/theme';
 import { SectionHeader } from '@/components/ui';
 
-// ─── CATEGORIES ───────────────────────────────────────────────────────────────
+// ─── RESOURCE GROUPS ──────────────────────────────────────────────────────────
 
-const CATEGORIES = [
-  { id: 'all',        label: 'All',        icon: 'apps' },
-  { id: 'pregame',    label: 'Pregame',    icon: 'time' },
-  { id: 'ingame',     label: 'In-Game',    icon: 'baseball' },
-  { id: 'recovery',   label: 'Recovery',   icon: 'heart' },
-  { id: 'growth',     label: 'Mindset',    icon: 'bulb' },
-  { id: 'leadership', label: 'Leadership', icon: 'people' },
+type ResourceGroup = 'dugout' | 'bullpen' | 'grind';
+
+const RESOURCE_TABS: Array<{ id: ResourceGroup; label: string; empty: string }> = [
+  {
+    id: 'dugout',
+    label: 'Dugout',
+    empty: 'No Dugout cards yet. Add hitting, baserunning, team, or Baseball IQ resources here.',
+  },
+  {
+    id: 'bullpen',
+    label: 'Bullpen',
+    empty: 'No Bullpen cards yet. Add pitching, catching, throwing, or arm-care resources here.',
+  },
+  {
+    id: 'grind',
+    label: 'The Grind',
+    empty: 'No Grind cards yet. Add strength, recovery, readiness, or standards resources here.',
+  },
 ];
+
+const RESOURCE_GROUP_ALIASES: Record<ResourceGroup, string[]> = {
+  bullpen: [
+    'pitcher', 'pitching', 'catcher', 'catching', 'battery', 'throwing', 'arm_care', 'arm care',
+    'command', 'mound', 'bullpen',
+  ],
+  grind: [
+    'strength', 'workout', 'recovery', 'readiness', 'mobility', 'discipline', 'standards',
+    'work_ethic', 'work ethic', 'return_to_throw', 'return to throw', 'soreness', 'sleep',
+  ],
+  dugout: [
+    'hitter', 'hitting', 'offense', 'baserunning', 'baserunner', 'team', 'leadership',
+    'baseball_iq', 'baseball iq', 'approach', 'pitch_recognition', 'pitch recognition',
+  ],
+};
+
+function normalizeResourceToken(value?: string | null) {
+  return (value ?? '').trim().toLowerCase().replace(/[\s-]+/g, '_');
+}
+
+function resourceGroupFromField(value?: string | null): ResourceGroup | null {
+  const normalized = normalizeResourceToken(value);
+  if (['dugout', 'hitting', 'offense'].includes(normalized)) return 'dugout';
+  if (['bullpen', 'pitching', 'battery'].includes(normalized)) return 'bullpen';
+  if (['the_grind', 'grind', 'training', 'strength', 'recovery'].includes(normalized)) return 'grind';
+  return null;
+}
+
+function cardTags(card: ContentCard) {
+  return [
+    ...((card.role_tags ?? []) as string[]),
+    ...((card.skill_tags ?? []) as string[]),
+    ...((card.season_tags ?? []) as string[]),
+    card.content_category,
+    card.lesson_family,
+  ].filter(Boolean);
+}
+
+function inferResourceGroup(card: ContentCard): ResourceGroup {
+  const explicitGroup = resourceGroupFromField(card.resource_group);
+  if (explicitGroup) return explicitGroup;
+
+  const normalizedTags = cardTags(card).map(normalizeResourceToken);
+  const hasAny = (aliases: string[]) =>
+    aliases.some((alias) => {
+      const normalizedAlias = normalizeResourceToken(alias);
+      return normalizedTags.some(
+        (tag) => tag === normalizedAlias || tag.includes(`_${normalizedAlias}_`) ||
+          tag.startsWith(`${normalizedAlias}_`) || tag.endsWith(`_${normalizedAlias}`)
+      );
+    });
+
+  if (hasAny(RESOURCE_GROUP_ALIASES.bullpen)) return 'bullpen';
+  if (hasAny(RESOURCE_GROUP_ALIASES.grind)) return 'grind';
+  if (hasAny(RESOURCE_GROUP_ALIASES.dugout)) return 'dugout';
+
+  return 'dugout';
+}
 
 // ─── ICON + COLOR per card type ───────────────────────────────────────────────
 
@@ -40,22 +108,18 @@ const TYPE_CONFIG: Record<string, { icon: string; color: string; bg: string }> =
 
 // ─── SCREEN ───────────────────────────────────────────────────────────────────
 
-export default function LockerScreen() {
+export default function ResourcesScreen() {
   const insets = useSafeAreaInsets();
   const [cards, setCards] = useState<ContentCard[]>([]);
   const [loading, setLoading] = useState(true);
-  const [category, setCategory] = useState('all');
+  const [activeTab, setActiveTab] = useState<ResourceGroup>('dugout');
   const [search, setSearch] = useState('');
-  const [selectedCard, setSelectedCard] = useState<ContentCard | null>(null);
 
   useEffect(() => {
     (async () => {
       setLoading(true);
       try {
-        const data = await fetchContentCards({
-          category: category === 'all' ? undefined : category,
-          limit: 50,
-        });
+        const data = await fetchContentCards({ limit: 50 });
         setCards(data);
       } catch (err) {
         console.error(err);
@@ -63,15 +127,17 @@ export default function LockerScreen() {
         setLoading(false);
       }
     })();
-  }, [category]);
+  }, []);
 
+  const activeTabConfig = RESOURCE_TABS.find((tab) => tab.id === activeTab) ?? RESOURCE_TABS[0];
+  const groupedCards = cards.filter((card) => inferResourceGroup(card) === activeTab);
   const filtered = search
-    ? cards.filter(
+    ? groupedCards.filter(
         (c) =>
           c.title.toLowerCase().includes(search.toLowerCase()) ||
           (c.summary ?? '').toLowerCase().includes(search.toLowerCase())
       )
-    : cards;
+    : groupedCards;
 
   const featured = filtered.filter((c) => c.is_featured).slice(0, 3);
   const rest = filtered.filter((c) => !c.is_featured);
@@ -82,8 +148,9 @@ export default function LockerScreen() {
       {/* ── HEADER ── */}
       <View style={styles.header}>
         <View>
-          <Text style={styles.eyebrow}>YOUR RESOURCES</Text>
-          <Text style={styles.title}>The Locker</Text>
+          <Text style={styles.eyebrow}>REFERENCE LAYER</Text>
+          <Text style={styles.title}>Resources</Text>
+          <Text style={styles.subtitle}>Cues, plans, and reference work for your next rep.</Text>
         </View>
         <View style={styles.headerIcon}>
           <Ionicons name="library" size={20} color={Colors.primary} />
@@ -107,46 +174,25 @@ export default function LockerScreen() {
         )}
       </View>
 
-      {/* ── FILTER PILLS ──
-          KEY FIX: Do NOT use overflow:hidden on the parent.
-          Use paddingVertical on the ScrollView itself so touch targets are full height.
-          Pills have explicit height + minWidth so they never collapse.
-      ── */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.pillsRow}
-        style={styles.pillsScroll}
-      >
-        {CATEGORIES.map((cat) => {
-          const isActive = category === cat.id;
+      {/* ── RESOURCE TABS ── */}
+      <View style={styles.tabRail}>
+        {RESOURCE_TABS.map((tab) => {
+          const isActive = activeTab === tab.id;
           return (
             <Pressable
-              key={cat.id}
-              onPress={() => setCategory(cat.id)}
-              style={[styles.pill, isActive && styles.pillActive]}
+              key={tab.id}
+              onPress={() => setActiveTab(tab.id)}
+              style={[styles.tab, isActive && styles.tabActive]}
               hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
             >
-              {isActive && (
-                <LinearGradient
-                  colors={[Colors.primary + '28', Colors.primary + '10']}
-                  style={styles.pillActiveGlow}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                />
-              )}
-              <Ionicons
-                name={cat.icon as any}
-                size={13}
-                color={isActive ? Colors.primary : Colors.textSecondary}
-              />
-              <Text style={[styles.pillText, isActive && styles.pillTextActive]}>
-                {cat.label}
+              <Text style={[styles.tabText, isActive && styles.tabTextActive]}>
+                {tab.label}
               </Text>
+              {isActive && <View style={styles.tabIndicator} />}
             </Pressable>
           );
         })}
-      </ScrollView>
+      </View>
 
       {/* ── CONTENT ── */}
       {loading ? (
@@ -162,14 +208,14 @@ export default function LockerScreen() {
           {/* Featured strip */}
           {featured.length > 0 && (
             <View style={styles.section}>
-              <SectionHeader title="FOR YOU" count={featured.length} />
+              <SectionHeader title={`${activeTabConfig.label.toUpperCase()} PICKS`} count={featured.length} />
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={styles.featuredRow}
               >
                 {featured.map((card) => (
-                  <FeaturedCard key={card.id} card={card} onOpen={() => setSelectedCard(card)} />
+                  <FeaturedCard key={card.id} card={card} onOpen={() => router.push(`/content/${card.id}`)} />
                 ))}
               </ScrollView>
             </View>
@@ -178,10 +224,10 @@ export default function LockerScreen() {
           {/* All cards list */}
           {rest.length > 0 && (
             <View style={styles.section}>
-              <SectionHeader title="ALL CONTENT" count={rest.length} />
+              <SectionHeader title="REFERENCE CARDS" count={rest.length} />
               <View style={styles.cardList}>
                 {rest.map((card, i) => (
-                  <ListCard key={card.id} card={card} index={i} onOpen={() => setSelectedCard(card)} />
+                  <ListCard key={card.id} card={card} index={i} onOpen={() => router.push(`/content/${card.id}`)} />
                 ))}
               </View>
             </View>
@@ -191,17 +237,10 @@ export default function LockerScreen() {
             <View style={styles.empty}>
               <Ionicons name="library-outline" size={40} color={Colors.textTertiary} />
               <Text style={styles.emptyTitle}>Nothing here yet.</Text>
-              <Text style={styles.emptyText}>Try a different filter or check back soon.</Text>
+              <Text style={styles.emptyText}>{search ? 'No resources match that search.' : activeTabConfig.empty}</Text>
             </View>
           )}
         </ScrollView>
-      )}
-      {/* ── CONTENT READER MODAL ── */}
-      {selectedCard && (
-        <ContentReaderModal
-          card={selectedCard}
-          onClose={() => setSelectedCard(null)}
-        />
       )}
     </View>
   );
@@ -279,204 +318,6 @@ function ListCard({ card, index, onOpen }: { card: ContentCard; index: number; o
   );
 }
 
-// ─── CONTENT READER MODAL ────────────────────────────────────────────────────
-// Shows body_markdown as plain text in a full-screen modal.
-// No lesson player — this is reference content, not a lesson.
-
-function ContentReaderModal({ card, onClose }: { card: ContentCard; onClose: () => void }) {
-  const insets = useSafeAreaInsets();
-  const cfg = TYPE_CONFIG[card.card_type] ?? TYPE_CONFIG.article;
-
-  // Simple markdown → readable text: strip ## headers to bold-ish, keep bullets
-  const bodyText = card.body_markdown ?? card.summary ?? 'No content available.';
-
-  return (
-    <Modal
-      visible
-      animationType="slide"
-      presentationStyle="pageSheet"
-      onRequestClose={onClose}
-    >
-      <View style={[readerStyles.container, { paddingTop: insets.top }]}>
-
-        {/* Header */}
-        <View style={readerStyles.header}>
-          <Pressable onPress={onClose} style={readerStyles.closeBtn} hitSlop={12}>
-            <Ionicons name="close" size={20} color={Colors.textSecondary} />
-          </Pressable>
-          <View style={[readerStyles.typeBadge, { backgroundColor: cfg.bg, borderColor: cfg.color + '40' }]}>
-            <Ionicons name={cfg.icon as any} size={11} color={cfg.color} />
-            <Text style={[readerStyles.typeText, { color: cfg.color }]}>
-              {card.card_type.toUpperCase()}
-            </Text>
-          </View>
-          {card.duration_minutes && (
-            <Text style={readerStyles.duration}>{card.duration_minutes} min</Text>
-          )}
-        </View>
-
-        <ScrollView
-          contentContainerStyle={[readerStyles.scroll, { paddingBottom: insets.bottom + 40 }]}
-          showsVerticalScrollIndicator={false}
-        >
-          {/* Title */}
-          <Text style={readerStyles.title}>{card.title}</Text>
-
-          {/* Summary */}
-          {card.summary && (
-            <Text style={readerStyles.summary}>{card.summary}</Text>
-          )}
-
-          {/* Divider */}
-          <View style={readerStyles.divider} />
-
-          {/* Body — render markdown as formatted text blocks */}
-          {bodyText.split('\n').map((line, i) => {
-            const trimmed = line.trim();
-            if (!trimmed) return <View key={i} style={{ height: 8 }} />;
-
-            // ## heading
-            if (trimmed.startsWith('## ')) {
-              return (
-                <Text key={i} style={readerStyles.heading2}>
-                  {trimmed.replace('## ', '')}
-                </Text>
-              );
-            }
-            // ### heading
-            if (trimmed.startsWith('### ')) {
-              return (
-                <Text key={i} style={readerStyles.heading3}>
-                  {trimmed.replace('### ', '')}
-                </Text>
-              );
-            }
-            // **bold** line (standalone)
-            if (trimmed.startsWith('**') && trimmed.endsWith('**')) {
-              return (
-                <Text key={i} style={readerStyles.boldLine}>
-                  {trimmed.replace(/\*\*/g, '')}
-                </Text>
-              );
-            }
-            // - bullet
-            if (trimmed.startsWith('- ')) {
-              return (
-                <View key={i} style={readerStyles.bulletRow}>
-                  <View style={[readerStyles.bulletDot, { backgroundColor: cfg.color }]} />
-                  <Text style={readerStyles.bulletText}>{trimmed.replace('- ', '')}</Text>
-                </View>
-              );
-            }
-            // numbered list
-            if (/^\d+\./.test(trimmed)) {
-              const num = trimmed.match(/^(\d+)\./)?.[1] ?? '';
-              const text = trimmed.replace(/^\d+\.\s*/, '');
-              return (
-                <View key={i} style={readerStyles.bulletRow}>
-                  <Text style={[readerStyles.numText, { color: cfg.color }]}>{num}.</Text>
-                  <Text style={readerStyles.bulletText}>{text}</Text>
-                </View>
-              );
-            }
-            // horizontal rule
-            if (trimmed === '---') {
-              return <View key={i} style={readerStyles.hr} />;
-            }
-            // plain body text
-            return (
-              <Text key={i} style={readerStyles.bodyText}>{trimmed}</Text>
-            );
-          })}
-        </ScrollView>
-      </View>
-    </Modal>
-  );
-}
-
-const readerStyles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-    paddingHorizontal: Spacing.xl,
-    paddingVertical: Spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-  },
-  closeBtn: {
-    width: 34, height: 34,
-    backgroundColor: Colors.surface,
-    borderRadius: Radius.sm,
-    borderWidth: 1, borderColor: Colors.border,
-    alignItems: 'center', justifyContent: 'center',
-    marginRight: 4,
-  },
-  typeBadge: {
-    flexDirection: 'row', alignItems: 'center', gap: 4,
-    paddingHorizontal: 8, paddingVertical: 4,
-    borderRadius: Radius.pill, borderWidth: 1,
-  },
-  typeText: { fontSize: 9, fontFamily: 'Inter_700Bold', letterSpacing: 0.8 },
-  duration: { fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.textTertiary, marginLeft: 'auto' as any },
-
-  scroll: { paddingHorizontal: Spacing.xl, paddingTop: Spacing.xl, gap: 4 },
-
-  title: {
-    fontSize: 24, fontFamily: 'Inter_700Bold',
-    color: Colors.textPrimary, lineHeight: 30,
-    letterSpacing: -0.3, marginBottom: Spacing.sm,
-  },
-  summary: {
-    fontSize: 15, fontFamily: 'Inter_400Regular',
-    color: Colors.textSecondary, lineHeight: 23,
-    marginBottom: Spacing.sm,
-  },
-  divider: { height: 1, backgroundColor: Colors.border, marginVertical: Spacing.lg },
-
-  heading2: {
-    fontSize: 18, fontFamily: 'Inter_700Bold',
-    color: Colors.textPrimary, lineHeight: 24,
-    marginTop: Spacing.lg, marginBottom: 4,
-  },
-  heading3: {
-    fontSize: 15, fontFamily: 'Inter_700Bold',
-    color: Colors.textPrimary, lineHeight: 22,
-    marginTop: Spacing.md, marginBottom: 4,
-  },
-  boldLine: {
-    fontSize: 14, fontFamily: 'Inter_700Bold',
-    color: Colors.textPrimary, lineHeight: 22,
-    marginTop: 6,
-  },
-  bulletRow: {
-    flexDirection: 'row', alignItems: 'flex-start',
-    gap: 10, marginVertical: 3,
-  },
-  bulletDot: {
-    width: 6, height: 6, borderRadius: 3,
-    marginTop: 7, flexShrink: 0,
-  },
-  numText: {
-    fontSize: 13, fontFamily: 'Inter_700Bold',
-    minWidth: 20, marginTop: 1,
-  },
-  bulletText: {
-    fontSize: 14, fontFamily: 'Inter_400Regular',
-    color: Colors.textPrimary, lineHeight: 22, flex: 1,
-  },
-  hr: {
-    height: 1, backgroundColor: Colors.border,
-    marginVertical: Spacing.md,
-  },
-  bodyText: {
-    fontSize: 15, fontFamily: 'Inter_400Regular',
-    color: Colors.textPrimary, lineHeight: 24,
-    marginVertical: 2,
-  },
-});
-
 // ─── STYLES ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
@@ -537,48 +378,55 @@ const styles = StyleSheet.create({
     padding: 0,
   },
 
-  // Pills — KEY FIX: style is on the ScrollView itself (not contentContainer)
-  // so it doesn't clip touch targets
-  pillsScroll: {
+  subtitle: {
+    maxWidth: 280,
+    marginTop: 4,
+    fontSize: 13,
+    fontFamily: 'Inter_400Regular',
+    color: Colors.textSecondary,
+    lineHeight: 19,
+  },
+
+  // Resource tabs
+  tabRail: {
+    flexDirection: 'row',
+    marginHorizontal: Spacing.xl,
     marginTop: Spacing.xs,
     marginBottom: Spacing.lg,
-    flexGrow: 0,
-  },
-  pillsRow: {
-    paddingHorizontal: Spacing.xl,
-    paddingVertical: 8,
-    gap: 10,
-  },
-  pill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    height: 38,
-    minWidth: 76,
-    paddingHorizontal: 14,
-    borderRadius: Radius.xl,
+    padding: 4,
+    borderRadius: Radius.lg,
     borderWidth: 1,
     borderColor: Colors.border,
     backgroundColor: Colors.surface,
+  },
+  tab: {
+    flex: 1,
+    minHeight: 40,
+    alignItems: 'center',
     justifyContent: 'center',
-    overflow: 'hidden',
+    borderRadius: Radius.md,
+    position: 'relative',
   },
-  pillActive: {
-    borderColor: Colors.primaryBorder,
+  tabActive: {
+    backgroundColor: Colors.primaryMuted,
   },
-  pillActiveGlow: {
-    ...StyleSheet.absoluteFillObject,
-    borderRadius: Radius.xl,
-  },
-  pillText: {
-    // VISIBLE text — was #555 before, now proper secondary
+  tabText: {
     fontSize: 12,
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'Inter_700Bold',
     color: Colors.textSecondary,
-    letterSpacing: 0.3,
+    letterSpacing: 0.4,
   },
-  pillTextActive: {
+  tabTextActive: {
     color: Colors.primary,
+  },
+  tabIndicator: {
+    position: 'absolute',
+    left: 18,
+    right: 18,
+    bottom: 5,
+    height: 2,
+    borderRadius: 1,
+    backgroundColor: Colors.primary,
   },
 
   // Content
