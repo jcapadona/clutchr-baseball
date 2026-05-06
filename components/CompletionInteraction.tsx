@@ -111,7 +111,9 @@ function SwipeToComplete({
   const dragX = useRef(new Animated.Value(0)).current;
   const sweep = useRef(new Animated.Value(0)).current;
   const completed = useRef(false);
-  const maxDrag = Math.max(1, trackWidth - 70);
+  const thumbSize = cardMode ? 62 : 56;
+  const trackPadding = 8;
+  const maxDrag = Math.max(1, trackWidth - thumbSize - trackPadding * 2);
 
   const finish = () => {
     if (completed.current || disabled) return;
@@ -139,9 +141,8 @@ function SwipeToComplete({
     [disabled, maxDrag]
   );
 
-  const fillWidth = dragX.interpolate({ inputRange: [0, maxDrag], outputRange: [56, trackWidth || 56], extrapolate: 'clamp' });
-  const labelOpacity = dragX.interpolate({ inputRange: [0, maxDrag * 0.55, maxDrag], outputRange: [1, 0.55, 0], extrapolate: 'clamp' });
-  const sweepTranslate = sweep.interpolate({ inputRange: [0, 1], outputRange: [-180, 260] });
+  const signalWidth = sweep.interpolate({ inputRange: [0, 1], outputRange: [0, trackWidth || 0], extrapolate: 'clamp' });
+  const sweepTranslate = sweep.interpolate({ inputRange: [0, 1], outputRange: [-180, 320] });
 
   return (
     <View style={styles.wrap}>
@@ -149,13 +150,15 @@ function SwipeToComplete({
         style={[styles.track, cardMode && styles.cardTrack, disabled && styles.disabled]}
         onLayout={(event: LayoutChangeEvent) => setTrackWidth(event.nativeEvent.layout.width)}
       >
-        <Animated.View style={[styles.fill, { width: fillWidth }]}>
-          <LinearGradient colors={['#23D160', '#39FF88']} style={StyleSheet.absoluteFill} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} />
+        <Animated.View style={[styles.completionSignal, { width: signalWidth }]}>
+          <LinearGradient colors={['rgba(35,209,96,0.18)', 'rgba(57,255,136,0.28)']} style={StyleSheet.absoluteFill} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} />
         </Animated.View>
         <Animated.View style={[styles.sweep, { transform: [{ translateX: sweepTranslate }] }]} />
-        <Animated.Text style={[styles.trackLabel, { opacity: labelOpacity }]}>{cardMode ? `${label}  →` : `Swipe to ${label}`}</Animated.Text>
+        <View style={[styles.labelRail, cardMode && styles.cardLabelRail]} pointerEvents="none">
+          <Text style={styles.trackLabel}>{cardMode ? label : `Slide to ${label}`}</Text>
+        </View>
         <Animated.View style={[styles.thumb, cardMode && styles.cardThumb, { transform: [{ translateX: dragX }] }]} {...panResponder.panHandlers}>
-          <Ionicons name={cardMode ? 'baseball' : 'arrow-forward'} size={20} color="#050806" />
+          <Ionicons name={cardMode ? 'baseball' : 'arrow-forward'} size={cardMode ? 22 : 24} color="#050806" />
         </Animated.View>
       </View>
       {showFallback && (
@@ -239,8 +242,8 @@ const styles = StyleSheet.create({
   mockStack: { gap: Spacing.lg },
   wrap: { gap: Spacing.sm, marginTop: Spacing.md },
   track: {
-    height: 62,
-    borderRadius: Radius.lg,
+    height: 72,
+    borderRadius: 24,
     backgroundColor: '#111612',
     borderWidth: 1,
     borderColor: '#242B26',
@@ -252,7 +255,7 @@ const styles = StyleSheet.create({
     shadowRadius: 14,
     shadowOffset: { width: 0, height: 0 },
   },
-  cardTrack: { height: 82, borderRadius: Radius.xl, borderColor: 'rgba(35,209,96,0.28)' },
+  cardTrack: { height: 84, borderRadius: Radius.xl, borderColor: 'rgba(35,209,96,0.28)' },
   holdTrack: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm },
   disabled: { opacity: 0.48 },
   fill: {
@@ -261,6 +264,12 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     opacity: 0.92,
+  },
+  completionSignal: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
   },
   sweep: {
     position: 'absolute',
@@ -271,9 +280,9 @@ const styles = StyleSheet.create({
     transform: [{ rotate: '14deg' }],
   },
   thumb: {
-    width: 48,
-    height: 48,
-    borderRadius: 14,
+    width: 56,
+    height: 56,
+    borderRadius: 18,
     backgroundColor: '#39FF88',
     alignItems: 'center',
     justifyContent: 'center',
@@ -281,16 +290,23 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.42,
     shadowRadius: 14,
     shadowOffset: { width: 0, height: 0 },
+    zIndex: 2,
   },
-  cardThumb: { width: 58, height: 58, borderRadius: 18 },
+  cardThumb: { width: 62, height: 62, borderRadius: 20 },
+  labelRail: {
+    ...StyleSheet.absoluteFillObject,
+    left: 72,
+    right: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1,
+  },
+  cardLabelRail: { left: 82 },
   trackLabel: {
-    position: 'absolute',
-    alignSelf: 'center',
     color: '#F7FFF9',
     fontFamily: 'Inter_700Bold',
-    fontSize: 14,
-    letterSpacing: 0.4,
-    textTransform: 'uppercase',
+    fontSize: 16,
+    letterSpacing: 0.2,
   },
   fallback: { alignSelf: 'center', paddingVertical: 8, paddingHorizontal: 12 },
   fallbackText: { color: Colors.textSecondary, fontFamily: 'Inter_600SemiBold', fontSize: 12, letterSpacing: 0.4 },

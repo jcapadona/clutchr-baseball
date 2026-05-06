@@ -917,6 +917,7 @@ function LessonCompletionPayoff({
   onContinue: () => void;
   athleteState: any;
 }) {
+  const insets = useSafeAreaInsets();
   const slideAnim = useRef(new Animated.Value(18)).current;
   const pathFill = useRef(new Animated.Value(0)).current;
   const badgeFill = useRef(new Animated.Value(0)).current;
@@ -936,10 +937,11 @@ function LessonCompletionPayoff({
   const pathWidth = pathFill.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] });
   const badgeWidth = badgeFill.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] });
   const secondary = isBoss ? { label: 'Back Home', route: '/(tabs)' } : { label: 'Open Playbook', route: '/playbook' };
+  const topSafePadding = Math.max(insets.top + Spacing.lg, Spacing.xxxl);
 
   return (
     <Animated.View style={[payoffStyles.wrap, { opacity: contentFadeAnim, transform: [{ translateY: slideAnim }] }]}>
-      <ScrollView contentContainerStyle={payoffStyles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={[payoffStyles.scrollContent, { paddingTop: topSafePadding }]} showsVerticalScrollIndicator={false}>
         <View style={payoffStyles.heroCard}>
           <LinearGradient colors={['rgba(35,209,96,0.16)', 'rgba(5,8,6,0)']} style={StyleSheet.absoluteFill} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} />
           <View style={payoffStyles.signalLine} />
