@@ -20,7 +20,7 @@ import { getBestCue } from '@/lib/personalCue';
 import { SkeletonBox, SkeletonCard } from '@/components/SkeletonLoader';
 import { ClutchrHeader } from '@/components/ClutchrHeader';
 import { EmblemBadge } from '@/components/EmblemBadge';
-import { getCurrentRank, getRankProgressPercent } from '@/lib/progressionRanks';
+import { getRankProgress } from '@/lib/progressionRanks';
 
 const MISSIONS_DATE_KEY  = 'missions_date';
 const MISSIONS_PROG_KEY  = 'missions_progress';
@@ -143,7 +143,8 @@ export default function HomeScreen() {
   }, [mission2Done]);
 
   const totalXp  = athleteState?.total_xp ?? 0;
-  const currentRank = getCurrentRank(totalXp);
+  const rankProgress = getRankProgress(totalXp);
+  const currentRank = rankProgress.currentRank;
   const streak   = athleteState?.streak_count ?? 0;
   const focusCue = getBestCue(athleteState, 'focus');
 
@@ -188,8 +189,6 @@ export default function HomeScreen() {
     );
   }
 
-  const rankProgressPercent = getRankProgressPercent(totalXp);
-
   const roleLabel = athleteState.primary_role
     ? athleteState.primary_role.charAt(0).toUpperCase() + athleteState.primary_role.slice(1)
     : 'Player';
@@ -230,15 +229,9 @@ export default function HomeScreen() {
         kicker="CLUTCHR BASEBALL"
         title="Your Next Rep"
         subtitle={`${phaseLabel} · ${roleLabel}`}
-        statusPill={currentRank.shortLabel}
-        progress={rankProgressPercent}
         style={{ paddingTop: insets.top + 12 }}
         rightAction={
           <View style={s.navRight}>
-            <View style={[s.rankChip, { borderColor: currentRank.borderColor }]}>
-              <EmblemBadge rank={currentRank} size="small" />
-              <Text style={[s.rankChipText, { color: currentRank.primaryColor }]}>{currentRank.name}</Text>
-            </View>
             <View style={s.streakPill}>
               <Ionicons name="flame" size={13} color="#F5A623" />
               <Text style={s.pillStat}>{streak}</Text>
@@ -293,6 +286,24 @@ export default function HomeScreen() {
                 </Text>
               </>
             )}
+
+            <View style={[c.rankSurface, { borderColor: currentRank.borderColor }]}>
+              <EmblemBadge rank={currentRank} size="small" />
+              <View style={c.rankInfo}>
+                <View style={c.rankHeaderRow}>
+                  <Text style={c.rankKicker}>CURRENT RANK</Text>
+                  <Text style={[c.rankName, { color: currentRank.primaryColor }]}>{currentRank.name}</Text>
+                </View>
+                <View style={c.rankTrack}>
+                  <View style={[c.rankFill, { width: `${Math.max(2, rankProgress.percent * 100)}%`, backgroundColor: currentRank.accentColor }]} />
+                </View>
+                <Text style={c.rankHelper} numberOfLines={1}>
+                  {rankProgress.nextRank
+                    ? `${rankProgress.xpRemaining.toLocaleString()} XP to ${rankProgress.nextRank.name}`
+                    : 'Elite held — keep stacking clean reps'}
+                </Text>
+              </View>
+            </View>
 
             <Pressable
               style={({ pressed }) => [c.ctaBtn, pressed && { opacity: 0.88 }]}
@@ -433,23 +444,6 @@ const s = StyleSheet.create({
     fontWeight: '700',
     fontFamily: 'Inter_700Bold',
   },
-  rankChip: {
-    borderRadius: 20,
-    borderWidth: 1,
-    backgroundColor: '#111612',
-    paddingLeft: 2,
-    paddingRight: 9,
-    paddingVertical: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 3,
-  },
-  rankChipText: {
-    fontSize: 10,
-    fontFamily: 'Inter_700Bold',
-    letterSpacing: 0.8,
-  },
-
   // XP progress line
   xpLine: {
     height: 2,
@@ -624,6 +618,54 @@ const c = StyleSheet.create({
     marginTop: 4,
     fontFamily: 'Inter_400Regular',
     lineHeight: 19,
+  },
+  rankSurface: {
+    marginTop: 14,
+    borderWidth: 1,
+    borderRadius: 14,
+    backgroundColor: 'rgba(5,8,6,0.56)',
+    padding: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  rankInfo: {
+    flex: 1,
+    minWidth: 0,
+  },
+  rankHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+    marginBottom: 7,
+  },
+  rankKicker: {
+    color: 'rgba(255,255,255,0.38)',
+    fontSize: 9,
+    letterSpacing: 1.5,
+    fontFamily: 'Inter_700Bold',
+  },
+  rankName: {
+    fontSize: 11,
+    letterSpacing: 0.8,
+    fontFamily: 'Inter_700Bold',
+  },
+  rankTrack: {
+    height: 5,
+    borderRadius: 999,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    overflow: 'hidden',
+  },
+  rankFill: {
+    height: '100%',
+    borderRadius: 999,
+  },
+  rankHelper: {
+    marginTop: 6,
+    color: 'rgba(255,255,255,0.52)',
+    fontSize: 11,
+    fontFamily: 'Inter_400Regular',
   },
   ctaBtn: {
     backgroundColor: '#22CC5E',

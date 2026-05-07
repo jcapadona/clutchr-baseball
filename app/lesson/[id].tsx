@@ -982,7 +982,9 @@ function LessonCompletionPayoff({
             <Text style={[payoffStyles.cardValue, { color: rankUpgraded ? afterRank.accentColor : afterRank.primaryColor }]}>{rankUpgraded ? 'Rank upgraded' : `${afterRank.name} progress`}</Text>
           </View>
           <View style={payoffStyles.badgeRow}>
-            <EmblemBadge rank={afterRank} size="small" />
+            <View style={payoffStyles.badgeAnchor}>
+              <EmblemBadge rank={afterRank} size="small" />
+            </View>
             <View style={{ flex: 1 }}>
               <View style={[payoffStyles.rankTrack, { borderColor: afterRank.borderColor }]}><Animated.View style={[payoffStyles.rankFill, { width: badgeWidth, backgroundColor: afterRank.accentColor }]} /></View>
               <Text style={payoffStyles.helperText}>{rankUpgraded ? `${afterRank.name} unlocked. Command stronger.` : rankProgress.nextRank ? `Rank progress moved. ${rankProgress.xpRemaining.toLocaleString()} XP to ${rankProgress.nextRank.name}.` : 'Elite held. Keep stacking clean reps.'}</Text>
@@ -2204,7 +2206,8 @@ const payoffStyles = StyleSheet.create({
   cardValue: { color: '#A8B3AA', fontFamily: 'Inter_600SemiBold', fontSize: 12 },
   progressTrack: { height: 9, borderRadius: 5, backgroundColor: '#050806', borderWidth: 1, borderColor: '#242B26', overflow: 'hidden' },
   progressFill: { height: '100%', backgroundColor: '#23D160', shadowColor: '#39FF88', shadowOpacity: 0.55, shadowRadius: 9 },
-  badgeRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
+  badgeRow: { flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.md },
+  badgeAnchor: { paddingTop: 1 },
   badgeMark: {
     width: 42,
     height: 42,
