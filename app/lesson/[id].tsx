@@ -8,7 +8,6 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Animated,
-  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -22,6 +21,8 @@ import { Colors, Radius, Spacing } from '@/constants/theme';
 import { speakLessonIntro, stopSpeech } from '@/lib/lessonAudio';
 import { ClutchrHeader } from '@/components/ClutchrHeader';
 import { CompletionInteraction, type CompletionIntent } from '@/components/CompletionInteraction';
+import { EmblemBadge } from '@/components/EmblemBadge';
+import { getCurrentRank, getRankProgress, getRankProgressPercent } from '@/lib/progressionRanks';
 
 import StrikeZoneVisualizer from '@/components/StrikeZoneVisualizer';
 import PitchSequenceChess from '@/components/PitchSequenceChess';
@@ -909,6 +910,8 @@ function LessonCompletionPayoff({
   type,
   onContinue,
   athleteState,
+  startingXP,
+  awardedXP,
 }: {
   lesson: any;
   xpDisplay: number;
@@ -916,6 +919,8 @@ function LessonCompletionPayoff({
   type: CompletionKind;
   onContinue: () => void;
   athleteState: any;
+  startingXP: number;
+  awardedXP: number;
 }) {
   const insets = useSafeAreaInsets();
   const slideAnim = useRef(new Animated.Value(18)).current;
@@ -926,14 +931,18 @@ function LessonCompletionPayoff({
     Animated.parallel([
       Animated.spring(slideAnim, { toValue: 0, tension: 70, friction: 12, useNativeDriver: true }),
       Animated.timing(pathFill, { toValue: Math.min(0.92, ((athleteState?.completed_lessons?.length ?? 0) % 5 + 1) / 5), duration: 780, useNativeDriver: false }),
-      Animated.timing(badgeFill, { toValue: Math.min(0.88, ((athleteState?.total_xp ?? 0) % 500) / 500), duration: 900, useNativeDriver: false }),
+      Animated.timing(badgeFill, { toValue: getRankProgressPercent(startingXP + awardedXP), duration: 900, useNativeDriver: false }),
     ]).start();
   }, []);
 
   const isBoss = type === 'boss';
   const title = isBoss ? 'Closeout Finished' : type === 'checkpoint' ? 'Checkpoint Cleared' : 'Rep Finished';
   const currentPathName = lesson?.path_name ?? lesson?.lesson_family ?? lesson?.pillar_id ?? 'Career Path';
-  const badgeName = isBoss ? 'Gold Glove Track' : 'Rank Progress';
+  const beforeRank = getCurrentRank(startingXP);
+  const afterTotalXP = startingXP + awardedXP;
+  const rankProgress = getRankProgress(afterTotalXP);
+  const afterRank = rankProgress.currentRank;
+  const rankUpgraded = beforeRank.id !== afterRank.id;
   const pathWidth = pathFill.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] });
   const badgeWidth = badgeFill.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] });
   const secondary = isBoss ? { label: 'Back Home', route: '/(tabs)' } : { label: 'Open Playbook', route: '/playbook' };
@@ -969,14 +978,14 @@ function LessonCompletionPayoff({
 
         <View style={payoffStyles.card}>
           <View style={payoffStyles.cardHeaderRow}>
-            <Text style={payoffStyles.cardLabel}>{badgeName}</Text>
-            <Text style={[payoffStyles.cardValue, { color: Colors.warning }]}>Gold progress</Text>
+            <Text style={payoffStyles.cardLabel}>Rank Progress</Text>
+            <Text style={[payoffStyles.cardValue, { color: rankUpgraded ? afterRank.accentColor : afterRank.primaryColor }]}>{rankUpgraded ? 'Rank upgraded' : `${afterRank.name} progress`}</Text>
           </View>
           <View style={payoffStyles.badgeRow}>
-            <View style={payoffStyles.badgeMark}><Ionicons name="trophy" size={18} color={Colors.warning} /></View>
+            <EmblemBadge rank={afterRank} size="small" />
             <View style={{ flex: 1 }}>
-              <View style={payoffStyles.rankTrack}><Animated.View style={[payoffStyles.rankFill, { width: badgeWidth }]} /></View>
-              <Text style={payoffStyles.helperText}>Badge ring moved. Keep stacking clean reps.</Text>
+              <View style={[payoffStyles.rankTrack, { borderColor: afterRank.borderColor }]}><Animated.View style={[payoffStyles.rankFill, { width: badgeWidth, backgroundColor: afterRank.accentColor }]} /></View>
+              <Text style={payoffStyles.helperText}>{rankUpgraded ? `${afterRank.name} unlocked. Command stronger.` : rankProgress.nextRank ? `Rank progress moved. ${rankProgress.xpRemaining.toLocaleString()} XP to ${rankProgress.nextRank.name}.` : 'Elite held. Keep stacking clean reps.'}</Text>
             </View>
           </View>
         </View>
@@ -1039,6 +1048,7 @@ export default function LessonPlayerScreen() {
   const contentFadeAnim = useRef(new Animated.Value(0)).current;
   const xpCountAnim = useRef(new Animated.Value(0)).current;
   const finalXPRef = useRef(0);
+  const startingXPRef = useRef(0);
   const lessonStartTime = useRef(Date.now());
   const visitedSteps = useRef(new Set<number>());
 
@@ -1140,6 +1150,7 @@ useEffect(() => {
       const xp = lesson?.xp_reward ?? 50;
       const finalPassed = passed !== false && sessionPassed;
       const awardedXP = finalPassed ? xp : Math.floor(xp * 0.5);
+      startingXPRef.current = athleteState?.total_xp ?? 0;
       if (athleteState && lesson) completeLesson(lesson.id ?? id, awardedXP);
       finalXPRef.current = awardedXP;
       if (lesson?.is_boss || lesson?.is_checkpoint) {
@@ -1329,6 +1340,8 @@ useEffect(() => {
             contentFadeAnim={contentFadeAnim}
             type={showComplete}
             athleteState={athleteState}
+            startingXP={startingXPRef.current}
+            awardedXP={finalXPRef.current}
             onContinue={() => router.push('/(tabs)/career')}
           />
         </Animated.View>

@@ -70,10 +70,10 @@ const PRO_FEATURES = [
     desc: 'Dedicated slump-reset world. Clutch-moment training. Short memory reps.',
   },
   {
-    icon: 'trophy',
+    icon: 'shield',
     color: Colors.purple,
     title: 'Phase Badges & Milestones',
-    desc: 'Earn phase patches, rank up from Rookie to Legend. Career you can be proud of.',
+    desc: 'Earn clean rank progress from Foundation to Elite. Every rep builds.',
   },
   {
     icon: 'refresh',
