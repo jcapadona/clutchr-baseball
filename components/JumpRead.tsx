@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Colors, Radius, Spacing } from '@/constants/theme';
 
@@ -44,6 +44,12 @@ export default function JumpRead({ data, responses, feedback, onComplete }: Prop
   const [selected, setSelected] = useState<string | null>(null);
   const [resolved, setResolved] = useState(false);
   const fadeAnim = useRef(new Animated.Value(1)).current;
+  const resolveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => () => {
+    if (resolveTimeoutRef.current) clearTimeout(resolveTimeoutRef.current);
+    fadeAnim.stopAnimation();
+  }, [fadeAnim]);
 
   const selectedOption = data.options.find((o) => o.id === selected);
   const quality = selectedOption?.quality ?? null;
@@ -72,7 +78,7 @@ export default function JumpRead({ data, responses, feedback, onComplete }: Prop
     } else {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
-    setTimeout(() => {
+    resolveTimeoutRef.current = setTimeout(() => {
       setResolved(true);
       Animated.timing(fadeAnim, { toValue: 1, duration: 200, useNativeDriver: true }).start();
       onComplete(opt?.quality === 'correct' || opt?.quality === 'acceptable');

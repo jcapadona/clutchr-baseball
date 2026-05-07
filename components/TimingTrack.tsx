@@ -55,6 +55,16 @@ export default function TimingTrack({ data, responses, feedback, onComplete }: P
   const resultFade = useRef(new Animated.Value(0)).current;
   const startTimeRef = useRef<number>(0);
   const animRef = useRef<Animated.CompositeAnimation | null>(null);
+  const timeoutRefs = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+  useEffect(() => () => {
+    animRef.current?.stop();
+    timeoutRefs.current.forEach(clearTimeout);
+    timeoutRefs.current = [];
+    resultFade.stopAnimation();
+    ringAnim.stopAnimation();
+    opacityAnim.stopAnimation();
+  }, [opacityAnim, resultFade, ringAnim]);
 
   const pulseResult = useCallback((result: TapResult) => {
     setLastResult(result);
@@ -82,13 +92,13 @@ export default function TimingTrack({ data, responses, feedback, onComplete }: P
       setResults((prev) => {
         const next: TapResult[] = [...prev, 'LATE'];
         if (next.length >= totalReps) {
-          setTimeout(() => finalize(next), 500);
+          timeoutRefs.current.push(setTimeout(() => finalize(next), 500));
         }
         return next;
       });
-      setTimeout(() => {
+      timeoutRefs.current.push(setTimeout(() => {
         setRepIndex((r) => r + 1);
-      }, 800);
+      }, 800));
     });
   }, [ringAnim, opacityAnim, duration, pulseResult, totalReps]);
 
@@ -133,7 +143,7 @@ export default function TimingTrack({ data, responses, feedback, onComplete }: P
     setResults((prev) => {
       const next = [...prev, result];
       if (next.length >= totalReps) {
-        setTimeout(() => finalize(next), 600);
+        timeoutRefs.current.push(setTimeout(() => finalize(next), 600));
       }
       return next;
     });

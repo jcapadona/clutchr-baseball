@@ -4,7 +4,7 @@ import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 import * as Speech from 'expo-speech';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert,
   Animated,
@@ -35,6 +35,81 @@ import JumpRead from '@/components/JumpRead';
 import TimingTrack from '@/components/TimingTrack';
 import ConfidenceSlider from '@/components/ConfidenceSlider';
 import PitchCountBoard from '@/components/PitchCountBoard';
+
+type AnswerStatus = 'correct' | 'acceptable' | 'incorrect';
+
+type AnswerResult = {
+  status: AnswerStatus;
+  feedbackText?: string;
+  selectedId: string;
+};
+
+function normalizeChoiceId(choice: any, index: number): string {
+  return String(choice?.id ?? choice?.value ?? choice?.key ?? `choice-${index}`);
+}
+
+function normalizeChoices(rawChoices: any[]): any[] {
+  return rawChoices.map((choice, index) => ({ ...choice, id: normalizeChoiceId(choice, index) }));
+}
+
+function getStringList(value: any): string[] {
+  return Array.isArray(value) ? value.map(String) : value ? [String(value)] : [];
+}
+
+function resolveFeedbackMap(step: any, choices: any[]): Record<string, string | undefined> {
+  const fromStep = step?.feedbackById ?? step?.feedback_by_id ?? step?.feedback_by_choice ?? {};
+  return choices.reduce((acc, choice) => {
+    acc[choice.id] = choice.feedback ?? fromStep[choice.id];
+    return acc;
+  }, {} as Record<string, string | undefined>);
+}
+
+function resolveAnswerResult({
+  selectedId,
+  correctId,
+  acceptableIds = [],
+  feedbackById = {},
+  fallbackFeedback,
+}: {
+  selectedId: string;
+  correctId?: string | null;
+  acceptableIds?: string[];
+  feedbackById?: Record<string, string | undefined>;
+  fallbackFeedback?: string;
+}): AnswerResult {
+  const status: AnswerStatus = selectedId === correctId
+    ? 'correct'
+    : acceptableIds.includes(selectedId)
+      ? 'acceptable'
+      : 'incorrect';
+  return {
+    status,
+    feedbackText: feedbackById[selectedId] ?? fallbackFeedback,
+    selectedId,
+  };
+}
+
+function getLessonFlags(lesson: any) {
+  const nodeType = String(lesson?.node_type ?? '').toLowerCase();
+  return {
+    isBoss: lesson?.is_boss === true || nodeType === 'boss',
+    isCheckpoint: lesson?.is_checkpoint === true || nodeType === 'checkpoint',
+  };
+}
+
+function isValidStep(step: any): boolean {
+  return !!step && typeof step === 'object' && (typeof step.type === 'string' || typeof step.ui_variant === 'string');
+}
+
+function normalizeLessonForPlayer(rawLesson: any): { lesson: any | null; error: string | null } {
+  if (!rawLesson || typeof rawLesson !== 'object') return { lesson: null, error: "Couldn’t load this rep." };
+  if (!Array.isArray(rawLesson.steps) || rawLesson.steps.length === 0) {
+    return { lesson: rawLesson, error: "Couldn’t load this rep." };
+  }
+  const steps = rawLesson.steps.filter(isValidStep);
+  if (steps.length === 0) return { lesson: rawLesson, error: "Couldn’t load this rep." };
+  return { lesson: { ...rawLesson, steps }, error: null };
+}
 
 // ─── SELF-RATING CHECK-IN ─────────────────────────────────────────────────────
 
@@ -107,15 +182,54 @@ function SelfRatingCheckIn({ role, lessonTitle, isBoss, onSubmit }: { role: stri
 
 // ─── UI VARIANT ROUTER ────────────────────────────────────────────────────────
 
-function VariantRenderer({ step, onAdvance }: { step: any; onAdvance: (passed?: boolean) => void }) {
+function UnsupportedVariantFallback({ onAdvance }: { onAdvance: () => void }) {
+  return (
+    <View style={feedbackStyles.container}>
+      <View style={feedbackStyles.iconWrap}>
+        <Ionicons name="construct-outline" size={36} color={Colors.warning} />
+      </View>
+      <Text style={feedbackStyles.text}>This rep needs an update.</Text>
+      <AdvanceButton label="Skip this rep →" onPress={onAdvance} />
+    </View>
+  );
+}
+
+function VariantRenderer({
+  step,
+  onAdvance,
+  lessonId,
+  stepIndex,
+}: {
+  step: any;
+  onAdvance: (passed?: boolean) => void;
+  lessonId?: string;
+  stepIndex: number;
+}) {
   const firedRef = useRef(false);
+  const completeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => () => {
+    if (completeTimeoutRef.current) clearTimeout(completeTimeoutRef.current);
+  }, []);
+
   const handleComplete = useCallback((passed: boolean) => {
     if (firedRef.current) return;
     firedRef.current = true;
-    setTimeout(() => onAdvance(passed), 1800);
+    completeTimeoutRef.current = setTimeout(() => onAdvance(passed), 1800);
   }, [onAdvance]);
 
-  const props = { data: step.data, responses: step.responses, feedback: step.feedback, onComplete: handleComplete };
+  if (!step.data || typeof step.data !== 'object') {
+    if (__DEV__) {
+      console.warn('[LessonPlayer] Malformed ui_variant data', {
+        lessonId,
+        stepIndex,
+        uiVariant: step.ui_variant,
+      });
+    }
+    return <UnsupportedVariantFallback onAdvance={() => onAdvance(false)} />;
+  }
+
+  const props = { data: step.data, responses: step.responses ?? {}, feedback: step.feedback ?? {}, onComplete: handleComplete };
   switch (step.ui_variant) {
     case 'strike_zone_visualizer':   return <StrikeZoneVisualizer {...props} />;
     case 'pitch_sequence_chess':     return <PitchSequenceChess {...props} />;
@@ -129,7 +243,15 @@ function VariantRenderer({ step, onAdvance }: { step: any; onAdvance: (passed?: 
     case 'timing_track':             return <TimingTrack {...props} />;
     case 'confidence_slider':        return <ConfidenceSlider {...props} />;
     case 'pitch_count_board':        return <PitchCountBoard {...props} />;
-    default:                         return null;
+    default:
+      if (__DEV__) {
+        console.warn('[LessonPlayer] Unsupported ui_variant', {
+          lessonId,
+          stepIndex,
+          uiVariant: step.ui_variant,
+        });
+      }
+      return <UnsupportedVariantFallback onAdvance={() => onAdvance(false)} />;
   }
 }
 
@@ -220,24 +342,53 @@ function CueBox({ cue, label = 'YOUR CUE' }: { cue: string; label?: string }) {
 // Before: clean bordered tiles. After: dramatic success/fail states.
 
 function ChoiceStep({ step, onAdvance, finalAction }: { step: any; onAdvance: () => void; finalAction?: React.ReactNode }) {
-  const [selected, setSelected] = useState<string | null>(null);
-  const [revealed, setRevealed] = useState(false);
+  const [selectedChoiceId, setSelectedChoiceId] = useState<string | null>(null);
+  const [answerResult, setAnswerResult] = useState<AnswerResult | null>(null);
 
-  // Shuffle once on mount so the correct answer doesn't always appear at position B
-  const shuffledRef = useRef<any[] | null>(null);
-  if (shuffledRef.current === null) {
+  const choices = useMemo(() => {
     const raw = step.choices ?? step.options ?? [];
-    shuffledRef.current = [...raw].sort(() => Math.random() - 0.5);
-  }
-  const choices = shuffledRef.current;
+    const normalized = normalizeChoices(Array.isArray(raw) ? raw : []);
+    const canShuffle = normalized.length > 1 && normalized.every((choice) => typeof choice.id === 'string' && choice.id.length > 0);
+    return canShuffle ? [...normalized].sort(() => Math.random() - 0.5) : normalized;
+  }, [step]);
 
-  function handlePick(id: string, outcome?: string) {
-    if (revealed) return;
+  const feedbackById = useMemo(() => resolveFeedbackMap(step, choices), [step, choices]);
+  const correctId = useMemo(() => {
+    const explicit = step.correct_id ?? step.correctChoiceId ?? step.correct_choice_id ?? step.correctId;
+    if (explicit !== undefined && explicit !== null) return String(explicit);
+    const correctChoice = choices.find((choice) => choice.outcome === 'success' || choice.quality === 'correct' || choice.correct === true || choice.is_correct === true);
+    return correctChoice?.id ?? null;
+  }, [step, choices]);
+  const acceptableIds = useMemo(() => {
+    const explicit = [
+      ...getStringList(step.acceptable_ids),
+      ...getStringList(step.acceptable_choice_ids),
+      ...getStringList(step.acceptableChoiceIds),
+    ];
+    const fromChoices = choices
+      .filter((choice) => choice.quality === 'acceptable' || choice.outcome === 'acceptable' || choice.acceptable === true)
+      .map((choice) => choice.id);
+    return Array.from(new Set([...explicit, ...fromChoices]));
+  }, [step, choices]);
+
+  function handlePick(id: string) {
+    if (answerResult) return;
+    const choice = choices.find((c) => c.id === id);
+    if (!choice) return;
     Haptics.selectionAsync();
-    setSelected(id);
-    setRevealed(true);
-    if (outcome === 'success') {
+    const result = resolveAnswerResult({
+      selectedId: id,
+      correctId,
+      acceptableIds,
+      feedbackById,
+      fallbackFeedback: choice.feedback,
+    });
+    setSelectedChoiceId(id);
+    setAnswerResult(result);
+    if (result.status === 'correct') {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    } else if (result.status === 'acceptable') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     } else {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     }
@@ -249,34 +400,35 @@ function ChoiceStep({ step, onAdvance, finalAction }: { step: any; onAdvance: ()
 
       <View style={choiceStyles.list}>
         {choices.map((c: any, i: number) => {
-          const cid = c.id ?? String(i);
-          const isSel = selected === cid;
-          const isOk = c.outcome === 'success' || c.quality === 'correct';
+          const isSel = selectedChoiceId === c.id;
+          const status = c.id === correctId ? 'correct' : acceptableIds.includes(c.id) ? 'acceptable' : 'incorrect';
+          const isOk = status === 'correct' || status === 'acceptable';
 
           return (
             <ChoiceButton
-              key={cid}
+              key={c.id}
               label={c.text ?? c.label ?? ''}
-              feedback={c.feedback}
+              feedback={answerResult?.selectedId === c.id ? answerResult.feedbackText : feedbackById[c.id]}
               isSelected={isSel}
-              isRevealed={revealed}
+              isRevealed={answerResult !== null}
               isCorrect={isOk}
+              status={status}
               index={i}
-              onPress={() => handlePick(cid, c.outcome)}
-              disabled={revealed}
+              onPress={() => handlePick(c.id)}
+              disabled={answerResult !== null}
             />
           );
         })}
       </View>
 
-      {revealed && finalAction ? finalAction : <AdvanceButton label="Next →" onPress={onAdvance} disabled={!revealed} />}
+      {answerResult && finalAction ? finalAction : <AdvanceButton label="Next →" onPress={onAdvance} disabled={!answerResult} />}
     </View>
   );
 }
 
-function ChoiceButton({ label, feedback, isSelected, isRevealed, isCorrect, index, onPress, disabled }: {
+function ChoiceButton({ label, feedback, isSelected, isRevealed, isCorrect, status, index, onPress, disabled }: {
   label: string; feedback?: string; isSelected: boolean; isRevealed: boolean;
-  isCorrect: boolean; index: number; onPress: () => void; disabled: boolean;
+  isCorrect: boolean; status: AnswerStatus; index: number; onPress: () => void; disabled: boolean;
 }) {
   const revealAnim = useRef(new Animated.Value(0)).current;
   const shakeAnim = useRef(new Animated.Value(0)).current;
@@ -304,9 +456,9 @@ function ChoiceButton({ label, feedback, isSelected, isRevealed, isCorrect, inde
 
   if (isSelected && isRevealed) {
     if (isCorrect) {
-      borderColor = Colors.primary;
-      bgColor = 'rgba(34,204,94,0.10)';
-      iconName = 'checkmark-circle';
+      borderColor = status === 'acceptable' ? Colors.warning : Colors.primary;
+      bgColor = status === 'acceptable' ? 'rgba(245,166,35,0.10)' : 'rgba(34,204,94,0.10)';
+      iconName = status === 'acceptable' ? 'alert-circle' : 'checkmark-circle';
     } else {
       borderColor = Colors.danger;
       bgColor = 'rgba(255,59,48,0.08)';
@@ -331,10 +483,10 @@ function ChoiceButton({ label, feedback, isSelected, isRevealed, isCorrect, inde
         {/* Option letter */}
         <View style={[choiceStyles.optionLetter, {
           backgroundColor: isSelected && isRevealed
-            ? (isCorrect ? Colors.primary : Colors.danger)
+            ? (isCorrect ? (status === 'acceptable' ? Colors.warning : Colors.primary) : Colors.danger)
             : Colors.surfaceElevated,
           borderColor: isSelected && isRevealed
-            ? (isCorrect ? Colors.primary : Colors.danger)
+            ? (isCorrect ? (status === 'acceptable' ? Colors.warning : Colors.primary) : Colors.danger)
             : Colors.border,
         }]}>
           <Text style={[choiceStyles.optionLetterText, {
@@ -348,7 +500,7 @@ function ChoiceButton({ label, feedback, isSelected, isRevealed, isCorrect, inde
           {/* Feedback slides in after reveal */}
           {isSelected && isRevealed && feedback && (
             <Animated.View style={{ opacity: revealAnim }}>
-              <Text style={[choiceStyles.feedback, { color: isCorrect ? Colors.primary : Colors.textSecondary }]}>
+              <Text style={[choiceStyles.feedback, { color: isCorrect ? (status === 'acceptable' ? Colors.warning : Colors.primary) : Colors.textSecondary }]}>
                 {feedback}
               </Text>
             </Animated.View>
@@ -357,7 +509,7 @@ function ChoiceButton({ label, feedback, isSelected, isRevealed, isCorrect, inde
 
         {/* Result icon */}
         {isSelected && isRevealed && iconName && (
-          <Ionicons name={iconName} size={20} color={isCorrect ? Colors.primary : Colors.danger} />
+          <Ionicons name={iconName} size={20} color={isCorrect ? (status === 'acceptable' ? Colors.warning : Colors.primary) : Colors.danger} />
         )}
       </Pressable>
 
@@ -505,9 +657,14 @@ function TimerStep({ step, onAdvance, finalAction }: { step: any; onAdvance: () 
   const progressAnim = useRef(new Animated.Value(0)).current;
   const glowAnim = useRef(new Animated.Value(0)).current;
 
-  useEffect(() => () => { if (intervalRef.current) clearInterval(intervalRef.current); }, []);
+  useEffect(() => () => {
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    progressAnim.stopAnimation();
+    glowAnim.stopAnimation();
+  }, [glowAnim, progressAnim]);
 
   function startTimer() {
+    if (intervalRef.current) clearInterval(intervalRef.current);
     setRunning(true);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     // Animate the progress arc
@@ -848,11 +1005,15 @@ function StepRenderer({
   onAdvance,
   isFinal = false,
   completionIntent = 'rep',
+  lessonId,
+  stepIndex,
 }: {
   step: any;
   onAdvance: (passed?: boolean) => void;
   isFinal?: boolean;
   completionIntent?: CompletionIntent;
+  lessonId?: string;
+  stepIndex: number;
 }) {
   const [finalVariantPassed, setFinalVariantPassed] = useState<boolean | null>(null);
   const adv = () => onAdvance();
@@ -869,6 +1030,8 @@ function StepRenderer({
       <View style={stepRouterStyles.interactiveWrap}>
         <VariantRenderer
           step={step}
+          lessonId={lessonId}
+          stepIndex={stepIndex}
           onAdvance={(passed) => {
             if (isFinal) setFinalVariantPassed(passed ?? true);
             else onAdvance(passed);
@@ -1060,14 +1223,14 @@ export default function LessonPlayerScreen() {
   }, []);
 
   useEffect(() => {
-    return () => { Speech.stop(); };
+    return () => { stopSpeech(); };
   }, []);
 
   async function toggleMute() {
     const next = !isMuted;
     setIsMuted(next);
     await AsyncStorage.setItem('lesson_tts_muted', String(next));
-    if (next) Speech.stop();
+    if (next) stopSpeech();
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   }
 
@@ -1079,17 +1242,23 @@ export default function LessonPlayerScreen() {
         if (err || !data) {
           const { data: cc, error: err2 } = await supabase.from('content_cards').select('*').eq('id', id).single();
           if (err2 || !cc) throw new Error('Lesson not found');
-          setLesson(cc);
-        } else { setLesson(data); }
+          const normalized = normalizeLessonForPlayer(cc);
+          if (normalized.error) setError(normalized.error);
+          setLesson(normalized.lesson);
+        } else {
+          const normalized = normalizeLessonForPlayer(data);
+          if (normalized.error) setError(normalized.error);
+          setLesson(normalized.lesson);
+        }
       } catch (e: any) { setError(e.message ?? 'Failed to load'); }
       finally { setLoading(false); }
     })();
   }, [id]);
 useEffect(() => {
-  if (!lesson) return;
+  if (!lesson || isMuted) { stopSpeech(); return; }
   speakLessonIntro(lesson, reason ?? undefined);
   return () => { stopSpeech(); };
-}, [lesson]);
+}, [lesson, isMuted, reason]);
   const steps: any[] = lesson?.steps ?? [];
   const totalSteps = steps.length;
 
@@ -1098,10 +1267,11 @@ useEffect(() => {
     const step = steps[Math.min(stepIndex, totalSteps - 1)];
     const text = getStepReadText(step);
     if (text && !isMuted) {
-      Speech.stop();
+      stopSpeech();
       Speech.speak(text, { language: 'en-US', pitch: 1.0, rate: 0.92 });
     }
-  }, [stepIndex, isMuted, totalSteps]);
+    return () => { stopSpeech(); };
+  }, [stepIndex, isMuted, totalSteps, lesson]);
 
   useEffect(() => {
     if (totalSteps === 0) return;
@@ -1138,11 +1308,14 @@ useEffect(() => {
       if (!allVisited && !__DEV__) return;
       completionTriggered.current = true;
       const xp = lesson?.xp_reward ?? 50;
+      const lessonId = String(lesson?.id ?? id);
+      const alreadyCompleted = athleteState?.completed_lessons?.includes(lessonId) ?? false;
       const finalPassed = passed !== false && sessionPassed;
-      const awardedXP = finalPassed ? xp : Math.floor(xp * 0.5);
-      if (athleteState && lesson) completeLesson(lesson.id ?? id, awardedXP);
+      const awardedXP = alreadyCompleted ? 0 : (finalPassed ? xp : Math.floor(xp * 0.5));
+      if (athleteState && lesson && !alreadyCompleted) completeLesson(lessonId, awardedXP);
       finalXPRef.current = awardedXP;
-      if (lesson?.is_boss || lesson?.is_checkpoint) {
+      const flags = getLessonFlags(lesson);
+      if (flags.isBoss || flags.isCheckpoint) {
         setCompletionStage('check_in');
       } else {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -1167,7 +1340,7 @@ useEffect(() => {
       merged[key] = Math.round((val * 0.6 + existing * 0.4) * 10) / 10;
     });
     await updateAthleteState({ self_ratings: merged });
-    if (lesson?.is_boss) {
+    if (getLessonFlags(lesson).isBoss) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).then(() => {
         setTimeout(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy), 200);
         setTimeout(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium), 350);
@@ -1180,18 +1353,18 @@ useEffect(() => {
   }
 
   function handleExit() {
-    if (completionStage !== 'none' || stepIndex === 0) { router.back(); return; }
+    if (completionStage !== 'none' || stepIndex === 0) { stopSpeech(); router.back(); return; }
     Alert.alert('Exit lesson?', "Progress won't be saved.", [
       { text: 'Keep going', style: 'cancel' },
-      { text: 'Exit', style: 'destructive', onPress: () => router.back() },
+      { text: 'Exit', style: 'destructive', onPress: () => { stopSpeech(); router.back(); } },
     ]);
   }
 
   if (loading) return <View style={[screenStyles.center, { paddingTop: insets.top }]}><Text style={screenStyles.loadingText}>Loading rep...</Text></View>;
   if (error || !lesson) return (
     <View style={[screenStyles.center, { paddingTop: insets.top }]}>
-      <Text style={screenStyles.errorText}>{error ?? 'Lesson not found'}</Text>
-      <Pressable style={screenStyles.backBtn} onPress={() => router.back()}><Text style={screenStyles.backBtnText}>← Go back</Text></Pressable>
+      <Text style={screenStyles.errorText}>{error ?? 'Couldn’t load this rep.'}</Text>
+      <Pressable style={screenStyles.backBtn} onPress={() => { stopSpeech(); router.back(); }}><Text style={screenStyles.backBtnText}>← Go back</Text></Pressable>
     </View>
   );
   if (totalSteps === 0) return (
@@ -1206,8 +1379,8 @@ useEffect(() => {
         }
       />
       <View style={screenStyles.center}>
-        <Text style={screenStyles.loadingText}>No steps in this lesson yet.</Text>
-        <Pressable style={screenStyles.backBtn} onPress={() => router.back()}><Text style={screenStyles.backBtnText}>← Go back</Text></Pressable>
+        <Text style={screenStyles.loadingText}>Couldn’t load this rep.</Text>
+        <Pressable style={screenStyles.backBtn} onPress={() => { stopSpeech(); router.back(); }}><Text style={screenStyles.backBtnText}>← Go back</Text></Pressable>
       </View>
     </View>
   );
@@ -1215,8 +1388,7 @@ useEffect(() => {
   const safeIndex = Math.min(stepIndex, totalSteps - 1);
   const currentStep = steps[safeIndex] ?? null;
   const lessonFamily = lesson.lesson_family ?? lesson.pillar_id ?? 'Spark Card';
-  const isBoss = !!lesson.is_boss;
-  const isCheckpoint = !!lesson.is_checkpoint;
+  const { isBoss, isCheckpoint } = getLessonFlags(lesson);
   const finalStepType = String(currentStep?.type ?? currentStep?.ui_variant ?? '');
   const completionIntent: CompletionIntent = isBoss || isCheckpoint
     ? 'boss'
@@ -1308,6 +1480,8 @@ useEffect(() => {
               onAdvance={advanceStep}
               isFinal={safeIndex === totalSteps - 1}
               completionIntent={completionIntent}
+              lessonId={String(lesson.id ?? id)}
+              stepIndex={safeIndex}
             />
           )}
         </Animated.View>
@@ -1329,7 +1503,7 @@ useEffect(() => {
             contentFadeAnim={contentFadeAnim}
             type={showComplete}
             athleteState={athleteState}
-            onContinue={() => router.push('/(tabs)/career')}
+            onContinue={() => { stopSpeech(); router.push('/(tabs)/career'); }}
           />
         </Animated.View>
       )}

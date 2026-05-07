@@ -49,6 +49,8 @@ export default function PressureReplay({ data, responses, feedback, onComplete }
   const [timerRemaining, setTimerRemaining] = useState(data.timer_sec ?? 0);
   const [timerStarted, setTimerStarted] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const autoAdvanceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const completedRef = useRef(false);
   const fadeAnim = useRef(new Animated.Value(1)).current;
 
   const beats = data.beats ?? [];
@@ -58,21 +60,34 @@ export default function PressureReplay({ data, responses, feedback, onComplete }
 
   // Countdown timer
   useEffect(() => {
-    if (!hasTimer || !timerStarted) return;
-    if (timerRemaining <= 0) return;
+    if (!hasTimer || !timerStarted || done) return;
+    if (timerRef.current) clearInterval(timerRef.current);
     timerRef.current = setInterval(() => {
       setTimerRemaining((t) => {
         if (t <= 1) {
-          clearInterval(timerRef.current!);
+          if (timerRef.current) clearInterval(timerRef.current);
+          timerRef.current = null;
+          setTimerStarted(false);
           return 0;
         }
         return t - 1;
       });
     }, 1000);
-    return () => { if (timerRef.current) clearInterval(timerRef.current); };
-  }, [timerStarted]); // eslint-disable-line react-hooks/exhaustive-deps
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+      timerRef.current = null;
+    };
+  }, [done, hasTimer, timerStarted]);
+
+  useEffect(() => () => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    if (autoAdvanceRef.current) clearTimeout(autoAdvanceRef.current);
+    fadeAnim.stopAnimation();
+  }, [fadeAnim]);
 
   function startTimer() {
+    if (done) return;
+    setTimerRemaining(data.timer_sec ?? 0);
     setTimerStarted(true);
   }
 
@@ -86,7 +101,7 @@ export default function PressureReplay({ data, responses, feedback, onComplete }
   }
 
   function handleChoice(choiceId: string) {
-    if (beatChoices[currentBeat.id]) return; // already chosen this beat
+    if (!currentBeat || beatChoices[currentBeat.id] || completedRef.current) return; // already chosen this beat
     Haptics.selectionAsync();
     const choice = currentBeat.choices.find((c) => c.id === choiceId);
     const score = choice?.score ?? 0;
@@ -101,11 +116,13 @@ export default function PressureReplay({ data, responses, feedback, onComplete }
     setTotalScore(newTotal);
 
     // Auto-advance after short delay
-    setTimeout(() => {
+    autoAdvanceRef.current = setTimeout(() => {
       if (isLastBeat) {
         const pass = newTotal >= responses.pass_score;
+        completedRef.current = true;
         setPassed(pass);
         setDone(true);
+        if (timerRef.current) clearInterval(timerRef.current);
         onComplete(pass);
       } else {
         animateNext(() => setBeatIndex((i) => i + 1));
@@ -113,7 +130,18 @@ export default function PressureReplay({ data, responses, feedback, onComplete }
     }, 700);
   }
 
+  const timerExpired = hasTimer && timerStarted === false && timerRemaining === 0 && !done;
   const timerFraction = hasTimer ? timerRemaining / (data.timer_sec ?? 1) : 0;
+
+  if (beats.length === 0 || !currentBeat) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.resultCard}>
+          <Text style={styles.resultText}>This pressure rep needs an update.</Text>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -147,7 +175,17 @@ export default function PressureReplay({ data, responses, feedback, onComplete }
         ))}
       </View>
 
-      {!done ? (
+      {timerExpired && (
+        <View style={[styles.resultCard, styles.resultFail]}>
+          <Text style={styles.resultText}>Clock expired. Reset and try the rep again.</Text>
+          <Pressable style={styles.timerStartBtn} onPress={startTimer}>
+            <Ionicons name="refresh" size={12} color={Colors.primary} />
+            <Text style={styles.timerStartText}>Retry</Text>
+          </Pressable>
+        </View>
+      )}
+
+      {!done && !timerExpired ? (
         <Animated.View style={[styles.beatCard, { opacity: fadeAnim }]}>
           <Text style={styles.beatScene}>{currentBeat?.scene}</Text>
           <View style={styles.choiceList}>
