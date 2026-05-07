@@ -22,6 +22,8 @@ import { Colors, Radius, Spacing } from '@/constants/theme';
 import { getBestCue } from '@/lib/personalCue';
 import { RolePill } from '@/components/ui';
 import { ClutchrHeader } from '@/components/ClutchrHeader';
+import { EmblemBadge } from '@/components/EmblemBadge';
+import { getRankProgress } from '@/lib/progressionRanks';
 
 // ─── CONSTANTS ───────────────────────────────────────────────────────────────
 
@@ -50,8 +52,6 @@ const PHASES = [
   { name: 'Mastery',        skill: 'Consistent Elite', icon: 'trophy',        xpNeeded: 5000 },
   { name: 'Elite',          skill: 'Championship DNA', icon: 'star',          xpNeeded: 7500 },
 ];
-
-const RANK_LABELS = ['Rookie', 'Prospect', 'Player', 'Starter', 'Veteran', 'All-Star', 'Ace', 'Legend'];
 
 // Strength chips — unlock based on completed_lessons count thresholds
 // These feel earned, not arbitrary — tied to real lesson milestones
@@ -272,11 +272,8 @@ export default function ProfileScreen() {
   const xp           = athleteState.total_xp;
   const phase        = athleteState.current_phase;
   const completedCount = athleteState.completed_lessons.length;
-  const rank         = RANK_LABELS[Math.min(phase, RANK_LABELS.length - 1)];
-  const currentPhaseData = PHASES[Math.min(phase, PHASES.length - 1)];
-  const nextPhaseData    = PHASES[Math.min(phase + 1, PHASES.length - 1)];
-  const xpToNext     = nextPhaseData?.xpNeeded ?? PHASES[PHASES.length - 1].xpNeeded;
-  const xpProgress   = phase >= PHASES.length - 1 ? 1 : Math.min((xp - currentPhaseData.xpNeeded) / (xpToNext - currentPhaseData.xpNeeded), 1);
+  const rankProgress = getRankProgress(xp);
+  const rank = rankProgress.currentRank;
   const playbookBuilt = !!(athleteState as any)?.playbook?.built_at;
   const ratings       = athleteState.self_ratings;
   const focusCue = getBestCue(athleteState, 'focus');
@@ -333,7 +330,7 @@ export default function ProfileScreen() {
           kicker="PROFILE"
           title="Your Player OS"
           subtitle="Role, routines, progress."
-          statusPill={rank.toUpperCase()}
+          statusPill={rank.shortLabel}
         />
       </Pressable>
 
@@ -373,13 +370,10 @@ export default function ProfileScreen() {
             </View>
           </View>
 
-          {/* Right: rank badge */}
+          {/* Right: rank emblem */}
           <View style={styles.rankBlock}>
-            <View style={styles.rankBadge}>
-              <Ionicons name="trophy" size={12} color={Colors.warning} />
-              <Text style={styles.rankText}>{rank.toUpperCase()}</Text>
-            </View>
-            <Text style={styles.rankPhase}>{currentPhaseData.name}</Text>
+            <EmblemBadge rank={rank} size="medium" />
+            <Text style={[styles.rankText, { color: rank.primaryColor }]}>{rank.name}</Text>
           </View>
         </View>
 
@@ -394,16 +388,16 @@ export default function ProfileScreen() {
               <Text style={styles.xpUnit}>XP</Text>
             </View>
             <Text style={styles.xpPhaseLabel}>
-              Phase {phase + 1} · {currentPhaseData.name}
+              {rankProgress.nextRank ? `To ${rankProgress.nextRank.name}` : 'Elite held'}
             </Text>
           </View>
           <View style={styles.xpTrack}>
-            <View style={[styles.xpFill, { width: `${Math.max(2, xpProgress * 100)}%` }]} />
+            <View style={[styles.xpFill, { width: `${Math.max(2, rankProgress.percent * 100)}%`, backgroundColor: rank.accentColor }]} />
           </View>
           <Text style={styles.xpSub}>
-            {phase < PHASES.length - 1
-              ? `${(xpToNext - xp).toLocaleString()} XP to ${nextPhaseData.name} · ${RANK_LABELS[Math.min(phase + 1, RANK_LABELS.length - 1)]}`
-              : 'Maximum phase reached — Legend status'}
+            {rankProgress.nextRank
+              ? `${rankProgress.xpRemaining.toLocaleString()} XP to ${rankProgress.nextRank.name}`
+              : 'Maximum rank reached — Elite status'}
           </Text>
         </View>
 
@@ -538,15 +532,8 @@ const styles = StyleSheet.create({
   identityMeta: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   identityLevel: { fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.textSecondary },
   seasonLine: { fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.textTertiary },
-  rankBlock: { alignItems: 'flex-end', gap: 4 },
-  rankBadge: {
-    flexDirection: 'row', alignItems: 'center', gap: 4,
-    backgroundColor: Colors.warningMuted, borderRadius: Radius.pill,
-    paddingHorizontal: 9, paddingVertical: 5,
-    borderWidth: 1, borderColor: Colors.warning + '40',
-  },
-  rankText: { fontSize: 10, fontFamily: 'Inter_700Bold', color: Colors.warning, letterSpacing: 0.8 },
-  rankPhase: { fontSize: 10, fontFamily: 'Inter_400Regular', color: Colors.textTertiary, textAlign: 'right' },
+  rankBlock: { alignItems: 'center', gap: 4, minWidth: 58 },
+  rankText: { fontSize: 10, fontFamily: 'Inter_700Bold', letterSpacing: 0.8, textAlign: 'center' },
 
   // XP
   xpCard: {
