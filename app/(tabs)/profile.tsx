@@ -330,7 +330,7 @@ export default function ProfileScreen() {
           kicker="PROFILE"
           title="Your Player OS"
           subtitle="Role, routines, progress."
-          statusPill={rank.shortLabel}
+          statusPill={rank.name}
         />
       </Pressable>
 
