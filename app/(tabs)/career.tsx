@@ -715,8 +715,8 @@ function WorldMapSection({ world, lessons, completed }: {
           const isNext = !isDone && lessons.slice(0, i).every((l) => completed.includes(l.id));
           const isLocked = i > 0 && !completed.includes(lessons[i - 1].id) && !isDone;
           const nodeType = (lesson as any).node_type as string | undefined;
-          const isBoss = lesson.is_boss || nodeType === 'boss';
-          const isCheckpoint = nodeType === 'checkpoint';
+          const isBoss = lesson.is_boss === true || nodeType === 'boss';
+          const isCheckpoint = lesson.is_checkpoint === true || nodeType === 'checkpoint';
 
           return (
             <React.Fragment key={lesson.id}>
