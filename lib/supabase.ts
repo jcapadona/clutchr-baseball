@@ -23,6 +23,7 @@ export interface ContentCard {
   body_markdown: string | null;
   card_type: 'article' | 'exercise' | 'image' | 'video' | 'audio';
   content_category: string;
+  resource_group?: string | null;
   lesson_family: string;
   sport_scope: string;
   role_tags: string[];

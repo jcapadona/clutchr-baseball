@@ -1,9 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
-  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -14,20 +13,129 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { fetchContentCards, type ContentCard } from '@/lib/supabase';
 import { Colors, Radius, Spacing } from '@/constants/theme';
-import { SectionHeader } from '@/components/ui';
 import { ErrorState, SkeletonCard } from '@/components/SkeletonLoader';
 import { ClutchrHeader } from '@/components/ClutchrHeader';
 
-// ─── CATEGORIES ───────────────────────────────────────────────────────────────
+// ─── LOCKER GROUPS ──────────────────────────────────────────────────────────
 
-const CATEGORIES = [
-  { id: 'all',      label: 'ALL',      icon: 'apps-outline',    color: '#22CC5E' },
-  { id: 'pregame',  label: 'PREGAME',  icon: 'sunny-outline',   color: '#F5A623' },
-  { id: 'mental',   label: 'MENTAL',   icon: 'bulb-outline',    color: '#BF5AF2' },
-  { id: 'drills',   label: 'DRILLS',   icon: 'fitness-outline', color: '#0A84FF' },
-  { id: 'recovery', label: 'RECOVERY', icon: 'moon-outline',    color: '#34C759' },
-  { id: 'film',     label: 'FILM',     icon: 'film-outline',    color: '#FF6B6B' },
+type LockerGroup = 'dugout' | 'bullpen' | 'grind';
+
+const LOCKER_GROUPS: Record<LockerGroup, {
+  label: string;
+  shortLabel: string;
+  subtitle: string;
+  emptyTitle: string;
+  emptyText: string;
+  icon: keyof typeof Ionicons.glyphMap;
+}> = {
+  dugout: {
+    label: 'Dugout',
+    shortLabel: 'Dugout',
+    subtitle: 'Hitting, offense, baserunning, team IQ.',
+    emptyTitle: 'No Dugout tools yet.',
+    emptyText: 'Add hitting, baserunning, team IQ, or player-habit resources here.',
+    icon: 'baseball-outline',
+  },
+  bullpen: {
+    label: 'Bullpen',
+    shortLabel: 'Bullpen',
+    subtitle: 'Pitching, catching, throwing, arm care.',
+    emptyTitle: 'No Bullpen tools yet.',
+    emptyText: 'Add pitching, catching, throwing, or arm-care resources here.',
+    icon: 'radio-outline',
+  },
+  grind: {
+    label: 'The Grind',
+    shortLabel: 'Grind',
+    subtitle: 'Recovery, strength, standards, work ethic.',
+    emptyTitle: 'No Grind tools yet.',
+    emptyText: 'Add recovery, strength, readiness, or standards resources here.',
+    icon: 'barbell-outline',
+  },
+};
+
+const GROUP_ORDER: LockerGroup[] = ['dugout', 'bullpen', 'grind'];
+
+const BULLPEN_TOKENS = [
+  'pitcher', 'pitching', 'mound', 'bullpen', 'catcher', 'catching', 'battery',
+  'throwing', 'arm care', 'arm_care', 'command', 'pitch calling', 'pitch_calling',
+  'pre throw', 'pre-throw', 'post throw', 'post-throw', 'velocity', 'fastball',
+  'slider', 'changeup', 'receiving', 'blocking',
 ];
+
+const GRIND_TOKENS = [
+  'strength', 'workout', 'workouts', 'recovery', 'readiness', 'mobility',
+  'soreness', 'sleep', 'discipline', 'standards', 'work ethic', 'work_ethic',
+  'return to throw', 'return_to_throw', 'nutrition', 'fuel', 'bodyweight',
+  'leadership', 'habits', 'routine', 'routines', 'built different', 'dynamic warmup',
+];
+
+const DUGOUT_TOKENS = [
+  'hitter', 'hitting', 'offense', 'offensive', 'baserunning', 'baserunner',
+  'base running', 'team', 'dugout', 'baseball iq', 'baseball_iq', 'approach',
+  'pitch recognition', 'pitch_recognition', 'swing', 'at bat', 'ab', 'plate',
+  'lineup', 'quality ab', 'leadership', 'player habits',
+];
+
+const BULLPEN_PRIORITY_TOKENS = ['pitch', 'catch', 'throw', 'arm care', 'arm_care', 'mound', 'bullpen', 'battery'];
+const GRIND_PRIORITY_TOKENS = ['strength', 'recovery', 'readiness', 'nutrition', 'fuel', 'workout', 'mobility', 'sleep', 'standards', 'bodyweight', 'warmup'];
+const DUGOUT_PRIORITY_TOKENS = ['hit', 'offense', 'baserun', 'base running', 'baseball iq', 'swing', 'at bat', 'plate', 'lineup'];
+
+function normalizeValue(value: unknown): string {
+  if (Array.isArray(value)) return value.map(normalizeValue).join(' ');
+  if (value && typeof value === 'object') return Object.values(value).map(normalizeValue).join(' ');
+  return String(value ?? '').toLowerCase().replace(/[_-]+/g, ' ');
+}
+
+function cardSearchText(card: ContentCard): string {
+  const raw = card as ContentCard & Record<string, unknown>;
+  return [
+    raw.title,
+    raw.summary,
+    raw.body_markdown,
+    raw.body,
+    raw.description,
+    raw.tags,
+    raw.role_tags,
+    raw.skill_tags,
+    raw.season_tags,
+    raw.content_category,
+    raw.lesson_family,
+    raw.card_type,
+  ].map(normalizeValue).join(' ');
+}
+
+function tokenScore(text: string, tokens: string[]) {
+  return tokens.reduce((score, token) => (text.includes(normalizeValue(token)) ? score + 1 : score), 0);
+}
+
+function hasPriorityToken(text: string, tokens: string[]) {
+  return tokens.some((token) => text.includes(normalizeValue(token)));
+}
+
+export function inferLockerGroup(card: ContentCard): LockerGroup {
+  const raw = card as ContentCard & { resource_group?: string | null };
+  const explicit = normalizeValue(raw.resource_group).trim();
+  if (['dugout', 'bullpen'].includes(explicit)) return explicit as LockerGroup;
+  if (['grind', 'the grind', 'the_grind'].includes(explicit)) return 'grind';
+
+  const text = cardSearchText(card);
+  const scores: Record<LockerGroup, number> = {
+    bullpen: tokenScore(text, BULLPEN_TOKENS),
+    grind: tokenScore(text, GRIND_TOKENS),
+    dugout: tokenScore(text, DUGOUT_TOKENS),
+  };
+
+  if (scores.bullpen > 0 && hasPriorityToken(text, BULLPEN_PRIORITY_TOKENS)) return 'bullpen';
+  if (scores.grind > 0 && hasPriorityToken(text, GRIND_PRIORITY_TOKENS)) return 'grind';
+  if (scores.dugout > 0 && hasPriorityToken(text, DUGOUT_PRIORITY_TOKENS)) return 'dugout';
+
+  const topScore = Math.max(scores.bullpen, scores.grind, scores.dugout);
+  if (topScore === 0) return 'dugout';
+  if (scores.bullpen === topScore) return 'bullpen';
+  if (scores.grind === topScore) return 'grind';
+  return 'dugout';
+}
 
 // ─── ICON + COLOR per card type ───────────────────────────────────────────────
 
@@ -46,18 +154,14 @@ export default function LockerScreen() {
   const [cards, setCards] = useState<ContentCard[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
-  const [category, setCategory] = useState('all');
+  const [activeGroup, setActiveGroup] = useState<LockerGroup>('dugout');
   const [search, setSearch] = useState('');
-  const [selectedCard, setSelectedCard] = useState<ContentCard | null>(null);
 
   const fetchData = async () => {
     setLoading(true);
     setLoadError(false);
     try {
-      const data = await fetchContentCards({
-        category: category === 'all' ? undefined : category,
-        limit: 50,
-      });
+      const data = await fetchContentCards({ limit: 75 });
       setCards(data);
     } catch (err) {
       console.error(err);
@@ -67,18 +171,26 @@ export default function LockerScreen() {
     }
   };
 
-  useEffect(() => { fetchData(); }, [category]);
+  useEffect(() => { fetchData(); }, []);
 
-  const filtered = search
-    ? cards.filter(
-        (c) =>
-          c.title.toLowerCase().includes(search.toLowerCase()) ||
-          (c.summary ?? '').toLowerCase().includes(search.toLowerCase())
-      )
-    : cards;
+  const searchedCards = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    if (!query) return cards;
+    return cards.filter((card) => cardSearchText(card).includes(query));
+  }, [cards, search]);
 
+  const cardsByGroup = useMemo(() => {
+    return GROUP_ORDER.reduce((acc, group) => {
+      acc[group] = searchedCards.filter((card) => inferLockerGroup(card) === group);
+      return acc;
+    }, {} as Record<LockerGroup, ContentCard[]>);
+  }, [searchedCards]);
+
+  const activeConfig = LOCKER_GROUPS[activeGroup];
+  const filtered = cardsByGroup[activeGroup] ?? [];
   const featured = filtered.filter((c) => c.is_featured).slice(0, 3);
-  const rest = filtered.filter((c) => !c.is_featured);
+  const featuredIds = new Set(featured.map((c) => c.id));
+  const rest = filtered.filter((c) => !featuredIds.has(c.id));
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -86,7 +198,7 @@ export default function LockerScreen() {
       {/* ── HEADER ── */}
       <ClutchrHeader
         variant="mainTab"
-        kicker="RESOURCES"
+        kicker="C / LOCKER"
         title="Baseball Tools"
         subtitle="Dugout. Bullpen. The Grind."
       />
@@ -98,7 +210,7 @@ export default function LockerScreen() {
           style={styles.searchInput}
           value={search}
           onChangeText={setSearch}
-          placeholder="Search articles, tools, audio..."
+          placeholder="Search tools, cues, clips..."
           placeholderTextColor={Colors.textTertiary}
         />
         {search.length > 0 && (
@@ -108,36 +220,34 @@ export default function LockerScreen() {
         )}
       </View>
 
-      {/* ── FILTER TAB BAR ── */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={lockerTabStyles.container}
-        contentContainerStyle={lockerTabStyles.content}
-      >
-        {CATEGORIES.map((cat) => {
-          const isActive = category === cat.id;
-          const count = isActive && !loading ? cards.length : null;
-          return (
-            <Pressable
-              key={cat.id}
-              style={[lockerTabStyles.tab, isActive && { borderBottomWidth: 2, borderBottomColor: cat.color }]}
-              onPress={() => setCategory(cat.id)}
-            >
-              <Ionicons name={cat.icon as any} size={13} color={isActive ? cat.color : 'rgba(255,255,255,0.35)'} />
-              <Text style={[lockerTabStyles.label, { color: isActive ? cat.color : 'rgba(255,255,255,0.35)' }]}>
-                {cat.label}{count !== null && count > 0 ? (
-                  <Text style={[lockerTabStyles.count, { color: cat.color }]}>{' '}{count}</Text>
+      {/* ── PRIMARY LOCKER TABS ── */}
+      <View style={lockerTabStyles.container}>
+        <View style={lockerTabStyles.content}>
+          {GROUP_ORDER.map((group) => {
+            const tab = LOCKER_GROUPS[group];
+            const isActive = activeGroup === group;
+            const count = cardsByGroup[group]?.length ?? 0;
+            return (
+              <Pressable
+                key={group}
+                style={[lockerTabStyles.tab, isActive && lockerTabStyles.tabActive]}
+                onPress={() => setActiveGroup(group)}
+              >
+                <Text style={[lockerTabStyles.label, isActive && lockerTabStyles.labelActive]}>
+                  {tab.label}
+                </Text>
+                {isActive ? (
+                  <Text style={lockerTabStyles.count}>{count} tools</Text>
                 ) : null}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </ScrollView>
+              </Pressable>
+            );
+          })}
+        </View>
+      </View>
 
       {/* ── CONTENT ── */}
       {loadError ? (
-        <ErrorState message="Could not load content." onRetry={fetchData} />
+        <ErrorState message="Could not load locker tools." onRetry={fetchData} />
       ) : loading ? (
         <View style={[styles.loader, { paddingHorizontal: 16, paddingTop: 12 }]}>
           {[0, 1, 2, 3, 4].map(i => <SkeletonCard key={i} />)}
@@ -148,29 +258,53 @@ export default function LockerScreen() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Featured strip */}
+          <View style={styles.introCard}>
+            <LinearGradient
+              colors={[Colors.primary + '22', 'rgba(255,255,255,0.03)', 'rgba(255,255,255,0.01)']}
+              style={StyleSheet.absoluteFill}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            />
+            <View style={styles.introIcon}>
+              <Ionicons name={activeConfig.icon as any} size={18} color={Colors.primary} />
+            </View>
+            <View style={styles.introCopy}>
+              <Text style={styles.introTitle}>{activeConfig.label}</Text>
+              <Text style={styles.introSubtitle}>{activeConfig.subtitle}</Text>
+            </View>
+            <View style={styles.introCount}>
+              <Text style={styles.introCountValue}>{filtered.length}</Text>
+              <Text style={styles.introCountLabel}>TOOLS</Text>
+            </View>
+          </View>
+
           {featured.length > 0 && (
             <View style={styles.section}>
-              <SectionHeader title="FOR YOU" count={featured.length} />
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionKicker}>READY REFERENCE</Text>
+                <Text style={styles.sectionCount}>{featured.length}</Text>
+              </View>
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={styles.featuredRow}
               >
                 {featured.map((card) => (
-                  <FeaturedCard key={card.id} card={card} onOpen={() => setSelectedCard(card)} />
+                  <FeaturedCard key={card.id} card={card} onOpen={() => router.push(`/content/${card.id}`)} />
                 ))}
               </ScrollView>
             </View>
           )}
 
-          {/* All cards list */}
           {rest.length > 0 && (
             <View style={styles.section}>
-              <SectionHeader title="ALL CONTENT" count={rest.length} />
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionKicker}>{activeConfig.shortLabel.toUpperCase()} TOOLS</Text>
+                <Text style={styles.sectionCount}>{rest.length}</Text>
+              </View>
               <View style={styles.cardList}>
-                {rest.map((card, i) => (
-                  <ListCard key={card.id} card={card} index={i} onOpen={() => setSelectedCard(card)} />
+                {rest.map((card) => (
+                  <ListCard key={card.id} card={card} onOpen={() => router.push(`/content/${card.id}`)} />
                 ))}
               </View>
             </View>
@@ -178,19 +312,12 @@ export default function LockerScreen() {
 
           {filtered.length === 0 && !loading && (
             <View style={styles.empty}>
-              <Ionicons name="library-outline" size={40} color={Colors.textTertiary} />
-              <Text style={styles.emptyTitle}>Nothing here yet.</Text>
-              <Text style={styles.emptyText}>Try a different filter or check back soon.</Text>
+              <Ionicons name={activeConfig.icon as any} size={40} color={Colors.textTertiary} />
+              <Text style={styles.emptyTitle}>{activeConfig.emptyTitle}</Text>
+              <Text style={styles.emptyText}>{activeConfig.emptyText}</Text>
             </View>
           )}
         </ScrollView>
-      )}
-      {/* ── CONTENT READER MODAL ── */}
-      {selectedCard && (
-        <ContentReaderModal
-          card={selectedCard}
-          onClose={() => setSelectedCard(null)}
-        />
       )}
     </View>
   );
@@ -232,7 +359,7 @@ function FeaturedCard({ card, onOpen }: { card: ContentCard; onOpen: () => void 
 
 // ─── LIST CARD ────────────────────────────────────────────────────────────────
 
-function ListCard({ card, index, onOpen }: { card: ContentCard; index: number; onOpen: () => void }) {
+function ListCard({ card, onOpen }: { card: ContentCard; onOpen: () => void }) {
   const cfg = TYPE_CONFIG[card.card_type] ?? TYPE_CONFIG.article;
   return (
     <Pressable
@@ -267,204 +394,6 @@ function ListCard({ card, index, onOpen }: { card: ContentCard; index: number; o
     </Pressable>
   );
 }
-
-// ─── CONTENT READER MODAL ────────────────────────────────────────────────────
-// Shows body_markdown as plain text in a full-screen modal.
-// No lesson player — this is reference content, not a lesson.
-
-function ContentReaderModal({ card, onClose }: { card: ContentCard; onClose: () => void }) {
-  const insets = useSafeAreaInsets();
-  const cfg = TYPE_CONFIG[card.card_type] ?? TYPE_CONFIG.article;
-
-  // Simple markdown → readable text: strip ## headers to bold-ish, keep bullets
-  const bodyText = card.body_markdown ?? card.summary ?? 'No content available.';
-
-  return (
-    <Modal
-      visible
-      animationType="slide"
-      presentationStyle="pageSheet"
-      onRequestClose={onClose}
-    >
-      <View style={[readerStyles.container, { paddingTop: insets.top }]}>
-
-        {/* Header */}
-        <View style={readerStyles.header}>
-          <Pressable onPress={onClose} style={readerStyles.closeBtn} hitSlop={12}>
-            <Ionicons name="close" size={20} color={Colors.textSecondary} />
-          </Pressable>
-          <View style={[readerStyles.typeBadge, { backgroundColor: cfg.bg, borderColor: cfg.color + '40' }]}>
-            <Ionicons name={cfg.icon as any} size={11} color={cfg.color} />
-            <Text style={[readerStyles.typeText, { color: cfg.color }]}>
-              {card.card_type.toUpperCase()}
-            </Text>
-          </View>
-          {card.duration_minutes && (
-            <Text style={readerStyles.duration}>{card.duration_minutes} min</Text>
-          )}
-        </View>
-
-        <ScrollView
-          contentContainerStyle={[readerStyles.scroll, { paddingBottom: insets.bottom + 40 }]}
-          showsVerticalScrollIndicator={false}
-        >
-          {/* Title */}
-          <Text style={readerStyles.title}>{card.title}</Text>
-
-          {/* Summary */}
-          {card.summary && (
-            <Text style={readerStyles.summary}>{card.summary}</Text>
-          )}
-
-          {/* Divider */}
-          <View style={readerStyles.divider} />
-
-          {/* Body — render markdown as formatted text blocks */}
-          {bodyText.split('\n').map((line, i) => {
-            const trimmed = line.trim();
-            if (!trimmed) return <View key={i} style={{ height: 8 }} />;
-
-            // ## heading
-            if (trimmed.startsWith('## ')) {
-              return (
-                <Text key={i} style={readerStyles.heading2}>
-                  {trimmed.replace('## ', '')}
-                </Text>
-              );
-            }
-            // ### heading
-            if (trimmed.startsWith('### ')) {
-              return (
-                <Text key={i} style={readerStyles.heading3}>
-                  {trimmed.replace('### ', '')}
-                </Text>
-              );
-            }
-            // **bold** line (standalone)
-            if (trimmed.startsWith('**') && trimmed.endsWith('**')) {
-              return (
-                <Text key={i} style={readerStyles.boldLine}>
-                  {trimmed.replace(/\*\*/g, '')}
-                </Text>
-              );
-            }
-            // - bullet
-            if (trimmed.startsWith('- ')) {
-              return (
-                <View key={i} style={readerStyles.bulletRow}>
-                  <View style={[readerStyles.bulletDot, { backgroundColor: cfg.color }]} />
-                  <Text style={readerStyles.bulletText}>{trimmed.replace('- ', '')}</Text>
-                </View>
-              );
-            }
-            // numbered list
-            if (/^\d+\./.test(trimmed)) {
-              const num = trimmed.match(/^(\d+)\./)?.[1] ?? '';
-              const text = trimmed.replace(/^\d+\.\s*/, '');
-              return (
-                <View key={i} style={readerStyles.bulletRow}>
-                  <Text style={[readerStyles.numText, { color: cfg.color }]}>{num}.</Text>
-                  <Text style={readerStyles.bulletText}>{text}</Text>
-                </View>
-              );
-            }
-            // horizontal rule
-            if (trimmed === '---') {
-              return <View key={i} style={readerStyles.hr} />;
-            }
-            // plain body text
-            return (
-              <Text key={i} style={readerStyles.bodyText}>{trimmed}</Text>
-            );
-          })}
-        </ScrollView>
-      </View>
-    </Modal>
-  );
-}
-
-const readerStyles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-    paddingHorizontal: Spacing.xl,
-    paddingVertical: Spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-  },
-  closeBtn: {
-    width: 34, height: 34,
-    backgroundColor: Colors.surface,
-    borderRadius: Radius.sm,
-    borderWidth: 1, borderColor: Colors.border,
-    alignItems: 'center', justifyContent: 'center',
-    marginRight: 4,
-  },
-  typeBadge: {
-    flexDirection: 'row', alignItems: 'center', gap: 4,
-    paddingHorizontal: 8, paddingVertical: 4,
-    borderRadius: Radius.pill, borderWidth: 1,
-  },
-  typeText: { fontSize: 9, fontFamily: 'Inter_700Bold', letterSpacing: 0.8 },
-  duration: { fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.textTertiary, marginLeft: 'auto' as any },
-
-  scroll: { paddingHorizontal: Spacing.xl, paddingTop: Spacing.xl, gap: 4 },
-
-  title: {
-    fontSize: 24, fontFamily: 'Inter_700Bold',
-    color: Colors.textPrimary, lineHeight: 30,
-    letterSpacing: -0.3, marginBottom: Spacing.sm,
-  },
-  summary: {
-    fontSize: 15, fontFamily: 'Inter_400Regular',
-    color: Colors.textSecondary, lineHeight: 23,
-    marginBottom: Spacing.sm,
-  },
-  divider: { height: 1, backgroundColor: Colors.border, marginVertical: Spacing.lg },
-
-  heading2: {
-    fontSize: 18, fontFamily: 'Inter_700Bold',
-    color: Colors.textPrimary, lineHeight: 24,
-    marginTop: Spacing.lg, marginBottom: 4,
-  },
-  heading3: {
-    fontSize: 15, fontFamily: 'Inter_700Bold',
-    color: Colors.textPrimary, lineHeight: 22,
-    marginTop: Spacing.md, marginBottom: 4,
-  },
-  boldLine: {
-    fontSize: 14, fontFamily: 'Inter_700Bold',
-    color: Colors.textPrimary, lineHeight: 22,
-    marginTop: 6,
-  },
-  bulletRow: {
-    flexDirection: 'row', alignItems: 'flex-start',
-    gap: 10, marginVertical: 3,
-  },
-  bulletDot: {
-    width: 6, height: 6, borderRadius: 3,
-    marginTop: 7, flexShrink: 0,
-  },
-  numText: {
-    fontSize: 13, fontFamily: 'Inter_700Bold',
-    minWidth: 20, marginTop: 1,
-  },
-  bulletText: {
-    fontSize: 14, fontFamily: 'Inter_400Regular',
-    color: Colors.textPrimary, lineHeight: 22, flex: 1,
-  },
-  hr: {
-    height: 1, backgroundColor: Colors.border,
-    marginVertical: Spacing.md,
-  },
-  bodyText: {
-    fontSize: 15, fontFamily: 'Inter_400Regular',
-    color: Colors.textPrimary, lineHeight: 24,
-    marginVertical: 2,
-  },
-});
 
 // ─── STYLES ───────────────────────────────────────────────────────────────────
 
@@ -583,6 +512,81 @@ const styles = StyleSheet.create({
   featuredRow: { gap: Spacing.sm },
   cardList: { gap: 8 },
 
+  introCard: {
+    minHeight: 112,
+    borderRadius: Radius.xl,
+    borderWidth: 1,
+    borderColor: Colors.primaryBorder,
+    backgroundColor: Colors.surface,
+    overflow: 'hidden',
+    padding: Spacing.lg,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+  },
+  introIcon: {
+    width: 42,
+    height: 42,
+    borderRadius: Radius.md,
+    backgroundColor: Colors.primaryMuted,
+    borderWidth: 1,
+    borderColor: Colors.primaryBorder,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  introCopy: { flex: 1, gap: 4 },
+  introTitle: {
+    fontSize: 20,
+    fontFamily: 'Inter_700Bold',
+    color: Colors.textPrimary,
+    letterSpacing: -0.2,
+  },
+  introSubtitle: {
+    fontSize: 12,
+    fontFamily: 'Inter_400Regular',
+    color: Colors.textSecondary,
+    lineHeight: 18,
+  },
+  introCount: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 54,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: Radius.md,
+    backgroundColor: 'rgba(34,204,94,0.10)',
+    borderWidth: 1,
+    borderColor: Colors.primaryBorder,
+  },
+  introCountValue: {
+    fontSize: 18,
+    fontFamily: 'Inter_700Bold',
+    color: Colors.primary,
+    lineHeight: 22,
+  },
+  introCountLabel: {
+    fontSize: 8,
+    fontFamily: 'Inter_700Bold',
+    color: Colors.primary,
+    letterSpacing: 0.9,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  sectionKicker: {
+    fontSize: 10,
+    fontFamily: 'Inter_700Bold',
+    color: Colors.textTertiary,
+    letterSpacing: 1.2,
+  },
+  sectionCount: {
+    fontSize: 11,
+    fontFamily: 'Inter_700Bold',
+    color: Colors.primary,
+  },
+
   empty: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -606,31 +610,50 @@ const styles = StyleSheet.create({
 
 const lockerTabStyles = StyleSheet.create({
   container: {
-    backgroundColor: '#0D0D0D',
+    paddingHorizontal: Spacing.xl,
+    paddingBottom: Spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: '#1a1a1a',
+    borderBottomColor: Colors.border,
     flexGrow: 0,
   },
   content: {
     flexDirection: 'row',
+    gap: 8,
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderRadius: Radius.xl,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    padding: 4,
   },
   tab: {
     flex: 1,
-    minWidth: 76,
+    minHeight: 48,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 10,
-    gap: 3,
-    paddingHorizontal: 12,
+    borderRadius: Radius.lg,
+    gap: 2,
+    paddingHorizontal: 6,
+  },
+  tabActive: {
+    backgroundColor: Colors.primaryMuted,
+    borderWidth: 1,
+    borderColor: Colors.primaryBorder,
   },
   label: {
-    fontSize: 11,
+    fontSize: 12,
     fontFamily: 'Inter_700Bold',
-    letterSpacing: 1,
+    color: Colors.textSecondary,
+    letterSpacing: 0.2,
+  },
+  labelActive: {
+    color: Colors.primary,
   },
   count: {
     fontSize: 9,
     fontFamily: 'Inter_700Bold',
+    color: Colors.primary,
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
   },
 });
 
