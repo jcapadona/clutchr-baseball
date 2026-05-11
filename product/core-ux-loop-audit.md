@@ -177,3 +177,36 @@ This pass keeps architecture intact and makes safe, local polish: harden `PitchS
 - Confirm XP/rank state updates after context persistence.
 - Confirm the next routed rep is visible.
 - Confirm there is no dead end after completion.
+
+## 12. Home focus pass — May 11, 2026
+
+### What changed
+
+- Simplified the Home header into a clean CLUTCHR brand row with only compact streak and XP indicators on the right.
+- Removed the large rank/emblem pill and status pill from the header; rank now appears quietly inside the Next Rep hero card.
+- Cleaned season/role metadata into compact hero chips such as `In-Season` and `Pitcher`.
+- Rebuilt the Home hierarchy around one dominant Next Rep hero card with one clear primary CTA: `Start Next Rep →`.
+- Removed the circular play button so the hero no longer presents two competing CTAs for the same action.
+- Replaced static Today’s Cue with `WHY THIS REP`, using the existing routed reason when available and a baseball-native fallback when it is not.
+- Quieted Daily Work into two compact cards that preserve the existing mission logic without heavy stacked rows.
+- Removed the floating Tools pill from Home and kept Game Mode / Locker as the only secondary shortcut cards.
+- Reduced green overload by reserving strong green for the primary CTA, small status dots, and active/completed progress.
+
+### Design intent
+
+The Home screen should feel like a premium baseball command center: one clear next action, restrained status, intentional spacing, and secondary work that supports the core loop without competing with it.
+
+### Intentionally not changed
+
+- No lesson player logic was touched.
+- No interactive variant logic was touched.
+- No completion logic was touched.
+- No routing behavior, XP/rank calculation, Supabase schema, paywall, onboarding, Career, Game Mode, or Locker architecture was changed.
+- Daily Work mission persistence and Game Mode mission completion behavior were preserved.
+
+### Future Home ideas deferred
+
+- Add a richer but still restrained next-rep reason model if routing eventually supplies stronger baseball context.
+- Consider a small rank progress strip below the hero after validating spacing on real devices.
+- Revisit whether Locker should expose tools inside its own screen rather than through any Home-level tools entry.
+- Tune compact stat pill behavior for very large XP values after device QA.
