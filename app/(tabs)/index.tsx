@@ -14,13 +14,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAthlete } from '@/context/AthleteContext';
 import { fetchLessons } from '@/lib/supabase';
 import { Colors } from '@/constants/theme';
-import ToolShelfModal from '@/components/ToolShelfModal';
 import { pickNextLesson, type RoutingResult } from '@/lib/lessonRouter';
-import { getBestCue } from '@/lib/personalCue';
 import { SkeletonBox, SkeletonCard } from '@/components/SkeletonLoader';
-import { ClutchrHeader } from '@/components/ClutchrHeader';
 import { EmblemBadge } from '@/components/EmblemBadge';
-import { getCurrentRank, getRankProgressPercent } from '@/lib/progressionRanks';
+import { getCurrentRank } from '@/lib/progressionRanks';
 
 const MISSIONS_DATE_KEY  = 'missions_date';
 const MISSIONS_PROG_KEY  = 'missions_progress';
@@ -30,12 +27,20 @@ interface MissionsProgress {
   gameModeOpened: boolean;
 }
 
+function formatLabel(value?: string | null) {
+  if (!value) return '';
+  return value
+    .split('_')
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join('-');
+}
+
 // ─── SCREEN ──────────────────────────────────────────────────────────────────
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { athleteState, isLoading, completedTodayCount, updateAthleteState } = useAthlete();
-  const [toolShelfOpen, setToolShelfOpen]   = useState(false);
   const [routingResult, setRoutingResult]   = useState<RoutingResult | null>(null);
   const [loadingLesson, setLoadingLesson]   = useState(true);
   const [missions, setMissions]             = useState<MissionsProgress>({ lessonsCompleted: 0, gameModeOpened: false });
@@ -145,32 +150,23 @@ export default function HomeScreen() {
   const totalXp  = athleteState?.total_xp ?? 0;
   const currentRank = getCurrentRank(totalXp);
   const streak   = athleteState?.streak_count ?? 0;
-  const focusCue = getBestCue(athleteState, 'focus');
 
   if (isLoading || !athleteState) {
     return (
       <View style={s.container}>
-        <ClutchrHeader
-          variant="home"
-          kicker="CLUTCHR BASEBALL"
-          title="Your Next Rep"
-          subtitle="Train. Track. Clutch."
-          statusPill="LOADING"
-          progress={0}
-          style={{ paddingTop: insets.top + 12 }}
-          rightAction={
-            <View style={s.navRight}>
-              <View style={s.streakPill}>
-                <Ionicons name="flame" size={13} color="#F5A623" />
-                <Text style={s.pillStat}>0</Text>
-              </View>
-              <View style={s.xpPillNav}>
-                <Ionicons name="flash" size={13} color="#F5A623" />
-                <Text style={s.pillStat}>0</Text>
-              </View>
+        <View style={[s.topHeader, { paddingTop: insets.top + 14 }]}>
+          <Text style={s.brandText}>CLUTCHR</Text>
+          <View style={s.navRight}>
+            <View style={s.statPill}>
+              <Ionicons name="flame" size={12} color="#C58A2A" />
+              <Text style={s.pillStat}>0</Text>
             </View>
-          }
-        />
+            <View style={s.statPill}>
+              <Ionicons name="flash" size={12} color="#C58A2A" />
+              <Text style={s.pillStat}>0</Text>
+            </View>
+          </View>
+        </View>
         <ScrollView
           contentContainerStyle={[s.scroll, { paddingBottom: insets.bottom + 140 }]}
           showsVerticalScrollIndicator={false}
@@ -188,16 +184,20 @@ export default function HomeScreen() {
     );
   }
 
-  const rankProgressPercent = getRankProgressPercent(totalXp);
-
   const roleLabel = athleteState.primary_role
     ? athleteState.primary_role.charAt(0).toUpperCase() + athleteState.primary_role.slice(1)
     : 'Player';
-  const phaseLabel = athleteState.season_phase
-    ? athleteState.season_phase.replace(/_/g, ' ').replace(/\w/g, (char) => char.toUpperCase())
-    : 'Train';
+  const phaseLabel = formatLabel(athleteState.season_phase) || 'Train';
   const lesson        = routingResult?.lesson ?? null;
   const reason        = routingResult?.reason ?? '';
+  const heroSubtitle  = lesson?.subtitle || 'Command, tempo, and mound IQ.';
+  const firstName     = athleteState.first_name?.trim();
+  const planTitle     = firstName ? `Ready to work, ${firstName}?` : "Today's Plan";
+  const planSubtitle  = `${phaseLabel} · ${roleLabel} · Next rep loaded`;
+  const edgeLine      = reason && reason.length <= 82 ? reason : 'Build command and tempo before the game speeds up.';
+  const repsProgressPercent = `${(mission1Progress / 2) * 100}%`;
+  const resetProgressPercent = `${mission2Progress * 100}%`;
+  const earnedMissionXp = (mission1Done ? 30 : 0) + (mission2Done ? 15 : 0);
 
   function handleContinueCareer() {
     if (!routingResult?.lesson) return;
@@ -224,63 +224,48 @@ export default function HomeScreen() {
   return (
     <View style={s.container}>
 
-      {/* ── COMMAND HEADER ── */}
-      <ClutchrHeader
-        variant="home"
-        kicker="CLUTCHR BASEBALL"
-        title="Your Next Rep"
-        subtitle={`${phaseLabel} · ${roleLabel}`}
-        statusPill={currentRank.shortLabel}
-        progress={rankProgressPercent}
-        style={{ paddingTop: insets.top + 12 }}
-        rightAction={
-          <View style={s.navRight}>
-            <View style={[s.rankChip, { borderColor: currentRank.borderColor }]}>
-              <EmblemBadge rank={currentRank} size="small" />
-              <Text style={[s.rankChipText, { color: currentRank.primaryColor }]}>{currentRank.name}</Text>
-            </View>
-            <View style={s.streakPill}>
-              <Ionicons name="flame" size={13} color="#F5A623" />
-              <Text style={s.pillStat}>{streak}</Text>
-            </View>
-            <View style={s.xpPillNav}>
-              <Ionicons name="flash" size={13} color="#F5A623" />
-              <Text style={s.pillStat}>{totalXp}</Text>
-            </View>
+      {/* ── CLEAN COMMAND HEADER ── */}
+      <View style={[s.topHeader, { paddingTop: insets.top + 14 }]}>
+        <Text style={s.brandText}>CLUTCHR</Text>
+        <View style={s.navRight}>
+          <View style={s.statPill}>
+            <Ionicons name="flame" size={12} color="#C58A2A" />
+            <Text style={s.pillStat}>{streak}</Text>
           </View>
-        }
-      />
+          <View style={s.statPill}>
+            <Ionicons name="flash" size={12} color="#C58A2A" />
+            <Text style={s.pillStat}>{totalXp}</Text>
+          </View>
+        </View>
+      </View>
 
       <ScrollView
         contentContainerStyle={[s.scroll, { paddingBottom: insets.bottom + 120 }]}
         showsVerticalScrollIndicator={false}
       >
 
-        {/* ── CONTINUE CAREER CARD ── */}
+        <View style={s.planIntro}>
+          <Text style={s.planTitle}>{planTitle}</Text>
+          <Text style={s.planSubtitle}>{planSubtitle}</Text>
+        </View>
+
+        {/* ── NEXT REP HERO ── */}
         {animCard(anim1,
           <Pressable
-            style={({ pressed }) => [c.card, pressed && { opacity: 0.93, transform: [{ scale: 0.985 }] }]}
+            style={({ pressed }) => [c.card, pressed && { opacity: 0.95, transform: [{ scale: 0.992 }] }]}
             onPress={handleContinueCareer}
             disabled={loadingLesson || !lesson}
           >
-            <View style={c.topRow}>
-              <View style={c.nextRepBadge}>
-                <View style={c.greenDot} />
-                <Text style={c.nextRepText}>NEXT REP</Text>
-              </View>
-              <Pressable
-                style={c.playBtn}
-                onPress={handleContinueCareer}
-                disabled={loadingLesson || !lesson}
-                hitSlop={8}
-              >
-                <Ionicons name="play" size={16} color="#000" />
-              </Pressable>
+            <View pointerEvents="none" style={c.plateMark} />
+            <View pointerEvents="none" style={c.ctaGlow} />
+            <View style={c.nextRepBadge}>
+              <View style={c.greenDot} />
+              <Text style={c.nextRepText}>NEXT REP</Text>
             </View>
 
             {loadingLesson ? (
               <>
-                <View style={[c.skeleton, { width: '85%', height: 28, marginTop: 10 }]} />
+                <View style={[c.skeleton, { width: '85%', height: 28, marginTop: 18 }]} />
                 <View style={[c.skeleton, { width: '60%', height: 16, marginTop: 8 }]} />
               </>
             ) : (
@@ -289,61 +274,59 @@ export default function HomeScreen() {
                   {lesson?.title ?? 'Control the Controllables'}
                 </Text>
                 <Text style={c.lessonSubtitle} numberOfLines={2}>
-                  {reason || lesson?.subtitle || 'Your next rep is ready.'}
+                  {heroSubtitle}
                 </Text>
               </>
             )}
 
+            <View style={c.edgeNote}>
+              <Text style={c.edgeLabel}>TODAY'S EDGE</Text>
+              <Text style={c.edgeText} numberOfLines={2}>{edgeLine}</Text>
+            </View>
+
+            <View style={c.rankMini}>
+              <EmblemBadge rank={currentRank} size="small" />
+              <Text style={c.rankMiniText}>{currentRank.name}</Text>
+            </View>
+
             <Pressable
-              style={({ pressed }) => [c.ctaBtn, pressed && { opacity: 0.88 }]}
+              style={({ pressed }) => [c.ctaBtn, pressed && { opacity: 0.9 }]}
               onPress={handleContinueCareer}
               disabled={loadingLesson || !lesson}
             >
-              <Text style={c.ctaBtnText}>Let's go →</Text>
+              <Text style={c.ctaBtnText}>Start Next Rep →</Text>
             </Pressable>
           </Pressable>
         )}
 
-        <View style={s.todayCueCard}>
-          <Text style={{ color: '#22CC5E', fontSize: 11, fontWeight: '700', letterSpacing: 1 }}>TODAY'S CUE</Text>
-          <Text style={{ color: 'rgba(255,255,255,0.9)', marginTop: 4 }}>{focusCue}</Text>
-        </View>
 
-        {/* ── DAILY MISSIONS ── */}
+        {/* ── TODAY'S PROGRESS ── */}
         {animCard(anim2,
-          <View style={s.missionsWrap}>
+          <View style={s.progressWrap}>
             <View style={s.sectionHeaderRow}>
-              <Text style={s.sectionHeader}>DAILY MISSIONS</Text>
-              {/* No "View all" until a dedicated missions screen exists */}
+              <Text style={s.sectionHeader}>TODAY'S PROGRESS</Text>
+              <Text style={s.progressSummary}>+{earnedMissionXp} XP</Text>
             </View>
 
-            {/* Complete 2 lessons */}
-            <View style={[m.row, mission1Done && { backgroundColor: '#0F2410' }]}>
-              <View style={[m.iconBox, { backgroundColor: 'rgba(34,204,94,0.10)' }]}>
-                <Ionicons name="book" size={16} color="#22CC5E" />
+            <View style={s.progressPanel}>
+              <View style={s.progressLineRow}>
+                <View style={s.progressCopy}>
+                  <Text style={s.progressLabel}>Reps complete</Text>
+                  <Text style={s.progressValue}>{mission1Progress}/2</Text>
+                </View>
+                <View style={s.miniTrack}>
+                  <View style={[s.miniFill, { width: repsProgressPercent }]} />
+                </View>
               </View>
-              <View style={m.info}>
-                <Text style={m.title}>Complete 2 lessons</Text>
-                <Text style={m.xp}>+30 XP</Text>
-              </View>
-              <View style={m.right}>
-                <Text style={[m.progress, mission1Done && { color: '#22CC5E' }]}>{mission1Progress}/2</Text>
-                <Text style={m.tag}>{mission1Done ? 'COMPLETE ✓' : 'IN PROGRESS'}</Text>
-              </View>
-            </View>
-
-            {/* Run a Game Mode tool */}
-            <View style={[m.row, mission2Done && { backgroundColor: '#0F2410' }]}>
-              <View style={[m.iconBox, { backgroundColor: 'rgba(245,166,35,0.10)' }]}>
-                <Ionicons name="flash" size={16} color="#F5A623" />
-              </View>
-              <View style={m.info}>
-                <Text style={m.title}>Run a Game Mode tool</Text>
-                <Text style={m.xp}>+15 XP</Text>
-              </View>
-              <View style={m.right}>
-                <Text style={[m.progress, mission2Done && { color: '#22CC5E' }]}>{mission2Progress}/1</Text>
-                <Text style={m.tag}>{mission2Done ? 'COMPLETE ✓' : 'IN PROGRESS'}</Text>
+              <View style={s.progressDivider} />
+              <View style={s.progressLineRow}>
+                <View style={s.progressCopy}>
+                  <Text style={s.progressLabel}>Run 1 reset</Text>
+                  <Text style={s.progressValue}>{mission2Progress}/1</Text>
+                </View>
+                <View style={s.miniTrack}>
+                  <View style={[s.miniFill, { width: resetProgressPercent, backgroundColor: mission2Done ? '#22CC5E' : '#C58A2A' }]} />
+                </View>
               </View>
             </View>
           </View>
@@ -356,33 +339,29 @@ export default function HomeScreen() {
               style={({ pressed }) => [s.shortcutCard, pressed && { opacity: 0.82 }]}
               onPress={handleGameModePress}
             >
-              <Ionicons name="flash" size={22} color="#F5A623" style={s.shortcutIcon} />
+              <View style={s.shortcutTopRow}>
+                <Ionicons name="flash" size={22} color="#F5A623" style={s.shortcutIcon} />
+                <Ionicons name="chevron-forward" size={16} color="rgba(247,255,249,0.42)" />
+              </View>
               <Text style={s.shortcutTitle}>GAME MODE</Text>
-              <Text style={s.shortcutSub}>Pre · in · post</Text>
+              <Text style={s.shortcutSub}>Pre · In · Post</Text>
             </Pressable>
             <Pressable
               style={({ pressed }) => [s.shortcutCard, pressed && { opacity: 0.82 }]}
               onPress={() => router.push('/(tabs)/locker')}
             >
-              <Ionicons name="library" size={22} color="#22CC5E" style={s.shortcutIcon} />
+              <View style={s.shortcutTopRow}>
+                <Ionicons name="library" size={22} color="#22CC5E" style={s.shortcutIcon} />
+                <Ionicons name="chevron-forward" size={16} color="rgba(247,255,249,0.42)" />
+              </View>
               <Text style={s.shortcutTitle}>LOCKER</Text>
-              <Text style={s.shortcutSub}>Articles · tools</Text>
+              <Text style={s.shortcutSub}>Articles · Tools</Text>
             </Pressable>
           </View>
         )}
 
       </ScrollView>
 
-      {/* FAB */}
-      <Pressable
-        style={[s.fab, { bottom: insets.bottom + 72 }]}
-        onPress={() => setToolShelfOpen(true)}
-      >
-        <Ionicons name="flash" size={15} color="#000" />
-        <Text style={s.fabText}>TOOLS</Text>
-      </Pressable>
-
-      <ToolShelfModal visible={toolShelfOpen} onClose={() => setToolShelfOpen(false)} />
     </View>
   );
 }
@@ -391,102 +370,61 @@ export default function HomeScreen() {
 
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
-  scroll:    { paddingTop: 8 },
-
-  // Branded nav bar
-  navBar: {
-    backgroundColor: '#000',
-    borderBottomWidth: 1,
-    borderBottomColor: '#1a1a1a',
-    paddingHorizontal: 16,
+  scroll: { paddingTop: 10 },
+  topHeader: {
+    paddingHorizontal: 22,
     paddingBottom: 12,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    backgroundColor: Colors.background,
+  },
+  brandText: {
+    color: '#F7FFF9',
+    fontSize: 22,
+    fontFamily: 'Inter_700Bold',
+    letterSpacing: 4,
   },
   navRight: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
   },
-  streakPill: {
-    backgroundColor: '#1a1a1a',
-    borderRadius: 20,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+  statPill: {
+    minHeight: 30,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
-  },
-  xpPillNav: {
-    backgroundColor: '#1A1200',
-    borderRadius: 20,
+    borderRadius: 999,
     paddingHorizontal: 10,
-    paddingVertical: 5,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
+    backgroundColor: 'rgba(255,255,255,0.055)',
   },
   pillStat: {
-    color: '#FFFFFF',
-    fontSize: 13,
-    fontWeight: '700',
-    fontFamily: 'Inter_700Bold',
-  },
-  rankChip: {
-    borderRadius: 20,
-    borderWidth: 1,
-    backgroundColor: '#111612',
-    paddingLeft: 2,
-    paddingRight: 9,
-    paddingVertical: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 3,
-  },
-  rankChipText: {
-    fontSize: 10,
-    fontFamily: 'Inter_700Bold',
-    letterSpacing: 0.8,
-  },
-
-  // XP progress line
-  xpLine: {
-    height: 2,
-    backgroundColor: '#22CC5E',
-  },
-
-  // Greeting
-  goodWork: {
+    color: 'rgba(247,255,249,0.88)',
     fontSize: 12,
-    color: 'rgba(255,255,255,0.4)',
-    letterSpacing: 2,
-    marginTop: 16,
-    marginLeft: 16,
-  },
-  missionControl: {
-    fontSize: 26,
-    color: '#FFFFFF',
-    fontWeight: '900',
-    letterSpacing: 1,
     fontFamily: 'Inter_700Bold',
-    marginLeft: 16,
-    marginBottom: 4,
   },
-  todayCueCard: {
-    marginHorizontal: 16,
-    borderWidth: 1,
-    borderColor: '#22CC5E33',
-    backgroundColor: '#0F1612',
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 12,
+  planIntro: {
+    marginHorizontal: 18,
+    marginBottom: 16,
   },
-
-  // Missions
-  missionsWrap: {
+  planTitle: {
+    color: '#F7FFF9',
+    fontSize: 30,
+    fontFamily: 'Inter_700Bold',
+    letterSpacing: -0.6,
+    lineHeight: 35,
+  },
+  planSubtitle: {
+    marginTop: 5,
+    color: 'rgba(247,255,249,0.52)',
+    fontSize: 13,
+    fontFamily: 'Inter_600SemiBold',
+    letterSpacing: 0.2,
+  },
+  progressWrap: {
     paddingHorizontal: 16,
-    marginBottom: 4,
+    marginBottom: 24,
   },
   sectionHeaderRow: {
     flexDirection: 'row',
@@ -495,70 +433,90 @@ const s = StyleSheet.create({
     marginBottom: 10,
   },
   sectionHeader: {
-    fontSize: 11,
-    color: 'rgba(255,255,255,0.4)',
+    fontSize: 10,
+    color: 'rgba(255,255,255,0.34)',
     letterSpacing: 2,
-    fontWeight: '700',
     fontFamily: 'Inter_700Bold',
   },
-  viewAll: {
-    fontSize: 12,
-    color: '#22CC5E',
+  progressSummary: {
+    color: 'rgba(197,138,42,0.86)',
+    fontSize: 11,
+    fontFamily: 'Inter_700Bold',
+  },
+  progressPanel: {
+    borderRadius: 18,
+    paddingHorizontal: 15,
+    paddingVertical: 13,
+    backgroundColor: '#0D100E',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.065)',
+  },
+  progressLineRow: {
+    gap: 8,
+  },
+  progressCopy: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  progressLabel: {
+    color: 'rgba(247,255,249,0.68)',
+    fontSize: 13,
     fontFamily: 'Inter_600SemiBold',
   },
-
-  // Shortcuts
+  progressValue: {
+    color: '#F7FFF9',
+    fontSize: 12,
+    fontFamily: 'Inter_700Bold',
+  },
+  miniTrack: {
+    height: 5,
+    borderRadius: 999,
+    overflow: 'hidden',
+    backgroundColor: 'rgba(255,255,255,0.07)',
+  },
+  miniFill: {
+    height: '100%',
+    borderRadius: 999,
+    backgroundColor: '#22CC5E',
+  },
+  progressDivider: {
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.055)',
+    marginVertical: 12,
+  },
   shortcutsRow: {
     flexDirection: 'row',
-    gap: 10,
+    gap: 12,
     marginHorizontal: 16,
-    marginBottom: 16,
-    marginTop: 8,
+    marginBottom: 18,
   },
   shortcutCard: {
     flex: 1,
-    backgroundColor: '#111111',
-    borderRadius: 12,
-    padding: 14,
+    minHeight: 116,
+    backgroundColor: '#0D100E',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 20,
+    padding: 16,
+    justifyContent: 'space-between',
   },
-  shortcutIcon: {
-    marginBottom: 8,
-  },
-  shortcutTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    fontFamily: 'Inter_700Bold',
-    marginBottom: 3,
-  },
-  shortcutSub: {
-    fontSize: 11,
-    color: 'rgba(255,255,255,0.4)',
-    fontFamily: 'Inter_400Regular',
-  },
-
-  // FAB
-  fab: {
-    position: 'absolute',
-    right: 20,
+  shortcutTopRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
-    borderRadius: 999,
-    paddingVertical: 11,
-    paddingHorizontal: 18,
-    backgroundColor: '#22CC5E',
-    shadowColor: '#22CC5E',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.5,
-    shadowRadius: 12,
-    elevation: 8,
+    justifyContent: 'space-between',
   },
-  fabText: {
-    fontSize: 11,
+  shortcutIcon: { marginBottom: 10 },
+  shortcutTitle: {
+    fontSize: 15,
     fontFamily: 'Inter_700Bold',
-    color: '#000',
-    letterSpacing: 1.2,
+    color: '#F7FFF9',
+    marginBottom: 5,
+  },
+  shortcutSub: {
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.42)',
+    fontFamily: 'Inter_400Regular',
   },
 });
 
@@ -566,24 +524,41 @@ const s = StyleSheet.create({
 
 const c = StyleSheet.create({
   card: {
+    position: 'relative',
+    overflow: 'hidden',
     marginHorizontal: 16,
-    marginTop: 20,
-    marginBottom: 16,
-    backgroundColor: '#0D1A0E',
-    borderWidth: 1.5,
-    borderColor: '#22CC5E44',
-    borderRadius: 16,
-    padding: 20,
+    marginBottom: 18,
+    backgroundColor: '#0B150D',
+    borderWidth: 1,
+    borderColor: 'rgba(35,209,96,0.24)',
+    borderRadius: 26,
+    padding: 22,
   },
-  topRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+  plateMark: {
+    position: 'absolute',
+    right: -14,
+    top: 18,
+    width: 118,
+    height: 118,
+    borderWidth: 1,
+    borderColor: 'rgba(247,255,249,0.055)',
+    transform: [{ rotate: '45deg' }],
+  },
+  ctaGlow: {
+    position: 'absolute',
+    left: 26,
+    right: 26,
+    bottom: 18,
+    height: 54,
+    borderRadius: 24,
+    backgroundColor: 'rgba(35,209,96,0.12)',
   },
   nextRepBadge: {
+    alignSelf: 'flex-start',
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
+    marginBottom: 18,
   },
   greenDot: {
     width: 7,
@@ -594,100 +569,70 @@ const c = StyleSheet.create({
   nextRepText: {
     fontSize: 10,
     color: '#22CC5E',
-    fontWeight: '700',
-    letterSpacing: 2,
     fontFamily: 'Inter_700Bold',
-  },
-  playBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#22CC5E',
-    alignItems: 'center',
-    justifyContent: 'center',
+    letterSpacing: 2.2,
   },
   skeleton: {
     backgroundColor: 'rgba(255,255,255,0.06)',
     borderRadius: 6,
   },
   lessonTitle: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    marginTop: 10,
+    fontSize: 28,
+    color: '#F7FFF9',
     fontFamily: 'Inter_700Bold',
-    lineHeight: 30,
+    lineHeight: 34,
+    letterSpacing: -0.5,
   },
   lessonSubtitle: {
-    fontSize: 13,
-    color: 'rgba(255,255,255,0.45)',
-    marginTop: 4,
+    fontSize: 14,
+    color: 'rgba(247,255,249,0.56)',
+    marginTop: 7,
     fontFamily: 'Inter_400Regular',
-    lineHeight: 19,
+    lineHeight: 20,
+  },
+  edgeNote: {
+    marginTop: 17,
+    borderLeftWidth: 2,
+    borderLeftColor: 'rgba(35,209,96,0.52)',
+    paddingLeft: 10,
+    paddingRight: 4,
+  },
+  edgeLabel: {
+    color: 'rgba(35,209,96,0.9)',
+    fontSize: 9,
+    fontFamily: 'Inter_700Bold',
+    letterSpacing: 1.4,
+    marginBottom: 4,
+  },
+  edgeText: {
+    color: 'rgba(247,255,249,0.70)',
+    fontSize: 13,
+    fontFamily: 'Inter_400Regular',
+    lineHeight: 18,
+  },
+  rankMini: {
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    marginTop: 18,
+    opacity: 0.78,
+  },
+  rankMiniText: {
+    color: 'rgba(247,255,249,0.64)',
+    fontSize: 11,
+    fontFamily: 'Inter_700Bold',
   },
   ctaBtn: {
     backgroundColor: '#22CC5E',
-    borderRadius: 12,
-    paddingVertical: 14,
+    borderRadius: 16,
+    paddingVertical: 16,
     alignItems: 'center',
-    marginTop: 16,
+    marginTop: 22,
   },
   ctaBtnText: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: '#000000',
-    fontFamily: 'Inter_700Bold',
-  },
-});
-
-// ─── MISSION ROW STYLES ───────────────────────────────────────────────────────
-
-const m = StyleSheet.create({
-  row: {
-    backgroundColor: '#111111',
-    borderRadius: 10,
-    padding: 12,
-    marginBottom: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  iconBox: {
-    width: 36,
-    height: 36,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-  },
-  info: {
-    flex: 1,
-    gap: 3,
-  },
-  title: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#FFFFFF',
-    fontFamily: 'Inter_600SemiBold',
-  },
-  xp: {
-    fontSize: 11,
-    color: '#22CC5E',
-    fontFamily: 'Inter_600SemiBold',
-  },
-  right: {
-    alignItems: 'flex-end',
-    gap: 3,
-  },
-  progress: {
-    fontSize: 12,
-    color: 'rgba(255,255,255,0.4)',
-    fontFamily: 'Inter_400Regular',
-  },
-  tag: {
-    fontSize: 9,
-    color: 'rgba(255,255,255,0.2)',
-    letterSpacing: 1,
+    fontSize: 15,
+    color: '#050806',
     fontFamily: 'Inter_700Bold',
   },
 });
