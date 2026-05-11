@@ -210,3 +210,27 @@ The Home screen should feel like a premium baseball command center: one clear ne
 - Consider a small rank progress strip below the hero after validating spacing on real devices.
 - Revisit whether Locker should expose tools inside its own screen rather than through any Home-level tools entry.
 - Tune compact stat pill behavior for very large XP values after device QA.
+
+## 13. Home level-up pass — May 11, 2026
+
+### What changed
+
+- Added a compact `Today’s Plan` intro above the hero so Home reads like a plan for the athlete’s next training block instead of a stack of cards.
+- Kept the Next Rep card as the dominant anchor and added subtle premium depth with a faint plate-style mark and soft CTA glow.
+- Moved the routed reason/fallback out of the standalone `WHY THIS REP` card and into the hero as a short `TODAY'S EDGE` note.
+- Converted Daily Work from two tappable-looking cards into a compact `TODAY'S PROGRESS` status panel with progress bars for reps and reset work.
+- Kept Game Mode and Locker as the only secondary action cards and added chevrons so they read as tappable destinations.
+
+### Why Daily Work became status
+
+Daily Work is progress feedback, not a primary action. The strip now preserves the same mission data and rewards while avoiding button-like tiles that compete with Game Mode, Locker, and the Next Rep CTA.
+
+### Why Why This Rep moved
+
+The separate Why This Rep card created another equal-weight box and interrupted the primary loop. Moving the context into the hero keeps the reason attached to the action it explains.
+
+### Still deferred
+
+- No new Home artwork system or branded imagery was added.
+- No changes were made to routing, XP/rank calculations, mission persistence, or backend data.
+- Real-device spacing should still be tuned after Expo Go QA, especially for long names, long XP totals, and long routed reasons.

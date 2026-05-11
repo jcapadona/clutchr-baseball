@@ -191,7 +191,13 @@ export default function HomeScreen() {
   const lesson        = routingResult?.lesson ?? null;
   const reason        = routingResult?.reason ?? '';
   const heroSubtitle  = lesson?.subtitle || 'Command, tempo, and mound IQ.';
-  const whyThisRep    = reason || 'Build command and tempo before the game speeds up.';
+  const firstName     = athleteState.first_name?.trim();
+  const planTitle     = firstName ? `Ready to work, ${firstName}?` : "Today's Plan";
+  const planSubtitle  = `${phaseLabel} · ${roleLabel} · Next rep loaded`;
+  const edgeLine      = reason && reason.length <= 82 ? reason : 'Build command and tempo before the game speeds up.';
+  const repsProgressPercent = `${(mission1Progress / 2) * 100}%`;
+  const resetProgressPercent = `${mission2Progress * 100}%`;
+  const earnedMissionXp = (mission1Done ? 30 : 0) + (mission2Done ? 15 : 0);
 
   function handleContinueCareer() {
     if (!routingResult?.lesson) return;
@@ -238,6 +244,11 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
       >
 
+        <View style={s.planIntro}>
+          <Text style={s.planTitle}>{planTitle}</Text>
+          <Text style={s.planSubtitle}>{planSubtitle}</Text>
+        </View>
+
         {/* ── NEXT REP HERO ── */}
         {animCard(anim1,
           <Pressable
@@ -245,6 +256,8 @@ export default function HomeScreen() {
             onPress={handleContinueCareer}
             disabled={loadingLesson || !lesson}
           >
+            <View pointerEvents="none" style={c.plateMark} />
+            <View pointerEvents="none" style={c.ctaGlow} />
             <View style={c.nextRepBadge}>
               <View style={c.greenDot} />
               <Text style={c.nextRepText}>NEXT REP</Text>
@@ -266,15 +279,14 @@ export default function HomeScreen() {
               </>
             )}
 
-            <View style={c.metaRow}>
-              <View style={c.metaChips}>
-                <Text style={c.metaChip}>{phaseLabel}</Text>
-                <Text style={c.metaChip}>{roleLabel}</Text>
-              </View>
-              <View style={c.rankMini}>
-                <EmblemBadge rank={currentRank} size="small" />
-                <Text style={c.rankMiniText}>{currentRank.name}</Text>
-              </View>
+            <View style={c.edgeNote}>
+              <Text style={c.edgeLabel}>TODAY'S EDGE</Text>
+              <Text style={c.edgeText} numberOfLines={2}>{edgeLine}</Text>
+            </View>
+
+            <View style={c.rankMini}>
+              <EmblemBadge rank={currentRank} size="small" />
+              <Text style={c.rankMiniText}>{currentRank.name}</Text>
             </View>
 
             <Pressable
@@ -287,35 +299,34 @@ export default function HomeScreen() {
           </Pressable>
         )}
 
-        <View style={s.whyCard}>
-          <Text style={s.whyLabel}>WHY THIS REP</Text>
-          <Text style={s.whyText}>{whyThisRep}</Text>
-        </View>
 
-        {/* ── DAILY WORK ── */}
+        {/* ── TODAY'S PROGRESS ── */}
         {animCard(anim2,
-          <View style={s.missionsWrap}>
+          <View style={s.progressWrap}>
             <View style={s.sectionHeaderRow}>
-              <Text style={s.sectionHeader}>DAILY WORK</Text>
+              <Text style={s.sectionHeader}>TODAY'S PROGRESS</Text>
+              <Text style={s.progressSummary}>+{earnedMissionXp} XP</Text>
             </View>
 
-            <View style={m.grid}>
-              <View style={[m.compactCard, mission1Done && m.compactCardDone]}>
-                <View style={m.compactTop}>
-                  <Ionicons name="book" size={14} color={mission1Done ? '#22CC5E' : 'rgba(255,255,255,0.42)'} />
-                  <Text style={[m.progress, mission1Done && { color: '#22CC5E' }]}>{mission1Progress}/2</Text>
+            <View style={s.progressPanel}>
+              <View style={s.progressLineRow}>
+                <View style={s.progressCopy}>
+                  <Text style={s.progressLabel}>Reps complete</Text>
+                  <Text style={s.progressValue}>{mission1Progress}/2</Text>
                 </View>
-                <Text style={m.title}>Finish 2 reps</Text>
-                <Text style={m.xp}>+30 XP</Text>
+                <View style={s.miniTrack}>
+                  <View style={[s.miniFill, { width: repsProgressPercent }]} />
+                </View>
               </View>
-
-              <View style={[m.compactCard, mission2Done && m.compactCardDone]}>
-                <View style={m.compactTop}>
-                  <Ionicons name="flash" size={14} color={mission2Done ? '#22CC5E' : '#C58A2A'} />
-                  <Text style={[m.progress, mission2Done && { color: '#22CC5E' }]}>{mission2Progress}/1</Text>
+              <View style={s.progressDivider} />
+              <View style={s.progressLineRow}>
+                <View style={s.progressCopy}>
+                  <Text style={s.progressLabel}>Run 1 reset</Text>
+                  <Text style={s.progressValue}>{mission2Progress}/1</Text>
                 </View>
-                <Text style={m.title}>Run 1 reset</Text>
-                <Text style={m.xp}>+15 XP</Text>
+                <View style={s.miniTrack}>
+                  <View style={[s.miniFill, { width: resetProgressPercent, backgroundColor: mission2Done ? '#22CC5E' : '#C58A2A' }]} />
+                </View>
               </View>
             </View>
           </View>
@@ -328,7 +339,10 @@ export default function HomeScreen() {
               style={({ pressed }) => [s.shortcutCard, pressed && { opacity: 0.82 }]}
               onPress={handleGameModePress}
             >
-              <Ionicons name="flash" size={22} color="#F5A623" style={s.shortcutIcon} />
+              <View style={s.shortcutTopRow}>
+                <Ionicons name="flash" size={22} color="#F5A623" style={s.shortcutIcon} />
+                <Ionicons name="chevron-forward" size={16} color="rgba(247,255,249,0.42)" />
+              </View>
               <Text style={s.shortcutTitle}>GAME MODE</Text>
               <Text style={s.shortcutSub}>Pre · In · Post</Text>
             </Pressable>
@@ -336,7 +350,10 @@ export default function HomeScreen() {
               style={({ pressed }) => [s.shortcutCard, pressed && { opacity: 0.82 }]}
               onPress={() => router.push('/(tabs)/locker')}
             >
-              <Ionicons name="library" size={22} color="#22CC5E" style={s.shortcutIcon} />
+              <View style={s.shortcutTopRow}>
+                <Ionicons name="library" size={22} color="#22CC5E" style={s.shortcutIcon} />
+                <Ionicons name="chevron-forward" size={16} color="rgba(247,255,249,0.42)" />
+              </View>
               <Text style={s.shortcutTitle}>LOCKER</Text>
               <Text style={s.shortcutSub}>Articles · Tools</Text>
             </Pressable>
@@ -353,10 +370,10 @@ export default function HomeScreen() {
 
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
-  scroll: { paddingTop: 18 },
+  scroll: { paddingTop: 10 },
   topHeader: {
     paddingHorizontal: 22,
-    paddingBottom: 14,
+    paddingBottom: 12,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -387,32 +404,27 @@ const s = StyleSheet.create({
     fontSize: 12,
     fontFamily: 'Inter_700Bold',
   },
-  whyCard: {
-    marginHorizontal: 16,
-    marginBottom: 22,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.07)',
-    backgroundColor: '#0D100E',
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+  planIntro: {
+    marginHorizontal: 18,
+    marginBottom: 16,
   },
-  whyLabel: {
-    color: 'rgba(255,255,255,0.36)',
-    fontSize: 10,
+  planTitle: {
+    color: '#F7FFF9',
+    fontSize: 30,
     fontFamily: 'Inter_700Bold',
-    letterSpacing: 1.8,
-    marginBottom: 6,
+    letterSpacing: -0.6,
+    lineHeight: 35,
   },
-  whyText: {
-    color: 'rgba(247,255,249,0.78)',
-    fontSize: 14,
-    fontFamily: 'Inter_400Regular',
-    lineHeight: 20,
+  planSubtitle: {
+    marginTop: 5,
+    color: 'rgba(247,255,249,0.52)',
+    fontSize: 13,
+    fontFamily: 'Inter_600SemiBold',
+    letterSpacing: 0.2,
   },
-  missionsWrap: {
+  progressWrap: {
     paddingHorizontal: 16,
-    marginBottom: 22,
+    marginBottom: 24,
   },
   sectionHeaderRow: {
     flexDirection: 'row',
@@ -426,6 +438,53 @@ const s = StyleSheet.create({
     letterSpacing: 2,
     fontFamily: 'Inter_700Bold',
   },
+  progressSummary: {
+    color: 'rgba(197,138,42,0.86)',
+    fontSize: 11,
+    fontFamily: 'Inter_700Bold',
+  },
+  progressPanel: {
+    borderRadius: 18,
+    paddingHorizontal: 15,
+    paddingVertical: 13,
+    backgroundColor: '#0D100E',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.065)',
+  },
+  progressLineRow: {
+    gap: 8,
+  },
+  progressCopy: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  progressLabel: {
+    color: 'rgba(247,255,249,0.68)',
+    fontSize: 13,
+    fontFamily: 'Inter_600SemiBold',
+  },
+  progressValue: {
+    color: '#F7FFF9',
+    fontSize: 12,
+    fontFamily: 'Inter_700Bold',
+  },
+  miniTrack: {
+    height: 5,
+    borderRadius: 999,
+    overflow: 'hidden',
+    backgroundColor: 'rgba(255,255,255,0.07)',
+  },
+  miniFill: {
+    height: '100%',
+    borderRadius: 999,
+    backgroundColor: '#22CC5E',
+  },
+  progressDivider: {
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.055)',
+    marginVertical: 12,
+  },
   shortcutsRow: {
     flexDirection: 'row',
     gap: 12,
@@ -434,15 +493,20 @@ const s = StyleSheet.create({
   },
   shortcutCard: {
     flex: 1,
-    minHeight: 110,
+    minHeight: 116,
     backgroundColor: '#0D100E',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.07)',
-    borderRadius: 18,
+    borderColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 20,
     padding: 16,
-    justifyContent: 'flex-end',
+    justifyContent: 'space-between',
   },
-  shortcutIcon: { marginBottom: 14 },
+  shortcutTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  shortcutIcon: { marginBottom: 10 },
   shortcutTitle: {
     fontSize: 15,
     fontFamily: 'Inter_700Bold',
@@ -460,13 +524,34 @@ const s = StyleSheet.create({
 
 const c = StyleSheet.create({
   card: {
+    position: 'relative',
+    overflow: 'hidden',
     marginHorizontal: 16,
-    marginBottom: 14,
+    marginBottom: 18,
     backgroundColor: '#0B150D',
     borderWidth: 1,
-    borderColor: 'rgba(35,209,96,0.28)',
-    borderRadius: 24,
+    borderColor: 'rgba(35,209,96,0.24)',
+    borderRadius: 26,
     padding: 22,
+  },
+  plateMark: {
+    position: 'absolute',
+    right: -14,
+    top: 18,
+    width: 118,
+    height: 118,
+    borderWidth: 1,
+    borderColor: 'rgba(247,255,249,0.055)',
+    transform: [{ rotate: '45deg' }],
+  },
+  ctaGlow: {
+    position: 'absolute',
+    left: 26,
+    right: 26,
+    bottom: 18,
+    height: 54,
+    borderRadius: 24,
+    backgroundColor: 'rgba(35,209,96,0.12)',
   },
   nextRepBadge: {
     alignSelf: 'flex-start',
@@ -505,34 +590,32 @@ const c = StyleSheet.create({
     fontFamily: 'Inter_400Regular',
     lineHeight: 20,
   },
-  metaRow: {
-    marginTop: 18,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 12,
+  edgeNote: {
+    marginTop: 17,
+    borderLeftWidth: 2,
+    borderLeftColor: 'rgba(35,209,96,0.52)',
+    paddingLeft: 10,
+    paddingRight: 4,
   },
-  metaChips: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-    gap: 8,
-    flex: 1,
+  edgeLabel: {
+    color: 'rgba(35,209,96,0.9)',
+    fontSize: 9,
+    fontFamily: 'Inter_700Bold',
+    letterSpacing: 1.4,
+    marginBottom: 4,
   },
-  metaChip: {
-    overflow: 'hidden',
-    borderRadius: 999,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    backgroundColor: 'rgba(255,255,255,0.06)',
-    color: 'rgba(247,255,249,0.68)',
-    fontSize: 11,
-    fontFamily: 'Inter_600SemiBold',
+  edgeText: {
+    color: 'rgba(247,255,249,0.70)',
+    fontSize: 13,
+    fontFamily: 'Inter_400Regular',
+    lineHeight: 18,
   },
   rankMini: {
+    alignSelf: 'flex-start',
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 5,
+    marginTop: 18,
     opacity: 0.78,
   },
   rankMiniText: {
@@ -550,50 +633,6 @@ const c = StyleSheet.create({
   ctaBtnText: {
     fontSize: 15,
     color: '#050806',
-    fontFamily: 'Inter_700Bold',
-  },
-});
-
-// ─── MISSION ROW STYLES ───────────────────────────────────────────────────────
-
-const m = StyleSheet.create({
-  grid: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  compactCard: {
-    flex: 1,
-    minHeight: 92,
-    borderRadius: 16,
-    padding: 13,
-    backgroundColor: '#101110',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
-  },
-  compactCardDone: {
-    backgroundColor: 'rgba(35,209,96,0.08)',
-    borderColor: 'rgba(35,209,96,0.18)',
-  },
-  compactTop: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 12,
-  },
-  title: {
-    fontSize: 13,
-    color: '#F7FFF9',
-    fontFamily: 'Inter_600SemiBold',
-    marginBottom: 3,
-  },
-  xp: {
-    fontSize: 11,
-    color: 'rgba(35,209,96,0.72)',
-    fontFamily: 'Inter_600SemiBold',
-  },
-  progress: {
-    fontSize: 12,
-    color: 'rgba(255,255,255,0.46)',
     fontFamily: 'Inter_700Bold',
   },
 });
