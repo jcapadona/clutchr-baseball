@@ -110,27 +110,43 @@ function SelfRatingCheckIn({ role, lessonTitle, isBoss, onSubmit }: { role: stri
 
 function VariantRenderer({ step, onAdvance }: { step: any; onAdvance: (passed?: boolean) => void }) {
   const firedRef = useRef(false);
+  const variantKey = `${step?.ui_variant ?? 'unsupported'}:${step?.id ?? step?.prompt ?? step?.title ?? ''}`;
+
+  useEffect(() => {
+    firedRef.current = false;
+  }, [variantKey]);
+
   const handleComplete = useCallback((passed: boolean) => {
     if (firedRef.current) return;
     firedRef.current = true;
     setTimeout(() => onAdvance(passed), 1800);
   }, [onAdvance]);
 
-  const props = { data: step.data, responses: step.responses, feedback: step.feedback, onComplete: handleComplete };
-  switch (step.ui_variant) {
-    case 'strike_zone_visualizer':   return <StrikeZoneVisualizer {...props} />;
-    case 'pitch_sequence_chess':     return <PitchSequenceChess {...props} />;
-    case 'field_iq_board':           return <FieldIQBoard {...props} />;
-    case 'throw_decision_board':     return <ThrowDecisionBoard {...props} />;
-    case 'leverage_ladder':          return <LeverageLadder {...props} />;
-    case 'routine_card_builder':     return <RoutineCardBuilder {...props} />;
-    case 'pressure_replay':          return <PressureReplay {...props} />;
-    case 'snapshot_read':            return <SnapshotRead {...props} />;
-    case 'jump_read':                return <JumpRead {...props} />;
-    case 'timing_track':             return <TimingTrack {...props} />;
-    case 'confidence_slider':        return <ConfidenceSlider {...props} />;
-    case 'pitch_count_board':        return <PitchCountBoard {...props} />;
-    default:                         return null;
+  const props = { data: step?.data ?? {}, responses: step?.responses ?? {}, feedback: step?.feedback ?? {}, onComplete: handleComplete };
+  switch (step?.ui_variant) {
+    case 'strike_zone_visualizer':   return <StrikeZoneVisualizer key={variantKey} {...props} />;
+    case 'pitch_sequence_chess':     return <PitchSequenceChess key={variantKey} {...props} />;
+    case 'field_iq_board':           return <FieldIQBoard key={variantKey} {...props} />;
+    case 'throw_decision_board':     return <ThrowDecisionBoard key={variantKey} {...props} />;
+    case 'leverage_ladder':          return <LeverageLadder key={variantKey} {...props} />;
+    case 'routine_card_builder':     return <RoutineCardBuilder key={variantKey} {...props} />;
+    case 'pressure_replay':          return <PressureReplay key={variantKey} {...props} />;
+    case 'snapshot_read':            return <SnapshotRead key={variantKey} {...props} />;
+    case 'jump_read':                return <JumpRead key={variantKey} {...props} />;
+    case 'timing_track':             return <TimingTrack key={variantKey} {...props} />;
+    case 'confidence_slider':        return <ConfidenceSlider key={variantKey} {...props} />;
+    case 'pitch_count_board':        return <PitchCountBoard key={variantKey} {...props} />;
+    default:
+      return (
+        <View style={stepRouterStyles.fallbackCard}>
+          <Ionicons name="alert-circle" size={18} color={Colors.warning} />
+          <View style={{ flex: 1 }}>
+            <Text style={stepRouterStyles.fallbackTitle}>Rep format needs cleanup</Text>
+            <Text style={stepRouterStyles.fallbackText}>This interactive rep is missing a supported setup. Keep moving and load the next rep.</Text>
+          </View>
+          <AdvanceButton label="Next Rep →" onPress={() => onAdvance(false)} />
+        </View>
+      );
   }
 }
 
@@ -856,12 +872,13 @@ function StepRenderer({
   completionIntent?: CompletionIntent;
 }) {
   const [finalVariantPassed, setFinalVariantPassed] = useState<boolean | null>(null);
+  useEffect(() => { setFinalVariantPassed(null); }, [step]);
   const adv = () => onAdvance();
   const finalAction = isFinal ? (
     <CompletionInteraction
-      variant={completionIntent === 'boss' ? 'card-swipe' : completionIntent === 'lesson' ? 'hold' : 'swipe'}
+      variant={completionIntent === 'boss' ? 'card-swipe' : 'swipe'}
       intent={completionIntent}
-      fallbackLabel="Complete Lesson"
+      fallbackLabel="Finish Rep"
       onComplete={() => onAdvance(finalVariantPassed ?? undefined)}
     />
   ) : undefined;
@@ -956,7 +973,7 @@ function LessonCompletionPayoff({
           <View style={payoffStyles.signalLine} />
           <View style={payoffStyles.heroTopRow}>
             <View>
-              <Text style={payoffStyles.kicker}>{isBoss ? 'CLOSE IT OUT' : 'LESSON COMPLETE'}</Text>
+              <Text style={payoffStyles.kicker}>{isBoss ? 'CLOSE IT OUT' : 'REP COMPLETE'}</Text>
               <Text style={payoffStyles.title}>{title}</Text>
             </View>
             <CoachCapMoment />
@@ -2003,6 +2020,28 @@ const advanceStyles = StyleSheet.create({
 // ─── Step Router ──────────────────────────────────────────────────────────────
 const stepRouterStyles = StyleSheet.create({
   interactiveWrap: { gap: Spacing.lg },
+  fallbackCard: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: Spacing.md,
+    padding: Spacing.lg,
+    borderRadius: Radius.lg,
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  fallbackTitle: {
+    fontSize: 15,
+    fontFamily: 'Inter_700Bold',
+    color: Colors.textPrimary,
+    marginBottom: 4,
+  },
+  fallbackText: {
+    fontSize: 13,
+    fontFamily: 'Inter_400Regular',
+    color: Colors.textSecondary,
+    lineHeight: 18,
+  },
 });
 
 // ─── Screen ───────────────────────────────────────────────────────────────────

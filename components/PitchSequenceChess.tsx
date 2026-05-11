@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Colors, Radius, Spacing } from '@/constants/theme';
 
@@ -89,6 +89,84 @@ const RESULT_ICONS: Record<string, string> = {
   hit:     '↑',
 };
 
+
+function asString(value: unknown, fallback = ''): string {
+  return typeof value === 'string' && value.trim().length > 0 ? value : fallback;
+}
+
+function asStringArray(value: unknown): string[] {
+  if (Array.isArray(value)) return value.map((item) => asString(item)).filter(Boolean);
+  if (typeof value === 'string' && value.trim().length > 0) return [value];
+  return [];
+}
+
+function asPitchCombo(value: unknown): PitchCombo | null {
+  if (!value || typeof value !== 'object') return null;
+  const combo = value as Record<string, unknown>;
+  const pitch = asString(combo.pitch);
+  const target = asString(combo.target ?? combo.location);
+  return pitch && target ? { pitch, target } : null;
+}
+
+function normalizeContext(value: unknown): Record<string, any> {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return { runners: [], sequences: [] };
+  const ctx = value as Record<string, any>;
+  return {
+    ...ctx,
+    runners: asStringArray(ctx.runners),
+    sequences: asStringArray(ctx.sequences),
+    batter_side: asString(ctx.batter_side),
+  };
+}
+
+function normalizePreviousPitches(value: unknown): PrevPitch[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item) => {
+      if (!item || typeof item !== 'object') return null;
+      const pp = item as Record<string, unknown>;
+      const pitch = asString(pp.pitch, 'pitch');
+      const location = asString(pp.location ?? pp.target, 'zone');
+      const result = asString(pp.result, 'read');
+      return { pitch, location, result };
+    })
+    .filter((item): item is PrevPitch => Boolean(item));
+}
+
+function normalizePitchSeqData(data?: Partial<PitchSeqData> | null): PitchSeqData {
+  const context = normalizeContext(data?.context);
+  const previous = normalizePreviousPitches(data?.previous_pitches);
+  const pitchOptions = asStringArray((data as any)?.pitch_options ?? (data as any)?.options ?? (data as any)?.pitches);
+  const targetOptions = asStringArray((data as any)?.target_options ?? (data as any)?.targets ?? (data as any)?.locations);
+  return {
+    prompt: asString(data?.prompt, 'Read the count. Pick the next pitch and target.'),
+    instruction: asString(data?.instruction, 'Choose the pitch, then choose the spot.'),
+    mode: asString(data?.mode, 'choose_next_pitch'),
+    context,
+    previous_pitches: previous,
+    pitch_options: pitchOptions.length > 0 ? pitchOptions : ['4_seam', 'slider', 'changeup'],
+    target_options: targetOptions.length > 0 ? targetOptions : ['down_away', 'middle_in', 'waste_up'],
+  };
+}
+
+function normalizeResponses(responses?: Partial<PitchSeqResponses> | null, data?: PitchSeqData): PitchSeqResponses {
+  const firstPitch = data?.pitch_options?.[0] ?? '4_seam';
+  const firstTarget = data?.target_options?.[0] ?? 'down_away';
+  const best = asPitchCombo(responses?.best_combo) ?? { pitch: firstPitch, target: firstTarget };
+  const acceptable = Array.isArray(responses?.acceptable_combos)
+    ? responses.acceptable_combos.map(asPitchCombo).filter((item): item is PitchCombo => Boolean(item))
+    : [];
+  return { best_combo: best, acceptable_combos: acceptable };
+}
+
+function normalizeFeedback(feedback?: Partial<PitchSeqFeedback> | null): PitchSeqFeedback {
+  return {
+    correct: asString(feedback?.correct, 'Good call. That pitch fits the count.'),
+    acceptable: asString(feedback?.acceptable, 'Playable call. There may be a cleaner attack lane.'),
+    wrong: asString(feedback?.wrong, 'Not the best call here. Reset the count and attack a safer lane.'),
+  };
+}
+
 function pitchLabel(p: string) { return PITCH_LABELS[p] ?? p.toUpperCase().replace(/_/g, ' '); }
 function pitchColor(p: string) { return PITCH_COLORS[p] ?? Colors.textSecondary; }
 function targetLabel(t: string) { return TARGET_LABELS[t] ?? t.toUpperCase().replace(/_/g, ' '); }
@@ -96,10 +174,20 @@ function targetLabel(t: string) { return TARGET_LABELS[t] ?? t.toUpperCase().rep
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function PitchSequenceChess({ data, responses, feedback, onComplete }: Props) {
+  const safeData = useMemo(() => normalizePitchSeqData(data), [data]);
+  const safeResponses = useMemo(() => normalizeResponses(responses, safeData), [responses, safeData]);
+  const safeFeedback = useMemo(() => normalizeFeedback(feedback), [feedback]);
   const [selectedPitch, setSelectedPitch] = useState<string | null>(null);
   const [selectedTarget, setSelectedTarget] = useState<string | null>(null);
   const [result, setResult] = useState<'correct' | 'acceptable' | 'wrong' | null>(null);
   const [step, setStep] = useState<'pitch' | 'target' | 'done'>('pitch');
+
+  useEffect(() => {
+    setSelectedPitch(null);
+    setSelectedTarget(null);
+    setResult(null);
+    setStep('pitch');
+  }, [safeData.prompt, safeData.pitch_options.join('|'), safeData.target_options.join('|')]);
 
   function handlePitchSelect(pitch: string) {
     if (step !== 'pitch') return;
@@ -113,8 +201,8 @@ export default function PitchSequenceChess({ data, responses, feedback, onComple
     Haptics.selectionAsync();
     setSelectedTarget(target);
 
-    const best = responses.best_combo;
-    const acceptable = responses.acceptable_combos ?? [];
+    const best = safeResponses.best_combo;
+    const acceptable = safeResponses.acceptable_combos ?? [];
 
     let outcome: 'correct' | 'acceptable' | 'wrong';
     if (selectedPitch === best.pitch && target === best.target) {
@@ -132,7 +220,8 @@ export default function PitchSequenceChess({ data, responses, feedback, onComple
     onComplete(outcome !== 'wrong');
   }
 
-  const ctx = data.context ?? {};
+  const ctx = safeData.context ?? {};
+  const sequenceText = ctx.sequences.length > 0 ? ctx.sequences.join(' · ') : null;
 
   return (
     <View style={styles.container}>
@@ -141,17 +230,18 @@ export default function PitchSequenceChess({ data, responses, feedback, onComple
         <View style={styles.ctxRow}>
           <View style={styles.ctxPill}><Text style={styles.ctxPillText}>COUNT {ctx.count}</Text></View>
           {ctx.outs !== undefined && <View style={styles.ctxPill}><Text style={styles.ctxPillText}>{ctx.outs} OUT{ctx.outs !== 1 ? 'S' : ''}</Text></View>}
-          {ctx.runners?.length > 0 && <View style={styles.ctxPill}><Text style={styles.ctxPillText}>{ctx.runners.join(', ')}</Text></View>}
+          {ctx.runners.length > 0 && <View style={styles.ctxPill}><Text style={styles.ctxPillText}>{ctx.runners.join(', ')}</Text></View>}
+          {sequenceText && <View style={styles.ctxPill}><Text style={styles.ctxPillText}>{sequenceText}</Text></View>}
           {ctx.batter_side && <View style={styles.ctxPill}><Text style={styles.ctxPillText}>{ctx.batter_side.toUpperCase()} HITTER</Text></View>}
         </View>
       )}
 
       {/* Previous pitch timeline */}
-      {(data.previous_pitches?.length ?? 0) > 0 && (
+      {safeData.previous_pitches.length > 0 && (
         <View style={styles.prevSection}>
           <Text style={styles.prevLabel}>PREVIOUS PITCHES</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.prevScroll}>
-            {data.previous_pitches!.map((pp, i) => (
+            {safeData.previous_pitches.map((pp, i) => (
               <View key={i} style={styles.prevPill}>
                 <View style={[styles.prevDot, { backgroundColor: pitchColor(pp.pitch) }]} />
                 <View>
@@ -181,7 +271,7 @@ export default function PitchSequenceChess({ data, responses, feedback, onComple
           <Text style={styles.sectionLabel}>SELECT PITCH</Text>
         </View>
         <View style={styles.optionGrid}>
-          {data.pitch_options.map((pitch) => {
+          {safeData.pitch_options.map((pitch) => {
             const isSelected = selectedPitch === pitch;
             const color = pitchColor(pitch);
             return (
@@ -221,9 +311,9 @@ export default function PitchSequenceChess({ data, responses, feedback, onComple
           </Text>
         </View>
         <View style={styles.optionGrid}>
-          {data.target_options.map((target) => {
+          {safeData.target_options.map((target) => {
             const isSelected = selectedTarget === target;
-            const isBest = result && responses.best_combo.target === target && responses.best_combo.pitch === selectedPitch;
+            const isBest = result && safeResponses.best_combo.target === target && safeResponses.best_combo.pitch === selectedPitch;
             return (
               <Pressable
                 key={target}
@@ -286,7 +376,7 @@ export default function PitchSequenceChess({ data, responses, feedback, onComple
               styles.feedbackText,
               { color: result === 'correct' ? Colors.primary : result === 'acceptable' ? Colors.warning : Colors.danger },
             ]}>
-              {result === 'correct' ? feedback.correct : result === 'acceptable' ? (feedback.acceptable ?? feedback.correct) : feedback.wrong}
+              {result === 'correct' ? safeFeedback.correct : result === 'acceptable' ? (safeFeedback.acceptable ?? safeFeedback.correct) : safeFeedback.wrong}
             </Text>
           </View>
         </View>

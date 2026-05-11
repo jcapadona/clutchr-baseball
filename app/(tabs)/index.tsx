@@ -299,7 +299,7 @@ export default function HomeScreen() {
               onPress={handleContinueCareer}
               disabled={loadingLesson || !lesson}
             >
-              <Text style={c.ctaBtnText}>Let's go →</Text>
+              <Text style={c.ctaBtnText}>Start Next Rep →</Text>
             </Pressable>
           </Pressable>
         )}
@@ -313,7 +313,7 @@ export default function HomeScreen() {
         {animCard(anim2,
           <View style={s.missionsWrap}>
             <View style={s.sectionHeaderRow}>
-              <Text style={s.sectionHeader}>DAILY MISSIONS</Text>
+              <Text style={s.sectionHeader}>DAILY WORK</Text>
               {/* No "View all" until a dedicated missions screen exists */}
             </View>
 
@@ -323,7 +323,7 @@ export default function HomeScreen() {
                 <Ionicons name="book" size={16} color="#22CC5E" />
               </View>
               <View style={m.info}>
-                <Text style={m.title}>Complete 2 lessons</Text>
+                <Text style={m.title}>Finish 2 reps</Text>
                 <Text style={m.xp}>+30 XP</Text>
               </View>
               <View style={m.right}>
@@ -338,7 +338,7 @@ export default function HomeScreen() {
                 <Ionicons name="flash" size={16} color="#F5A623" />
               </View>
               <View style={m.info}>
-                <Text style={m.title}>Run a Game Mode tool</Text>
+                <Text style={m.title}>Run 1 reset</Text>
                 <Text style={m.xp}>+15 XP</Text>
               </View>
               <View style={m.right}>
@@ -358,7 +358,7 @@ export default function HomeScreen() {
             >
               <Ionicons name="flash" size={22} color="#F5A623" style={s.shortcutIcon} />
               <Text style={s.shortcutTitle}>GAME MODE</Text>
-              <Text style={s.shortcutSub}>Pre · in · post</Text>
+              <Text style={s.shortcutSub}>Reset tools</Text>
             </Pressable>
             <Pressable
               style={({ pressed }) => [s.shortcutCard, pressed && { opacity: 0.82 }]}
@@ -366,7 +366,7 @@ export default function HomeScreen() {
             >
               <Ionicons name="library" size={22} color="#22CC5E" style={s.shortcutIcon} />
               <Text style={s.shortcutTitle}>LOCKER</Text>
-              <Text style={s.shortcutSub}>Articles · tools</Text>
+              <Text style={s.shortcutSub}>Playbook · gear</Text>
             </Pressable>
           </View>
         )}
@@ -480,7 +480,7 @@ const s = StyleSheet.create({
     backgroundColor: '#0F1612',
     borderRadius: 12,
     padding: 12,
-    marginBottom: 12,
+    marginBottom: 14,
   },
 
   // Missions
@@ -513,11 +513,13 @@ const s = StyleSheet.create({
     gap: 10,
     marginHorizontal: 16,
     marginBottom: 16,
-    marginTop: 8,
+    marginTop: 6,
   },
   shortcutCard: {
     flex: 1,
-    backgroundColor: '#111111',
+    backgroundColor: '#101412',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
     borderRadius: 12,
     padding: 14,
   },
@@ -568,11 +570,11 @@ const c = StyleSheet.create({
   card: {
     marginHorizontal: 16,
     marginTop: 20,
-    marginBottom: 16,
+    marginBottom: 12,
     backgroundColor: '#0D1A0E',
     borderWidth: 1.5,
-    borderColor: '#22CC5E44',
-    borderRadius: 16,
+    borderColor: '#22CC5E66',
+    borderRadius: 18,
     padding: 20,
   },
   topRow: {
@@ -633,7 +635,7 @@ const c = StyleSheet.create({
     marginTop: 16,
   },
   ctaBtnText: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '800',
     color: '#000000',
     fontFamily: 'Inter_700Bold',
