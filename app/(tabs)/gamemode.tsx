@@ -1,7 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
-import { router } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import {
   Animated,
@@ -44,6 +43,34 @@ type IntentKey =
   | "debrief"
   | "all";
 type RoleKey = "pitcher" | "catcher" | "infielder" | "outfielder";
+type RapidRepOutcome = "primary" | "acceptable" | "caution";
+
+type RapidRepOption = {
+  label: string;
+  outcome: RapidRepOutcome;
+  feedback: string;
+  reason: string;
+};
+
+type RapidRep = {
+  id: string;
+  title: string;
+  situation: string;
+  prompt: string;
+  tag: string;
+  options: RapidRepOption[];
+};
+
+type RapidRepDrill = {
+  id: string;
+  label: string;
+  title: string;
+  subtitle: string;
+  color: string;
+  icon: string;
+  takeaway: string;
+  reps: RapidRep[];
+};
 
 type DebriefSummary = {
   win: string;
@@ -120,6 +147,157 @@ const CARRY_CUE_OPTIONS = [
   "Ball first.",
   "Ready every pitch.",
   "Flush it. Next play.",
+];
+
+const RAPID_REP_DRILLS: RapidRepDrill[] = [
+  {
+    id: "pitch-iq",
+    label: "PITCH IQ",
+    title: "Pitch IQ",
+    subtitle: "5 quick pitch-call decisions",
+    color: "#BF5AF2",
+    icon: "analytics",
+    takeaway: "Best pitch calls start with count, hitter timing, and the cleanest way to win the next pitch.",
+    reps: [
+      {
+        id: "pitch-0-2-late",
+        title: "0-2 leverage",
+        situation: "Count 0-2. Hitter has been late on the fastball.",
+        prompt: "Make the call.",
+        tag: "pitch IQ",
+        options: [
+          { label: "Waste fastball up", outcome: "primary", feedback: "Good read. That keeps the hitter under pressure without giving in.", reason: "With two strikes and late timing, you can expand up before showing something easier to lift." },
+          { label: "Slider below zone", outcome: "acceptable", feedback: "That can work, but there’s a cleaner baseball decision here.", reason: "Below-zone spin is useful, but only if the hitter has shown chase or the pitcher can bury it." },
+          { label: "Changeup middle", outcome: "caution", feedback: "Not the move. The game is giving you a better read.", reason: "Middle soft in an 0-2 count gives the hitter a mistake instead of forcing chase or speed pressure." },
+        ],
+      },
+      {
+        id: "pitch-bunt-coverage",
+        title: "Bunt threat",
+        situation: "Runner on first, one out. Hitter squares early and shows bunt.",
+        prompt: "What matters first?",
+        tag: "pitch IQ",
+        options: [
+          { label: "Coverage and communication", outcome: "primary", feedback: "Good read. That keeps the inning under control.", reason: "Everyone needs the same bunt plan before the pitch: who charges, who covers, and where the lead out lives." },
+          { label: "Check runner lead", outcome: "acceptable", feedback: "That can work, but there’s a cleaner baseball decision here.", reason: "The lead matters, but coverage must be locked before the ball is bunted." },
+          { label: "Field the bunt and get one", outcome: "caution", feedback: "Not the move. The game is giving you a better read.", reason: "That is a reaction after contact, not the pre-pitch decision the defense needs." },
+        ],
+      },
+      {
+        id: "pitch-3-1-best-strike",
+        title: "3-1 plan",
+        situation: "Count 3-1. Pitcher has lost feel for the breaking ball.",
+        prompt: "What is the plan?",
+        tag: "pitch IQ",
+        options: [
+          { label: "Challenge with best strike", outcome: "primary", feedback: "Good read. Trust the pitch that can actually land.", reason: "Behind in the count, the plan starts with the highest-probability strike, not the fanciest pitch." },
+          { label: "Aim corner only", outcome: "acceptable", feedback: "That can work, but there’s a cleaner baseball decision here.", reason: "Edges are fine if command is there, but 3-1 demands a strike plan first." },
+          { label: "Trick pitch", outcome: "caution", feedback: "Not the move. The game is giving you a better read.", reason: "A low-feel trick pitch often creates a free base and gives the offense the inning." },
+        ],
+      },
+      {
+        id: "pitch-first-pitch-aggressive",
+        title: "Ambush hitter",
+        situation: "First pitch. Middle-order hitter has jumped early-count fastballs all day.",
+        prompt: "Read the game.",
+        tag: "pitch IQ",
+        options: [
+          { label: "Start with controlled offspeed", outcome: "primary", feedback: "Good read. You changed the first look without losing the zone.", reason: "If the hitter is hunting heater early, a controlled strike-speed change can steal leverage." },
+          { label: "Fastball middle to get ahead", outcome: "caution", feedback: "Not the move. The game is giving you a better read.", reason: "That feeds the exact attack the hitter has already shown." },
+          { label: "Bounce breaking ball", outcome: "acceptable", feedback: "That can work, but there’s a cleaner baseball decision here.", reason: "A chase pitch can set a tone, but a noncompetitive ball gives away count leverage." },
+        ],
+      },
+      {
+        id: "pitch-runner-third-less-than-two",
+        title: "Runner at third",
+        situation: "Runner on third, one out. Infield is in. Hitter expands away.",
+        prompt: "Lock the decision.",
+        tag: "pitch IQ",
+        options: [
+          { label: "Expand away with intent", outcome: "primary", feedback: "Good read. Make the hitter beat the situation, not your mistake.", reason: "With contact pressure on, the call should avoid the big middle miss and lean into the hitter’s chase pattern." },
+          { label: "Force fastball in the middle", outcome: "caution", feedback: "Not the move. The game is giving you a better read.", reason: "Middle contact lets the offense cash in the runner with less work." },
+          { label: "Pickoff only", outcome: "acceptable", feedback: "That can work, but there’s a cleaner baseball decision here.", reason: "A look can control the runner, but the pitch plan still has to win the hitter." },
+        ],
+      },
+    ],
+  },
+  {
+    id: "field-iq",
+    label: "FIELD IQ",
+    title: "Field IQ",
+    subtitle: "5 quick defensive reads",
+    color: "#22CC5E",
+    icon: "baseball",
+    takeaway: "Clean defenders decide before the ball arrives: runner, out, clock, throw lane.",
+    reps: [
+      {
+        id: "field-r2-grounder-short",
+        title: "Ground ball to short",
+        situation: "Runner on second, one out. Routine ground ball to short.",
+        prompt: "Where is the first look?",
+        tag: "field IQ",
+        options: [
+          { label: "Freeze runner / secure out", outcome: "primary", feedback: "Good read. That keeps the inning under control.", reason: "The first job is holding the runner with eyes and body, then taking the sure out if the runner stays." },
+          { label: "Throw behind runner", outcome: "acceptable", feedback: "That can work, but there’s a cleaner baseball decision here.", reason: "Behind-runner throws need a clear break or pre-pitch coverage; routine contact usually starts with secure control." },
+          { label: "Force home", outcome: "caution", feedback: "Not the move. The game is giving you a better read.", reason: "There is no force at home, and a late throw can turn one out into no outs." },
+        ],
+      },
+      {
+        id: "field-first-third-slow-roller",
+        title: "First and third",
+        situation: "First and third, one out. Slow roller to third.",
+        prompt: "What matters?",
+        tag: "field IQ",
+        options: [
+          { label: "Know speed, secure out", outcome: "primary", feedback: "Good read. The throw matches the runner and the clock.", reason: "Lead-run plays depend on runner speed, ball pace, and whether the out is truly there." },
+          { label: "Blind throw home", outcome: "caution", feedback: "Not the move. The game is giving you a better read.", reason: "Blind home throws create big innings when the plate out is not clearly available." },
+          { label: "Hold the ball", outcome: "acceptable", feedback: "That can work, but there’s a cleaner baseball decision here.", reason: "Eating it can prevent a bad throw, but the defense still wants an out when the clock allows it." },
+        ],
+      },
+      {
+        id: "field-of-single-runner-second",
+        title: "Outfield single",
+        situation: "Base hit to the outfield with a runner on second.",
+        prompt: "Where is the throw?",
+        tag: "field IQ",
+        options: [
+          { label: "Hit cutoff / keep double play", outcome: "primary", feedback: "Good read. Keep the next out in order.", reason: "A clean cutoff can prevent the extra base and preserve a double-play chance if the run scores." },
+          { label: "Air mail home", outcome: "caution", feedback: "Not the move. The game is giving you a better read.", reason: "A no-chance air mail often gifts the trail runner second base." },
+          { label: "Throw to second", outcome: "acceptable", feedback: "That can work, but there’s a cleaner baseball decision here.", reason: "Second base matters only if the trail runner is taking it and the cutoff lane is handled." },
+        ],
+      },
+      {
+        id: "field-pop-up-communication",
+        title: "Infield pop",
+        situation: "Windy day. Pop up between short, third, and left field.",
+        prompt: "Make the call.",
+        tag: "field IQ",
+        options: [
+          { label: "Loud priority call early", outcome: "primary", feedback: "Good read. One clear voice wins the ball.", reason: "The defender with priority must call early so the group avoids a collision or last-second reach." },
+          { label: "Everyone chase until last second", outcome: "caution", feedback: "Not the move. The game is giving you a better read.", reason: "Late indecision turns catchable outs into chaos." },
+          { label: "Let the outfielder decide silently", outcome: "acceptable", feedback: "That can work, but there’s a cleaner baseball decision here.", reason: "Outfield priority can matter, but silence is the danger in a shared-space ball." },
+        ],
+      },
+      {
+        id: "field-two-outs-slow-runner",
+        title: "Two-out clock",
+        situation: "Two outs. Slow runner at the plate. Backhand ball deep in the hole.",
+        prompt: "Lock the decision.",
+        tag: "field IQ",
+        options: [
+          { label: "Set feet, make firm throw", outcome: "primary", feedback: "Good read. The clock gives you room to finish the play.", reason: "With a slower runner, clean feet and a firm line beat a rushed miss." },
+          { label: "Panic throw off one foot", outcome: "caution", feedback: "Not the move. The game is giving you a better read.", reason: "Rushing when the clock is on your side creates the error." },
+          { label: "Eat it immediately", outcome: "acceptable", feedback: "That can work, but there’s a cleaner baseball decision here.", reason: "Eating it protects against a wild throw, but two outs rewards the sure throw when time is there." },
+        ],
+      },
+    ],
+  },
+];
+
+const RAPID_REP_ROADMAP_CARDS = [
+  { label: "RUNNER READS", sub: "Jump and dirt-ball reads", color: "#4BA3E3", icon: "navigate" },
+  { label: "SWING/TAKE", sub: "Strike zone decisions", color: "#22CC5E", icon: "scan" },
+  { label: "PRESSURE REPLAY", sub: "Reset under game heat", color: "#F5A623", icon: "trending-up" },
 ];
 
 function getNextRepForMiss(miss: string): string {
@@ -1300,70 +1478,186 @@ function formatSeasonPhase(phase: SeasonPhase): string {
   return phase.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
-function DrillModeSection() {
-  const drills = [
-    {
-      label: "PITCH IQ",
-      sub: "5 rep decisions",
-      color: "#BF5AF2",
-      icon: "analytics",
-      route: "/rep-mode?type=pitch-iq",
-    },
-    {
-      label: "FIELD IQ",
-      sub: "5 fielding reads",
-      color: "#FF3B30",
-      icon: "baseball",
-      route: "/rep-mode?type=field-iq",
-    },
-    {
-      label: "ZONE READ",
-      sub: "Strike zone decisions",
-      color: "#22CC5E",
-      icon: "scan",
-      route: "/rep-mode?type=strike-zone",
-    },
-    {
-      label: "THROW DECISION",
-      sub: "Fast throw choices",
-      color: "#4BA3E3",
-      icon: "navigate",
-      route: "/rep-mode?type=throw-decision",
-    },
-    {
-      label: "LEVERAGE LADDER",
-      sub: "Prioritize the moment",
-      color: "#F5A623",
-      icon: "trending-up",
-      route: "/rep-mode?type=leverage-ladder",
-    },
-  ];
-
+function DrillModeSection({ onStartDrill }: { onStartDrill: (drill: RapidRepDrill) => void }) {
   return (
     <View style={s.drillSection}>
-      <View style={s.drillHeaderRow}>
+      <View style={s.drillHeroCard}>
         <Text style={s.dividerLabel}>TRAIN IQ</Text>
-        <Text style={s.drillSub}>Drill Mode</Text>
+        <Text style={s.drillHeroTitle}>5 quick baseball decisions</Text>
+        <Text style={s.drillHeroSub}>Read the game. Make the call. Get immediate coaching feedback.</Text>
       </View>
+
       <View style={s.drillGrid}>
-        {drills.map((drill) => (
+        {RAPID_REP_DRILLS.map((drill) => (
           <Pressable
-            key={drill.label}
-            onPress={() => router.push(drill.route as any)}
+            key={drill.id}
+            onPress={() => onStartDrill(drill)}
             style={({ pressed }) => [
               s.drillCard,
-              { borderColor: drill.color + "44" },
+              s.drillCardPlayable,
+              { borderColor: drill.color + "66", backgroundColor: drill.color + "12" },
               pressed && { opacity: 0.82, transform: [{ scale: 0.99 }] },
             ]}
           >
-            <Ionicons name={drill.icon as any} size={16} color={drill.color} />
-            <Text style={[s.drillTitle, { color: drill.color }]}>
-              {drill.label}
-            </Text>
-            <Text style={s.drillCardSub}>{drill.sub}</Text>
+            <View style={s.drillCardTopRow}>
+              <Ionicons name={drill.icon as any} size={17} color={drill.color} />
+              <Text style={[s.drillLiveTag, { color: drill.color }]}>PLAY</Text>
+            </View>
+            <Text style={[s.drillTitle, { color: drill.color }]}>{drill.label}</Text>
+            <Text style={s.drillCardSub}>{drill.subtitle}</Text>
           </Pressable>
         ))}
+
+        {RAPID_REP_ROADMAP_CARDS.map((drill) => (
+          <View
+            key={drill.label}
+            style={[s.drillCard, { borderColor: drill.color + "30" }]}
+          >
+            <View style={s.drillCardTopRow}>
+              <Ionicons name={drill.icon as any} size={17} color={drill.color} />
+              <Text style={s.drillSoonTag}>NEXT</Text>
+            </View>
+            <Text style={[s.drillTitle, { color: drill.color }]}>{drill.label}</Text>
+            <Text style={s.drillCardSub}>{drill.sub}</Text>
+          </View>
+        ))}
       </View>
+    </View>
+  );
+}
+
+function RapidRepDrillRunner({
+  drill,
+  onBack,
+}: {
+  drill: RapidRepDrill;
+  onBack: () => void;
+}) {
+  const [repIdx, setRepIdx] = useState(0);
+  const [selectedOption, setSelectedOption] = useState<RapidRepOption | null>(null);
+  const [results, setResults] = useState<RapidRepOutcome[]>([]);
+  const [showSummary, setShowSummary] = useState(false);
+  const currentRep = drill.reps[repIdx];
+  const isFinalRep = repIdx >= drill.reps.length - 1;
+  const isComplete = showSummary;
+  const primaryReads = results.filter((result) => result === "primary").length;
+  const acceptableReads = results.filter((result) => result === "acceptable").length;
+  const readScore = primaryReads + acceptableReads * 0.5;
+  const readQuality = readScore >= 4.5 ? "Elite reads" : readScore >= 3.5 ? "Game-ready" : readScore >= 2.5 ? "Developing feel" : "Needs cleaner pre-pitch plan";
+
+  function lockDecision(option: RapidRepOption) {
+    if (selectedOption) return;
+    setSelectedOption(option);
+    setResults((prev) => [...prev, option.outcome]);
+    if (option.outcome === "primary") {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    } else {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+  }
+
+  function nextRep() {
+    if (!selectedOption) return;
+    if (isFinalRep) {
+      setShowSummary(true);
+      return;
+    }
+    setRepIdx((idx) => idx + 1);
+    setSelectedOption(null);
+    Haptics.selectionAsync();
+  }
+
+  function runItBack() {
+    setRepIdx(0);
+    setSelectedOption(null);
+    setResults([]);
+    setShowSummary(false);
+    Haptics.selectionAsync();
+  }
+
+  if (isComplete) {
+    return (
+      <View style={rrStyles.container}>
+        <View style={[rrStyles.summaryShell, { borderColor: drill.color + "66" }]}>
+          <Text style={[rrStyles.kicker, { color: drill.color }]}>RAPID REP COMPLETE</Text>
+          <Text style={rrStyles.summaryTitle}>{readQuality}</Text>
+          <Text style={rrStyles.scoreText}>{primaryReads}/{drill.reps.length} clean reads</Text>
+          <View style={rrStyles.scoreRail}>
+            <View style={[rrStyles.scoreFill, { width: `${(readScore / drill.reps.length) * 100}%`, backgroundColor: drill.color }]} />
+          </View>
+          <Text style={rrStyles.summaryCopy}>{drill.takeaway}</Text>
+          <Text style={rrStyles.safeguardCopy}>Game Mode drill only. No lesson XP awarded.</Text>
+        </View>
+
+        <Pressable style={[rrStyles.primaryBtn, { backgroundColor: drill.color }]} onPress={runItBack}>
+          <Text style={rrStyles.primaryBtnText}>Run it back</Text>
+        </Pressable>
+        <Pressable style={rrStyles.secondaryBtn} onPress={onBack}>
+          <Text style={rrStyles.secondaryBtnText}>Back to Game Mode</Text>
+        </Pressable>
+      </View>
+    );
+  }
+
+  return (
+    <View style={rrStyles.container}>
+      <View style={rrStyles.progressRow}>
+        <Text style={rrStyles.repCounter}>Rep {repIdx + 1} of {drill.reps.length}</Text>
+        <Text style={[rrStyles.tag, { color: drill.color }]}>{currentRep.tag.toUpperCase()}</Text>
+      </View>
+      <View style={rrStyles.progressTrack}>
+        <View style={[rrStyles.progressFill, { width: `${((repIdx + (selectedOption ? 1 : 0)) / drill.reps.length) * 100}%`, backgroundColor: drill.color }]} />
+      </View>
+
+      <View style={rrStyles.scenarioCard}>
+        <Text style={[rrStyles.kicker, { color: drill.color }]}>READ THE GAME</Text>
+        <Text style={rrStyles.repTitle}>{currentRep.title}</Text>
+        <Text style={rrStyles.situation}>{currentRep.situation}</Text>
+        <Text style={rrStyles.prompt}>{currentRep.prompt}</Text>
+      </View>
+
+      <View style={rrStyles.optionStack}>
+        {currentRep.options.map((option) => {
+          const picked = selectedOption?.label === option.label;
+          const reveal = Boolean(selectedOption);
+          const outcomeColor = option.outcome === "primary" ? Colors.primary : option.outcome === "acceptable" ? Colors.warning : Colors.danger;
+          return (
+            <Pressable
+              key={option.label}
+              disabled={reveal}
+              onPress={() => lockDecision(option)}
+              style={[
+                rrStyles.optionBtn,
+                picked && { borderColor: outcomeColor, backgroundColor: outcomeColor + "12" },
+                reveal && !picked && rrStyles.optionMuted,
+              ]}
+            >
+              <Text style={[rrStyles.optionText, picked && { color: outcomeColor }]}>{option.label}</Text>
+              {picked && <Ionicons name={option.outcome === "caution" ? "alert-circle" : "checkmark-circle"} size={18} color={outcomeColor} />}
+            </Pressable>
+          );
+        })}
+      </View>
+
+      {selectedOption && (
+        <View style={[rrStyles.feedbackCard, { borderColor: (selectedOption.outcome === "primary" ? Colors.primary : selectedOption.outcome === "acceptable" ? Colors.warning : Colors.danger) + "66" }]}>
+          <Text style={rrStyles.feedbackText}>{selectedOption.feedback}</Text>
+          <Text style={rrStyles.reasonText}>{selectedOption.reason}</Text>
+        </View>
+      )}
+
+      <Pressable
+        style={[rrStyles.primaryBtn, { backgroundColor: selectedOption ? drill.color : Colors.surface }]}
+        disabled={!selectedOption}
+        onPress={nextRep}
+      >
+        <Text style={[rrStyles.primaryBtnText, !selectedOption && { color: Colors.textTertiary }]}>
+          {isFinalRep && selectedOption ? "Show summary" : "Next rep"}
+        </Text>
+      </Pressable>
+      <Pressable style={rrStyles.secondaryBtn} onPress={onBack}>
+        <Text style={rrStyles.secondaryBtnText}>Back to Game Mode</Text>
+      </Pressable>
     </View>
   );
 }
@@ -1904,6 +2198,7 @@ export default function GameModeScreen() {
   const [activeTool, setActiveTool] = useState<GameTool | null>(null);
   const [view, setView] = useState<"runner" | "print" | null>(null);
   const [lastDebrief, setLastDebrief] = useState<DebriefSummary | null>(null);
+  const [activeDrill, setActiveDrill] = useState<RapidRepDrill | null>(null);
 
   const role = (athleteState?.primary_role ?? "infielder") as RoleKey;
   const phase = (athleteState?.season_phase ?? "in_season") as SeasonPhase;
@@ -1939,11 +2234,45 @@ export default function GameModeScreen() {
     setView(null);
   }
 
+  function openDrill(drill: RapidRepDrill) {
+    setActiveDrill(drill);
+    Haptics.selectionAsync();
+  }
+
+  function closeDrill() {
+    setActiveDrill(null);
+  }
+
   function selectBucket(nextBucket: TimingBucket) {
     setBucket(nextBucket);
     setSelectedIntent(DEFAULT_INTENT_BY_BUCKET[nextBucket]);
     closeTool();
+    closeDrill();
     Haptics.selectionAsync();
+  }
+
+  if (activeDrill) {
+    return (
+      <View style={[s.container, { paddingTop: insets.top }]}>
+        <ClutchrHeader
+          variant="flow"
+          kicker="TRAIN IQ"
+          title={activeDrill.title}
+          leftAction={
+            <Pressable onPress={closeDrill} hitSlop={12} style={s.backBtn}>
+              <Ionicons name="arrow-back" size={18} color={Colors.textSecondary} />
+            </Pressable>
+          }
+          rightAction={<Text style={s.toolDuration}>5 reps</Text>}
+        />
+        <ScrollView
+          contentContainerStyle={[s.toolScroll, { paddingBottom: insets.bottom + 40 }]}
+          showsVerticalScrollIndicator={false}
+        >
+          <RapidRepDrillRunner drill={activeDrill} onBack={closeDrill} />
+        </ScrollView>
+      </View>
+    );
   }
 
   // ── Active tool view ──
@@ -2187,7 +2516,7 @@ export default function GameModeScreen() {
           </Text>
         )}
 
-        <DrillModeSection />
+        <DrillModeSection onStartDrill={openDrill} />
       </ScrollView>
     </View>
   );
@@ -2401,26 +2730,57 @@ const s = StyleSheet.create({
     textAlign: "center",
     paddingVertical: Spacing.sm,
   },
-  drillSection: { gap: Spacing.sm, marginTop: Spacing.lg },
-  drillHeaderRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+  drillSection: { gap: Spacing.md, marginTop: Spacing.lg },
+  drillHeroCard: {
+    backgroundColor: Colors.surfaceGlow,
+    borderRadius: Radius.lg,
+    borderWidth: 1,
+    borderColor: Colors.primaryBorder,
+    padding: Spacing.md,
+    gap: 5,
   },
-  drillSub: {
-    fontSize: 10,
-    fontFamily: "Inter_600SemiBold",
-    color: Colors.textTertiary,
+  drillHeroTitle: {
+    fontSize: 20,
+    fontFamily: "Inter_700Bold",
+    color: Colors.textPrimary,
+    letterSpacing: 0.2,
+  },
+  drillHeroSub: {
+    fontSize: 12,
+    fontFamily: "Inter_500Medium",
+    color: Colors.textSecondary,
+    lineHeight: 18,
   },
   drillGrid: { flexDirection: "row", flexWrap: "wrap", gap: Spacing.sm },
   drillCard: {
     width: "48%",
-    minHeight: 82,
+    minHeight: 98,
     backgroundColor: "#12101A",
     borderRadius: Radius.md,
     padding: Spacing.md,
     borderWidth: 1,
-    gap: 4,
+    gap: 6,
+  },
+  drillCardPlayable: {
+    shadowColor: Colors.primary,
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+  },
+  drillCardTopRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  drillLiveTag: {
+    fontSize: 8,
+    fontFamily: "Inter_700Bold",
+    letterSpacing: 0.7,
+  },
+  drillSoonTag: {
+    fontSize: 8,
+    fontFamily: "Inter_700Bold",
+    color: Colors.textTertiary,
+    letterSpacing: 0.7,
   },
   drillTitle: {
     fontSize: 11,
@@ -2488,6 +2848,173 @@ const s = StyleSheet.create({
     color: Colors.textTertiary,
   },
   toolScroll: { paddingHorizontal: Spacing.xl, paddingTop: Spacing.lg },
+});
+
+const rrStyles = StyleSheet.create({
+  container: { gap: Spacing.md },
+  progressRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  repCounter: {
+    fontSize: 12,
+    fontFamily: "Inter_700Bold",
+    color: Colors.textPrimary,
+    letterSpacing: 0.5,
+  },
+  tag: {
+    fontSize: 10,
+    fontFamily: "Inter_700Bold",
+    letterSpacing: 1,
+  },
+  progressTrack: {
+    height: 6,
+    borderRadius: Radius.pill,
+    backgroundColor: Colors.surfaceHigh,
+    overflow: "hidden",
+  },
+  progressFill: {
+    height: "100%",
+    borderRadius: Radius.pill,
+  },
+  scenarioCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: Radius.xl,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    padding: Spacing.lg,
+    gap: Spacing.sm,
+  },
+  kicker: {
+    fontSize: 11,
+    fontFamily: "Inter_700Bold",
+    letterSpacing: 1.5,
+  },
+  repTitle: {
+    fontSize: 27,
+    fontFamily: "Inter_700Bold",
+    color: Colors.textPrimary,
+    letterSpacing: -0.5,
+  },
+  situation: {
+    fontSize: 16,
+    fontFamily: "Inter_500Medium",
+    color: Colors.textSecondary,
+    lineHeight: 24,
+  },
+  prompt: {
+    fontSize: 13,
+    fontFamily: "Inter_700Bold",
+    color: Colors.textPrimary,
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
+  },
+  optionStack: { gap: Spacing.sm },
+  optionBtn: {
+    minHeight: 62,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: Colors.surface,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.md,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: Spacing.sm,
+  },
+  optionMuted: { opacity: 0.42 },
+  optionText: {
+    flex: 1,
+    fontSize: 15,
+    fontFamily: "Inter_600SemiBold",
+    color: Colors.textPrimary,
+    lineHeight: 21,
+  },
+  feedbackCard: {
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    backgroundColor: Colors.surfaceElevated,
+    padding: Spacing.md,
+    gap: Spacing.xs,
+  },
+  feedbackText: {
+    fontSize: 15,
+    fontFamily: "Inter_700Bold",
+    color: Colors.textPrimary,
+    lineHeight: 22,
+  },
+  reasonText: {
+    fontSize: 13,
+    fontFamily: "Inter_500Medium",
+    color: Colors.textSecondary,
+    lineHeight: 20,
+  },
+  primaryBtn: {
+    minHeight: 58,
+    borderRadius: Radius.md,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: Spacing.md,
+  },
+  primaryBtnText: {
+    fontSize: 16,
+    fontFamily: "Inter_700Bold",
+    color: Colors.black,
+  },
+  secondaryBtn: {
+    minHeight: 54,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: Colors.surface,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: Spacing.md,
+  },
+  secondaryBtnText: {
+    fontSize: 15,
+    fontFamily: "Inter_700Bold",
+    color: Colors.textPrimary,
+  },
+  summaryShell: {
+    backgroundColor: Colors.surfaceGlow,
+    borderRadius: Radius.xl,
+    borderWidth: 1,
+    padding: Spacing.lg,
+    gap: Spacing.sm,
+  },
+  summaryTitle: {
+    fontSize: 30,
+    fontFamily: "Inter_700Bold",
+    color: Colors.textPrimary,
+    letterSpacing: -0.5,
+  },
+  scoreText: {
+    fontSize: 14,
+    fontFamily: "Inter_700Bold",
+    color: Colors.textSecondary,
+  },
+  scoreRail: {
+    height: 8,
+    borderRadius: Radius.pill,
+    backgroundColor: Colors.surfaceHigh,
+    overflow: "hidden",
+  },
+  scoreFill: { height: "100%", borderRadius: Radius.pill },
+  summaryCopy: {
+    fontSize: 15,
+    fontFamily: "Inter_500Medium",
+    color: Colors.textPrimary,
+    lineHeight: 23,
+  },
+  safeguardCopy: {
+    fontSize: 11,
+    fontFamily: "Inter_600SemiBold",
+    color: Colors.textTertiary,
+    lineHeight: 16,
+  },
 });
 
 const cStyles = StyleSheet.create({
