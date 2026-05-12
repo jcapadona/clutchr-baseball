@@ -632,10 +632,10 @@ function WorldBanner({
             <View style={[clearedStyles.checkCircle, { backgroundColor: color }]}>
               <Text style={clearedStyles.checkMark}>✓</Text>
             </View>
-            <Text style={[clearedStyles.clearedLabel, { color }]}>WORLD CLEARED</Text>
+            <Text style={[clearedStyles.clearedLabel, { color }]}>WORLD CLEARED · EARNED</Text>
           </View>
           <View style={[clearedStyles.xpPill, { backgroundColor: color + '20', borderColor: color + '50' }]}>
-            <Text style={[clearedStyles.xpPillText, { color }]}>⚡ {totalXP} XP</Text>
+            <Text style={[clearedStyles.xpPillText, { color }]}>{totalXP} XP</Text>
           </View>
         </View>
       )}
@@ -828,7 +828,7 @@ function TimelineNode({ lesson, idx, isDone, isNext, isLocked, isBoss, color }: 
         </Animated.View>
 
         {isBoss && !isDone && (
-          <Text style={[tlStyles.bossBattleLabel, { color }]}>BOSS BATTLE</Text>
+          <Text style={[tlStyles.bossBattleLabel, { color }]}>BOSS REP</Text>
         )}
       </View>
 
@@ -860,7 +860,7 @@ function TimelineNode({ lesson, idx, isDone, isNext, isLocked, isBoss, color }: 
 
         {!isLocked && (
           <View style={tlStyles.cardBottomRow}>
-            <Text style={tlStyles.xpText}>⚡ {lesson.xp_reward} XP</Text>
+            <Text style={tlStyles.xpText}>{lesson.xp_reward} XP · first clear</Text>
             <Text style={tlStyles.timeText}>~5 min</Text>
           </View>
         )}

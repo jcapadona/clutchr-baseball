@@ -17,7 +17,7 @@ import { Colors } from '@/constants/theme';
 import { pickNextLesson, type RoutingResult } from '@/lib/lessonRouter';
 import { SkeletonBox, SkeletonCard } from '@/components/SkeletonLoader';
 import { EmblemBadge } from '@/components/EmblemBadge';
-import { getCurrentRank } from '@/lib/progressionRanks';
+import { getCurrentRank, getRankProgress } from '@/lib/progressionRanks';
 
 const MISSIONS_DATE_KEY  = 'missions_date';
 const MISSIONS_PROG_KEY  = 'missions_progress';
@@ -149,6 +149,7 @@ export default function HomeScreen() {
 
   const totalXp  = athleteState?.total_xp ?? 0;
   const currentRank = getCurrentRank(totalXp);
+  const rankProgress = getRankProgress(totalXp);
   const streak   = athleteState?.streak_count ?? 0;
 
   if (isLoading || !athleteState) {
@@ -286,7 +287,10 @@ export default function HomeScreen() {
 
             <View style={c.rankMini}>
               <EmblemBadge rank={currentRank} size="small" />
-              <Text style={c.rankMiniText}>{currentRank.name}</Text>
+              <View style={c.rankMiniCopy}>
+                <Text style={c.rankMiniText}>{currentRank.name}</Text>
+                <Text style={c.rankMiniSub}>{rankProgress.nextRank ? `Next rank: ${rankProgress.nextRank.name}` : 'Elite standard held'}</Text>
+              </View>
             </View>
 
             <Pressable
@@ -618,10 +622,16 @@ const c = StyleSheet.create({
     marginTop: 18,
     opacity: 0.78,
   },
+  rankMiniCopy: { gap: 1 },
   rankMiniText: {
-    color: 'rgba(247,255,249,0.64)',
+    color: 'rgba(247,255,249,0.68)',
     fontSize: 11,
     fontFamily: 'Inter_700Bold',
+  },
+  rankMiniSub: {
+    color: 'rgba(247,255,249,0.38)',
+    fontSize: 10,
+    fontFamily: 'Inter_500Medium',
   },
   ctaBtn: {
     backgroundColor: '#22CC5E',

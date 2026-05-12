@@ -1281,7 +1281,9 @@ function ToolRunner({
       lastDate === today
         ? JSON.parse((await AsyncStorage.getItem(GM_KEY)) ?? "[]")
         : [];
-    if (completedToday.includes(tool.id)) return;
+    // Anti-farming: Game Mode tools grant a small daily training bonus once per day.
+    // Core lesson first-clears should remain the main source of XP.
+    if (completedToday.length >= 1 || completedToday.includes(tool.id)) return;
     await updateAthleteState({ total_xp: (athleteState?.total_xp ?? 0) + 25 });
     completedToday.push(tool.id);
     await AsyncStorage.setItem(GM_KEY, JSON.stringify(completedToday));

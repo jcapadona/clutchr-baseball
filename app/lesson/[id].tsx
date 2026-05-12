@@ -953,13 +953,17 @@ function LessonCompletionPayoff({
   }, []);
 
   const isBoss = type === 'boss';
-  const title = isBoss ? 'Closeout Finished' : type === 'checkpoint' ? 'Checkpoint Cleared' : 'Rep Finished';
+  const title = isBoss ? 'Boss Cleared' : type === 'checkpoint' ? 'Checkpoint Cleared' : 'Rep Complete';
   const currentPathName = lesson?.path_name ?? lesson?.lesson_family ?? lesson?.pillar_id ?? 'Career Path';
   const beforeRank = getCurrentRank(startingXP);
   const afterTotalXP = startingXP + awardedXP;
   const rankProgress = getRankProgress(afterTotalXP);
   const afterRank = rankProgress.currentRank;
   const rankUpgraded = beforeRank.id !== afterRank.id;
+  const isReplay = awardedXP <= 0;
+  const rankProgressLabel = rankProgress.nextRank
+    ? `${rankProgress.xpIntoCurrentRank.toLocaleString()} / ${rankProgress.xpNeededForNextRank?.toLocaleString()} XP`
+    : 'Elite standard held';
   const pathWidth = pathFill.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] });
   const badgeWidth = badgeFill.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] });
   const secondary = isBoss ? { label: 'Back Home', route: '/(tabs)' } : { label: 'Open Playbook', route: '/playbook' };
@@ -981,14 +985,14 @@ function LessonCompletionPayoff({
           <Text style={payoffStyles.lessonTitle} numberOfLines={2}>{lesson?.title}</Text>
           <View style={payoffStyles.xpRow}>
             <Text style={payoffStyles.xpText}>+{xpDisplay}</Text>
-            <Text style={payoffStyles.xpLabel}>XP</Text>
+            <Text style={payoffStyles.xpLabel}>{isReplay ? 'REPLAY' : 'EARNED XP'}</Text>
           </View>
         </View>
 
         <View style={payoffStyles.card}>
           <View style={payoffStyles.cardHeaderRow}>
             <Text style={payoffStyles.cardLabel}>{currentPathName}</Text>
-            <Text style={payoffStyles.cardValue}>Next rep loaded</Text>
+            <Text style={payoffStyles.cardValue}>{isBoss ? 'Boss cleared' : 'Next rep loaded'}</Text>
           </View>
           <View style={payoffStyles.progressTrack}><Animated.View style={[payoffStyles.progressFill, { width: pathWidth }]} /></View>
         </View>
@@ -996,13 +1000,13 @@ function LessonCompletionPayoff({
         <View style={payoffStyles.card}>
           <View style={payoffStyles.cardHeaderRow}>
             <Text style={payoffStyles.cardLabel}>Rank Progress</Text>
-            <Text style={[payoffStyles.cardValue, { color: rankUpgraded ? afterRank.accentColor : afterRank.primaryColor }]}>{rankUpgraded ? 'Rank upgraded' : `${afterRank.name} progress`}</Text>
+            <Text style={[payoffStyles.cardValue, { color: rankUpgraded ? afterRank.accentColor : afterRank.primaryColor }]}>{rankUpgraded ? 'Rank upgraded' : rankProgressLabel}</Text>
           </View>
           <View style={payoffStyles.badgeRow}>
             <EmblemBadge rank={afterRank} size="small" />
             <View style={{ flex: 1 }}>
               <View style={[payoffStyles.rankTrack, { borderColor: afterRank.borderColor }]}><Animated.View style={[payoffStyles.rankFill, { width: badgeWidth, backgroundColor: afterRank.accentColor }]} /></View>
-              <Text style={payoffStyles.helperText}>{rankUpgraded ? `${afterRank.name} unlocked. Command stronger.` : rankProgress.nextRank ? `Rank progress moved. ${rankProgress.xpRemaining.toLocaleString()} XP to ${rankProgress.nextRank.name}.` : 'Elite held. Keep stacking clean reps.'}</Text>
+              <Text style={payoffStyles.helperText}>{isReplay ? 'Replay logged for practice. XP is earned on first clear.' : rankUpgraded ? `${afterRank.name} unlocked. Standard raised.` : rankProgress.nextRank ? `Rank progress moved. Next rank: ${rankProgress.nextRank.name}. ${rankProgress.xpRemaining.toLocaleString()} XP left.` : 'Elite held. Keep stacking clean reps.'}</Text>
             </View>
           </View>
         </View>
@@ -1166,9 +1170,11 @@ useEffect(() => {
       completionTriggered.current = true;
       const xp = lesson?.xp_reward ?? 50;
       const finalPassed = passed !== false && sessionPassed;
-      const awardedXP = finalPassed ? xp : Math.floor(xp * 0.5);
+      const lessonKey = String(lesson?.id ?? id);
+      const alreadyCompleted = !!athleteState?.completed_lessons?.includes(lessonKey);
+      const awardedXP = alreadyCompleted ? 0 : finalPassed ? xp : Math.floor(xp * 0.5);
       startingXPRef.current = athleteState?.total_xp ?? 0;
-      if (athleteState && lesson) completeLesson(lesson.id ?? id, awardedXP);
+      if (athleteState && lesson && !alreadyCompleted) completeLesson(lessonKey, awardedXP);
       finalXPRef.current = awardedXP;
       if (lesson?.is_boss || lesson?.is_checkpoint) {
         setCompletionStage('check_in');

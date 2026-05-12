@@ -376,6 +376,7 @@ export default function ProfileScreen() {
             <Text style={[styles.rankText, { color: rank.primaryColor }]}>{rank.name}</Text>
           </View>
         </View>
+        <Text style={styles.rankProof}>{rank.description}</Text>
 
         {/* ── XP BAR ── */}
         <View style={styles.xpCard}>
@@ -388,7 +389,7 @@ export default function ProfileScreen() {
               <Text style={styles.xpUnit}>XP</Text>
             </View>
             <Text style={styles.xpPhaseLabel}>
-              {rankProgress.nextRank ? `To ${rankProgress.nextRank.name}` : 'Elite held'}
+              {rankProgress.nextMilestoneLabel}
             </Text>
           </View>
           <View style={styles.xpTrack}>
@@ -396,8 +397,8 @@ export default function ProfileScreen() {
           </View>
           <Text style={styles.xpSub}>
             {rankProgress.nextRank
-              ? `${rankProgress.xpRemaining.toLocaleString()} XP to ${rankProgress.nextRank.name}`
-              : 'Maximum rank reached — Elite status'}
+              ? `${rankProgress.xpIntoCurrentRank.toLocaleString()} / ${rankProgress.xpNeededForNextRank?.toLocaleString()} XP in ${rank.name}. Earned through completed work.`
+              : 'Elite reached. Keep climbing; prestige can extend this later.'}
           </Text>
         </View>
 
@@ -422,6 +423,7 @@ export default function ProfileScreen() {
 
         <View style={styles.card}>
           <Text style={styles.cardTitle}>COACH'S EYE · SNAPSHOT</Text>
+          <Text style={styles.cardBody}>Earned work: {completedCount} completed reps · {xp.toLocaleString()} XP · {rank.name} rank.</Text>
           <Text style={styles.cardBody}>Strengths: {athleteState.self_ratings.focus >= 4 ? 'Focus under reps' : 'Process commitment'}, {athleteState.streak_count >= 3 ? 'Consistency streak' : 'Daily return mindset'}, {athleteState.routine_consistency >= 4 ? 'Routine discipline' : 'Coachable adjustments'}</Text>
           <Text style={styles.cardBody}>Growth: {athleteState.self_ratings.confidence <= 3 ? 'Pre-pitch confidence' : 'Pressure execution'}, {athleteState.routine_consistency <= 3 ? 'Pregame routine quality' : 'Late-game composure'}</Text>
           <Text style={styles.cardBody}>Focus cue: {focusCue} · Pressure cue: {pressureCue}</Text>
@@ -534,6 +536,7 @@ const styles = StyleSheet.create({
   seasonLine: { fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.textTertiary },
   rankBlock: { alignItems: 'center', gap: 4, minWidth: 58 },
   rankText: { fontSize: 10, fontFamily: 'Inter_700Bold', letterSpacing: 0.8, textAlign: 'center' },
+  rankProof: { marginTop: Spacing.md, fontSize: 12, fontFamily: 'Inter_500Medium', color: Colors.textSecondary, lineHeight: 18 },
 
   // XP
   xpCard: {
@@ -550,7 +553,7 @@ const styles = StyleSheet.create({
   },
   xpNum: { fontSize: 18, fontFamily: 'Inter_700Bold', color: Colors.warning },
   xpUnit: { fontSize: 10, fontFamily: 'Inter_700Bold', color: Colors.textTertiary, letterSpacing: 1 },
-  xpPhaseLabel: { fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.textTertiary },
+  xpPhaseLabel: { fontSize: 11, fontFamily: 'Inter_600SemiBold', color: Colors.textSecondary },
   xpTrack: { height: 5, backgroundColor: Colors.border, borderRadius: 3 },
   xpFill: {
     height: 5, backgroundColor: Colors.warning, borderRadius: 3,
