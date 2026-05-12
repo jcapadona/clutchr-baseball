@@ -448,7 +448,12 @@ const CHAPTERS = [
   { id: 'signal',     label: 'SIGNAL',     icon: 'star-outline' as const,     color: '#FFD60A' },
 ];
 
-// ─── LOCK LOGIC ───────────────────────────────────────────────────────────────
+// ─── LOCK / VISIBILITY LOGIC ─────────────────────────────────────────────────
+// Depth-over-width guardrail: Career should not render the full 30-world atlas.
+// A chapter shows lesson-backed worlds, then only the first no-content teaser;
+// later worlds stay hidden until content, role, progress, premium, or state rules
+// make them useful. Keep this behavior unless the product intentionally changes
+// from a career climb into an atlas/catalog view.
 
 function getWorldsForChapter(
   chapterWorlds: World[],
