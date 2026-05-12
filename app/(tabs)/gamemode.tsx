@@ -10,6 +10,7 @@ import {
   Share,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -44,6 +45,15 @@ type IntentKey =
   | "all";
 type RoleKey = "pitcher" | "catcher" | "infielder" | "outfielder";
 
+type DebriefSummary = {
+  win: string;
+  miss: string;
+  feel: string;
+  cue: string;
+  nextRep: string;
+  savedAt: string;
+};
+
 interface GameTool {
   id: string;
   name: string;
@@ -70,6 +80,60 @@ interface GameTool {
 }
 
 // ─── ALL TOOLS ────────────────────────────────────────────────────────────────
+
+const DEBRIEF_STORAGE_KEY = "gm_last_postgame_debrief";
+
+const ROLE_CUES: Record<string, string[]> = {
+  pitcher: ["Attack the zone.", "One pitch.", "No freebies.", "Breathe. Target. Attack."],
+  catcher: ["Calm the pitcher.", "Stick first.", "Run the moment.", "One pitch."],
+  infielder: ["Plan before contact.", "Ball first.", "Clock then throw.", "Next play."],
+  outfielder: ["Ready every pitch.", "Depth first.", "Read through it.", "Want the next ball."],
+  hitter: ["See it early.", "Hunt your lane.", "Yes-Yes-No.", "Win the next pitch."],
+  baserunner: ["Read it.", "Full commit.", "First move.", "Go on green."],
+};
+
+const DEBRIEF_WIN_OPTIONS = [
+  "Kept my routine",
+  "Responded after a mistake",
+  "Competed pitch to pitch",
+  "Communicated well",
+  "Owned my body language",
+];
+
+const DEBRIEF_MISS_OPTIONS = [
+  "Lost focus",
+  "Rushed tempo",
+  "Missed plan",
+  "Bad body language",
+  "Poor reset",
+  "Poor communication",
+  "Chased result",
+  "Did not recover after mistake",
+  "Arm/body felt off",
+  "Other",
+];
+
+const CARRY_CUE_OPTIONS = [
+  "One pitch.",
+  "Breathe. Target. Attack.",
+  "Win the next pitch.",
+  "Ball first.",
+  "Ready every pitch.",
+  "Flush it. Next play.",
+];
+
+function getNextRepForMiss(miss: string): string {
+  const key = miss.toLowerCase();
+  if (key.includes("focus")) return "Between-Pitch Reset";
+  if (key.includes("tempo")) return "Pregame 90-Second Switch-On";
+  if (key.includes("plan")) return "First Rep Plan";
+  if (key.includes("body language")) return "After-Error Reset";
+  if (key.includes("reset") || key.includes("mistake")) return "Between-Pitch Reset";
+  if (key.includes("communication")) return "Role Cue Lock-In";
+  if (key.includes("result")) return "Postgame 60-Second Debrief";
+  if (key.includes("arm") || key.includes("body")) return "Recovery Check";
+  return "Role Cue Lock-In";
+}
 
 const GAME_TOOLS: GameTool[] = [
   // ── PRE-GAME ─────────────────────────────────────────────────────────────
@@ -113,6 +177,145 @@ const GAME_TOOLS: GameTool[] = [
       },
     ],
     printCue: "BREATHE · INTENTION · SEE IT · COMPETE",
+  },
+  {
+    id: "pregame_switch_on",
+    name: "Pregame 90-Second Switch-On",
+    tagline: "Get your body, cue, and first job lined up.",
+    icon: "flash",
+    color: Colors.primary,
+    bucket: "pregame",
+    roles: "all",
+    mode: "interactive",
+    duration: "90 sec",
+    whenToUse: "Use first before warmups or first pitch. Do not enter the game cold mentally.",
+    steps: [
+      {
+        cue: "BREATH",
+        instruction: "Three slow breaths. Drop the day. Step into baseball time.",
+        timer: 18,
+      },
+      {
+        cue: "BODY CHECK",
+        instruction: "Jaw loose. Shoulders down. Feet under you. Ready body before ready mind.",
+      },
+      {
+        cue: "ROLE CUE",
+        instruction: "Pick the cue you are carrying today. One cue only. Say it twice.",
+      },
+      {
+        cue: "ONE CONTROLLABLE",
+        instruction: "Name one thing you fully control today: routine, effort, tempo, body language, or response.",
+      },
+      {
+        cue: "START READY",
+        instruction: "First job loaded. Cue loaded. Walk in ready for pitch one.",
+      },
+    ],
+    printCue: "BREATH · BODY · ROLE CUE · FIRST JOB",
+  },
+  {
+    id: "role_cue_lockin",
+    name: "Role Cue Lock-In",
+    tagline: "Choose one job-specific cue for today.",
+    icon: "pricetag",
+    color: Colors.warning,
+    bucket: "pregame",
+    roles: "all",
+    mode: "interactive",
+    duration: "60 sec",
+    whenToUse: "Before lineups, warmups, or your first role rep.",
+    steps: [
+      {
+        cue: "SET YOUR PLAN",
+        instruction: "Pitcher: Attack the zone. Hitter: See it early. Catcher: Calm the pitcher. Infielder: Ball first. Outfielder: Ready every pitch. Baserunner: Full commit.",
+      },
+      {
+        cue: "CARRY THIS",
+        instruction: "Pick one cue that fits your role today. One is enough. Do not carry five thoughts into pitch one.",
+      },
+      {
+        cue: "RESET LINE",
+        instruction: "If the game speeds up, come back to the cue. Breathe. Say it. Play the next pitch.",
+      },
+    ],
+    printCue: "ONE ROLE · ONE CUE · NEXT PITCH",
+  },
+  {
+    id: "first_rep_plan",
+    name: "First Rep Plan",
+    tagline: "Know your first job before it finds you.",
+    icon: "map",
+    color: Colors.info,
+    bucket: "pregame",
+    roles: "all",
+    mode: "interactive",
+    duration: "90 sec",
+    whenToUse: "Before your first mound inning, at-bat, defensive inning, or baserunning chance.",
+    steps: [
+      {
+        cue: "TODAY'S ROLE",
+        instruction: "Name your role for the first inning: pitcher, hitter, catcher, defender, runner, teammate.",
+      },
+      {
+        cue: "FIRST JOB",
+        instruction: "Name the first job that matters. Strike one. See it early. Ball first. Communicate. Read it.",
+      },
+      {
+        cue: "RISK TO AVOID",
+        instruction: "Name the trap: rushing, chasing, drifting, bad body language, or trying to win the whole game early.",
+      },
+      {
+        cue: "CUE TO CARRY",
+        instruction: "Carry one line into the first rep. Short enough to say under your breath.",
+      },
+    ],
+    printCue: "ROLE · FIRST JOB · AVOID · CARRY",
+  },
+  {
+    id: "pregame_confidence_check",
+    name: "Pregame Confidence Check",
+    tagline: "Quick read on focus, composure, and compete level.",
+    icon: "speedometer",
+    color: Colors.purple,
+    bucket: "pregame",
+    roles: "all",
+    mode: "interactive",
+    duration: "45 sec",
+    whenToUse: "When you need a fast readiness check before first pitch.",
+    steps: [
+      {
+        cue: "FOCUS",
+        instruction: "Rate it in your head: low, ready, or sharp. If low, breathe and narrow to one job.",
+      },
+      {
+        cue: "COMPOSURE",
+        instruction: "Can you handle the first mistake without donating the next play? Decide that now.",
+      },
+      {
+        cue: "COMPETE LEVEL",
+        instruction: "You do not need perfect confidence. You need a playable plan and a first job.",
+      },
+    ],
+    printCue: "FOCUS · COMPOSURE · COMPETE",
+  },
+  {
+    id: "pregame_carry_card",
+    name: "Pregame Carry Card",
+    tagline: "Screenshot-ready cue card for the dugout.",
+    icon: "albums",
+    color: Colors.warning,
+    bucket: "pregame",
+    roles: "all",
+    mode: "print_card",
+    duration: "30 sec",
+    whenToUse: "Screenshot or print before the game. No phone on the field.",
+    steps: [
+      { cue: "TODAY'S CUE", instruction: "Write or say the one cue you are carrying today." },
+      { cue: "FIRST JOB", instruction: "Name the first job that matters before pitch one." },
+      { cue: "RESET LINE", instruction: "Pick the line you return to after a miss: Flush it. Next pitch." },
+    ],
+    printCue: "TODAY'S CUE · FIRST JOB · FLUSH IT",
   },
   {
     id: "first_ab_lockin",
@@ -678,43 +881,108 @@ const GAME_TOOLS: GameTool[] = [
   // ── POST-GAME ─────────────────────────────────────────────────────────────
   {
     id: "postgame_debrief",
-    name: "Postgame Debrief",
-    tagline: "Process the game. Keep the lesson. Lose the result.",
+    name: "Postgame 60-Second Debrief",
+    tagline: "One win. One fix. One cue.",
     icon: "clipboard",
     color: Colors.primary,
     bucket: "postgame",
     roles: "all",
     mode: "interactive",
-    duration: "5 min",
-    whenToUse: "After the final out. Before you leave the field.",
+    duration: "60 sec",
+    whenToUse: "After the final out. Take the lesson before you leave the field.",
     steps: [
       {
         cue: "ONE WIN",
-        instruction:
-          "Name one thing you did well today. One play, pitch, or decision. Lock it in. That goes with you.",
+        instruction: "Name one controllable win. Routine, effort, response, communication, or body language.",
       },
       {
-        cue: "ONE LESSON",
-        instruction:
-          'Name one thing you would do differently — as a target, not criticism. "Next time I will..." That is data.',
+        cue: "ONE FIX",
+        instruction: "Name the biggest miss as data. Do not drag the whole game home.",
       },
       {
-        cue: "RELEASE THE RESULT",
-        instruction:
-          'The scoreboard does not follow you home. Say it: "I competed. The rest is baseball." The result stays on this field.',
+        cue: "CARRY FORWARD",
+        instruction: "Pick one cue for tomorrow. Short. Baseball-native. Usable under pressure.",
       },
       {
-        cue: "RECOVERY PLAN",
-        instruction:
-          "Name your recovery tonight: hydration, food, sleep. Your body needs a plan. Give it one.",
-      },
-      {
-        cue: "CLEAN SLATE",
-        instruction:
-          "Tomorrow you show up as the same player with better information. That is how careers are built.",
+        cue: "NEXT USEFUL REP",
+        instruction: "Load the next rep from the miss. One action, not a giant rebuild.",
       },
     ],
-    printCue: "ONE WIN · ONE LESSON · RELEASE IT · CLEAN SLATE",
+    printCue: "ONE WIN · ONE FIX · ONE CUE · NEXT REP",
+  },
+  {
+    id: "postgame_miss_next_rep",
+    name: "Biggest Miss → Next Rep",
+    tagline: "Turn one miss into the next useful action.",
+    icon: "git-branch",
+    color: Colors.purple,
+    bucket: "postgame",
+    roles: "all",
+    mode: "interactive",
+    duration: "60 sec",
+    whenToUse: "When one miss is still loud after the game.",
+    steps: [
+      { cue: "ONE FIX", instruction: "Pick the miss category: focus, tempo, plan, body language, reset, communication, result chase, recovery, or body felt off." },
+      { cue: "NEXT USEFUL REP", instruction: "Match it to one action: reset, role cue, first rep plan, pregame switch-on, or recovery check." },
+      { cue: "LOAD IT", instruction: "Do that rep next. Do not turn one miss into five fixes." },
+    ],
+    printCue: "MISS · MATCH · NEXT REP",
+  },
+  {
+    id: "carry_forward_cue_builder",
+    name: "Carry-Forward Cue Builder",
+    tagline: "Build the cue you take into tomorrow.",
+    icon: "arrow-forward-circle",
+    color: Colors.warning,
+    bucket: "postgame",
+    roles: "all",
+    mode: "interactive",
+    duration: "60 sec",
+    whenToUse: "After the debrief, before tomorrow's work starts in your head.",
+    steps: [
+      { cue: "CARRY FORWARD", instruction: "Choose a short cue: One pitch. Ball first. See it early. Breathe. Target. Attack." },
+      { cue: "TOMORROW'S FIRST REP", instruction: "Decide where that cue shows up first: catch play, bullpen, first at-bat, defense, or baserunning." },
+      { cue: "DO NOT DONATE", instruction: "Do not donate tomorrow to today. Carry the lesson, not the whole game." },
+    ],
+    printCue: "CUE · FIRST REP · TOMORROW",
+  },
+  {
+    id: "recovery_check",
+    name: "Recovery Check",
+    tagline: "Know if tonight is recovery, not more grind.",
+    icon: "medkit",
+    color: Colors.info,
+    bucket: "postgame",
+    roles: "all",
+    mode: "interactive",
+    duration: "90 sec",
+    whenToUse: "After a game, practice, or heavy throwing day.",
+    steps: [
+      { cue: "BODY FELT", instruction: "Name it: good, heavy, tight, sore, or off. Be honest. Baseball tomorrow needs information." },
+      { cue: "SORENESS CHECK", instruction: "If pain is sharp or unusual, tell a coach, parent, or trainer." },
+      { cue: "COOLDOWN", instruction: "Walk, breathe, hydrate, eat, and sleep. Recovery is part of the rep." },
+      { cue: "RECOVERY CUE", instruction: "Tonight's cue: shut it down clean. Tomorrow gets the next rep." },
+    ],
+    printCue: "BODY · SORENESS · COOLDOWN · SLEEP",
+  },
+  {
+    id: "postgame_carry_card",
+    name: "Postgame Carry Card",
+    tagline: "Screenshot-ready summary for tomorrow.",
+    icon: "albums",
+    color: Colors.warning,
+    bucket: "postgame",
+    roles: "all",
+    mode: "print_card",
+    duration: "30 sec",
+    whenToUse: "After the debrief. Screenshot it before you close the day.",
+    steps: [
+      { cue: "CONTROLLABLE WIN", instruction: "Keep one thing you controlled well." },
+      { cue: "BIGGEST MISS", instruction: "Name one fix. One only." },
+      { cue: "CARRY-FORWARD CUE", instruction: "Carry this into tomorrow." },
+      { cue: "TOMORROW'S FIRST REP", instruction: "Load the next useful rep." },
+    ],
+    printCue: "ONE WIN · ONE FIX · CARRY · NEXT REP",
   },
   {
     id: "postgame_tough_night",
@@ -929,15 +1197,26 @@ function toolMatchesRole(tool: GameTool, role: RoleKey): boolean {
 function getToolIntent(tool: GameTool): IntentKey {
   if (tool.id.includes("recovery") || tool.id.includes("arm_recovery"))
     return "recover";
-  if (tool.id.includes("postgame_debrief") || tool.id.includes("tough_night"))
+  if (
+    tool.id.includes("postgame_debrief") ||
+    tool.id.includes("tough_night") ||
+    tool.id.includes("miss_next_rep") ||
+    tool.id.includes("carry_forward") ||
+    tool.id.includes("postgame_carry_card")
+  )
     return "debrief";
   if (
     tool.id.includes("pregame_prime") ||
+    tool.id.includes("pregame_switch_on") ||
+    tool.id.includes("first_rep_plan") ||
+    tool.id.includes("pregame_confidence") ||
+    tool.id.includes("pregame_carry_card") ||
     tool.id.includes("first_ab") ||
     tool.id.includes("pre_bullpen")
   )
     return "get_ready";
   if (
+    tool.id.includes("role_cue") ||
     tool.id.includes("nerves") ||
     tool.id.includes("pre_ab") ||
     tool.id.includes("two_strike") ||
@@ -972,9 +1251,9 @@ function getNextRepTools(
     pre: {
       get_ready:
         role === "pitcher"
-          ? ["pre_bullpen", "pregame_prime"]
-          : ["pregame_prime", "first_ab_lockin"],
-      refocus: ["nerves_to_attack", "slump_pregame"],
+          ? ["pregame_switch_on", "first_rep_plan", "pre_bullpen"]
+          : ["pregame_switch_on", "first_rep_plan", "pregame_carry_card"],
+      refocus: ["role_cue_lockin", "pregame_confidence_check", "nerves_to_attack", "slump_pregame"],
     },
     live: {
       reset:
@@ -991,11 +1270,11 @@ function getNextRepTools(
           : ["between_slump_reset", "ingame_two_strike", "ingame_pre_ab"],
     },
     post: {
-      debrief: ["postgame_debrief", "postgame_tough_night"],
+      debrief: ["postgame_debrief", "postgame_miss_next_rep", "carry_forward_cue_builder"],
       recover:
         role === "pitcher"
-          ? ["postgame_arm_recovery", "postgame_debrief"]
-          : ["postgame_position_recovery", "postgame_debrief"],
+          ? ["recovery_check", "postgame_arm_recovery"]
+          : ["recovery_check", "postgame_position_recovery"],
     },
   };
   const candidates = getTools(bucket, role, intent);
@@ -1415,6 +1694,127 @@ function ToolRunner({
   );
 }
 
+
+function PostgameDebriefRunner({
+  tool,
+  onFinish,
+  onDebriefComplete,
+}: {
+  tool: GameTool;
+  onFinish: () => void;
+  onDebriefComplete?: (summary: DebriefSummary) => void;
+}) {
+  const [win, setWin] = useState(DEBRIEF_WIN_OPTIONS[0]);
+  const [miss, setMiss] = useState(DEBRIEF_MISS_OPTIONS[0]);
+  const [feel, setFeel] = useState("Ready to reset");
+  const [cue, setCue] = useState(CARRY_CUE_OPTIONS[0]);
+  const [customCue, setCustomCue] = useState("");
+  const [saved, setSaved] = useState<DebriefSummary | null>(null);
+  const nextRep = getNextRepForMiss(miss);
+  const carryCue = customCue.trim() || cue;
+
+  async function saveDebrief() {
+    const summary: DebriefSummary = {
+      win,
+      miss,
+      feel,
+      cue: carryCue,
+      nextRep,
+      savedAt: new Date().toISOString(),
+    };
+    setSaved(summary);
+    onDebriefComplete?.(summary);
+    await AsyncStorage.setItem(DEBRIEF_STORAGE_KEY, JSON.stringify(summary));
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+  }
+
+  if (saved) {
+    return (
+      <View style={rStyles.container}>
+        <View style={[rStyles.cuePill, { borderColor: tool.color + "50", backgroundColor: tool.color + "12" }]}>
+          <Text style={[rStyles.cueWord, { color: tool.color }]}>CARRY FORWARD</Text>
+        </View>
+        <View style={rStyles.summaryCard}>
+          <Text style={rStyles.summaryKicker}>POSTGAME CARRY CARD</Text>
+          <Text style={rStyles.summaryTitle}>One win. One fix. One cue.</Text>
+          <Text style={rStyles.summaryLine}>ONE WIN: {saved.win}</Text>
+          <Text style={rStyles.summaryLine}>ONE FIX: {saved.miss}</Text>
+          <Text style={rStyles.summaryLine}>CARRY THIS: {saved.cue}</Text>
+          <Text style={[rStyles.summaryLine, { color: Colors.primary }]}>NEXT USEFUL REP: {saved.nextRep}</Text>
+        </View>
+        <Text style={rStyles.doneSub}>Do not donate tomorrow to today. Take the lesson.</Text>
+        <Pressable style={[rStyles.btn, { backgroundColor: tool.color }]} onPress={onFinish}>
+          <Text style={rStyles.btnText}>Back to Game Mode →</Text>
+        </Pressable>
+      </View>
+    );
+  }
+
+  return (
+    <ScrollView contentContainerStyle={rStyles.debriefWrap} showsVerticalScrollIndicator={false}>
+      <Text style={rStyles.counter}>60-second debrief</Text>
+      <View style={[rStyles.cuePill, { borderColor: tool.color + "50", backgroundColor: tool.color + "12" }]}>
+        <Text style={[rStyles.cueWord, { color: tool.color }]}>ONE WIN · ONE FIX · ONE CUE</Text>
+      </View>
+      <Text style={rStyles.instruction}>Do not drag the whole game home. Take the lesson and load the next rep.</Text>
+
+      <Text style={rStyles.promptLabel}>ONE WIN</Text>
+      <View style={rStyles.chipWrap}>
+        {DEBRIEF_WIN_OPTIONS.map((option) => (
+          <Pressable key={option} style={[rStyles.choiceChip, win === option && rStyles.choiceChipActive]} onPress={() => setWin(option)}>
+            <Text style={[rStyles.choiceText, win === option && rStyles.choiceTextActive]}>{option}</Text>
+          </Pressable>
+        ))}
+      </View>
+
+      <Text style={rStyles.promptLabel}>ONE FIX</Text>
+      <View style={rStyles.chipWrap}>
+        {DEBRIEF_MISS_OPTIONS.map((option) => (
+          <Pressable key={option} style={[rStyles.choiceChip, miss === option && rStyles.choiceChipActive]} onPress={() => setMiss(option)}>
+            <Text style={[rStyles.choiceText, miss === option && rStyles.choiceTextActive]}>{option}</Text>
+          </Pressable>
+        ))}
+      </View>
+
+      <Text style={rStyles.promptLabel}>FEEL CHECK</Text>
+      <View style={rStyles.chipWrap}>
+        {["Ready to reset", "Still hot", "Body feels off"].map((option) => (
+          <Pressable key={option} style={[rStyles.choiceChip, feel === option && rStyles.choiceChipActive]} onPress={() => setFeel(option)}>
+            <Text style={[rStyles.choiceText, feel === option && rStyles.choiceTextActive]}>{option}</Text>
+          </Pressable>
+        ))}
+      </View>
+
+      <Text style={rStyles.promptLabel}>CARRY FORWARD</Text>
+      <View style={rStyles.chipWrap}>
+        {CARRY_CUE_OPTIONS.map((option) => (
+          <Pressable key={option} style={[rStyles.choiceChip, cue === option && !customCue.trim() && rStyles.choiceChipActive]} onPress={() => { setCue(option); setCustomCue(""); }}>
+            <Text style={[rStyles.choiceText, cue === option && !customCue.trim() && rStyles.choiceTextActive]}>{option}</Text>
+          </Pressable>
+        ))}
+      </View>
+      <TextInput
+        value={customCue}
+        onChangeText={setCustomCue}
+        placeholder="Or type a short cue"
+        placeholderTextColor="rgba(255,255,255,0.35)"
+        maxLength={32}
+        style={rStyles.cueInput}
+      />
+
+      <View style={rStyles.nextRepBox}>
+        <Text style={rStyles.summaryKicker}>NEXT USEFUL REP</Text>
+        <Text style={[rStyles.summaryTitle, { color: Colors.primary }]}>{nextRep}</Text>
+        <Text style={rStyles.summaryLine}>Loaded from: {miss}</Text>
+      </View>
+
+      <Pressable style={[rStyles.btn, { backgroundColor: tool.color }]} onPress={saveDebrief}>
+        <Text style={rStyles.btnText}>Save Carry Card →</Text>
+      </Pressable>
+    </ScrollView>
+  );
+}
+
 // ─── TOOL CARD ────────────────────────────────────────────────────────────────
 
 function ToolCard({
@@ -1503,6 +1903,7 @@ export default function GameModeScreen() {
   const pressureCue = getBestCue(athleteState, "pressure");
   const [activeTool, setActiveTool] = useState<GameTool | null>(null);
   const [view, setView] = useState<"runner" | "print" | null>(null);
+  const [lastDebrief, setLastDebrief] = useState<DebriefSummary | null>(null);
 
   const role = (athleteState?.primary_role ?? "infielder") as RoleKey;
   const phase = (athleteState?.season_phase ?? "in_season") as SeasonPhase;
@@ -1515,6 +1916,18 @@ export default function GameModeScreen() {
     (tool) => !nextRepIds.has(tool.id),
   );
   const hasFilteredTools = nextRepTools.length > 0 || moreTools.length > 0;
+
+  useEffect(() => {
+    AsyncStorage.getItem(DEBRIEF_STORAGE_KEY)
+      .then((value) => {
+        if (value) setLastDebrief(JSON.parse(value));
+      })
+      .catch(() => {});
+  }, []);
+
+  function saveDebriefSummary(summary: DebriefSummary) {
+    setLastDebrief(summary);
+  }
 
   function openTool(tool: GameTool) {
     setActiveTool(tool);
@@ -1571,6 +1984,12 @@ export default function GameModeScreen() {
         >
           {view === "print" ? (
             <PrintCardScreen tool={activeTool} onBack={closeTool} />
+          ) : activeTool.id === "postgame_debrief" ? (
+            <PostgameDebriefRunner
+              tool={activeTool}
+              onFinish={closeTool}
+              onDebriefComplete={saveDebriefSummary}
+            />
           ) : (
             <ToolRunner tool={activeTool} onFinish={closeTool} />
           )}
@@ -1675,6 +2094,32 @@ export default function GameModeScreen() {
             })}
           </View>
         </View>
+
+        {bucket === "pre" && (
+          <View style={s.commandCard}>
+            <Text style={s.commandKicker}>BEFORE FIRST PITCH</Text>
+            <Text style={s.commandTitle}>Use first: Pregame 90-Second Switch-On</Text>
+            <Text style={s.commandSub}>Then lock one role cue, one first job, and one reset line.</Text>
+            <View style={s.miniCueRow}>
+              {(ROLE_CUES[role] ?? ROLE_CUES.infielder).slice(0, 3).map((cue) => (
+                <Text key={cue} style={s.miniCueChip}>{cue}</Text>
+              ))}
+            </View>
+          </View>
+        )}
+
+        {bucket === "post" && lastDebrief && (
+          <View style={s.carryCard}>
+            <View style={s.carryHeaderRow}>
+              <Text style={s.commandKicker}>CARRY THIS INTO TOMORROW</Text>
+              <Text style={s.screenshotTag}>SCREENSHOT READY</Text>
+            </View>
+            <Text style={s.commandTitle}>{lastDebrief.cue}</Text>
+            <Text style={s.commandSub}>One win: {lastDebrief.win}</Text>
+            <Text style={s.commandSub}>One fix: {lastDebrief.miss}</Text>
+            <Text style={[s.commandSub, { color: Colors.primary }]}>Next useful rep: {lastDebrief.nextRep}</Text>
+          </View>
+        )}
 
         <View style={s.bannerSlim}>
           <Text style={[s.bannerHead, { color: Colors.primary }]}>
@@ -1856,6 +2301,63 @@ const s = StyleSheet.create({
     padding: Spacing.md,
     borderRadius: Radius.md,
     borderWidth: 1,
+  },
+  commandCard: {
+    backgroundColor: "#101510",
+    borderRadius: Radius.lg,
+    borderWidth: 1,
+    borderColor: Colors.primary + "35",
+    padding: Spacing.md,
+    gap: Spacing.xs,
+  },
+  carryCard: {
+    backgroundColor: "#171304",
+    borderRadius: Radius.lg,
+    borderWidth: 1,
+    borderColor: Colors.warning + "45",
+    padding: Spacing.md,
+    gap: Spacing.xs,
+  },
+  carryHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: Spacing.sm,
+  },
+  commandKicker: {
+    fontSize: 10,
+    fontFamily: "Inter_700Bold",
+    color: Colors.primary,
+    letterSpacing: 1.1,
+  },
+  screenshotTag: {
+    fontSize: 8,
+    fontFamily: "Inter_700Bold",
+    color: Colors.warning,
+    letterSpacing: 0.8,
+  },
+  commandTitle: {
+    fontSize: 17,
+    fontFamily: "Inter_700Bold",
+    color: Colors.textPrimary,
+  },
+  commandSub: {
+    fontSize: 12,
+    fontFamily: "Inter_500Medium",
+    color: Colors.textSecondary,
+    lineHeight: 17,
+  },
+  miniCueRow: { flexDirection: "row", flexWrap: "wrap", gap: Spacing.xs, marginTop: Spacing.xs },
+  miniCueChip: {
+    fontSize: 10,
+    fontFamily: "Inter_700Bold",
+    color: Colors.primary,
+    backgroundColor: Colors.primaryMuted,
+    borderColor: Colors.primaryBorder,
+    borderWidth: 1,
+    borderRadius: Radius.pill,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 5,
   },
   intentPanel: {
     backgroundColor: Colors.surface,
@@ -2140,6 +2642,81 @@ const rStyles = StyleSheet.create({
     fontSize: 15,
     fontFamily: "Inter_400Regular",
     color: Colors.textSecondary,
+    textAlign: "center",
+  },
+  debriefWrap: {
+    gap: Spacing.md,
+    paddingBottom: Spacing.xl,
+  },
+  promptLabel: {
+    fontSize: 10,
+    fontFamily: "Inter_700Bold",
+    color: Colors.textTertiary,
+    letterSpacing: 1.1,
+    marginTop: Spacing.sm,
+  },
+  chipWrap: { flexDirection: "row", flexWrap: "wrap", gap: Spacing.sm },
+  choiceChip: {
+    borderRadius: Radius.pill,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: "rgba(255,255,255,0.03)",
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+  },
+  choiceChipActive: {
+    borderColor: Colors.primaryBorder,
+    backgroundColor: Colors.primaryMuted,
+  },
+  choiceText: {
+    fontSize: 12,
+    fontFamily: "Inter_700Bold",
+    color: Colors.textSecondary,
+  },
+  choiceTextActive: { color: Colors.primary },
+  cueInput: {
+    minHeight: 46,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: Colors.surface,
+    color: Colors.textPrimary,
+    fontFamily: "Inter_600SemiBold",
+    paddingHorizontal: Spacing.md,
+  },
+  nextRepBox: {
+    borderRadius: Radius.lg,
+    borderWidth: 1,
+    borderColor: Colors.primary + "40",
+    backgroundColor: Colors.primaryMuted,
+    padding: Spacing.md,
+    gap: 4,
+  },
+  summaryCard: {
+    width: "100%",
+    borderRadius: Radius.lg,
+    borderWidth: 1,
+    borderColor: Colors.warning + "45",
+    backgroundColor: "#171304",
+    padding: Spacing.lg,
+    gap: Spacing.sm,
+  },
+  summaryKicker: {
+    fontSize: 10,
+    fontFamily: "Inter_700Bold",
+    color: Colors.warning,
+    letterSpacing: 1,
+  },
+  summaryTitle: {
+    fontSize: 18,
+    fontFamily: "Inter_700Bold",
+    color: Colors.textPrimary,
+  },
+  summaryLine: {
+    fontSize: 12,
+    fontFamily: "Inter_600SemiBold",
+    color: Colors.textSecondary,
+    lineHeight: 17,
   },
 });
 
