@@ -18,7 +18,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAthlete } from '@/context/AthleteContext';
 import { supabase } from '@/lib/supabase';
 import { Colors, Radius, Spacing } from '@/constants/theme';
-import { speakLessonIntro, stopSpeech } from '@/lib/lessonAudio';
+import { stopSpeech } from '@/lib/lessonAudio';
 import { ClutchrHeader } from '@/components/ClutchrHeader';
 import { CompletionInteraction, type CompletionIntent } from '@/components/CompletionInteraction';
 import { EmblemBadge } from '@/components/EmblemBadge';
@@ -141,10 +141,10 @@ function VariantRenderer({ step, onAdvance }: { step: any; onAdvance: (passed?: 
         <View style={stepRouterStyles.fallbackCard}>
           <Ionicons name="alert-circle" size={18} color={Colors.warning} />
           <View style={{ flex: 1 }}>
-            <Text style={stepRouterStyles.fallbackTitle}>Rep format needs cleanup</Text>
-            <Text style={stepRouterStyles.fallbackText}>This interactive rep is missing a supported setup. Keep moving and load the next rep.</Text>
+            <Text style={stepRouterStyles.fallbackTitle}>This rep needs cleanup.</Text>
+            <Text style={stepRouterStyles.fallbackText}>This interactive setup is unsupported or missing data. Skip this step and keep the session moving.</Text>
           </View>
-          <AdvanceButton label="Next Rep →" onPress={() => onAdvance(false)} />
+          <AdvanceButton label="Skip Step →" onPress={() => onAdvance(false)} />
         </View>
       );
   }
@@ -236,25 +236,52 @@ function CueBox({ cue, label = 'YOUR CUE' }: { cue: string; label?: string }) {
 // ─── CHOICE STEP — High-stakes decision cards ────────────────────────────────
 // Before: clean bordered tiles. After: dramatic success/fail states.
 
-function ChoiceStep({ step, onAdvance, finalAction }: { step: any; onAdvance: () => void; finalAction?: React.ReactNode }) {
+function getChoiceId(choice: any, index: number): string {
+  return String(choice?.id ?? choice?.key ?? choice?.value ?? index);
+}
+
+function getChoiceQuality(choice: any, step: any, index: number): 'correct' | 'acceptable' | 'wrong' {
+  const raw = String(choice?.quality ?? choice?.outcome ?? choice?.status ?? '').toLowerCase();
+  if (choice?.is_correct === true || choice?.correct === true || raw === 'success' || raw === 'correct' || raw === 'best') return 'correct';
+  if (raw === 'acceptable' || raw === 'partial' || raw === 'ok') return 'acceptable';
+  const choiceId = getChoiceId(choice, index);
+  const correctId = step?.correct_choice_id ?? step?.correct_answer_id ?? step?.answer_id;
+  if (correctId !== undefined && correctId !== null && String(correctId) === choiceId) return 'correct';
+  const correctIndex = step?.correct_index ?? step?.answer_index;
+  if (typeof correctIndex === 'number' && correctIndex === index) return 'correct';
+  return 'wrong';
+}
+
+function choiceFallbackFeedback(quality: 'correct' | 'acceptable' | 'wrong'): string {
+  if (quality === 'correct') return 'Good read. That choice keeps the rep under control.';
+  if (quality === 'acceptable') return 'That can work, but there is a cleaner baseball decision here.';
+  return 'Not the move. Reset the situation, simplify the decision, and try again.';
+}
+
+function ChoiceStep({ step, onAdvance, finalAction, advanceLabel = 'Next Rep →' }: { step: any; onAdvance: (passed?: boolean) => void; finalAction?: React.ReactNode; advanceLabel?: string }) {
   const [selected, setSelected] = useState<string | null>(null);
   const [revealed, setRevealed] = useState(false);
+  const [selectedPassed, setSelectedPassed] = useState<boolean | undefined>(undefined);
 
-  // Shuffle once on mount so the correct answer doesn't always appear at position B
+  // Shuffle once on mount so correctness never relies on answer position.
   const shuffledRef = useRef<any[] | null>(null);
   if (shuffledRef.current === null) {
-    const raw = step.choices ?? step.options ?? [];
+    const raw = Array.isArray(step?.choices) ? step.choices : Array.isArray(step?.options) ? step.options : [];
     shuffledRef.current = [...raw].sort(() => Math.random() - 0.5);
   }
   const choices = shuffledRef.current;
 
-  function handlePick(id: string, outcome?: string) {
+  function handlePick(id: string, quality: 'correct' | 'acceptable' | 'wrong') {
     if (revealed) return;
     Haptics.selectionAsync();
     setSelected(id);
     setRevealed(true);
-    if (outcome === 'success') {
+    const passed = quality !== 'wrong';
+    setSelectedPassed(passed);
+    if (quality === 'correct') {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    } else if (quality === 'acceptable') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     } else {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     }
@@ -266,33 +293,35 @@ function ChoiceStep({ step, onAdvance, finalAction }: { step: any; onAdvance: ()
 
       <View style={choiceStyles.list}>
         {choices.map((c: any, i: number) => {
-          const cid = c.id ?? String(i);
+          const cid = getChoiceId(c, i);
           const isSel = selected === cid;
-          const isOk = c.outcome === 'success' || c.quality === 'correct';
+          const quality = getChoiceQuality(c, step, i);
+          const isOk = quality === 'correct';
 
           return (
             <ChoiceButton
               key={cid}
               label={c.text ?? c.label ?? ''}
-              feedback={c.feedback}
+              feedback={c.feedback ?? choiceFallbackFeedback(quality)}
+              quality={quality}
               isSelected={isSel}
               isRevealed={revealed}
               isCorrect={isOk}
               index={i}
-              onPress={() => handlePick(cid, c.outcome)}
+              onPress={() => handlePick(cid, quality)}
               disabled={revealed}
             />
           );
         })}
       </View>
 
-      {revealed && finalAction ? finalAction : <AdvanceButton label="Next →" onPress={onAdvance} disabled={!revealed} />}
+      {revealed && finalAction ? finalAction : <AdvanceButton label={revealed ? advanceLabel : 'Lock in a read'} onPress={revealed ? () => onAdvance(selectedPassed) : undefined} disabled={!revealed} />}
     </View>
   );
 }
 
-function ChoiceButton({ label, feedback, isSelected, isRevealed, isCorrect, index, onPress, disabled }: {
-  label: string; feedback?: string; isSelected: boolean; isRevealed: boolean;
+function ChoiceButton({ label, feedback, quality, isSelected, isRevealed, isCorrect, index, onPress, disabled }: {
+  label: string; feedback?: string; quality: 'correct' | 'acceptable' | 'wrong'; isSelected: boolean; isRevealed: boolean;
   isCorrect: boolean; index: number; onPress: () => void; disabled: boolean;
 }) {
   const revealAnim = useRef(new Animated.Value(0)).current;
@@ -301,7 +330,7 @@ function ChoiceButton({ label, feedback, isSelected, isRevealed, isCorrect, inde
   useEffect(() => {
     if (isSelected && isRevealed) {
       Animated.timing(revealAnim, { toValue: 1, duration: 300, useNativeDriver: false }).start();
-      if (!isCorrect) {
+      if (quality === 'wrong') {
         // Shake on wrong answer
         Animated.sequence([
           Animated.timing(shakeAnim, { toValue: 6, duration: 60, useNativeDriver: true }),
@@ -324,6 +353,11 @@ function ChoiceButton({ label, feedback, isSelected, isRevealed, isCorrect, inde
       borderColor = Colors.primary;
       bgColor = 'rgba(34,204,94,0.10)';
       iconName = 'checkmark-circle';
+    } else if (quality === 'acceptable') {
+      borderColor = Colors.warning;
+      bgColor = 'rgba(245,158,11,0.08)';
+      iconName = 'information-circle';
+      textColor = Colors.warning;
     } else {
       borderColor = Colors.danger;
       bgColor = 'rgba(255,59,48,0.08)';
@@ -365,7 +399,7 @@ function ChoiceButton({ label, feedback, isSelected, isRevealed, isCorrect, inde
           {/* Feedback slides in after reveal */}
           {isSelected && isRevealed && feedback && (
             <Animated.View style={{ opacity: revealAnim }}>
-              <Text style={[choiceStyles.feedback, { color: isCorrect ? Colors.primary : Colors.textSecondary }]}>
+              <Text style={[choiceStyles.feedback, { color: isCorrect ? Colors.primary : quality === 'acceptable' ? Colors.warning : Colors.textSecondary }]}>
                 {feedback}
               </Text>
             </Animated.View>
@@ -374,7 +408,7 @@ function ChoiceButton({ label, feedback, isSelected, isRevealed, isCorrect, inde
 
         {/* Result icon */}
         {isSelected && isRevealed && iconName && (
-          <Ionicons name={iconName} size={20} color={isCorrect ? Colors.primary : Colors.danger} />
+          <Ionicons name={iconName} size={20} color={isCorrect ? Colors.primary : quality === 'acceptable' ? Colors.warning : Colors.danger} />
         )}
       </Pressable>
 
@@ -389,7 +423,8 @@ function ChoiceButton({ label, feedback, isSelected, isRevealed, isCorrect, inde
 // ─── CHECKLIST STEP — Pregame card, satisfying completion ────────────────────
 
 function ChecklistStep({ step, onAdvance, finalAction }: { step: any; onAdvance: () => void; finalAction?: React.ReactNode }) {
-  const items: string[] = step.instructions ?? step.items ?? step.steps ?? [];
+  const rawItems = step.instructions ?? step.items ?? step.steps ?? [];
+  const items: string[] = Array.isArray(rawItems) ? rawItems.map(String) : [];
   const [checked, setChecked] = useState<Set<number>>(new Set());
   const allDone = checked.size >= items.length && items.length > 0;
   const progress = items.length > 0 ? checked.size / items.length : 0;
@@ -620,7 +655,7 @@ function ReflectionStep({ step, onAdvance, finalAction }: { step: any; onAdvance
       <Text style={reflectStyles.body}>{step.content ?? step.text ?? step.prompt ?? step.reframe_prompt ?? ''}</Text>
       {step.example_reframe && (
         <View style={reflectStyles.exampleBox}>
-          <Text style={reflectStyles.exampleLabel}>EXAMPLE</Text>
+          <Text style={reflectStyles.exampleLabel}>REP EXAMPLE</Text>
           <Text style={reflectStyles.exampleText}>{step.example_reframe}</Text>
         </View>
       )}
@@ -655,8 +690,8 @@ function NoticeWonderStep({ step, onAdvance, finalAction }: { step: any; onAdvan
   const [noticePicks, setNoticePicks] = useState<string[]>([]);
   const [wonderPick, setWonderPick] = useState<string | null>(null);
   const phaseAnim = useRef(new Animated.Value(1)).current;
-  const noticeItems: string[] = step.notice_items ?? [];
-  const wonderOptions: { id: string; text: string }[] = step.wonder_options ?? [];
+  const noticeItems: string[] = Array.isArray(step.notice_items) ? step.notice_items.map(String) : [];
+  const wonderOptions: { id: string; text: string }[] = Array.isArray(step.wonder_options) ? step.wonder_options.map((opt: any, i: number) => ({ id: String(opt?.id ?? i), text: String(opt?.text ?? opt?.label ?? opt ?? '') })) : [];
 
   function transition(next: Phase) {
     Haptics.selectionAsync();
@@ -690,7 +725,7 @@ function NoticeWonderStep({ step, onAdvance, finalAction }: { step: any; onAdvan
           </View>
         </View>
 
-        <Text style={nwStyles.noticeInstruct}>Tap everything you notice. No wrong answers.</Text>
+        <Text style={nwStyles.noticeInstruct}>Scout the scene. Tap every clue you see.</Text>
 
         {/* Chip grid */}
         <View style={nwStyles.chipGrid}>
@@ -900,7 +935,7 @@ function StepRenderer({
     case 'spark': case 'text': case 'action':
       return <SparkStep step={step} onAdvance={adv} finalAction={finalAction} />;
     case 'choice': case 'scenario': case 'scenario_pick': case 'decision': case 'freeze_frame':
-      return <ChoiceStep step={step} onAdvance={adv} finalAction={finalAction} />;
+      return <ChoiceStep step={step} onAdvance={onAdvance} finalAction={isFinal ? undefined : finalAction} advanceLabel={isFinal ? 'Finish Rep →' : 'Next Rep →'} />;
     case 'checklist': case 'quick_reset':
       return <ChecklistStep step={step} onAdvance={adv} finalAction={finalAction} />;
     case 'cue': case 'visualization': case 'reframe_builder': case 'pressureRep':
@@ -1051,7 +1086,7 @@ function getStepReadText(step: any): string | null {
 // ─── MAIN SCREEN ─────────────────────────────────────────────────────────────
 
 export default function LessonPlayerScreen() {
-  const { id, reason } = useLocalSearchParams<{ id: string; reason?: string }>();
+  const { id } = useLocalSearchParams<{ id: string; reason?: string }>();
   const insets = useSafeAreaInsets();
   const { athleteState, completeLesson, updateAthleteState } = useAthlete();
   const [lesson, setLesson] = useState<any>(null);
@@ -1091,14 +1126,14 @@ export default function LessonPlayerScreen() {
   }, []);
 
   useEffect(() => {
-    return () => { Speech.stop(); };
+    return () => { stopSpeech(); };
   }, []);
 
   async function toggleMute() {
     const next = !isMuted;
     setIsMuted(next);
     await AsyncStorage.setItem('lesson_tts_muted', String(next));
-    if (next) Speech.stop();
+    if (next) stopSpeech();
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   }
 
@@ -1116,12 +1151,12 @@ export default function LessonPlayerScreen() {
       finally { setLoading(false); }
     })();
   }, [id]);
-useEffect(() => {
-  if (!lesson) return;
-  speakLessonIntro(lesson, reason ?? undefined);
-  return () => { stopSpeech(); };
-}, [lesson]);
-  const steps: any[] = lesson?.steps ?? [];
+  const steps: any[] = Array.isArray(lesson?.steps) ? lesson.steps : [];
+
+  useEffect(() => {
+    stopSpeech();
+    return () => { stopSpeech(); };
+  }, [id]);
   const totalSteps = steps.length;
 
   useEffect(() => {
@@ -1129,10 +1164,11 @@ useEffect(() => {
     const step = steps[Math.min(stepIndex, totalSteps - 1)];
     const text = getStepReadText(step);
     if (text && !isMuted) {
-      Speech.stop();
+      stopSpeech();
       Speech.speak(text, { language: 'en-US', pitch: 1.0, rate: 0.92 });
     }
-  }, [stepIndex, isMuted, totalSteps]);
+    return () => { stopSpeech(); };
+  }, [stepIndex, isMuted, totalSteps, lesson]);
 
   useEffect(() => {
     if (totalSteps === 0) return;
@@ -1214,6 +1250,7 @@ useEffect(() => {
   }
 
   function handleExit() {
+    stopSpeech();
     if (completionStage !== 'none' || stepIndex === 0) { router.back(); return; }
     Alert.alert('Exit lesson?', "Progress won't be saved.", [
       { text: 'Keep going', style: 'cancel' },
@@ -1240,8 +1277,8 @@ useEffect(() => {
         }
       />
       <View style={screenStyles.center}>
-        <Text style={screenStyles.loadingText}>No steps in this lesson yet.</Text>
-        <Pressable style={screenStyles.backBtn} onPress={() => router.back()}><Text style={screenStyles.backBtnText}>← Go back</Text></Pressable>
+        <Text style={screenStyles.loadingText}>This rep needs cleanup.</Text>
+        <Pressable style={screenStyles.backBtn} onPress={() => router.back()}><Text style={screenStyles.backBtnText}>Return Home</Text></Pressable>
       </View>
     </View>
   );
