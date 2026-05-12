@@ -37,6 +37,7 @@ type Bucket =
 type TimingBucket = "pre" | "live" | "post";
 type IntentKey =
   | "get_ready"
+  | "lock_plan"
   | "reset"
   | "refocus"
   | "recover"
@@ -860,6 +861,10 @@ const BUCKET_META: Record<
     label: string;
     headline: string;
     subtext: string;
+    command: string;
+    intentPrompt: string;
+    useFirstLabel: string;
+    secondaryLabel: string;
     phoneOk: boolean;
   }
 > = {
@@ -867,24 +872,36 @@ const BUCKET_META: Record<
     icon: "sunny",
     color: Colors.primary,
     label: "PRE",
-    headline: "Before first pitch.",
-    subtext: "Use these before warmups or in the dugout.",
+    headline: "Before First Pitch",
+    subtext: "Get your body, plan, and cue ready.",
+    command: "Pregame prime · bullpen/on-deck lock-in · readiness check",
+    intentPrompt: "Are you getting loose or locking the plan?",
+    useFirstLabel: "USE FIRST",
+    secondaryLabel: "PREGAME TOOLS",
     phoneOk: true,
   },
   live: {
     icon: "baseball",
-    color: Colors.primary,
+    color: Colors.purple,
     label: "LIVE",
-    headline: "Game is live.",
-    subtext: "Quick resets only. Keep it short.",
+    headline: "During the Game",
+    subtext: "Reset fast. Carry one cue.",
+    command: "Between-pitch reset · mistake flush · between-inning refocus",
+    intentPrompt: "Do you need a reset or a refocus cue?",
+    useFirstLabel: "NEXT BEST TOOL",
+    secondaryLabel: "DUGOUT TOOLS",
     phoneOk: false,
   },
   post: {
     icon: "moon",
-    color: Colors.purple,
+    color: Colors.warning,
     label: "POST",
-    headline: "After the last out.",
-    subtext: "Log it, recover, and carry one cue forward.",
+    headline: "After the Game",
+    subtext: "Log the lesson. Load tomorrow's rep.",
+    command: "Postgame debrief · recovery discipline · carry-forward cue",
+    intentPrompt: "Are you debriefing the game or recovering?",
+    useFirstLabel: "CARRY FORWARD",
+    secondaryLabel: "POSTGAME TOOLS",
     phoneOk: true,
   },
 };
@@ -901,7 +918,7 @@ const INTENT_CHIPS_BY_BUCKET: Record<
 > = {
   pre: [
     { key: "get_ready", label: "Get Ready" },
-    { key: "refocus", label: "Refocus" },
+    { key: "lock_plan", label: "Lock Plan" },
   ],
   live: [
     { key: "reset", label: "Reset" },
@@ -931,12 +948,9 @@ function getToolIntent(tool: GameTool): IntentKey {
     return "recover";
   if (tool.id.includes("postgame_debrief") || tool.id.includes("tough_night"))
     return "debrief";
-  if (
-    tool.id.includes("pregame_prime") ||
-    tool.id.includes("first_ab") ||
-    tool.id.includes("pre_bullpen")
-  )
-    return "get_ready";
+  if (tool.id.includes("first_ab") || tool.id.includes("pre_bullpen"))
+    return "lock_plan";
+  if (tool.id.includes("pregame_prime")) return "get_ready";
   if (
     tool.id.includes("nerves") ||
     tool.id.includes("pre_ab") ||
@@ -970,11 +984,11 @@ function getNextRepTools(
     Record<TimingBucket, Partial<Record<IntentKey, string[]>>>
   > = {
     pre: {
-      get_ready:
+      get_ready: ["pregame_prime", "nerves_to_attack"],
+      lock_plan:
         role === "pitcher"
           ? ["pre_bullpen", "pregame_prime"]
-          : ["pregame_prime", "first_ab_lockin"],
-      refocus: ["nerves_to_attack", "slump_pregame"],
+          : ["first_ab_lockin", "pregame_prime"],
     },
     live: {
       reset:
@@ -1012,9 +1026,28 @@ function getNextRepTools(
 }
 
 function getEmptySubtitle(bucket: TimingBucket): string {
-  if (bucket === "pre") return "Pregame stack is still being built.";
-  if (bucket === "live") return "No live tools match this filter yet.";
-  return "Postgame tools will show here after the final out.";
+  if (bucket === "pre") return "Try Lock Plan for bullpen or on-deck prep.";
+  if (bucket === "live") return "Try the other live intent for dugout-safe tools.";
+  return "Try Recover for cooldown and arm-care tools.";
+}
+
+function getIntentLabel(intent: IntentKey): string {
+  const labels: Record<IntentKey, string> = {
+    get_ready: "Get Ready",
+    lock_plan: "Lock Plan",
+    reset: "Reset",
+    refocus: "Refocus",
+    recover: "Recover",
+    debrief: "Debrief",
+    all: "All Tools",
+  };
+  return labels[intent];
+}
+
+function getToolTag(tool: GameTool): string {
+  if (tool.mode === "print_card") return "Dugout-ready";
+  if (tool.duration.includes("sec")) return "Quick reset";
+  return "Phone-guided";
 }
 
 function formatSeasonPhase(phase: SeasonPhase): string {
@@ -1063,8 +1096,11 @@ function DrillModeSection() {
   return (
     <View style={s.drillSection}>
       <View style={s.drillHeaderRow}>
-        <Text style={s.dividerLabel}>TRAIN IQ</Text>
-        <Text style={s.drillSub}>Drill Mode</Text>
+        <View>
+          <Text style={s.dividerLabel}>TRAIN IQ</Text>
+          <Text style={s.drillIntro}>Rep your baseball IQ between games.</Text>
+        </View>
+        <Text style={s.drillSub}>Drill Mode · 5 quick decisions</Text>
       </View>
       <View style={s.drillGrid}>
         {drills.map((drill) => (
@@ -1105,6 +1141,7 @@ function PrintCardScreen({
     const text = [
       "[ CLUTCHR BASEBALL — GAME CARD ]",
       tool.name.toUpperCase(),
+      `${BUCKET_META[normalizeGameModeBucket(tool.bucket)].label} / ${tool.mode === "print_card" ? "PRINT CARD" : "PHONE REP"}`,
       "",
       `WHEN: ${tool.whenToUse}`,
       `TIME: ${tool.duration}`,
@@ -1135,8 +1172,8 @@ function PrintCardScreen({
           color={Colors.warning}
         />
         <Text style={pStyles.warningText}>
-          No phone on the field. Screenshot or print this card and keep it in
-          your bat bag.
+          No phone on the field. Screenshot or print this before you go, then
+          carry the cue in your pocket, helmet, or bat bag.
         </Text>
       </View>
 
@@ -1158,12 +1195,16 @@ function PrintCardScreen({
           <View style={{ flex: 1 }}>
             <Text style={pStyles.cardEyebrow}>
               CLUTCHR BASEBALL ·{" "}
-              {BUCKET_META[normalizeGameModeBucket(tool.bucket)].label}
+              {BUCKET_META[normalizeGameModeBucket(tool.bucket)].label} · CARRY CARD
             </Text>
             <Text style={pStyles.cardTitle}>{tool.name}</Text>
             <Text style={pStyles.cardMeta}>
               {tool.duration} · {tool.whenToUse}
             </Text>
+            <View style={pStyles.cardTagRow}>
+              <Text style={[pStyles.cardTag, { color: tool.color }]}>NO THINKING</Text>
+              <Text style={pStyles.cardTag}>SCREENSHOT READY</Text>
+            </View>
           </View>
         </View>
 
@@ -1210,12 +1251,12 @@ function PrintCardScreen({
         onPress={handleShare}
       >
         <Ionicons name="share-outline" size={16} color="#fff" />
-        <Text style={pStyles.shareBtnText}>Share / Screenshot / Print</Text>
+        <Text style={pStyles.shareBtnText}>Share Carry Card</Text>
       </Pressable>
 
       <Text style={pStyles.hint}>
-        Fold to index card size (3×5) · Keep in back pocket or bat bag · No
-        phone needed
+        Screenshot, share, or print at 3×5 size · Review before the inning · No
+        phone needed on the field
       </Text>
     </View>
   );
@@ -1421,10 +1462,12 @@ function ToolCard({
   tool,
   onPress,
   compact = false,
+  primary = false,
 }: {
   tool: GameTool;
   onPress: () => void;
   compact?: boolean;
+  primary?: boolean;
 }) {
   return (
     <Pressable
@@ -1432,6 +1475,13 @@ function ToolCard({
         cStyles.card,
         tool.mode === "print_card" && cStyles.printCard,
         compact && cStyles.compactCard,
+        primary && [
+          cStyles.primaryCard,
+          {
+            borderColor: tool.color + "80",
+            backgroundColor: tool.color + "10",
+          },
+        ],
         pressed && { opacity: 0.82, transform: [{ scale: 0.99 }] },
       ]}
       onPress={() => {
@@ -1453,6 +1503,9 @@ function ToolCard({
         />
       </View>
       <View style={cStyles.info}>
+        {primary && (
+          <Text style={[cStyles.useFirst, { color: tool.color }]}>APP PICK</Text>
+        )}
         <View style={cStyles.titleRow}>
           <Text style={[cStyles.name, compact && cStyles.compactName]}>
             {tool.name}
@@ -1478,9 +1531,13 @@ function ToolCard({
             {tool.tagline}
           </Text>
         )}
-        <Text style={[cStyles.duration, { color: tool.color }]}>
-          {tool.duration}
-        </Text>
+        <View style={cStyles.metaRow}>
+          <Text style={[cStyles.duration, { color: tool.color }]}>
+            {tool.duration}
+          </Text>
+          <Text style={cStyles.metaDot}>•</Text>
+          <Text style={cStyles.toolTag}>{getToolTag(tool)}</Text>
+        </View>
       </View>
       <Ionicons
         name={tool.mode === "print_card" ? "print-outline" : "play-circle"}
@@ -1586,7 +1643,7 @@ export default function GameModeScreen() {
         variant="mainTab"
         kicker="GAME MODE"
         title="GAME MODE"
-        subtitle="Game-day tools for the next rep."
+        subtitle="What do you need right now?"
         statusPill={`${firstName} • ${role.charAt(0).toUpperCase() + role.slice(1)} • ${formatSeasonPhase(phase)}`}
       />
 
@@ -1648,11 +1705,13 @@ export default function GameModeScreen() {
               {meta.headline}
             </Text>
             <Text style={s.bannerSub}>{meta.subtext}</Text>
+            <Text style={s.bannerCommand}>{meta.command}</Text>
           </View>
         </View>
 
         <View style={s.intentPanel}>
           <Text style={s.intentQuestion}>What do you need right now?</Text>
+          <Text style={s.intentHint}>{meta.intentPrompt}</Text>
           <View style={s.intentRow}>
             {intentChips.map((intent) => {
               const active = selectedIntent === intent.key;
@@ -1677,28 +1736,35 @@ export default function GameModeScreen() {
         </View>
 
         <View style={s.bannerSlim}>
-          <Text style={[s.bannerHead, { color: Colors.primary }]}>
-            PERSONAL PRESSURE CUE
-          </Text>
-          <Text style={[s.bannerSub, { color: "rgba(255,255,255,0.88)" }]}>
+          <View style={s.pressureRow}>
+            <Text style={[s.bannerHead, { color: Colors.primary }]}>
+              PRESSURE CUE
+            </Text>
+            <Text style={s.pressureHelper}>CARRY THIS</Text>
+          </View>
+          <Text style={s.pressureCueText}>
             {pressureCue || "Compete."}
           </Text>
+          <Text style={s.pressureSub}>Carry one cue into the next rep.</Text>
         </View>
 
         <View style={s.sectionDivider}>
           <View style={s.dividerLine} />
-          <Text style={s.dividerLabel}>YOUR NEXT REP</Text>
+          <Text style={s.dividerLabel}>
+            {meta.useFirstLabel} · {getIntentLabel(selectedIntent).toUpperCase()}
+          </Text>
           <View style={s.dividerLine} />
         </View>
 
         {isLoading
           ? [0, 1].map((i) => <SkeletonCard key={i} />)
           : nextRepTools.length > 0
-            ? nextRepTools.map((tool) => (
+            ? nextRepTools.map((tool, index) => (
                 <ToolCard
                   key={tool.id}
                   tool={tool}
                   onPress={() => openTool(tool)}
+                  primary={index === 0}
                   compact={nextRepTools.length > 1}
                 />
               ))
@@ -1706,7 +1772,7 @@ export default function GameModeScreen() {
 
         <View style={s.sectionDivider}>
           <View style={s.dividerLine} />
-          <Text style={s.dividerLabel}>MORE TOOLS</Text>
+          <Text style={s.dividerLabel}>{meta.secondaryLabel}</Text>
           <View style={s.dividerLine} />
         </View>
 
@@ -1807,6 +1873,13 @@ const s = StyleSheet.create({
     lineHeight: 16,
     marginTop: 2,
   },
+  bannerCommand: {
+    fontSize: 10,
+    fontFamily: "Inter_600SemiBold",
+    color: Colors.textTertiary,
+    lineHeight: 14,
+    marginTop: 6,
+  },
   scroll: { paddingHorizontal: Spacing.xl, gap: Spacing.md },
   sectionDivider: {
     flexDirection: "row",
@@ -1856,6 +1929,31 @@ const s = StyleSheet.create({
     padding: Spacing.md,
     borderRadius: Radius.md,
     borderWidth: 1,
+    gap: 5,
+  },
+  pressureRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: Spacing.sm,
+  },
+  pressureHelper: {
+    fontSize: 8,
+    fontFamily: "Inter_700Bold",
+    color: Colors.textTertiary,
+    letterSpacing: 1,
+  },
+  pressureCueText: {
+    fontSize: 16,
+    fontFamily: "Inter_700Bold",
+    color: Colors.textPrimary,
+    lineHeight: 22,
+  },
+  pressureSub: {
+    fontSize: 11,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textSecondary,
+    lineHeight: 15,
   },
   intentPanel: {
     backgroundColor: Colors.surface,
@@ -1870,6 +1968,12 @@ const s = StyleSheet.create({
     fontFamily: "Inter_700Bold",
     color: Colors.textPrimary,
     letterSpacing: 0.2,
+  },
+  intentHint: {
+    fontSize: 11,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textSecondary,
+    marginTop: -4,
   },
   intentRow: { flexDirection: "row", flexWrap: "wrap", gap: Spacing.sm },
   intentChip: {
@@ -1909,6 +2013,12 @@ const s = StyleSheet.create({
     fontSize: 10,
     fontFamily: "Inter_600SemiBold",
     color: Colors.textTertiary,
+  },
+  drillIntro: {
+    fontSize: 10,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textTertiary,
+    marginTop: 3,
   },
   drillGrid: { flexDirection: "row", flexWrap: "wrap", gap: Spacing.sm },
   drillCard: {
@@ -1999,6 +2109,9 @@ const cStyles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
   },
+  primaryCard: {
+    borderWidth: 1.5,
+  },
   compactCard: { padding: Spacing.sm, gap: Spacing.sm },
   printCard: {
     borderStyle: "dashed",
@@ -2015,6 +2128,11 @@ const cStyles = StyleSheet.create({
   },
   compactIcon: { width: 36, height: 36 },
   info: { flex: 1, gap: 3 },
+  useFirst: {
+    fontSize: 8,
+    fontFamily: "Inter_700Bold",
+    letterSpacing: 1.1,
+  },
   titleRow: { flexDirection: "row", alignItems: "center", gap: Spacing.sm },
   name: {
     fontSize: 14,
@@ -2051,7 +2169,18 @@ const cStyles = StyleSheet.create({
     fontFamily: "Inter_400Regular",
     color: Colors.textSecondary,
   },
+  metaRow: { flexDirection: "row", alignItems: "center", gap: 5 },
   duration: { fontSize: 10, fontFamily: "Inter_700Bold", letterSpacing: 0.5 },
+  metaDot: {
+    fontSize: 10,
+    fontFamily: "Inter_700Bold",
+    color: Colors.textTertiary,
+  },
+  toolTag: {
+    fontSize: 10,
+    fontFamily: "Inter_600SemiBold",
+    color: Colors.textTertiary,
+  },
 });
 
 const rStyles = StyleSheet.create({
@@ -2207,6 +2336,18 @@ const pStyles = StyleSheet.create({
     color: Colors.textSecondary,
     marginTop: 3,
     lineHeight: 16,
+  },
+  cardTagRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 6,
+    marginTop: 8,
+  },
+  cardTag: {
+    fontSize: 8,
+    fontFamily: "Inter_700Bold",
+    color: Colors.textTertiary,
+    letterSpacing: 0.8,
   },
   divider: { height: 1, backgroundColor: Colors.border },
   stepsList: { padding: Spacing.lg, gap: Spacing.md },
