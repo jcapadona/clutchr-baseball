@@ -1,68 +1,85 @@
 // Clutchr Baseball — Design System
-// Dark, sharp, baseball-native. No wellness pastels.
+// Dark, sharp, baseball-native. Green is action/progress/success; gold is earned/premium.
 
 export const Colors = {
-  // ── Backgrounds ────────────────────────────────────────────────────────────
+  // ── Brand palette ──────────────────────────────────────────────────────────
   background: '#0A0A0A',
-  surface: '#111111',
-  surfaceElevated: '#1A1A1A',
-  surfaceHigh: '#222222',
+  surface: '#111417',
+  surfaceElevated: '#15191D',
+  surfaceHigh: '#2A2E33',
+  slate: '#2A2E33',
 
-  // ── NEW: Glowing surfaces for active/hover states ─────────────────────────
-  // A very subtle green-tinted dark surface — used for active nodes,
-  // selected states, "next lesson" cards. Creates depth without full green fill.
-  surfaceGlow: '#0D1A0F',
-
-  // A warm amber-tinted surface — for warning/boss states
+  // ── Tinted surfaces ────────────────────────────────────────────────────────
+  surfaceGlow: '#0B1A10',
   surfaceWarm: '#1A1408',
-
-  // A blue-tinted surface — for info/checkpoint states
   surfaceCool: '#080F1A',
 
   // ── Borders ────────────────────────────────────────────────────────────────
-  border: '#222222',
-  borderSubtle: '#1C1C1C',
-  borderActive: 'rgba(34, 204, 94, 0.4)',
-
-  // ── NEW: Mid-step card border — presence without full green ───────────────
-  // Use this when a card needs to stand out from its siblings
-  // but is not in a fully active/selected green state.
-  cardBorder: '#2A2A2A',
-
-  // ── NEW: Colored accent borders for each token color ──────────────────────
+  border: 'rgba(245,245,245,0.10)',
+  borderSubtle: 'rgba(245,245,245,0.06)',
+  borderStrong: 'rgba(245,245,245,0.18)',
+  borderActive: 'rgba(0, 255, 102, 0.42)',
+  cardBorder: 'rgba(245,245,245,0.12)',
   warningBorder: 'rgba(245, 166, 35, 0.30)',
   infoBorder: 'rgba(10, 132, 255, 0.28)',
   purpleBorder: 'rgba(191, 90, 242, 0.28)',
   dangerBorder: 'rgba(255, 59, 48, 0.28)',
 
-  // ── Brand green ────────────────────────────────────────────────────────────
-  primary: '#22CC5E',
-  primaryDim: '#16A84A',
-  primaryMuted: 'rgba(34, 204, 94, 0.12)',
-  primaryBorder: 'rgba(34, 204, 94, 0.25)',
-  primaryGlow: 'rgba(34, 204, 94, 0.08)',
+  // ── Primary action/progress green ──────────────────────────────────────────
+  primary: '#00FF66',
+  green: '#00FF66',
+  primaryDim: '#19C85A',
+  primaryMuted: 'rgba(0, 255, 102, 0.12)',
+  primaryBorder: 'rgba(0, 255, 102, 0.28)',
+  primaryGlow: 'rgba(0, 255, 102, 0.10)',
 
   // ── Text ───────────────────────────────────────────────────────────────────
-  textPrimary: '#FFFFFF',
-  textSecondary: '#888888',
-  textTertiary: '#555555',
-  textDisabled: '#333333',
+  textPrimary: '#F5F5F5',
+  text: '#F5F5F5',
+  textSecondary: '#A8B3AA',
+  mutedText: '#A8B3AA',
+  textTertiary: '#6F7478',
+  textDisabled: '#3B4045',
 
-  // ── Accent colors ──────────────────────────────────────────────────────────
+  // ── Accent colors by role ──────────────────────────────────────────────────
   warning: '#F5A623',
+  gold: '#F5A623',
   warningMuted: 'rgba(245, 166, 35, 0.15)',
   danger: '#FF3B30',
+  red: '#FF3B30',
   dangerMuted: 'rgba(255, 59, 48, 0.15)',
   info: '#0A84FF',
   infoMuted: 'rgba(10, 132, 255, 0.15)',
   purple: '#BF5AF2',
   purpleMuted: 'rgba(191, 90, 242, 0.15)',
+  orange: '#FF6A2A',
+  orangeMuted: 'rgba(255, 106, 42, 0.15)',
 
   // ── Utility ────────────────────────────────────────────────────────────────
   white: '#FFFFFF',
   black: '#000000',
   transparent: 'transparent',
 };
+
+export const BrandRoles = {
+  action: Colors.primary,
+  success: Colors.primary,
+  progress: Colors.primary,
+  earned: Colors.warning,
+  premium: Colors.warning,
+  utility: Colors.purple,
+  caution: Colors.danger,
+  grind: Colors.orange,
+} as const;
+
+export const Surfaces = {
+  app: Colors.background,
+  card: Colors.surface,
+  cardElevated: Colors.surfaceElevated,
+  hero: Colors.surfaceGlow,
+  outline: Colors.border,
+  outlineActive: Colors.primaryBorder,
+} as const;
 
 export const Typography = {
   display: {
@@ -127,6 +144,13 @@ export const Typography = {
     letterSpacing: 0.8,
     color: Colors.textTertiary,
   },
+  sectionLabel: {
+    fontSize: 10,
+    fontFamily: 'Inter_700Bold',
+    lineHeight: 14,
+    letterSpacing: 1.8,
+    color: Colors.textTertiary,
+  },
   button: {
     fontSize: 15,
     fontFamily: 'Inter_600SemiBold',
@@ -160,32 +184,48 @@ export const Radius = {
   pill: 100,
 } as const;
 
+export const ButtonTokens = {
+  minHeight: 54,
+  radius: Radius.lg,
+  primaryBg: Colors.primary,
+  primaryText: Colors.background,
+  secondaryBg: Colors.surface,
+  secondaryBorder: Colors.border,
+  secondaryText: Colors.textSecondary,
+  disabledBg: Colors.surfaceElevated,
+  disabledText: Colors.textTertiary,
+} as const;
+
+export const CardTokens = {
+  backgroundColor: Colors.surface,
+  elevatedBackgroundColor: Colors.surfaceElevated,
+  borderColor: Colors.border,
+  activeBorderColor: Colors.primaryBorder,
+  radius: Radius.xl,
+} as const;
+
 export const Shadow = {
-  // Ambient green glow — used on active nodes, CTA buttons, the hero card
   green: {
     shadowColor: Colors.primary,
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.30,
+    shadowOpacity: 0.24,
     shadowRadius: 12,
     elevation: 8,
   },
-  // Stronger focused green glow — used on the NEXT lesson node
   greenFocus: {
     shadowColor: Colors.primary,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.45,
+    shadowOpacity: 0.34,
     shadowRadius: 20,
     elevation: 12,
   },
-  // Amber glow — boss nodes, warning states
   amber: {
     shadowColor: Colors.warning,
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.35,
+    shadowOpacity: 0.30,
     shadowRadius: 14,
     elevation: 8,
   },
-  // Standard card lift — subtle depth on surface cards
   card: {
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
@@ -193,7 +233,6 @@ export const Shadow = {
     shadowRadius: 8,
     elevation: 4,
   },
-  // Deep card — more dramatic lift for hero elements
   cardDeep: {
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 8 },

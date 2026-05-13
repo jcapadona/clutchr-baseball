@@ -1,36 +1,28 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
+import { Colors } from '@/constants/theme';
 
-// Two left-pointing chevrons + wordmark.
-// Left chevron is smaller and 60% opacity; right is full size and fully opaque.
-// Total visual height: 28px.
-
-export function ClutchrLogo() {
+export function ClutchrCMark({ size = 28 }: { size?: number }) {
   return (
-    <View style={styles.row}>
-      <Svg width={20} height={28} viewBox="0 0 20 28">
-        {/* Left chevron — smaller, 60% opacity */}
-        <Path
-          d="M 9,8 L 2,14 L 9,20"
-          stroke="#22CC5E"
-          strokeWidth={2}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          fill="none"
-          opacity={0.6}
-        />
-        {/* Right chevron — full size */}
-        <Path
-          d="M 18,5 L 10,14 L 18,23"
-          stroke="#22CC5E"
-          strokeWidth={2.5}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          fill="none"
-        />
-      </Svg>
-      <Text style={styles.wordmark}>CLUTCHR</Text>
+    <Svg width={size} height={size} viewBox="0 0 64 64" accessibilityLabel="Clutchr C mark">
+      <Path
+        d="M48 8H20L8 20v28l8 8h30l10-10V34H42v10H22V22h20v8h14V16L48 8Z"
+        fill={Colors.textPrimary}
+      />
+      <Path d="M42 38H22v10h22l12-12v-2H42v4Z" fill={Colors.primary} />
+    </Svg>
+  );
+}
+
+export function ClutchrLogo({ compact = false }: { compact?: boolean }) {
+  if (compact) {
+    return <ClutchrCMark size={28} />;
+  }
+
+  return (
+    <View style={styles.row} accessibilityLabel="Clutchr wordmark">
+      <Text style={styles.wordmark}>CLUTCH<Text style={styles.wordmarkAccent}>R</Text></Text>
     </View>
   );
 }
@@ -40,13 +32,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     height: 28,
-    gap: 5,
   },
   wordmark: {
-    fontSize: 20,
+    fontSize: 22,
     fontFamily: 'Inter_700Bold',
-    color: '#FFFFFF',
-    letterSpacing: 2,
+    color: Colors.textPrimary,
+    letterSpacing: 3.2,
     lineHeight: 28,
+  },
+  wordmarkAccent: {
+    color: Colors.primary,
   },
 });

@@ -198,9 +198,9 @@ export default function LockerScreen() {
       {/* ── HEADER ── */}
       <ClutchrHeader
         variant="mainTab"
-        kicker="C / LOCKER"
-        title="Baseball Tools"
-        subtitle="Dugout. Bullpen. The Grind."
+        kicker="RESOURCES"
+        title="Locker"
+        subtitle="Dugout tools. Bullpen cues. Grind support."
       />
 
       {/* ── SEARCH ── */}
