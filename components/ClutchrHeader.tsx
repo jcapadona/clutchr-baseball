@@ -2,7 +2,7 @@ import React from 'react';
 import { Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Radius, Spacing } from '@/constants/theme';
-import { ClutchrLogo } from '@/components/ClutchrLogo';
+import { ClutchrCMark, ClutchrLogo } from '@/components/ClutchrLogo';
 
 export type ClutchrHeaderVariant = 'home' | 'mainTab' | 'flow' | 'contextCard';
 
@@ -51,7 +51,7 @@ export function BrandMark({ wordmark = false }: { wordmark?: boolean }) {
 
   return (
     <View style={brandMarkStyles.mark} accessibilityLabel="Clutchr mark">
-      <Text style={brandMarkStyles.markText}>C</Text>
+      <ClutchrCMark size={18} />
     </View>
   );
 }
@@ -136,12 +136,12 @@ export function ClutchrHeader({
   );
 }
 
-const HEADER_BACKGROUND = '#050806';
-const HEADER_SURFACE = '#111612';
-const HEADER_BORDER = '#242B26';
-const HEADER_TEXT = '#F7FFF9';
-const HEADER_MUTED = '#A8B3AA';
-const BRAND_GREEN = '#23D160';
+const HEADER_BACKGROUND = Colors.background;
+const HEADER_SURFACE = Colors.surface;
+const HEADER_BORDER = Colors.border;
+const HEADER_TEXT = Colors.textPrimary;
+const HEADER_MUTED = Colors.textSecondary;
+const BRAND_GREEN = Colors.primary;
 
 const styles = StyleSheet.create({
   wrap: {

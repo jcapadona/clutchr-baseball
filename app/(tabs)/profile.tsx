@@ -378,6 +378,17 @@ export default function ProfileScreen() {
         </View>
         <Text style={styles.rankProof}>{rank.description}</Text>
 
+        <View style={styles.coachCallout}>
+          <View style={styles.coachBadge}>
+            <View style={styles.coachCap} />
+            <Text style={styles.coachBadgeText}>CC</Text>
+          </View>
+          <View style={styles.coachCopy}>
+            <Text style={styles.coachLabel}>COACH CAP</Text>
+            <Text style={styles.coachText}>Player OS stays simple: know your role, stack reps, carry one cue into the next moment.</Text>
+          </View>
+        </View>
+
         {/* ── XP BAR ── */}
         <View style={styles.xpCard}>
           <View style={styles.xpTopRow}>
@@ -537,6 +548,56 @@ const styles = StyleSheet.create({
   rankBlock: { alignItems: 'center', gap: 4, minWidth: 58 },
   rankText: { fontSize: 10, fontFamily: 'Inter_700Bold', letterSpacing: 0.8, textAlign: 'center' },
   rankProof: { marginTop: Spacing.md, fontSize: 12, fontFamily: 'Inter_500Medium', color: Colors.textSecondary, lineHeight: 18 },
+  coachCallout: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginTop: Spacing.sm,
+    padding: 14,
+    borderRadius: 18,
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.primaryBorder,
+  },
+  coachBadge: {
+    width: 42,
+    height: 42,
+    borderRadius: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: Colors.primaryBorder,
+    backgroundColor: Colors.surfaceGlow,
+  },
+  coachCap: {
+    position: 'absolute',
+    top: 8,
+    width: 22,
+    height: 7,
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
+    backgroundColor: Colors.primary,
+  },
+  coachBadgeText: {
+    color: Colors.textPrimary,
+    fontSize: 11,
+    fontFamily: 'Inter_700Bold',
+    letterSpacing: 0.8,
+    marginTop: 7,
+  },
+  coachCopy: { flex: 1, gap: 3 },
+  coachLabel: {
+    color: Colors.primary,
+    fontSize: 9,
+    fontFamily: 'Inter_700Bold',
+    letterSpacing: 1.5,
+  },
+  coachText: {
+    color: Colors.textSecondary,
+    fontSize: 12,
+    fontFamily: 'Inter_500Medium',
+    lineHeight: 17,
+  },
 
   // XP
   xpCard: {

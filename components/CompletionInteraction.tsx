@@ -9,7 +9,7 @@ import {
   Text,
   View,
 } from 'react-native';
-import { Radius, Spacing } from '@/constants/theme';
+import { Colors, Radius, Spacing } from '@/constants/theme';
 
 export type CompletionIntent = 'rep' | 'lesson' | 'boss' | 'save';
 export type CompletionVariant = 'swipe' | 'hold' | 'card-swipe';
@@ -128,7 +128,7 @@ function FinishRepButton({
         accessibilityLabel={label}
       >
         <LinearGradient
-          colors={disabled ? ['#182019', '#141814'] : ['#23D160', '#18A84A']}
+          colors={disabled ? [Colors.surfaceElevated, Colors.surface] : [Colors.primary, Colors.primaryDim]}
           style={StyleSheet.absoluteFill}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
@@ -141,13 +141,13 @@ function FinishRepButton({
           ]}
         />
         <View style={styles.finishIconWrap}>
-          <Ionicons name={locked ? 'checkmark' : cardMode ? 'baseball' : 'lock-closed'} size={18} color="#050806" />
+          <Ionicons name={locked ? 'checkmark' : cardMode ? 'baseball' : 'lock-closed'} size={18} color={Colors.background} />
         </View>
         <View style={styles.finishCopy}>
           <Text style={styles.finishLabel}>{locked ? 'Rep Locked' : label}</Text>
           <Text style={styles.finishSub}>{locked ? 'Loading the payoff.' : cardMode ? 'Close the frame.' : 'Tap once to lock this rep.'}</Text>
         </View>
-        <Ionicons name={locked ? 'checkmark-circle' : 'arrow-forward'} size={18} color="#050806" />
+        <Ionicons name={locked ? 'checkmark-circle' : 'arrow-forward'} size={18} color={Colors.background} />
       </Pressable>
     </Animated.View>
   );
@@ -158,16 +158,16 @@ const styles = StyleSheet.create({
   wrap: { gap: Spacing.sm, marginTop: Spacing.md },
   finishButton: {
     minHeight: 68,
-    borderRadius: 20,
+    borderRadius: Radius.lg,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(35,209,96,0.38)',
+    borderColor: Colors.primaryBorder,
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.md,
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
-    shadowColor: '#23D160',
+    shadowColor: Colors.primary,
     shadowOpacity: 0.18,
     shadowRadius: 18,
     shadowOffset: { width: 0, height: 0 },
@@ -186,7 +186,7 @@ const styles = StyleSheet.create({
     width: 34,
     height: 34,
     borderRadius: 17,
-    backgroundColor: 'rgba(5,8,6,0.16)',
+    backgroundColor: 'rgba(10,10,10,0.16)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -194,12 +194,12 @@ const styles = StyleSheet.create({
   finishLabel: {
     fontSize: 16,
     fontFamily: 'Inter_700Bold',
-    color: '#050806',
+    color: Colors.background,
     letterSpacing: 0.2,
   },
   finishSub: {
     fontSize: 11,
     fontFamily: 'Inter_600SemiBold',
-    color: 'rgba(5,8,6,0.72)',
+    color: 'rgba(10,10,10,0.72)',
   },
 });

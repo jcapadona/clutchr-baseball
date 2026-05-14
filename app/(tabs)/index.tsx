@@ -17,6 +17,7 @@ import { Colors } from '@/constants/theme';
 import { pickNextLesson, type RoutingResult } from '@/lib/lessonRouter';
 import { SkeletonBox, SkeletonCard } from '@/components/SkeletonLoader';
 import { EmblemBadge } from '@/components/EmblemBadge';
+import { ClutchrLogo } from '@/components/ClutchrLogo';
 import { getCurrentRank, getRankProgress } from '@/lib/progressionRanks';
 
 const MISSIONS_DATE_KEY  = 'missions_date';
@@ -156,7 +157,7 @@ export default function HomeScreen() {
     return (
       <View style={s.container}>
         <View style={[s.topHeader, { paddingTop: insets.top + 14 }]}>
-          <Text style={s.brandText}>CLUTCHR</Text>
+          <ClutchrLogo />
           <View style={s.navRight}>
             <View style={s.statPill}>
               <Ionicons name="flame" size={12} color="#C58A2A" />
@@ -227,7 +228,7 @@ export default function HomeScreen() {
 
       {/* ── CLEAN COMMAND HEADER ── */}
       <View style={[s.topHeader, { paddingTop: insets.top + 14 }]}>
-        <Text style={s.brandText}>CLUTCHR</Text>
+        <ClutchrLogo />
         <View style={s.navRight}>
           <View style={s.statPill}>
             <Ionicons name="flame" size={12} color="#C58A2A" />
