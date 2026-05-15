@@ -413,10 +413,10 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
 
   lockerHeaderWordmark: {
-    width: 112,
-    height: 24,
+    width: 116,
+    height: 30,
     marginLeft: Spacing.xl,
-    marginBottom: -Spacing.sm,
+    marginBottom: -4,
   },
 
   // Header

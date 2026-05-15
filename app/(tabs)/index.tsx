@@ -403,8 +403,8 @@ const s = StyleSheet.create({
     backgroundColor: Colors.background,
   },
   headerWordmark: {
-    width: 128,
-    height: 28,
+    width: 132,
+    height: 34,
   },
   brandText: {
     color: '#F7FFF9',
@@ -535,9 +535,9 @@ const s = StyleSheet.create({
   },
   shortcutIcon: { marginBottom: 10 },
   shortcutWordmark: {
-    width: 84,
-    height: 22,
-    marginBottom: 10,
+    width: 88,
+    height: 26,
+    marginBottom: 8,
   },
   shortcutTitle: {
     fontSize: 15,
