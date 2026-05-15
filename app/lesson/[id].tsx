@@ -8,6 +8,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Animated,
+  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -1009,7 +1010,18 @@ function LessonCompletionPayoff({
       <ScrollView contentContainerStyle={[payoffStyles.scrollContent, { paddingTop: topSafePadding }]} showsVerticalScrollIndicator={false}>
         <View style={payoffStyles.heroCard}>
           <LinearGradient colors={['rgba(35,209,96,0.16)', 'rgba(5,8,6,0)']} style={StyleSheet.absoluteFill} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} />
+          <Image
+            pointerEvents="none"
+            source={require('../../assets/branding/c-mark.png')}
+            style={payoffStyles.heroWatermark}
+            resizeMode="contain"
+          />
           <View style={payoffStyles.signalLine} />
+          <Image
+            source={require('../../assets/branding/simplified-wordmark.png')}
+            style={payoffStyles.heroWordmark}
+            resizeMode="contain"
+          />
           <View style={payoffStyles.heroTopRow}>
             <View>
               <Text style={payoffStyles.kicker}>{isBoss ? 'CLOSE IT OUT' : 'REP COMPLETE'}</Text>
@@ -1069,8 +1081,11 @@ function LessonCompletionPayoff({
 function CoachCapMoment() {
   return (
     <View style={payoffStyles.ccHook}>
-      <View style={payoffStyles.ccCap} />
-      <Text style={payoffStyles.ccText}>CC</Text>
+      <Image
+        source={require('../../assets/coach-cap/circular-avatar.png')}
+        style={payoffStyles.ccImage}
+        resizeMode="cover"
+      />
     </View>
   );
 }
@@ -2246,6 +2261,19 @@ const payoffStyles = StyleSheet.create({
     shadowOpacity: 0.6,
     shadowRadius: 12,
   },
+  heroWatermark: {
+    position: 'absolute',
+    right: -18,
+    bottom: -24,
+    width: 142,
+    height: 142,
+    opacity: 0.08,
+  },
+  heroWordmark: {
+    width: 104,
+    height: 28,
+    marginBottom: -Spacing.xs,
+  },
   heroTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: Spacing.md },
   kicker: { color: '#23D160', fontFamily: 'Inter_700Bold', fontSize: 10, letterSpacing: 1.8 },
   title: { color: '#F7FFF9', fontFamily: 'Inter_700Bold', fontSize: 34, lineHeight: 38, letterSpacing: -0.8, marginTop: 4 },
@@ -2263,16 +2291,11 @@ const payoffStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  ccCap: {
-    position: 'absolute',
-    top: 11,
-    width: 28,
-    height: 8,
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
-    backgroundColor: '#23D160',
+  ccImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 18,
   },
-  ccText: { color: '#F7FFF9', fontFamily: 'Inter_700Bold', fontSize: 13, letterSpacing: 1, marginTop: 10 },
   card: {
     backgroundColor: '#111612',
     borderColor: '#242B26',

@@ -530,10 +530,10 @@ const styles = StyleSheet.create({
   headerTitle: { fontSize: 12, fontFamily: 'Inter_600SemiBold', color: Colors.textTertiary, letterSpacing: 1 },
   scroll: { paddingHorizontal: Spacing.xl, gap: Spacing.xl },
   profileHeaderWordmark: {
-    width: 112,
-    height: 24,
+    width: 116,
+    height: 30,
     marginLeft: Spacing.xl,
-    marginBottom: -Spacing.sm,
+    marginBottom: -4,
   },
 
   // Identity card

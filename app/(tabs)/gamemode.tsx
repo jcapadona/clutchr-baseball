@@ -2558,10 +2558,10 @@ const s = StyleSheet.create({
     color: Colors.textSecondary,
   },
   gameHeaderWordmark: {
-    width: 132,
-    height: 28,
+    width: 136,
+    height: 34,
     marginLeft: Spacing.xl,
-    marginBottom: -Spacing.sm,
+    marginBottom: -4,
   },
   bucketRow: {
     flexDirection: "row",

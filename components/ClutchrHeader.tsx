@@ -1,8 +1,8 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Radius, Spacing } from '@/constants/theme';
-import { ClutchrCMark, ClutchrLogo } from '@/components/ClutchrLogo';
+import { ClutchrLogo } from '@/components/ClutchrLogo';
 
 export type ClutchrHeaderVariant = 'home' | 'mainTab' | 'flow' | 'contextCard';
 
@@ -51,7 +51,11 @@ export function BrandMark({ wordmark = false }: { wordmark?: boolean }) {
 
   return (
     <View style={brandMarkStyles.mark} accessibilityLabel="Clutchr mark">
-      <ClutchrCMark size={18} />
+      <Image
+        source={require('../assets/branding/c-mark.png')}
+        style={brandMarkStyles.markImage}
+        resizeMode="contain"
+      />
     </View>
   );
 }
@@ -301,11 +305,9 @@ const brandMarkStyles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.primaryBorder,
   },
-  markText: {
-    color: BRAND_GREEN,
-    fontSize: 13,
-    fontFamily: 'Inter_700Bold',
-    letterSpacing: 0.4,
+  markImage: {
+    width: 17,
+    height: 17,
   },
 });
 
