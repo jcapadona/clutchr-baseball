@@ -3,6 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
+  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -196,6 +197,11 @@ export default function LockerScreen() {
     <View style={[styles.container, { paddingTop: insets.top }]}>
 
       {/* ── HEADER ── */}
+      <Image
+        source={require('../../assets/branding/simplified-wordmark.png')}
+        style={styles.lockerHeaderWordmark}
+        resizeMode="contain"
+      />
       <ClutchrHeader
         variant="mainTab"
         kicker="RESOURCES"
@@ -265,9 +271,11 @@ export default function LockerScreen() {
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
             />
-            <View style={styles.introIcon}>
-              <Ionicons name={activeConfig.icon as any} size={18} color={Colors.primary} />
-            </View>
+            <Image
+              source={require('../../assets/branding/monochrome-c.png')}
+              style={styles.introBrandMark}
+              resizeMode="contain"
+            />
             <View style={styles.introCopy}>
               <Text style={styles.introTitle}>{activeConfig.label}</Text>
               <Text style={styles.introSubtitle}>{activeConfig.subtitle}</Text>
@@ -312,7 +320,11 @@ export default function LockerScreen() {
 
           {filtered.length === 0 && !loading && (
             <View style={styles.empty}>
-              <Ionicons name={activeConfig.icon as any} size={40} color={Colors.textTertiary} />
+              <Image
+                source={require('../../assets/branding/charcoal-c.png')}
+                style={styles.emptyBrandMark}
+                resizeMode="contain"
+              />
               <Text style={styles.emptyTitle}>{activeConfig.emptyTitle}</Text>
               <Text style={styles.emptyText}>{activeConfig.emptyText}</Text>
             </View>
@@ -400,6 +412,13 @@ function ListCard({ card, onOpen }: { card: ContentCard; onOpen: () => void }) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
 
+  lockerHeaderWordmark: {
+    width: 118,
+    height: 34,
+    marginLeft: Spacing.xl,
+    marginBottom: -Spacing.xs,
+  },
+
   // Header
   header: {
     flexDirection: 'row',
@@ -434,6 +453,17 @@ const styles = StyleSheet.create({
   },
 
   // Search
+  introBrandMark: {
+    width: 44,
+    height: 44,
+    marginRight: Spacing.sm,
+  },
+  emptyBrandMark: {
+    width: 54,
+    height: 54,
+    opacity: 0.7,
+  },
+
   searchWrap: {
     flexDirection: 'row',
     alignItems: 'center',

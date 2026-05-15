@@ -8,6 +8,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Animated,
+  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -1009,9 +1010,20 @@ function LessonCompletionPayoff({
       <ScrollView contentContainerStyle={[payoffStyles.scrollContent, { paddingTop: topSafePadding }]} showsVerticalScrollIndicator={false}>
         <View style={payoffStyles.heroCard}>
           <LinearGradient colors={['rgba(35,209,96,0.16)', 'rgba(5,8,6,0)']} style={StyleSheet.absoluteFill} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} />
+          <Image
+            pointerEvents="none"
+            source={require('../../assets/branding/c-mark.png')}
+            style={payoffStyles.heroWatermark}
+            resizeMode="contain"
+          />
           <View style={payoffStyles.signalLine} />
+          <Image
+            source={require('../../assets/branding/simplified-wordmark.png')}
+            style={payoffStyles.completionWordmark}
+            resizeMode="contain"
+          />
           <View style={payoffStyles.heroTopRow}>
-            <View>
+            <View style={payoffStyles.heroTitleStack}>
               <Text style={payoffStyles.kicker}>{isBoss ? 'CLOSE IT OUT' : 'REP COMPLETE'}</Text>
               <Text style={payoffStyles.title}>{title}</Text>
             </View>
@@ -1069,8 +1081,11 @@ function LessonCompletionPayoff({
 function CoachCapMoment() {
   return (
     <View style={payoffStyles.ccHook}>
-      <View style={payoffStyles.ccCap} />
-      <Text style={payoffStyles.ccText}>CC</Text>
+      <Image
+        source={require('../../assets/coach-cap/circular-avatar.png')}
+        style={payoffStyles.ccImage}
+        resizeMode="contain"
+      />
     </View>
   );
 }
@@ -2235,6 +2250,14 @@ const payoffStyles = StyleSheet.create({
     overflow: 'hidden',
     gap: Spacing.md,
   },
+  heroWatermark: {
+    position: 'absolute',
+    right: -18,
+    bottom: -20,
+    width: 150,
+    height: 150,
+    opacity: 0.08,
+  },
   signalLine: {
     position: 'absolute',
     left: 0,
@@ -2246,7 +2269,13 @@ const payoffStyles = StyleSheet.create({
     shadowOpacity: 0.6,
     shadowRadius: 12,
   },
+  completionWordmark: {
+    width: 118,
+    height: 34,
+    marginBottom: -Spacing.xs,
+  },
   heroTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: Spacing.md },
+  heroTitleStack: { flex: 1 },
   kicker: { color: '#23D160', fontFamily: 'Inter_700Bold', fontSize: 10, letterSpacing: 1.8 },
   title: { color: '#F7FFF9', fontFamily: 'Inter_700Bold', fontSize: 34, lineHeight: 38, letterSpacing: -0.8, marginTop: 4 },
   lessonTitle: { color: '#A8B3AA', fontFamily: 'Inter_500Medium', fontSize: 14, lineHeight: 20 },
@@ -2254,25 +2283,20 @@ const payoffStyles = StyleSheet.create({
   xpText: { color: '#39FF88', fontFamily: 'Inter_700Bold', fontSize: 44, lineHeight: 48, letterSpacing: -1 },
   xpLabel: { color: '#23D160', fontFamily: 'Inter_700Bold', fontSize: 14, letterSpacing: 1.8, paddingBottom: 7 },
   ccHook: {
-    width: 54,
-    height: 54,
-    borderRadius: 18,
+    width: 58,
+    height: 58,
+    borderRadius: 20,
     borderWidth: 1,
     borderColor: 'rgba(35,209,96,0.3)',
     backgroundColor: '#0B100C',
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
   },
-  ccCap: {
-    position: 'absolute',
-    top: 11,
-    width: 28,
-    height: 8,
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
-    backgroundColor: '#23D160',
+  ccImage: {
+    width: 54,
+    height: 54,
   },
-  ccText: { color: '#F7FFF9', fontFamily: 'Inter_700Bold', fontSize: 13, letterSpacing: 1, marginTop: 10 },
   card: {
     backgroundColor: '#111612',
     borderColor: '#242B26',

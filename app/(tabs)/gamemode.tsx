@@ -4,6 +4,7 @@ import * as Haptics from "expo-haptics";
 import React, { useEffect, useRef, useState } from "react";
 import {
   Animated,
+  Image,
   Pressable,
   ScrollView,
   Share,
@@ -1482,6 +1483,11 @@ function DrillModeSection({ onStartDrill }: { onStartDrill: (drill: RapidRepDril
   return (
     <View style={s.drillSection}>
       <View style={s.drillHeroCard}>
+        <Image
+          source={require('../../assets/coach-cap/half-body-pointing.png')}
+          style={s.drillCoachImage}
+          resizeMode="contain"
+        />
         <Text style={s.dividerLabel}>TRAIN IQ</Text>
         <Text style={s.drillHeroTitle}>5 quick baseball decisions</Text>
         <Text style={s.drillHeroSub}>Read the game. Make the call. Get immediate coaching feedback.</Text>
@@ -2330,6 +2336,11 @@ export default function GameModeScreen() {
   // ── List view ──
   return (
     <View style={[s.container, { paddingTop: insets.top }]}>
+      <Image
+        source={require('../../assets/branding/main-wordmark.png')}
+        style={s.gameHeaderWordmark}
+        resizeMode="contain"
+      />
       <ClutchrHeader
         variant="mainTab"
         kicker="GAME MODE"
@@ -2390,7 +2401,11 @@ export default function GameModeScreen() {
             },
           ]}
         >
-          <Ionicons name={meta.icon as any} size={14} color={meta.color} />
+          <Image
+            source={require('../../assets/branding/charcoal-c.png')}
+            style={s.bannerBrandMark}
+            resizeMode="contain"
+          />
           <View style={{ flex: 1 }}>
             <Text style={[s.bannerHead, { color: meta.color }]}>
               {meta.headline}
@@ -2542,6 +2557,12 @@ const s = StyleSheet.create({
     fontFamily: "Inter_400Regular",
     color: Colors.textSecondary,
   },
+  gameHeaderWordmark: {
+    width: 118,
+    height: 34,
+    marginLeft: Spacing.xl,
+    marginBottom: -Spacing.xs,
+  },
   bucketRow: {
     flexDirection: "row",
     backgroundColor: "#0D0D0D",
@@ -2572,6 +2593,11 @@ const s = StyleSheet.create({
     padding: Spacing.md,
     borderRadius: Radius.md,
     borderWidth: 1,
+  },
+  bannerBrandMark: {
+    width: 24,
+    height: 24,
+    marginTop: -1,
   },
   bannerHead: { fontSize: 12, fontFamily: "Inter_700Bold", letterSpacing: 0.3 },
   bannerSub: {
@@ -2731,6 +2757,14 @@ const s = StyleSheet.create({
     paddingVertical: Spacing.sm,
   },
   drillSection: { gap: Spacing.md, marginTop: Spacing.lg },
+  drillCoachImage: {
+    position: 'absolute',
+    right: 8,
+    bottom: -2,
+    width: 96,
+    height: 116,
+    opacity: 0.9,
+  },
   drillHeroCard: {
     backgroundColor: Colors.surfaceGlow,
     borderRadius: Radius.lg,

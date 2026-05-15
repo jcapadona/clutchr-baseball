@@ -1,8 +1,7 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Radius, Spacing } from '@/constants/theme';
-import { ClutchrCMark, ClutchrLogo } from '@/components/ClutchrLogo';
 
 export type ClutchrHeaderVariant = 'home' | 'mainTab' | 'flow' | 'contextCard';
 
@@ -47,11 +46,24 @@ export function HeaderActionButton({
 }
 
 export function BrandMark({ wordmark = false }: { wordmark?: boolean }) {
-  if (wordmark) return <ClutchrLogo />;
+  if (wordmark) {
+    return (
+      <Image
+        source={require('../assets/branding/simplified-wordmark.png')}
+        style={brandMarkStyles.wordmark}
+        resizeMode="contain"
+        accessibilityLabel="Clutchr wordmark"
+      />
+    );
+  }
 
   return (
     <View style={brandMarkStyles.mark} accessibilityLabel="Clutchr mark">
-      <ClutchrCMark size={18} />
+      <Image
+        source={require('../assets/branding/c-mark.png')}
+        style={brandMarkStyles.cMark}
+        resizeMode="contain"
+      />
     </View>
   );
 }
@@ -291,21 +303,24 @@ const styles = StyleSheet.create({
 });
 
 const brandMarkStyles = StyleSheet.create({
+  wordmark: {
+    width: 116,
+    height: 34,
+  },
   mark: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
+    width: 30,
+    height: 30,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: HEADER_SURFACE,
     borderWidth: 1,
     borderColor: Colors.primaryBorder,
+    overflow: 'hidden',
   },
-  markText: {
-    color: BRAND_GREEN,
-    fontSize: 13,
-    fontFamily: 'Inter_700Bold',
-    letterSpacing: 0.4,
+  cMark: {
+    width: 19,
+    height: 19,
   },
 });
 
