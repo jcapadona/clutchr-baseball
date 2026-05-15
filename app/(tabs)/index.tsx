@@ -4,6 +4,7 @@ import { router } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Animated,
+  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -17,7 +18,6 @@ import { Colors } from '@/constants/theme';
 import { pickNextLesson, type RoutingResult } from '@/lib/lessonRouter';
 import { SkeletonBox, SkeletonCard } from '@/components/SkeletonLoader';
 import { EmblemBadge } from '@/components/EmblemBadge';
-import { ClutchrLogo } from '@/components/ClutchrLogo';
 import { getCurrentRank, getRankProgress } from '@/lib/progressionRanks';
 
 const MISSIONS_DATE_KEY  = 'missions_date';
@@ -157,7 +157,11 @@ export default function HomeScreen() {
     return (
       <View style={s.container}>
         <View style={[s.topHeader, { paddingTop: insets.top + 14 }]}>
-          <ClutchrLogo />
+          <Image
+            source={require('../../assets/branding/main-wordmark.png')}
+            style={s.headerWordmark}
+            resizeMode="contain"
+          />
           <View style={s.navRight}>
             <View style={s.statPill}>
               <Ionicons name="flame" size={12} color="#C58A2A" />
@@ -228,7 +232,11 @@ export default function HomeScreen() {
 
       {/* ── CLEAN COMMAND HEADER ── */}
       <View style={[s.topHeader, { paddingTop: insets.top + 14 }]}>
-        <ClutchrLogo />
+        <Image
+          source={require('../../assets/branding/main-wordmark.png')}
+          style={s.headerWordmark}
+          resizeMode="contain"
+        />
         <View style={s.navRight}>
           <View style={s.statPill}>
             <Ionicons name="flame" size={12} color="#C58A2A" />
@@ -259,6 +267,12 @@ export default function HomeScreen() {
             disabled={loadingLesson || !lesson}
           >
             <View pointerEvents="none" style={c.plateMark} />
+            <Image
+              pointerEvents="none"
+              source={require('../../assets/branding/c-mark.png')}
+              style={c.heroCMark}
+              resizeMode="contain"
+            />
             <View pointerEvents="none" style={c.ctaGlow} />
             <View style={c.nextRepBadge}>
               <View style={c.greenDot} />
@@ -356,7 +370,11 @@ export default function HomeScreen() {
               onPress={() => router.push('/(tabs)/locker')}
             >
               <View style={s.shortcutTopRow}>
-                <Ionicons name="library" size={22} color="#22CC5E" style={s.shortcutIcon} />
+                <Image
+                  source={require('../../assets/branding/simplified-wordmark.png')}
+                  style={s.shortcutWordmark}
+                  resizeMode="contain"
+                />
                 <Ionicons name="chevron-forward" size={16} color="rgba(247,255,249,0.42)" />
               </View>
               <Text style={s.shortcutTitle}>LOCKER</Text>
@@ -383,6 +401,10 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     backgroundColor: Colors.background,
+  },
+  headerWordmark: {
+    width: 128,
+    height: 28,
   },
   brandText: {
     color: '#F7FFF9',
@@ -512,6 +534,11 @@ const s = StyleSheet.create({
     justifyContent: 'space-between',
   },
   shortcutIcon: { marginBottom: 10 },
+  shortcutWordmark: {
+    width: 84,
+    height: 22,
+    marginBottom: 10,
+  },
   shortcutTitle: {
     fontSize: 15,
     fontFamily: 'Inter_700Bold',
@@ -548,6 +575,14 @@ const c = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(247,255,249,0.055)',
     transform: [{ rotate: '45deg' }],
+  },
+  heroCMark: {
+    position: 'absolute',
+    right: 12,
+    top: 18,
+    width: 112,
+    height: 112,
+    opacity: 0.12,
   },
   ctaGlow: {
     position: 'absolute',
