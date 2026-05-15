@@ -6,6 +6,7 @@ import * as Notifications from 'expo-notifications';
 import {
   Alert,
   Animated,
+  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -325,6 +326,11 @@ export default function ProfileScreen() {
 
       {/* Header */}
       <Pressable onPress={handleDevTap}>
+        <Image
+          source={require('../../assets/branding/simplified-wordmark.png')}
+          style={styles.profileHeaderWordmark}
+          resizeMode="contain"
+        />
         <ClutchrHeader
           variant="mainTab"
           kicker="PROFILE"
@@ -350,9 +356,11 @@ export default function ProfileScreen() {
           {/* Left: avatar + info */}
           <View style={styles.identityLeft}>
             <View style={styles.avatarWrap}>
-              <Text style={styles.avatarLetter}>
-                {athleteState.first_name[0]?.toUpperCase() ?? 'A'}
-              </Text>
+              <Image
+                source={require('../../assets/coach-cap/circular-avatar.png')}
+                style={styles.avatarImage}
+                resizeMode="contain"
+              />
               {/* Rank ring glow */}
               <View style={styles.avatarRing} />
             </View>
@@ -379,10 +387,11 @@ export default function ProfileScreen() {
         <Text style={styles.rankProof}>{rank.description}</Text>
 
         <View style={styles.coachCallout}>
-          <View style={styles.coachBadge}>
-            <View style={styles.coachCap} />
-            <Text style={styles.coachBadgeText}>CC</Text>
-          </View>
+          <Image
+            source={require('../../assets/coach-cap/calm-standing-portrait.png')}
+            style={styles.coachPortrait}
+            resizeMode="contain"
+          />
           <View style={styles.coachCopy}>
             <Text style={styles.coachLabel}>COACH CAP</Text>
             <Text style={styles.coachText}>Player OS stays simple: know your role, stack reps, carry one cue into the next moment.</Text>
@@ -520,6 +529,12 @@ const styles = StyleSheet.create({
   clutchrLogo: { fontSize: 13, fontFamily: 'Inter_700Bold', color: Colors.primary, letterSpacing: 1 },
   headerTitle: { fontSize: 12, fontFamily: 'Inter_600SemiBold', color: Colors.textTertiary, letterSpacing: 1 },
   scroll: { paddingHorizontal: Spacing.xl, gap: Spacing.xl },
+  profileHeaderWordmark: {
+    width: 112,
+    height: 24,
+    marginLeft: Spacing.xl,
+    marginBottom: -Spacing.sm,
+  },
 
   // Identity card
   identityCard: {
@@ -540,6 +555,10 @@ const styles = StyleSheet.create({
     borderWidth: 2, borderColor: Colors.primary + '50',
   } as any,
   avatarLetter: { fontSize: 24, fontFamily: 'Inter_700Bold', color: Colors.primary },
+  avatarImage: {
+    width: 52,
+    height: 52,
+  },
   identityInfo: { flex: 1, gap: 4 },
   identityName: { fontSize: 20, fontFamily: 'Inter_700Bold', color: Colors.textPrimary },
   identityMeta: { flexDirection: 'row', alignItems: 'center', gap: 8 },
@@ -558,6 +577,11 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
     borderWidth: 1,
     borderColor: Colors.primaryBorder,
+  },
+  coachPortrait: {
+    width: 52,
+    height: 64,
+    marginVertical: -8,
   },
   coachBadge: {
     width: 42,
