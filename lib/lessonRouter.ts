@@ -24,9 +24,9 @@ import type { AthleteState, PositionRole, SeasonPhase, Struggle } from '@/contex
 
 /** Maps primary_role → its dedicated pillar_id */
 const ROLE_TO_PILLAR: Record<PositionRole, string> = {
-  pitcher:   'pitcher-path',
-  catcher:   'catcher-path',
-  infielder: 'infield-path',
+  pitcher:    'pitcher-path',
+  catcher:    'catcher-path',
+  infielder:  'infield-path',
   outfielder: 'outfield-path',
 };
 
@@ -118,6 +118,19 @@ function completedInPillar(
   ).length;
 }
 
+/**
+ * Returns the number of completed lessons for a given pillar_id.
+ */
+function completedInPillarCount(
+  all: LegacyLesson[],
+  pillar: string,
+  completed: string[]
+): number {
+  return all.filter(
+    (l) => l.pillar_id === pillar && completed.includes(l.id)
+  ).length;
+}
+
 // ─── REASON COPY ─────────────────────────────────────────────────────────────
 // These strings land on the Hero card's subtitle — keep them punchy & baseball-native.
 
@@ -144,10 +157,12 @@ function reasonForPillar(pillar: string): string {
  * pickNextLesson
  *
  * Priority-weighted selector driven by athlete state tags:
- *   1. skill_tags match a named struggle
- *   2. season_tags match the current phase  (inert until LegacyLesson gains season_tags)
- *   3. role_tags match the athlete's primary role
- *   4. Next incomplete in order — catch-all so the user never hits a dead end
+ *   1. Emergency override  — slump_reset / return_to_throw phases
+ *   2. Foundation gate     — new athletes must build the base first
+ *   3. Struggle injection  — active struggle pillar bumped to front
+ *   4. Role path           — athlete's position-specific world
+ *   5. Universal fallback  — pressure-resilience, built-different, etc.
+ *   6. Any uncompleted     — catch-all so the user never hits a dead end
  *
  * @param allLessons  Full pool fetched from Supabase
  * @param athlete     Current AthleteState from context
@@ -171,47 +186,132 @@ export function pickNextLesson(
       : null;
   }
 
-  // ── 1. STRUGGLE MATCH — skill_tags overlap with a named struggle ─────────
-  const struggleMatch = incomplete.find(l =>
-    l.skill_tags?.some(tag =>
-      struggles.some(s => tag.toLowerCase().includes(s.toLowerCase()))
-    )
-  );
-  if (struggleMatch) {
+  // ── LEVEL 1: EMERGENCY OVERRIDE ──────────────────────────────────────────
+  if (phase === 'slump_reset') {
+    const lesson = firstUncompletedInPillar(allLessons, 'pressure-resilience', completed);
+    if (lesson) {
+      return {
+        lesson,
+        reason: 'You are in a slump. This rep is built for right now.',
+        pillar: 'pressure-resilience',
+      };
+    }
+  }
+  if (phase === 'return_to_throw') {
+    const lesson = firstUncompletedInPillar(allLessons, 'built-different', completed);
+    if (lesson) {
+      return {
+        lesson,
+        reason: 'Arm care first. Come back smarter than you left.',
+        pillar: 'built-different',
+      };
+    }
+  }
+
+  // ── LEVEL 2: FOUNDATION GATE ─────────────────────────────────────────────
+  const foundationCompleted = completedInPillarCount(allLessons, 'foundation', completed);
+  if (foundationCompleted < FOUNDATION_GATE_LESSONS) {
+    const lesson = firstUncompletedInPillar(allLessons, 'foundation', completed);
+    if (lesson) {
+      return {
+        lesson,
+        reason: 'Every athlete starts here. Build the base first.',
+        pillar: 'foundation',
+      };
+    }
+  }
+
+  // ── LEVEL 3: STRUGGLE INJECTION ──────────────────────────────────────────
+  if (struggles.length > 0) {
+    // First pass: look inside each struggle's mapped pillar for a skill_tags match.
+    for (const s of struggles) {
+      const mappedPillar = STRUGGLE_TO_PILLAR[s as Struggle];
+      if (mappedPillar) {
+        const inPillar = [...allLessons]
+          .filter((l) => l.pillar_id === mappedPillar && !completed.includes(l.id))
+          .sort((a, b) => a.order_index - b.order_index);
+        const lesson = inPillar.find((l) =>
+          l.skill_tags?.some((tag) =>
+            struggles.some(
+              (str) =>
+                tag.toLowerCase().includes(str.toLowerCase()) ||
+                str.toLowerCase().includes(tag.toLowerCase())
+            )
+          )
+        ) ?? null;
+        if (lesson) {
+          return {
+            lesson,
+            reason: reasonForPillar(mappedPillar),
+            pillar: mappedPillar,
+          };
+        }
+      }
+    }
+    // Second pass: any pillar — fires when no mapped-pillar lesson matched.
+    const anyMatch = [...allLessons]
+      .filter((l) => !completed.includes(l.id))
+      .sort((a, b) => a.order_index - b.order_index)
+      .find((l) =>
+        l.skill_tags?.some((tag) =>
+          struggles.some(
+            (s) =>
+              tag.toLowerCase().includes(s.toLowerCase()) ||
+              s.toLowerCase().includes(tag.toLowerCase())
+          )
+        )
+      );
+    if (anyMatch) {
+      return {
+        lesson: anyMatch,
+        reason: reasonForPillar(anyMatch.pillar_id),
+        pillar: anyMatch.pillar_id,
+      };
+    }
+  }
+
+  // ── LEVEL 4: ROLE PATH ───────────────────────────────────────────────────
+  if (role) {
+    const roleMatch = [...allLessons]
+      .filter((l) => !completed.includes(l.id))
+      .sort((a, b) => a.order_index - b.order_index)
+      .find((l) => l.role_tags?.includes(role));
+    if (roleMatch) {
+      return {
+        lesson: roleMatch,
+        reason: reasonForPillar(roleMatch.pillar_id),
+        pillar: roleMatch.pillar_id,
+      };
+    }
+  }
+
+  // ── LEVEL 5: UNIVERSAL FALLBACK ──────────────────────────────────────────
+  const prLesson = firstUncompletedInPillar(allLessons, 'pressure-resilience', completed);
+  if (prLesson) {
     return {
-      lesson: struggleMatch,
-      reason: reasonForPillar(struggleMatch.pillar_id),
-      pillar: struggleMatch.pillar_id,
+      lesson: prLesson,
+      reason: reasonForPillar('pressure-resilience'),
+      pillar: 'pressure-resilience',
+    };
+  }
+  const bdLesson = firstUncompletedInPillar(allLessons, 'built-different', completed);
+  if (bdLesson) {
+    return {
+      lesson: bdLesson,
+      reason: reasonForPillar('built-different'),
+      pillar: 'built-different',
     };
   }
 
-  // ── 2. PHASE MATCH — season_tags match current phase ────────────────────
-  // LegacyLesson currently lacks season_tags; this fires once that field is populated.
-  const phaseMatch = incomplete.find(l =>
-    (l as any).season_tags?.includes(phase)
-  );
-  if (phaseMatch) {
+  // ── LEVEL 6: CATCH-ALL ───────────────────────────────────────────────────
+  const catchAll = firstUncompleted(allLessons, completed);
+  if (catchAll) {
     return {
-      lesson: phaseMatch,
-      reason: reasonForPillar(phaseMatch.pillar_id),
-      pillar: phaseMatch.pillar_id,
+      lesson: catchAll,
+      reason: 'Keep building your career.',
+      pillar: catchAll.pillar_id,
     };
   }
 
-  // ── 3. ROLE MATCH — role_tags match athlete's primary role ───────────────
-  const roleMatch = incomplete.find(l => l.role_tags?.includes(role));
-  if (roleMatch) {
-    return {
-      lesson: roleMatch,
-      reason: reasonForPillar(roleMatch.pillar_id),
-      pillar: roleMatch.pillar_id,
-    };
-  }
-
-  // ── 4. FALLBACK — next incomplete in order ───────────────────────────────
-  return {
-    lesson: incomplete[0],
-    reason: 'Keep building your career.',
-    pillar: incomplete[0].pillar_id,
-  };
+  return null;
 }
