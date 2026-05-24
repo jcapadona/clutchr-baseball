@@ -1086,9 +1086,9 @@ function LessonCompletionPayoff({
         <View style={payoffStyles.takeCard}>
           <View style={payoffStyles.takeHeaderRow}>
             <Image source={ccsTakeIcon} style={payoffStyles.takeIcon} resizeMode="cover" />
-            <Text style={payoffStyles.takeLabel}>CC’S TAKE</Text>
+            <Text style={payoffStyles.takeLabel}>CC'S TAKE</Text>
           </View>
-          <Text style={payoffStyles.takeText}>{lesson?.cc_take ?? ‘You stayed with the cue. Next time the count gets loud, shrink it: target, breath, attack.’}</Text>
+          <Text style={payoffStyles.takeText}>{lesson?.cc_take ?? 'You stayed with the cue. Next time the count gets loud, shrink it: target, breath, attack.'}</Text>
         </View>
 
         <View style={payoffStyles.actions}>
