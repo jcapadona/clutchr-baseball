@@ -46,6 +46,10 @@ const LESSON_BACKGROUNDS = {
   default: require('../../assets/backgrounds/lesson-background-screen.png'),
 };
 
+const completionBg = require('../../assets/backgrounds/lesson-completion-background.png');
+const completionGlow = require('../../assets/overlays/completion-glow.png');
+const ccsTakeIcon = require('../../assets/icons/coach-cap-ccs-take.png');
+
 // ─── SELF-RATING CHECK-IN ─────────────────────────────────────────────────────
 
 const RATING_QUESTIONS: Record<string, { key: string; question: string }[]> = {
@@ -1005,6 +1009,7 @@ function LessonCompletionPayoff({
   const afterRank = rankProgress.currentRank;
   const rankUpgraded = beforeRank.id !== afterRank.id;
   const isReplay = awardedXP <= 0;
+  const isFirstClear = !isReplay;
   const rankProgressLabel = rankProgress.nextRank
     ? `${rankProgress.xpIntoCurrentRank.toLocaleString()} / ${rankProgress.xpNeededForNextRank?.toLocaleString()} XP`
     : 'Elite standard held';
@@ -1015,6 +1020,10 @@ function LessonCompletionPayoff({
 
   return (
     <Animated.View style={[payoffStyles.wrap, { opacity: contentFadeAnim, transform: [{ translateY: slideAnim }] }]}>
+      <ImageBackground source={completionBg} style={StyleSheet.absoluteFill} resizeMode="cover">
+        <View style={payoffStyles.bgOverlay} />
+      </ImageBackground>
+      <Image source={completionGlow} style={payoffStyles.completionGlowImg} pointerEvents="none" />
       <ScrollView contentContainerStyle={[payoffStyles.scrollContent, { paddingTop: topSafePadding }]} showsVerticalScrollIndicator={false}>
         <View style={payoffStyles.heroCard}>
           <LinearGradient colors={['rgba(35,209,96,0.16)', 'rgba(5,8,6,0)']} style={StyleSheet.absoluteFill} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} />
@@ -1032,6 +1041,7 @@ function LessonCompletionPayoff({
           />
           <View style={payoffStyles.heroTopRow}>
             <View>
+              {isBoss && <Text style={payoffStyles.bossCleared}>BOSS CLEARED</Text>}
               <Text style={payoffStyles.kicker}>{isBoss ? 'CLOSE IT OUT' : 'REP COMPLETE'}</Text>
               <Text style={payoffStyles.title}>{title}</Text>
             </View>
@@ -1040,7 +1050,14 @@ function LessonCompletionPayoff({
           <Text style={payoffStyles.lessonTitle} numberOfLines={2}>{lesson?.title}</Text>
           <View style={payoffStyles.xpRow}>
             <Text style={payoffStyles.xpText}>+{xpDisplay}</Text>
-            <Text style={payoffStyles.xpLabel}>{isReplay ? 'REPLAY' : 'EARNED XP'}</Text>
+            <View style={{ justifyContent: 'flex-end', paddingBottom: 7, gap: 4 }}>
+              <Text style={[payoffStyles.xpLabel, { paddingBottom: 0 }]}>{isReplay ? 'REPLAY' : 'EARNED XP'}</Text>
+              {isFirstClear && (
+                <View style={payoffStyles.firstClearBadge}>
+                  <Text style={payoffStyles.firstClearText}>FIRST CLEAR</Text>
+                </View>
+              )}
+            </View>
           </View>
         </View>
 
@@ -1067,8 +1084,11 @@ function LessonCompletionPayoff({
         </View>
 
         <View style={payoffStyles.takeCard}>
-          <Text style={payoffStyles.takeLabel}>CC’S TAKE</Text>
-          <Text style={payoffStyles.takeText}>{lesson?.cc_take ?? 'You stayed with the cue. Next time the count gets loud, shrink it: target, breath, attack.'}</Text>
+          <View style={payoffStyles.takeHeaderRow}>
+            <Image source={ccsTakeIcon} style={payoffStyles.takeIcon} resizeMode="cover" />
+            <Text style={payoffStyles.takeLabel}>CC’S TAKE</Text>
+          </View>
+          <Text style={payoffStyles.takeText}>{lesson?.cc_take ?? ‘You stayed with the cue. Next time the count gets loud, shrink it: target, breath, attack.’}</Text>
         </View>
 
         <View style={payoffStyles.actions}>
@@ -2255,7 +2275,18 @@ const payoffStyles = StyleSheet.create({
   wrap: {
     flex: 1,
     width: '100%',
-    backgroundColor: '#050806',
+  },
+  bgOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(4, 10, 6, 0.78)',
+  },
+  completionGlowImg: {
+    position: 'absolute',
+    bottom: 0,
+    alignSelf: 'center',
+    width: 260,
+    height: 260,
+    opacity: 0.55,
   },
   scrollContent: {
     paddingHorizontal: Spacing.lg,
@@ -2353,8 +2384,13 @@ const payoffStyles = StyleSheet.create({
     padding: Spacing.lg,
     gap: Spacing.sm,
   },
+  takeHeaderRow: { flexDirection: 'row', alignItems: 'center' },
+  takeIcon: { width: 40, height: 40, borderRadius: 8, marginRight: 10 },
   takeLabel: { color: '#23D160', fontFamily: 'Inter_700Bold', fontSize: 10, letterSpacing: 1.6 },
   takeText: { color: '#F7FFF9', fontFamily: 'Inter_500Medium', fontSize: 15, lineHeight: 23 },
+  bossCleared: { fontSize: 11, letterSpacing: 2.5, fontFamily: 'Inter_700Bold', color: '#F5A623', alignSelf: 'center', marginBottom: 6 },
+  firstClearBadge: { backgroundColor: 'rgba(34, 204, 94, 0.15)', borderColor: 'rgba(34, 204, 94, 0.4)', borderWidth: 1, borderRadius: 99, paddingHorizontal: 8, paddingVertical: 3 },
+  firstClearText: { fontSize: 10, color: '#22CC5E', fontFamily: 'Inter_700Bold', letterSpacing: 1.5 },
   actions: { gap: Spacing.sm, marginTop: Spacing.sm },
   primaryCta: {
     minHeight: 54,
