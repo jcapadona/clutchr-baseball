@@ -38,7 +38,7 @@ export function EmblemBadge({ rank, totalXP, size = 'medium', showLabel = false,
         {source ? (
           <Image
             source={source}
-            style={{ width: dims.box, height: dims.box }}
+            style={{ width: dims.box, height: dims.box, backgroundColor: 'transparent' }}
             resizeMode="contain"
           />
         ) : (
@@ -71,7 +71,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: 'transparent',
     borderRadius: 8,
-    overflow: 'hidden',
     shadowColor: '#000',
     shadowOpacity: 0.32,
     shadowRadius: 7,
