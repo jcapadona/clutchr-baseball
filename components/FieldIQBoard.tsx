@@ -195,7 +195,7 @@ export default function FieldIQBoard({ data, responses, feedback, onComplete }: 
   const ctx = data.context ?? {};
   const contextParts: string[] = [];
   if (ctx.outs !== undefined) contextParts.push(`${ctx.outs} out${ctx.outs !== 1 ? 's' : ''}`);
-  if (ctx.runners?.length) contextParts.push(`Runners: ${ctx.runners.join(', ')}`);
+  if (ctx.runners?.length) contextParts.push(`Runners: ${Array.isArray(ctx.runners) ? ctx.runners.join(', ') : String(ctx.runners)}`);
   if (ctx.score_state) contextParts.push(ctx.score_state.replace(/_/g, ' '));
   if (ctx.position) contextParts.push(`Position: ${ctx.position}`);
 
