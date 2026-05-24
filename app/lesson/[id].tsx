@@ -9,6 +9,7 @@ import {
   Alert,
   Animated,
   Image,
+  ImageBackground,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -37,6 +38,13 @@ import JumpRead from '@/components/JumpRead';
 import TimingTrack from '@/components/TimingTrack';
 import ConfidenceSlider from '@/components/ConfidenceSlider';
 import PitchCountBoard from '@/components/PitchCountBoard';
+
+const LESSON_BACKGROUNDS = {
+  boss: require('../../assets/backgrounds/boss-battle-entrance.png'),
+  pressure: require('../../assets/backgrounds/pressure-rep-background.png'),
+  scenario: require('../../assets/backgrounds/scenario-pick-screen.png'),
+  default: require('../../assets/backgrounds/lesson-background-screen.png'),
+};
 
 // ─── SELF-RATING CHECK-IN ─────────────────────────────────────────────────────
 
@@ -1310,8 +1318,19 @@ export default function LessonPlayerScreen() {
       ? 'save'
       : 'rep';
 
+  const hasChoiceStep = steps.some((s: any) => s.type === 'choice' || s.ui_variant === 'choice');
+  const isPressure = lessonFamily === 'Pressure Rep' || hasChoiceStep || (Array.isArray(lesson.skill_tags) && lesson.skill_tags.includes('pressure'));
+  const backgroundSource = isBoss
+    ? LESSON_BACKGROUNDS.boss
+    : isPressure
+      ? LESSON_BACKGROUNDS.pressure
+      : LESSON_BACKGROUNDS.default;
+
   return (
     <View style={[screenStyles.container, { paddingTop: insets.top }]}>
+      <ImageBackground source={backgroundSource} style={screenStyles.background} resizeMode="cover" />
+      <View style={screenStyles.backgroundOverlay} />
+      {isBoss && <View style={screenStyles.bossAccentBorder} />}
 
       {/* ── HEADER ── */}
       <ClutchrHeader
@@ -2105,6 +2124,9 @@ const stepRouterStyles = StyleSheet.create({
 // ─── Screen ───────────────────────────────────────────────────────────────────
 const screenStyles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
+  background: { flex: 1, position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, opacity: 0.18 },
+  backgroundOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(5, 8, 6, 0.72)' },
+  bossAccentBorder: { position: 'absolute', top: 0, left: 0, right: 0, height: 2, backgroundColor: '#F5A623', opacity: 0.7, zIndex: 10 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.background, gap: Spacing.lg, paddingHorizontal: Spacing.xl },
   loadingText: { fontSize: 16, fontFamily: 'Inter_400Regular', color: Colors.textSecondary },
   errorText: { fontSize: 15, fontFamily: 'Inter_400Regular', color: Colors.danger, textAlign: 'center' },
