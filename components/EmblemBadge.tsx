@@ -69,6 +69,9 @@ const styles = StyleSheet.create({
   badgeShell: {
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: 'transparent',
+    borderRadius: 8,
+    overflow: 'hidden',
     shadowColor: '#000',
     shadowOpacity: 0.32,
     shadowRadius: 7,
