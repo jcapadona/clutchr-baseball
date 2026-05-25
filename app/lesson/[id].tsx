@@ -50,6 +50,14 @@ const completionBg = require('../../assets/backgrounds/lesson-completion-backgro
 const completionGlow = require('../../assets/overlays/completion-glow.png');
 const ccsTakeIcon = require('../../assets/icons/coach-cap-ccs-take.png');
 
+const STEP_TYPE_ICONS: Record<string, any> = {
+  choice: require('../../assets/icons/scenario-pick.png'),
+  notice_wonder: require('../../assets/icons/freeze-frame-icon.png'),
+  checklist: require('../../assets/icons/routine-builder.png'),
+  action: require('../../assets/icons/clipboard-icon.png'),
+  boss: require('../../assets/icons/boss-challenge-icon.png'),
+};
+
 // ─── SELF-RATING CHECK-IN ─────────────────────────────────────────────────────
 
 const RATING_QUESTIONS: Record<string, { key: string; question: string }[]> = {
@@ -966,6 +974,15 @@ function StepRenderer({
   }
 }
 
+function StepTypeIcon({ stepType, isBoss, isFinal }: { stepType: string; isBoss: boolean; isFinal: boolean }) {
+  if (isBoss && isFinal) {
+    return <Image source={STEP_TYPE_ICONS.boss} style={{ width: 26, height: 26 }} resizeMode="contain" />;
+  }
+  const src = STEP_TYPE_ICONS[stepType];
+  if (!src) return null;
+  return <Image source={src} style={{ width: 22, height: 22 }} resizeMode="contain" />;
+}
+
 type CompletionKind = 'lesson' | 'checkpoint' | 'boss';
 
 function LessonCompletionPayoff({
@@ -1414,7 +1431,8 @@ export default function LessonPlayerScreen() {
       )}
 
       {/* ── STEP COUNTER ── */}
-      <View style={screenStyles.stepCounter}>
+      <View style={[screenStyles.stepCounter, { flexDirection: 'row', alignItems: 'center', gap: 6 }]}>
+        <StepTypeIcon stepType={finalStepType} isBoss={isBoss} isFinal={safeIndex === totalSteps - 1} />
         <Text style={screenStyles.stepCounterText}>{safeIndex + 1} / {totalSteps}</Text>
       </View>
 

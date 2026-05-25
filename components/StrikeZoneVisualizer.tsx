@@ -1,8 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import React, { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { ImageBackground, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Colors, Radius, Spacing } from '@/constants/theme';
+
+let strikeZoneOverlay: any = null;
+try { strikeZoneOverlay = require('../assets/overlays/strike-zone.png'); } catch (_) {}
 
 // ─── Zone definitions ────────────────────────────────────────────────────────
 
@@ -131,7 +134,7 @@ function HuntZoneMode({ data, responses, feedback, onComplete }: Props) {
       <Text style={styles.instruction}>{data.instruction ?? 'Tap your damage lane.'}</Text>
 
       {/* Zone grid */}
-      <View style={styles.zoneGrid}>
+      <ImageBackground source={strikeZoneOverlay} style={styles.zoneGrid} imageStyle={{ opacity: 0.22 }} resizeMode="contain">
         {/* Batter label */}
         <View style={styles.zoneGridLabels}>
           <Text style={styles.sideLabel}>IN</Text>
@@ -171,7 +174,7 @@ function HuntZoneMode({ data, responses, feedback, onComplete }: Props) {
             })}
           </View>
         ))}
-      </View>
+      </ImageBackground>
 
       {/* Feedback */}
       {result && (
