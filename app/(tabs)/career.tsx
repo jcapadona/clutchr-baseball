@@ -450,11 +450,6 @@ const CHAPTERS = [
 
 // ─── LOCK / VISIBILITY LOGIC ─────────────────────────────────────────────────
 // Depth-over-width guardrail: Career should not render the full 30-world atlas.
-// A chapter shows lesson-backed worlds, then only the first no-content teaser;
-// later worlds stay hidden until content, role, progress, premium, or state rules
-// make them useful. Keep this behavior unless the product intentionally changes
-// from a career climb into an atlas/catalog view.
-
 function getWorldsForChapter(
   chapterWorlds: World[],
   lessonPillarIds: string[],
@@ -464,7 +459,6 @@ function getWorldsForChapter(
   healthState: string | null,
 ): WorldWithLockState[] {
   const result: WorldWithLockState[] = [];
-  let foundFirstLocked = false;
 
   for (const world of chapterWorlds) {
     if (chapter === 'your-craft' && world.roles.length > 0 && !world.roles.includes(athleteRole)) {
@@ -478,12 +472,7 @@ function getWorldsForChapter(
       if (!stateMatch) continue;
     }
 
-    if (hasLessons) {
-      result.push({ ...world, lockState: 'active' });
-    } else if (!foundFirstLocked) {
-      foundFirstLocked = true;
-      result.push({ ...world, lockState: 'teaser' });
-    }
+    result.push({ ...world, lockState: hasLessons ? 'active' : 'teaser' });
   }
 
   return result;
