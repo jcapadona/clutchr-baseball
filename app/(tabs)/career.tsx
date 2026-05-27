@@ -455,14 +455,20 @@ function getWorldsForChapter(
   lessonPillarIds: string[],
   chapter: string,
   athleteRole: string,
+  isTwoWay: boolean,
   seasonPhase: string | null,
   healthState: string | null,
 ): WorldWithLockState[] {
   const result: WorldWithLockState[] = [];
 
   for (const world of chapterWorlds) {
-    if (chapter === 'your-craft' && world.roles.length > 0 && !world.roles.includes(athleteRole)) {
-      continue;
+    if (chapter === 'your-craft' && world.roles.length > 0) {
+      const roleMatches = isTwoWay
+        ? world.roles.includes(athleteRole) || world.roles.includes('hitter')
+        : athleteRole === 'catcher'
+        ? world.roles.includes('catcher') || world.roles.includes('hitter')
+        : world.roles.includes(athleteRole);
+      if (!roleMatches) continue;
     }
 
     const hasLessons = lessonPillarIds.includes(world.id);
@@ -896,6 +902,7 @@ export default function CareerScreen() {
 
   const completed = athleteState?.completed_lessons ?? [];
   const athleteRole = athleteState?.primary_role ?? 'pitcher';
+  const isTwoWay = athleteState?.is_two_way ?? false;
   const seasonPhase = (athleteState as any)?.season_phase ?? null;
   const healthState = (athleteState as any)?.health_state ?? null;
 
@@ -907,7 +914,7 @@ export default function CareerScreen() {
 
   const chapterWorlds = WORLDS.filter(w => w.chapter === activeChapter);
   const filteredWorlds = getWorldsForChapter(
-    chapterWorlds, lessonPillarIds, activeChapter, athleteRole, seasonPhase, healthState
+    chapterWorlds, lessonPillarIds, activeChapter, athleteRole, isTwoWay, seasonPhase, healthState
   );
 
   const activeChapterConfig = CHAPTERS.find(c => c.id === activeChapter)!;

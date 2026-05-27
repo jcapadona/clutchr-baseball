@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { router, Stack } from 'expo-router';
+import { supabase } from '@/lib/supabase';
 import React, { useState } from 'react';
 import {
   Pressable,
@@ -105,12 +106,12 @@ export default function OnboardingScreen() {
   };
 
   const handleComplete = async () => {
+    if (saving) return;
     setSaving(true);
     try {
       const name = firstName.trim() ||
         session?.user?.user_metadata?.full_name?.split(' ')[0] ||
         'Athlete';
-
       const base = buildDefaultState(name);
       await saveAthleteState({
         ...base,
@@ -125,26 +126,34 @@ export default function OnboardingScreen() {
         updated_at: new Date().toISOString(),
       });
       registerForPushNotifications().catch(() => {});
+      await new Promise(resolve => setTimeout(resolve, 300));
       router.replace('/(tabs)');
-    } catch (err) {
-      console.error('Failed to save:', err);
+    } catch (e) {
+      console.error('Onboarding save failed:', e);
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    router.replace('/auth');
   };
 
   const canContinue = step === 'welcome' ? firstName.trim().length > 0 : true;
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
+      <Stack.Screen options={{ headerShown: false }} />
+
       {/* Progress bar */}
       <View style={styles.progressTrack}>
         <View style={[styles.progressFill, { width: `${progress * 100}%` }]} />
       </View>
 
-      {/* Back button */}
+      {/* Back button — steps 2-6 only */}
       {stepIndex > 0 && step !== 'complete' && (
-        <Pressable style={[styles.backBtn, { top: insets.top + 12 }]} onPress={back}>
+        <Pressable style={styles.backBtn} onPress={back}>
           <Ionicons name="chevron-back" size={24} color={Colors.textSecondary} />
         </Pressable>
       )}
@@ -421,16 +430,16 @@ export default function OnboardingScreen() {
         {step === 'complete' ? (
           <>
             <Text style={styles.notifHint}>Enable notifications to keep your streak alive.</Text>
-          <Pressable
-            style={({ pressed }) => [styles.cta, pressed && styles.ctaPressed]}
-            onPress={handleComplete}
-            disabled={saving}
-          >
-            <Ionicons name="flash" size={20} color={Colors.background} />
-            <Text style={styles.ctaText}>
-              {saving ? 'Building your path...' : 'Enter Clutchr'}
-            </Text>
-          </Pressable>
+            <Pressable
+              style={({ pressed }) => [styles.cta, saving && styles.ctaDisabled, pressed && styles.ctaPressed]}
+              onPress={handleComplete}
+              disabled={saving}
+            >
+              <Ionicons name="flash" size={20} color={Colors.background} />
+              <Text style={styles.ctaText}>
+                {saving ? 'Building your path...' : 'Enter Clutchr'}
+              </Text>
+            </Pressable>
           </>
         ) : (
           <Pressable
@@ -448,6 +457,9 @@ export default function OnboardingScreen() {
             <Ionicons name="arrow-forward" size={18} color={Colors.background} />
           </Pressable>
         )}
+        <Pressable onPress={handleSignOut}>
+          <Text style={styles.signOutLink}>Wrong account? Sign out</Text>
+        </Pressable>
       </View>
     </View>
   );
@@ -459,7 +471,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
   progressTrack: { height: 2, backgroundColor: Colors.border },
   progressFill: { height: 2, backgroundColor: Colors.primary },
-  backBtn: { position: 'absolute', left: Spacing.lg, zIndex: 10, padding: Spacing.sm },
+  backBtn: { position: 'absolute', top: 52, left: 16, zIndex: 10, width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   scroll: { paddingHorizontal: Spacing.xl, paddingTop: Spacing.xxl },
   stepWrap: { gap: Spacing.xl },
   logoMark: {
@@ -537,5 +549,11 @@ const styles = StyleSheet.create({
     fontSize: 12,
     textAlign: 'center',
     marginBottom: 8,
+  },
+  signOutLink: {
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.35)',
+    textAlign: 'center',
+    marginTop: 16,
   },
 });

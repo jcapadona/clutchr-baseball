@@ -272,10 +272,15 @@ export function pickNextLesson(
 
   // ── LEVEL 4: ROLE PATH ───────────────────────────────────────────────────
   if (role) {
+    const rolesToMatch = athlete.is_two_way
+      ? [athlete.primary_role, athlete.primary_role === 'pitcher' ? 'hitter' : 'pitcher']
+      : athlete.primary_role === 'catcher'
+      ? ['catcher', 'hitter']
+      : [athlete.primary_role];
     const roleMatch = [...allLessons]
       .filter((l) => !completed.includes(l.id))
       .sort((a, b) => a.order_index - b.order_index)
-      .find((l) => l.role_tags?.includes(role));
+      .find((l) => rolesToMatch.some(r => l.role_tags?.includes(r)));
     if (roleMatch) {
       return {
         lesson: roleMatch,
