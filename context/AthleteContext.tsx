@@ -343,10 +343,8 @@ export function AthleteProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const isOnboardingComplete = Boolean(
-    athleteState &&
-      athleteState.first_name &&
-      athleteState.biggest_struggle.length > 0 &&
-      athleteState.created_at !== athleteState.updated_at
+    athleteState?.first_name &&
+    athleteState?.primary_role
   );
 
   // ── Derived streak status for UI ─────────────────────────────────────────
