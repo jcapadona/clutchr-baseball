@@ -12,9 +12,16 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAthlete } from '@/context/AthleteContext';
-import type { SeasonPhase, Struggle } from '@/context/AthleteContext';
+import type { SeasonPhase, Struggle, PositionRole } from '@/context/AthleteContext';
 
 // ─── DATA ────────────────────────────────────────────────────────────────────
+
+const POSITIONS: { id: PositionRole; label: string; desc: string }[] = [
+  { id: 'pitcher',   label: 'Pitcher',    desc: 'On the mound'      },
+  { id: 'catcher',   label: 'Catcher',    desc: 'Behind the dish'   },
+  { id: 'infielder', label: 'Infielder',  desc: 'Corners or middle' },
+  { id: 'outfielder',label: 'Outfielder', desc: 'Grass and gaps'    },
+];
 
 const SEASON_PHASES: { id: SeasonPhase; label: string }[] = [
   { id: 'preseason',      label: 'Preseason'       },
@@ -43,6 +50,12 @@ export default function EditProfileScreen() {
   const insets = useSafeAreaInsets();
   const { athleteState, updateAthleteState } = useAthlete();
 
+  const [selectedRole, setSelectedRole] = useState<PositionRole>(
+    athleteState?.primary_role ?? 'infielder'
+  );
+  const [isTwoWay, setIsTwoWay] = useState(
+    athleteState?.is_two_way ?? false
+  );
   const [selectedPhase, setSelectedPhase] = useState<SeasonPhase>(
     athleteState?.season_phase ?? 'in_season'
   );
@@ -54,6 +67,8 @@ export default function EditProfileScreen() {
   const [saving, setSaving] = useState(false);
 
   const hasChanges =
+    selectedRole !== athleteState?.primary_role ||
+    isTwoWay !== (athleteState?.is_two_way ?? false) ||
     selectedPhase !== athleteState?.season_phase ||
     nameValue.trim() !== (athleteState?.first_name ?? '') ||
     selectedStruggles.length !== (athleteState?.biggest_struggle ?? []).length ||
@@ -72,6 +87,8 @@ export default function EditProfileScreen() {
     setSaving(true);
     try {
       await updateAthleteState({
+        primary_role: selectedRole,
+        is_two_way: isTwoWay,
         season_phase: selectedPhase,
         biggest_struggle: selectedStruggles,
         first_name: nameValue.trim(),
@@ -109,8 +126,57 @@ export default function EditProfileScreen() {
         keyboardShouldPersistTaps="handled"
       >
 
+        {/* ── POSITION ── */}
+        <Text style={styles.sectionLabel}>POSITION</Text>
+        <View style={styles.roleGrid}>
+          {POSITIONS.map(p => {
+            const active = selectedRole === p.id;
+            return (
+              <Pressable
+                key={p.id}
+                style={[styles.roleCard, active && styles.roleCardActive]}
+                onPress={() => setSelectedRole(p.id)}
+              >
+                <Text style={[styles.roleLabel, active && styles.roleLabelActive]}>
+                  {p.label}
+                </Text>
+                <Text style={styles.roleDesc}>{p.desc}</Text>
+                {active && (
+                  <Ionicons name="checkmark-circle" size={15} color="#22CC5E" style={styles.roleCheck} />
+                )}
+              </Pressable>
+            );
+          })}
+        </View>
+
+        {selectedRole === 'pitcher' && (
+          <View style={styles.twoWaySection}>
+            <Text style={[styles.sectionLabel, { marginTop: 0, marginBottom: 8 }]}>TWO-WAY?</Text>
+            {[
+              { val: false, label: 'Pitcher only', desc: "I don't take at-bats" },
+              { val: true,  label: 'Two-way — I also hit', desc: 'I pitch and hit' },
+            ].map(opt => (
+              <Pressable
+                key={String(opt.val)}
+                style={[styles.optionCard, isTwoWay === opt.val && styles.optionCardActive]}
+                onPress={() => setIsTwoWay(opt.val)}
+              >
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.optionLabel, isTwoWay === opt.val && styles.optionLabelActive]}>
+                    {opt.label}
+                  </Text>
+                  <Text style={styles.optionDesc}>{opt.desc}</Text>
+                </View>
+                {isTwoWay === opt.val && (
+                  <Ionicons name="checkmark" size={17} color="#22CC5E" />
+                )}
+              </Pressable>
+            ))}
+          </View>
+        )}
+
         {/* ── SEASON PHASE ── */}
-        <Text style={styles.sectionLabel}>SEASON PHASE</Text>
+        <Text style={[styles.sectionLabel, { marginTop: 28 }]}>SEASON PHASE</Text>
         <View style={styles.pillWrap}>
           {SEASON_PHASES.map(p => {
             const active = selectedPhase === p.id;
@@ -271,5 +337,74 @@ const styles = StyleSheet.create({
   },
   nameInputFocused: {
     borderColor: '#22CC5E',
+  },
+
+  roleGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  roleCard: {
+    width: '48%',
+    backgroundColor: '#111',
+    borderRadius: 10,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: '#222',
+    position: 'relative',
+    gap: 4,
+  },
+  roleCardActive: {
+    borderColor: '#22CC5E',
+    backgroundColor: '#0F2410',
+  },
+  roleLabel: {
+    fontSize: 14,
+    fontFamily: 'Inter_600SemiBold',
+    color: 'rgba(255,255,255,0.5)',
+  },
+  roleLabelActive: {
+    color: '#fff',
+  },
+  roleDesc: {
+    fontSize: 11,
+    color: 'rgba(255,255,255,0.35)',
+  },
+  roleCheck: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+  },
+  twoWaySection: {
+    marginTop: 10,
+    gap: 8,
+  },
+  optionCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#111',
+    borderRadius: 10,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#222',
+    gap: 8,
+  },
+  optionCardActive: {
+    borderColor: '#22CC5E',
+    backgroundColor: '#0F2410',
+  },
+  optionLabel: {
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.5)',
+    fontFamily: 'Inter_400Regular',
+  },
+  optionLabelActive: {
+    color: '#fff',
+    fontFamily: 'Inter_600SemiBold',
+  },
+  optionDesc: {
+    fontSize: 11,
+    color: 'rgba(255,255,255,0.35)',
+    marginTop: 2,
   },
 });
