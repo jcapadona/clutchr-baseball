@@ -38,6 +38,11 @@ import JumpRead from '@/components/JumpRead';
 import TimingTrack from '@/components/TimingTrack';
 import ConfidenceSlider from '@/components/ConfidenceSlider';
 import PitchCountBoard from '@/components/PitchCountBoard';
+import PressureClock from '@/components/lesson-steps/PressureClock';
+import FilmRoom from '@/components/lesson-steps/FilmRoom';
+import BuildYourRep from '@/components/lesson-steps/BuildYourRep';
+import HotRead from '@/components/lesson-steps/HotRead';
+import VisualizationRep from '@/components/lesson-steps/VisualizationRep';
 
 const LESSON_BACKGROUNDS = {
   boss: require('../../assets/backgrounds/boss-battle-entrance.png'),
@@ -969,6 +974,16 @@ function StepRenderer({
       return <FeedbackStep step={step} onAdvance={adv} finalAction={finalAction} />;
     case 'notice_wonder':
       return <NoticeWonderStep step={step} onAdvance={adv} finalAction={finalAction} />;
+    case 'pressure_clock':
+      return <PressureClock step={step} onComplete={(r) => onAdvance(r.correct)} />;
+    case 'film_room':
+      return <FilmRoom step={step} onComplete={(r) => onAdvance(r.correct)} />;
+    case 'build_your_rep':
+      return <BuildYourRep step={step} onComplete={() => onAdvance(true)} />;
+    case 'hot_read':
+      return <HotRead step={step} onComplete={() => onAdvance(true)} />;
+    case 'visualization_rep':
+      return <VisualizationRep step={step} onComplete={() => onAdvance(true)} />;
     default:
       return <SparkStep step={step} onAdvance={adv} finalAction={finalAction} />;
   }
