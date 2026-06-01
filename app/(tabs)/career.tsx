@@ -442,6 +442,274 @@ const WORLDS: World[] = [
     worldNumber: 30,
     icon: 'trophy-outline',
   },
+
+  // ─── YOUR CRAFT (continued) ───────────────────────────────────────────────
+  {
+    id: 'pickoff-runner-control',
+    label: 'Pickoff & Runner Control',
+    tagline: 'Keep runners honest. Win the mental war.',
+    color: '#9B59B6',
+    chapter: 'your-craft',
+    roles: ['pitcher'],
+    isStateTrigger: false,
+    triggerState: null,
+    isPremium: false,
+    worldNumber: 31,
+    icon: 'flag-outline',
+  },
+  {
+    id: 'finishing-hitters',
+    label: 'Finishing Hitters',
+    tagline: 'Put them away when you have the edge.',
+    color: '#C0392B',
+    chapter: 'your-craft',
+    roles: ['pitcher'],
+    isStateTrigger: false,
+    triggerState: null,
+    isPremium: false,
+    worldNumber: 32,
+    icon: 'nuclear-outline',
+  },
+  {
+    id: 'pitcher-velocity',
+    label: 'Velocity & Velo IQ',
+    tagline: 'Build speed. Know when to use it.',
+    color: '#FF9F0A',
+    chapter: 'your-craft',
+    roles: ['pitcher'],
+    isStateTrigger: false,
+    triggerState: null,
+    isPremium: false,
+    worldNumber: 33,
+    icon: 'flash-outline',
+  },
+  {
+    id: 'hitter-specialty',
+    label: 'Hitter Specialty',
+    tagline: 'Develop the skill that defines your at-bat.',
+    color: '#E67E22',
+    chapter: 'your-craft',
+    roles: ['hitter', 'infielder', 'outfielder', 'catcher'],
+    isStateTrigger: false,
+    triggerState: null,
+    isPremium: false,
+    worldNumber: 34,
+    icon: 'diamond-outline',
+  },
+  {
+    id: 'leadoff-mentality',
+    label: 'Leadoff Mentality',
+    tagline: 'See pitches. Set the tone. Get on base.',
+    color: '#27AE60',
+    chapter: 'your-craft',
+    roles: ['hitter', 'infielder', 'outfielder', 'catcher', 'baserunner'],
+    isStateTrigger: false,
+    triggerState: null,
+    isPremium: false,
+    worldNumber: 35,
+    icon: 'arrow-forward-outline',
+  },
+  {
+    id: 'rbi-mode',
+    label: 'RBI Mode',
+    tagline: 'Runners on. Deliver.',
+    color: '#E85D26',
+    chapter: 'your-craft',
+    roles: ['hitter', 'infielder', 'outfielder', 'catcher'],
+    isStateTrigger: false,
+    triggerState: null,
+    isPremium: false,
+    worldNumber: 36,
+    icon: 'trending-up-outline',
+  },
+  {
+    id: 'catcher-blocking',
+    label: 'Blocking & Framing',
+    tagline: 'Stop the run. Steal the strike.',
+    color: '#2980B9',
+    chapter: 'your-craft',
+    roles: ['catcher'],
+    isStateTrigger: false,
+    triggerState: null,
+    isPremium: false,
+    worldNumber: 37,
+    icon: 'shield-outline',
+  },
+  {
+    id: 'two-way-player',
+    label: 'Two-Way Player',
+    tagline: 'Master the mound and the box.',
+    color: '#8E44AD',
+    chapter: 'your-craft',
+    roles: ['pitcher', 'hitter'],
+    isStateTrigger: false,
+    triggerState: null,
+    isPremium: false,
+    worldNumber: 38,
+    icon: 'pulse-outline',
+  },
+
+  // ─── COMPETE (edge) continued ─────────────────────────────────────────────
+  {
+    id: 'film-room-sessions',
+    label: 'Film Room',
+    tagline: 'Watch more. Know more. Compete better.',
+    color: '#0A84FF',
+    chapter: 'edge',
+    roles: [],
+    isStateTrigger: false,
+    triggerState: null,
+    isPremium: false,
+    worldNumber: 39,
+    icon: 'eye-outline',
+  },
+  {
+    id: 'mistake-audit',
+    label: 'Mistake Audit',
+    tagline: 'Analyze errors before they repeat.',
+    color: '#FF3B30',
+    chapter: 'edge',
+    roles: [],
+    isStateTrigger: false,
+    triggerState: null,
+    isPremium: false,
+    worldNumber: 40,
+    icon: 'bulb-outline',
+  },
+  {
+    id: 'pressure-ladder',
+    label: 'Pressure Ladder',
+    tagline: 'Climb each level of competitive pressure.',
+    color: '#FF6B6B',
+    chapter: 'edge',
+    roles: [],
+    isStateTrigger: false,
+    triggerState: null,
+    isPremium: false,
+    worldNumber: 41,
+    icon: 'trending-up-outline',
+  },
+  {
+    id: 'team-dynamics',
+    label: 'Team Dynamics',
+    tagline: 'Chemistry, trust, and shared standards.',
+    color: '#9B59B6',
+    chapter: 'edge',
+    roles: [],
+    isStateTrigger: false,
+    triggerState: null,
+    isPremium: false,
+    worldNumber: 42,
+    icon: 'people-outline',
+  },
+
+  // ─── THE GRIND (continued) ────────────────────────────────────────────────
+  {
+    id: 'pregame-systems',
+    label: 'Pregame Systems',
+    tagline: 'Arrive ready. Execute a plan.',
+    color: '#E85D26',
+    chapter: 'the-grind',
+    roles: [],
+    isStateTrigger: false,
+    triggerState: null,
+    isPremium: false,
+    worldNumber: 43,
+    icon: 'time-outline',
+  },
+  {
+    id: 'offseason-build',
+    label: 'Offseason Build',
+    tagline: 'The work that wins before spring.',
+    color: '#FF9F0A',
+    chapter: 'the-grind',
+    roles: [],
+    isStateTrigger: false,
+    triggerState: null,
+    isPremium: false,
+    worldNumber: 44,
+    icon: 'barbell-outline',
+  },
+  {
+    id: 'sleep-fuel',
+    label: 'Sleep & Fuel',
+    tagline: 'Your body is the machine. Maintain it.',
+    color: '#34C759',
+    chapter: 'the-grind',
+    roles: [],
+    isStateTrigger: false,
+    triggerState: null,
+    isPremium: false,
+    worldNumber: 45,
+    icon: 'moon-outline',
+  },
+  {
+    id: 'mental-recovery',
+    label: 'Mental Recovery',
+    tagline: 'Reset fast. Come back fresh.',
+    color: '#30D158',
+    chapter: 'the-grind',
+    roles: [],
+    isStateTrigger: false,
+    triggerState: null,
+    isPremium: false,
+    worldNumber: 46,
+    icon: 'refresh-outline',
+  },
+
+  // ─── SIGNAL (continued) ───────────────────────────────────────────────────
+  {
+    id: 'college-recruiting',
+    label: 'College Recruiting',
+    tagline: 'Get seen. Get offered. Get there.',
+    color: '#FFD60A',
+    chapter: 'signal',
+    roles: [],
+    isStateTrigger: false,
+    triggerState: null,
+    isPremium: true,
+    worldNumber: 47,
+    icon: 'star-outline',
+  },
+  {
+    id: 'baseball-identity',
+    label: 'Baseball Identity',
+    tagline: 'Know who you are as a player. Own it.',
+    color: '#F5A623',
+    chapter: 'signal',
+    roles: [],
+    isStateTrigger: false,
+    triggerState: null,
+    isPremium: true,
+    worldNumber: 48,
+    icon: 'ribbon-outline',
+  },
+  {
+    id: 'coach-trust',
+    label: 'Coach Trust',
+    tagline: 'Build the relationship that opens doors.',
+    color: '#378ADD',
+    chapter: 'signal',
+    roles: [],
+    isStateTrigger: false,
+    triggerState: null,
+    isPremium: true,
+    worldNumber: 49,
+    icon: 'chatbubbles-outline',
+  },
+  {
+    id: 'opponent-intel',
+    label: 'Opponent Intel',
+    tagline: 'Know the other team before they know you.',
+    color: '#BF5AF2',
+    chapter: 'signal',
+    roles: [],
+    isStateTrigger: false,
+    triggerState: null,
+    isPremium: true,
+    worldNumber: 50,
+    icon: 'map-outline',
+  },
 ];
 
 const CHAPTERS = [
@@ -481,7 +749,9 @@ function getWorldsForChapter(
       if (!stateMatch) continue;
     }
 
-    result.push({ ...world, lockState: (DEV_UNLOCK_ALL || hasLessons) ? 'active' : 'teaser' });
+    // DEV_UNLOCK_ALL removes the progression gate on individual lesson nodes
+    // (see WorldMapSection), but worlds with zero lessons stay as teasers regardless.
+    result.push({ ...world, lockState: hasLessons ? 'active' : 'teaser' });
   }
 
   return result;
@@ -907,8 +1177,19 @@ export default function CareerScreen() {
     setLoading(true);
     setLoadError(false);
     try {
-      const data = await fetchLessons({ limit: 200 });
+      const data = await fetchLessons({ limit: 1000 });
       setLessons(data);
+      if (__DEV__) {
+        const pillarIds = [...new Set(data.map(l => l.pillar_id).filter(Boolean))];
+        const withLessons = WORLDS.filter(w => pillarIds.includes(w.id));
+        const teaser = WORLDS.filter(w => !pillarIds.includes(w.id));
+        const orphans = pillarIds.filter(id => !WORLDS.some(w => w.id === id));
+        console.log(
+          `[Career] fetched=${data.length} worlds=${WORLDS.length}` +
+          ` active=${withLessons.length} teaser=${teaser.length}` +
+          ` orphanPillarIds=${orphans.length > 0 ? orphans.join(',') : 'none'}`,
+        );
+      }
     } catch (e) {
       console.error(e);
       setLoadError(true);
