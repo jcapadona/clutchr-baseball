@@ -194,9 +194,15 @@ function SparkStep({ step, onAdvance, finalAction }: { step: any; onAdvance: () 
     ]).start();
   }, []);
 
-  const content = step.content ?? step.text ?? step.body ?? '';
+  const headline = step.headline ?? '';
+  const bodyText = step.content ?? step.text ?? step.body ?? step.prompt ?? step.message ?? step.instructions ?? step.action ?? '';
+  const content = headline && bodyText && headline !== bodyText ? '' : (headline || bodyText);
+  const hasHeadlineAndBody = !!(headline && bodyText && headline !== bodyText);
   const cue = step.cue ?? '';
-  const action = step.action ?? '';
+  const action = (!hasHeadlineAndBody && step.action) ? step.action : '';
+  if (__DEV__ && !content && !hasHeadlineAndBody) {
+    console.warn('[StepFallback] SparkStep has no displayable content', { type: step.type, keys: Object.keys(step) });
+  }
 
   return (
     <Animated.View style={[sparkStyles.container, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
@@ -208,7 +214,14 @@ function SparkStep({ step, onAdvance, finalAction }: { step: any; onAdvance: () 
       </View>
 
       {/* The insight text — large, editorial */}
-      <Text style={sparkStyles.body}>{content}</Text>
+      {hasHeadlineAndBody ? (
+        <>
+          <Text style={[sparkStyles.body, { fontFamily: 'Inter_700Bold', marginBottom: 8 }]}>{headline}</Text>
+          <Text style={sparkStyles.body}>{bodyText}</Text>
+        </>
+      ) : (
+        <Text style={sparkStyles.body}>{content}</Text>
+      )}
 
       {/* Cue box — if present */}
       {cue !== '' && <CueBox cue={cue} />}
@@ -311,6 +324,23 @@ function ChoiceStep({ step, onAdvance, finalAction, advanceLabel = 'Next Rep →
     } else {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     }
+  }
+
+  if (choices.length === 0) {
+    if (__DEV__) console.warn('[StepFallback] ChoiceStep has no choices/options', { type: step.type, keys: Object.keys(step) });
+    return (
+      <View style={choiceStyles.container}>
+        {(step.prompt ?? step.question) ? <Text style={choiceStyles.prompt}>{step.prompt ?? step.question}</Text> : null}
+        <View style={stepRouterStyles.fallbackCard}>
+          <Ionicons name="alert-circle" size={18} color={Colors.warning} />
+          <View style={{ flex: 1 }}>
+            <Text style={stepRouterStyles.fallbackTitle}>This rep needs an update.</Text>
+            <Text style={stepRouterStyles.fallbackText}>Answer choices haven't been added yet. Keep moving.</Text>
+          </View>
+        </View>
+        {finalAction ?? <AdvanceButton label="Continue →" onPress={() => onAdvance(undefined)} />}
+      </View>
+    );
   }
 
   return (
@@ -719,6 +749,16 @@ function NoticeWonderStep({ step, onAdvance, finalAction }: { step: any; onAdvan
   const noticeItems: string[] = Array.isArray(step.notice_items) ? step.notice_items.map(String) : [];
   const wonderOptions: { id: string; text: string }[] = Array.isArray(step.wonder_options) ? step.wonder_options.map((opt: any, i: number) => ({ id: String(opt?.id ?? i), text: String(opt?.text ?? opt?.label ?? opt ?? '') })) : [];
 
+  // Legacy schema detection
+  const isLegacyNotice = noticeItems.length === 0 && typeof step.notice === 'string' && step.notice.length > 0;
+  const isLegacyWonder = wonderOptions.length === 0 && typeof step.wonder === 'string' && step.wonder.length > 0;
+  if (__DEV__ && (isLegacyNotice || isLegacyWonder)) {
+    console.warn('[StepFallback] NoticeWonderStep using legacy schema', { reason: isLegacyNotice ? 'no notice_items' : 'no wonder_options', keys: Object.keys(step) });
+  }
+
+  const situation = step.situation ?? step.content ?? step.body ?? step.notice ?? step.headline ?? '';
+  const revealCue = step.reveal_cue ?? step.cue ?? step.takeaway_cue ?? '';
+
   function transition(next: Phase) {
     Haptics.selectionAsync();
     Animated.timing(phaseAnim, { toValue: 0, duration: 180, useNativeDriver: true }).start(() => {
@@ -747,41 +787,60 @@ function NoticeWonderStep({ step, onAdvance, finalAction }: { step: any; onAdvan
           <View style={[nwStyles.situationBorder, { backgroundColor: Colors.info }]} />
           <View style={nwStyles.situationInner}>
             <Text style={nwStyles.situationLabel}>THE SITUATION</Text>
-            <Text style={nwStyles.situationText}>{step.situation ?? step.content ?? ''}</Text>
+            <Text style={nwStyles.situationText}>{situation}</Text>
           </View>
         </View>
 
-        <Text style={nwStyles.noticeInstruct}>Scout the scene. Tap every clue you see.</Text>
+        {isLegacyNotice ? (
+          // Legacy: show notice text directly, no chip tap required
+          <>
+            <View style={nwStyles.situationCard}>
+              <View style={[nwStyles.situationBorder, { backgroundColor: Colors.info }]} />
+              <View style={nwStyles.situationInner}>
+                <Text style={nwStyles.situationLabel}>NOTICE</Text>
+                <Text style={nwStyles.situationText}>{step.notice}</Text>
+              </View>
+            </View>
+            <Pressable style={nwStyles.phaseBtn} onPress={() => transition('wonder')}>
+              <Text style={nwStyles.phaseBtnText}>Wonder →</Text>
+              <Ionicons name="arrow-forward" size={14} color="#000" />
+            </Pressable>
+          </>
+        ) : (
+          <>
+            <Text style={nwStyles.noticeInstruct}>Scout the scene. Tap every clue you see.</Text>
 
-        {/* Chip grid */}
-        <View style={nwStyles.chipGrid}>
-          {noticeItems.map((item, i) => {
-            const picked = noticePicks.includes(item);
-            return (
-              <Pressable
-                key={i}
-                style={[nwStyles.chip, picked && nwStyles.chipPicked]}
-                onPress={() => {
-                  Haptics.selectionAsync();
-                  setNoticePicks((p) => p.includes(item) ? p.filter((x) => x !== item) : [...p, item]);
-                }}
-              >
-                {picked && <Ionicons name="checkmark" size={10} color={Colors.primary} style={{ marginRight: 3 }} />}
-                <Text style={[nwStyles.chipText, picked && nwStyles.chipTextPicked]}>{item}</Text>
-              </Pressable>
-            );
-          })}
-        </View>
+            {/* Chip grid */}
+            <View style={nwStyles.chipGrid}>
+              {noticeItems.map((item, i) => {
+                const picked = noticePicks.includes(item);
+                return (
+                  <Pressable
+                    key={i}
+                    style={[nwStyles.chip, picked && nwStyles.chipPicked]}
+                    onPress={() => {
+                      Haptics.selectionAsync();
+                      setNoticePicks((p) => p.includes(item) ? p.filter((x) => x !== item) : [...p, item]);
+                    }}
+                  >
+                    {picked && <Ionicons name="checkmark" size={10} color={Colors.primary} style={{ marginRight: 3 }} />}
+                    <Text style={[nwStyles.chipText, picked && nwStyles.chipTextPicked]}>{item}</Text>
+                  </Pressable>
+                );
+              })}
+            </View>
 
-        <Pressable
-          style={[nwStyles.phaseBtn, noticePicks.length === 0 && nwStyles.phaseBtnDisabled]}
-          onPress={noticePicks.length > 0 ? () => transition('wonder') : undefined}
-        >
-          <Text style={nwStyles.phaseBtnText}>
-            {noticePicks.length === 0 ? 'Tap what you notice' : `I noticed ${noticePicks.length} → Wonder`}
-          </Text>
-          {noticePicks.length > 0 && <Ionicons name="arrow-forward" size={14} color="#000" />}
-        </Pressable>
+            <Pressable
+              style={[nwStyles.phaseBtn, noticePicks.length === 0 && nwStyles.phaseBtnDisabled]}
+              onPress={noticePicks.length > 0 ? () => transition('wonder') : undefined}
+            >
+              <Text style={nwStyles.phaseBtnText}>
+                {noticePicks.length === 0 ? 'Tap what you notice' : `I noticed ${noticePicks.length} → Wonder`}
+              </Text>
+              {noticePicks.length > 0 && <Ionicons name="arrow-forward" size={14} color="#000" />}
+            </Pressable>
+          </>
+        )}
       </Animated.View>
     );
   }
@@ -800,33 +859,50 @@ function NoticeWonderStep({ step, onAdvance, finalAction }: { step: any; onAdvan
 
         <Text style={nwStyles.wonderPrompt}>{step.wonder_prompt ?? 'What do you think happens next?'}</Text>
 
-        <View style={nwStyles.wonderList}>
-          {wonderOptions.map((opt) => {
-            const picked = wonderPick === opt.id;
-            return (
-              <Pressable
-                key={opt.id}
-                style={[nwStyles.wonderOption, picked && nwStyles.wonderOptionPicked]}
-                onPress={() => {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                  setWonderPick(opt.id);
-                }}
-              >
-                <View style={[nwStyles.wonderRadio, picked && nwStyles.wonderRadioFilled]}>
-                  {picked && <View style={nwStyles.wonderRadioDot} />}
-                </View>
-                <Text style={[nwStyles.wonderOptionText, picked && { color: Colors.textPrimary, fontFamily: 'Inter_600SemiBold' }]}>
-                  {opt.text}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
+        {isLegacyWonder ? (
+          // Legacy: show wonder text directly, no option tap required
+          <>
+            <View style={nwStyles.situationCard}>
+              <View style={[nwStyles.situationBorder, { backgroundColor: Colors.warning }]} />
+              <View style={nwStyles.situationInner}>
+                <Text style={nwStyles.situationText}>{step.wonder}</Text>
+              </View>
+            </View>
+            <Pressable style={[nwStyles.phaseBtn, nwStyles.phaseBtnWonder]} onPress={() => transition('reveal')}>
+              <Text style={nwStyles.phaseBtnText}>Reveal →</Text>
+            </Pressable>
+          </>
+        ) : (
+          <>
+            <View style={nwStyles.wonderList}>
+              {wonderOptions.map((opt) => {
+                const picked = wonderPick === opt.id;
+                return (
+                  <Pressable
+                    key={opt.id}
+                    style={[nwStyles.wonderOption, picked && nwStyles.wonderOptionPicked]}
+                    onPress={() => {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                      setWonderPick(opt.id);
+                    }}
+                  >
+                    <View style={[nwStyles.wonderRadio, picked && nwStyles.wonderRadioFilled]}>
+                      {picked && <View style={nwStyles.wonderRadioDot} />}
+                    </View>
+                    <Text style={[nwStyles.wonderOptionText, picked && { color: Colors.textPrimary, fontFamily: 'Inter_600SemiBold' }]}>
+                      {opt.text}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
 
-        {wonderPick && (
-          <Pressable style={[nwStyles.phaseBtn, nwStyles.phaseBtnWonder]} onPress={() => transition('reveal')}>
-            <Text style={nwStyles.phaseBtnText}>Show me what happens →</Text>
-          </Pressable>
+            {wonderPick && (
+              <Pressable style={[nwStyles.phaseBtn, nwStyles.phaseBtnWonder]} onPress={() => transition('reveal')}>
+                <Text style={nwStyles.phaseBtnText}>Show me what happens →</Text>
+              </Pressable>
+            )}
+          </>
         )}
       </Animated.View>
     );
@@ -880,8 +956,8 @@ function NoticeWonderStep({ step, onAdvance, finalAction }: { step: any; onAdvan
       )}
 
       {/* Cue box — the stamped takeaway */}
-      {(step.reveal_cue ?? step.cue ?? '') !== '' && (
-        <CueBox cue={step.reveal_cue ?? step.cue} label="LOCK IN YOUR CUE" />
+      {revealCue !== '' && (
+        <CueBox cue={revealCue} label="LOCK IN YOUR CUE" />
       )}
 
       {finalAction ?? <AdvanceButton label="Locked in →" onPress={onAdvance} variant="primary" />}
