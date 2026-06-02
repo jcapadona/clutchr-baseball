@@ -44,6 +44,7 @@ import BuildYourRep from '@/components/lesson-steps/BuildYourRep';
 import HotRead from '@/components/lesson-steps/HotRead';
 import VisualizationRep from '@/components/lesson-steps/VisualizationRep';
 import OneWordLock from '@/components/lesson-steps/OneWordLock';
+import DragSequence from '@/components/lesson-steps/DragSequence';
 import DiamondCursor from '@/components/DiamondCursor';
 
 const LESSON_BACKGROUNDS = {
@@ -1065,6 +1066,8 @@ function StepRenderer({
       return <VisualizationRep step={step} onComplete={() => onAdvance(true)} />;
     case 'one_word_lock':
       return <OneWordLock step={step} onComplete={() => onAdvance(true)} />;
+    case 'drag_sequence':
+      return <DragSequence step={step} onComplete={() => onAdvance(true)} />;
     default:
       return <SparkStep step={step} onAdvance={adv} finalAction={finalAction} />;
   }
