@@ -43,6 +43,7 @@ import FilmRoom from '@/components/lesson-steps/FilmRoom';
 import BuildYourRep from '@/components/lesson-steps/BuildYourRep';
 import HotRead from '@/components/lesson-steps/HotRead';
 import VisualizationRep from '@/components/lesson-steps/VisualizationRep';
+import OneWordLock from '@/components/lesson-steps/OneWordLock';
 
 const LESSON_BACKGROUNDS = {
   boss: require('../../assets/backgrounds/boss-battle-entrance.png'),
@@ -1060,6 +1061,8 @@ function StepRenderer({
       return <HotRead step={step} onComplete={() => onAdvance(true)} />;
     case 'visualization_rep':
       return <VisualizationRep step={step} onComplete={() => onAdvance(true)} />;
+    case 'one_word_lock':
+      return <OneWordLock step={step} onComplete={() => onAdvance(true)} />;
     default:
       return <SparkStep step={step} onAdvance={adv} finalAction={finalAction} />;
   }
