@@ -44,6 +44,7 @@ import BuildYourRep from '@/components/lesson-steps/BuildYourRep';
 import HotRead from '@/components/lesson-steps/HotRead';
 import VisualizationRep from '@/components/lesson-steps/VisualizationRep';
 import OneWordLock from '@/components/lesson-steps/OneWordLock';
+import DiamondCursor from '@/components/DiamondCursor';
 
 const LESSON_BACKGROUNDS = {
   boss: require('../../assets/backgrounds/boss-battle-entrance.png'),
@@ -163,6 +164,7 @@ function VariantRenderer({ step, onAdvance }: { step: any; onAdvance: (passed?: 
     case 'timing_track':             return <TimingTrack key={variantKey} {...props} />;
     case 'confidence_slider':        return <ConfidenceSlider key={variantKey} {...props} />;
     case 'pitch_count_board':        return <PitchCountBoard key={variantKey} {...props} />;
+    case 'diamond_cursor':           return <DiamondCursor key={variantKey} {...props} />;
     default:
       return (
         <View style={stepRouterStyles.fallbackCard}>
