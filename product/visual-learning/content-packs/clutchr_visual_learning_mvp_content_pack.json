@@ -1,0 +1,4687 @@
+{
+  "pack_id": "clutchr_visual_learning_mvp_v1",
+  "version": "0.1",
+  "status": "implementation-ready-after-component-patch",
+  "snapshot_read_lessons": [
+    {
+      "id": "sr_release_window_rhp_foot_strike",
+      "legacy_lesson_id": "sr_release_window_rhp_foot_strike",
+      "pillar_id": "hitter-path",
+      "unit_id": "pitch-recognition",
+      "title": "Release Window vs RHP Foot Strike",
+      "subtitle": "Win the first light cue.",
+      "difficulty_tier": "builder",
+      "duration_sec": 105,
+      "xp_reward": 25,
+      "order_index": 1,
+      "is_checkpoint": true,
+      "is_boss": false,
+      "lesson_family": "Freeze/Film Read",
+      "sport_scope": "baseball",
+      "role_tags": [
+        "hitter",
+        "all"
+      ],
+      "skill_tags": [
+        "release_window",
+        "timing",
+        "pitch_recognition"
+      ],
+      "steps": [
+        {
+          "type": "spark",
+          "title": "Release Window vs RHP Foot Strike",
+          "content": "1st inning, 0-0, 0 outs, bases empty, tie game; hitter view."
+        },
+        {
+          "type": "decision",
+          "ui_variant": "snapshot_read",
+          "data": {
+            "prompt": "What do you see first?",
+            "situation": "1st inning, 0-0, 0 outs, bases empty, tie game; hitter view.",
+            "cue_description": "Late release window. The ball first appears from behind the torso.",
+            "image_uri": "snapshot-hitter-01",
+            "diagram_mode": "release_point",
+            "cues": [
+              {
+                "id": "first_light",
+                "label": "Ball first enters view",
+                "description": "Ball first enters view",
+                "quality": "correct"
+              },
+              {
+                "id": "closed_shoulder",
+                "label": "Front shoulder stays closed",
+                "description": "Front shoulder stays closed",
+                "quality": "acceptable"
+              },
+              {
+                "id": "glove_logo",
+                "label": "Glove logo",
+                "description": "Glove logo",
+                "quality": "poor"
+              },
+              {
+                "id": "cleat_color",
+                "label": "Cleat color",
+                "description": "Cleat color",
+                "quality": "poor"
+              }
+            ],
+            "question": "What matters first here?",
+            "image_generation_prompt": "Create a realistic 4:5 baseball freeze frame, right-handed pitcher at foot strike, ball just beginning to appear from behind body, premium dark stadium lighting, no logos, no readable text, hitter-eye perspective."
+          },
+          "responses": {
+            "correct_id": "first_light",
+            "acceptable_ids": [
+              "closed_shoulder"
+            ]
+          },
+          "feedback": {
+            "correct": "Timing starts at first light. Shoulder direction helps, but cosmetic details do not matter.",
+            "acceptable": "Good read. Tighten it to the main cue: Late release window. The ball first appears from behind the torso..",
+            "wrong": "That is noise. Recheck the baseball cue in the frame."
+          }
+        },
+        {
+          "type": "feedback",
+          "title": "CC's Take",
+          "content": "Hitters steal time by finding the ball early. Win the first light cue."
+        }
+      ],
+      "feedback": {
+        "complete": "Win the first light cue."
+      },
+      "reward": {
+        "xp": 25,
+        "badge": null
+      },
+      "asset_rights_note": "Use custom/AI-generated or owned visual. Do not ship copyrighted broadcast stills without clearance."
+    },
+    {
+      "id": "sr_lefty_hide_show_release",
+      "legacy_lesson_id": "sr_lefty_hide_show_release",
+      "pillar_id": "hitter-path",
+      "unit_id": "pitch-recognition",
+      "title": "Lefty Hide-and-Show Release",
+      "subtitle": "Find when the ball clears the body.",
+      "difficulty_tier": "competitor",
+      "duration_sec": 135,
+      "xp_reward": 25,
+      "order_index": 2,
+      "is_checkpoint": false,
+      "is_boss": false,
+      "lesson_family": "Freeze/Film Read",
+      "sport_scope": "baseball",
+      "role_tags": [
+        "hitter",
+        "all"
+      ],
+      "skill_tags": [
+        "lefty_release",
+        "timing"
+      ],
+      "steps": [
+        {
+          "type": "spark",
+          "title": "Lefty Hide-and-Show Release",
+          "content": "3rd inning, 1-1, 1 out, runner on second, tie game; hitter view vs LHP."
+        },
+        {
+          "type": "decision",
+          "ui_variant": "snapshot_read",
+          "data": {
+            "prompt": "What makes this tough?",
+            "situation": "3rd inning, 1-1, 1 out, runner on second, tie game; hitter view vs LHP.",
+            "cue_description": "Late ball reveal vs LHP.",
+            "image_uri": "snapshot-hitter-02",
+            "diagram_mode": "release_point",
+            "cues": [
+              {
+                "id": "late_lefty_slot",
+                "label": "Ball appears later from lefty slot",
+                "description": "Ball appears later from lefty slot",
+                "quality": "correct"
+              },
+              {
+                "id": "high_leg_lift",
+                "label": "Leg lift affects timing",
+                "description": "Leg lift affects timing",
+                "quality": "acceptable"
+              },
+              {
+                "id": "loose_jersey",
+                "label": "Loose jersey",
+                "description": "Loose jersey",
+                "quality": "poor"
+              },
+              {
+                "id": "dark_mound",
+                "label": "Dark mound",
+                "description": "Dark mound",
+                "quality": "poor"
+              }
+            ],
+            "question": "What is toughest about this look?",
+            "image_generation_prompt": "4:5 realistic left-handed pitcher freeze frame from hitter view, deceptive cross-body slot, ball hidden late, dark premium baseball art, no logos or faces emphasized."
+          },
+          "responses": {
+            "correct_id": "late_lefty_slot",
+            "acceptable_ids": [
+              "high_leg_lift"
+            ]
+          },
+          "feedback": {
+            "correct": "The shortened visual window is the read. The leg lift affects rhythm, but surface details do not matter.",
+            "acceptable": "Good read. Tighten it to the main cue: Late ball reveal vs LHP..",
+            "wrong": "That is noise. Recheck the baseball cue in the frame."
+          }
+        },
+        {
+          "type": "feedback",
+          "title": "CC's Take",
+          "content": "Lefties create discomfort by shortening your visual window. Find when the ball clears the body."
+        }
+      ],
+      "feedback": {
+        "complete": "Find when the ball clears the body."
+      },
+      "reward": {
+        "xp": 25,
+        "badge": null
+      },
+      "asset_rights_note": "Use custom/AI-generated or owned visual. Do not ship copyrighted broadcast stills without clearance."
+    },
+    {
+      "id": "sr_on_deck_tempo_scan",
+      "legacy_lesson_id": "sr_on_deck_tempo_scan",
+      "pillar_id": "foundation",
+      "unit_id": "pre_ab_routine",
+      "title": "On-Deck Tempo Scan",
+      "subtitle": "On deck is scouting time.",
+      "difficulty_tier": "rookie",
+      "duration_sec": 105,
+      "xp_reward": 25,
+      "order_index": 3,
+      "is_checkpoint": false,
+      "is_boss": false,
+      "lesson_family": "Freeze/Film Read",
+      "sport_scope": "baseball",
+      "role_tags": [
+        "hitter",
+        "all"
+      ],
+      "skill_tags": [
+        "on_deck",
+        "tempo",
+        "routine"
+      ],
+      "steps": [
+        {
+          "type": "spark",
+          "title": "On-Deck Tempo Scan",
+          "content": "Pre-inning, no count; on-deck perspective."
+        },
+        {
+          "type": "decision",
+          "ui_variant": "snapshot_read",
+          "data": {
+            "prompt": "What should he be scanning?",
+            "situation": "Pre-inning, no count; on-deck perspective.",
+            "cue_description": "Tempo study before the at-bat.",
+            "image_uri": "snapshot-hitter-03",
+            "diagram_mode": "batter_stance",
+            "cues": [
+              {
+                "id": "tempo_release",
+                "label": "Tempo and release timing",
+                "description": "Tempo and release timing",
+                "quality": "correct"
+              },
+              {
+                "id": "set_rhythm",
+                "label": "Set and leg-lift rhythm",
+                "description": "Set and leg-lift rhythm",
+                "quality": "acceptable"
+              },
+              {
+                "id": "bat_waggle",
+                "label": "Bat waggle",
+                "description": "Bat waggle",
+                "quality": "poor"
+              },
+              {
+                "id": "crowd_noise",
+                "label": "Crowd noise",
+                "description": "Crowd noise",
+                "quality": "poor"
+              }
+            ],
+            "question": "What should the on-deck hitter be studying?",
+            "image_generation_prompt": "Custom 4:5 premium baseball illustration, on-deck hitter tracking pitcher from circle, faint tempo arrows and release line, dark graphite palette with green cue accents."
+          },
+          "responses": {
+            "correct_id": "tempo_release",
+            "acceptable_ids": [
+              "set_rhythm"
+            ]
+          },
+          "feedback": {
+            "correct": "On deck is live timing study. Swing feel matters, but pitcher rhythm is the job.",
+            "acceptable": "Good read. Tighten it to the main cue: Tempo study before the at-bat..",
+            "wrong": "That is noise. Recheck the baseball cue in the frame."
+          }
+        },
+        {
+          "type": "feedback",
+          "title": "CC's Take",
+          "content": "The at-bat starts before you step in. On deck is scouting time."
+        }
+      ],
+      "feedback": {
+        "complete": "On deck is scouting time."
+      },
+      "reward": {
+        "xp": 25,
+        "badge": null
+      },
+      "asset_rights_note": "Use custom/AI-generated or owned visual. Do not ship copyrighted broadcast stills without clearance."
+    },
+    {
+      "id": "sr_on_deck_catcher_target_scan",
+      "legacy_lesson_id": "sr_on_deck_catcher_target_scan",
+      "pillar_id": "opponent-intel",
+      "unit_id": "hitter_intel",
+      "title": "On-Deck Catcher Target Scan",
+      "subtitle": "On-deck eyes should collect patterns.",
+      "difficulty_tier": "builder",
+      "duration_sec": 105,
+      "xp_reward": 25,
+      "order_index": 4,
+      "is_checkpoint": false,
+      "is_boss": false,
+      "lesson_family": "Freeze/Film Read",
+      "sport_scope": "baseball",
+      "role_tags": [
+        "hitter",
+        "team"
+      ],
+      "skill_tags": [
+        "catcher_target",
+        "pattern_scan"
+      ],
+      "steps": [
+        {
+          "type": "spark",
+          "title": "On-Deck Catcher Target Scan",
+          "content": "6th inning, pitcher cruising, bases empty; hitter on deck."
+        },
+        {
+          "type": "decision",
+          "ui_variant": "snapshot_read",
+          "data": {
+            "prompt": "What matters before his at-bat?",
+            "situation": "6th inning, pitcher cruising, bases empty; hitter on deck.",
+            "cue_description": "Target pattern from the catcher.",
+            "image_uri": "snapshot-hitter-04",
+            "diagram_mode": "batter_stance",
+            "cues": [
+              {
+                "id": "target_pattern",
+                "label": "Watch if they keep living low-away",
+                "description": "Watch if they keep living low-away",
+                "quality": "correct"
+              },
+              {
+                "id": "pitcher_repeats",
+                "label": "Track repeated location intent",
+                "description": "Track repeated location intent",
+                "quality": "acceptable"
+              },
+              {
+                "id": "practice_full_swing",
+                "label": "Practice full swing",
+                "description": "Practice full swing",
+                "quality": "poor"
+              },
+              {
+                "id": "check_scoreboard",
+                "label": "Check scoreboard",
+                "description": "Check scoreboard",
+                "quality": "poor"
+              }
+            ],
+            "question": "What is the best read here?",
+            "image_generation_prompt": "4:5 baseball illustration from on-deck circle, catcher target clearly low-away, pitcher preparing, subtle green focus guides, no logos."
+          },
+          "responses": {
+            "correct_id": "target_pattern",
+            "acceptable_ids": [
+              "pitcher_repeats"
+            ]
+          },
+          "feedback": {
+            "correct": "Repeated target location can shape the next at-bat. Random attention does not.",
+            "acceptable": "Good read. Tighten it to the main cue: Target pattern from the catcher..",
+            "wrong": "That is noise. Recheck the baseball cue in the frame."
+          }
+        },
+        {
+          "type": "feedback",
+          "title": "CC's Take",
+          "content": "Good hitters arrive with location clues already in hand. On-deck eyes should collect patterns."
+        }
+      ],
+      "feedback": {
+        "complete": "On-deck eyes should collect patterns."
+      },
+      "reward": {
+        "xp": 25,
+        "badge": null
+      },
+      "asset_rights_note": "Use custom/AI-generated or owned visual. Do not ship copyrighted broadcast stills without clearance."
+    },
+    {
+      "id": "sr_damage_zone_middle_in_heater",
+      "legacy_lesson_id": "sr_damage_zone_middle_in_heater",
+      "pillar_id": "hitter-path",
+      "unit_id": "swing_take",
+      "title": "Damage-Zone Middle-In Heater",
+      "subtitle": "Hunt one lane, not every pitch.",
+      "difficulty_tier": "builder",
+      "duration_sec": 105,
+      "xp_reward": 25,
+      "order_index": 5,
+      "is_checkpoint": true,
+      "is_boss": false,
+      "lesson_family": "Freeze/Film Read",
+      "sport_scope": "baseball",
+      "role_tags": [
+        "hitter",
+        "all"
+      ],
+      "skill_tags": [
+        "damage_zone",
+        "count_leverage"
+      ],
+      "steps": [
+        {
+          "type": "spark",
+          "title": "Damage-Zone Middle-In Heater",
+          "content": "2nd inning, 2-0, 0 outs, bases empty, tie game; hitter loaded."
+        },
+        {
+          "type": "decision",
+          "ui_variant": "snapshot_read",
+          "data": {
+            "prompt": "Is this your pitch?",
+            "situation": "2nd inning, 2-0, 0 outs, bases empty, tie game; hitter loaded.",
+            "cue_description": "Middle-in damage lane in a leverage count.",
+            "image_uri": "snapshot-hitter-05",
+            "diagram_mode": "batter_stance",
+            "cues": [
+              {
+                "id": "unload_hunted_lane",
+                "label": "Unload on the hunted lane",
+                "description": "Unload on the hunted lane",
+                "quality": "correct"
+              },
+              {
+                "id": "attack_middle_in",
+                "label": "Attack middle-in with conviction",
+                "description": "Attack middle-in with conviction",
+                "quality": "acceptable"
+              },
+              {
+                "id": "protect_outer_edge",
+                "label": "Protect outer edge",
+                "description": "Protect outer edge",
+                "quality": "poor"
+              },
+              {
+                "id": "take_automatically",
+                "label": "Take automatically",
+                "description": "Take automatically",
+                "quality": "poor"
+              }
+            ],
+            "question": "What should this hitter be ready to do?",
+            "image_generation_prompt": "Recreated non-identifying baseball freeze frame, hitter ready on 2-0 count, pitch entering middle-in power lane, faint strike-zone box, premium app art."
+          },
+          "responses": {
+            "correct_id": "unload_hunted_lane",
+            "acceptable_ids": [
+              "attack_middle_in"
+            ]
+          },
+          "feedback": {
+            "correct": "This is the count and lane he wanted. Protect mode and auto-take ignore leverage.",
+            "acceptable": "Good read. Tighten it to the main cue: Middle-in damage lane in a leverage count..",
+            "wrong": "That is noise. Recheck the baseball cue in the frame."
+          }
+        },
+        {
+          "type": "feedback",
+          "title": "CC's Take",
+          "content": "Damage comes from count plus lane, not swinging hard at everything. Hunt one lane, not every pitch."
+        }
+      ],
+      "feedback": {
+        "complete": "Hunt one lane, not every pitch."
+      },
+      "reward": {
+        "xp": 25,
+        "badge": null
+      },
+      "asset_rights_note": "Use custom/AI-generated or owned visual. Do not ship copyrighted broadcast stills without clearance."
+    },
+    {
+      "id": "sr_low_away_borderline_take",
+      "legacy_lesson_id": "sr_low_away_borderline_take",
+      "pillar_id": "hitter-path",
+      "unit_id": "swing_take",
+      "title": "Low-Away Borderline Take",
+      "subtitle": "Discipline protects damage.",
+      "difficulty_tier": "rookie",
+      "duration_sec": 105,
+      "xp_reward": 25,
+      "order_index": 6,
+      "is_checkpoint": false,
+      "is_boss": false,
+      "lesson_family": "Freeze/Film Read",
+      "sport_scope": "baseball",
+      "role_tags": [
+        "hitter",
+        "all"
+      ],
+      "skill_tags": [
+        "zone_discipline",
+        "take"
+      ],
+      "steps": [
+        {
+          "type": "spark",
+          "title": "Low-Away Borderline Take",
+          "content": "5th inning, 1-0, 1 out, bases empty, one-run lead."
+        },
+        {
+          "type": "decision",
+          "ui_variant": "snapshot_read",
+          "data": {
+            "prompt": "Swing or take?",
+            "situation": "5th inning, 1-0, 1 out, bases empty, one-run lead.",
+            "cue_description": "Borderline low-away pitch below damage zone.",
+            "image_uri": "snapshot-hitter-06",
+            "diagram_mode": "batter_stance",
+            "cues": [
+              {
+                "id": "take",
+                "label": "Take",
+                "description": "Take",
+                "quality": "correct"
+              },
+              {
+                "id": "spoil_two_strikes",
+                "label": "Spoil only if two strikes",
+                "description": "Spoil only if two strikes",
+                "quality": "acceptable"
+              },
+              {
+                "id": "sell_out_middle_in",
+                "label": "Sell out middle-in",
+                "description": "Sell out middle-in",
+                "quality": "poor"
+              },
+              {
+                "id": "guess_breaking_ball",
+                "label": "Guess breaking ball",
+                "description": "Guess breaking ball",
+                "quality": "poor"
+              }
+            ],
+            "question": "What is the best swing decision?",
+            "image_generation_prompt": "Clean 4:5 baseball strike-zone diagram, low-away border pitch, dark interface, one bright pitch trail, mobile-friendly clarity."
+          },
+          "responses": {
+            "correct_id": "take",
+            "acceptable_ids": [
+              "spoil_two_strikes"
+            ]
+          },
+          "feedback": {
+            "correct": "This is not your money pitch. With two strikes, fight it. In a hitter count, protect damage.",
+            "acceptable": "Good read. Tighten it to the main cue: Borderline low-away pitch below damage zone..",
+            "wrong": "That is noise. Recheck the baseball cue in the frame."
+          }
+        },
+        {
+          "type": "feedback",
+          "title": "CC's Take",
+          "content": "Good takes are part of good hitting. Discipline protects damage."
+        }
+      ],
+      "feedback": {
+        "complete": "Discipline protects damage."
+      },
+      "reward": {
+        "xp": 25,
+        "badge": null
+      },
+      "asset_rights_note": "Use custom/AI-generated or owned visual. Do not ship copyrighted broadcast stills without clearance."
+    },
+    {
+      "id": "sr_two_strike_body_language_foul",
+      "legacy_lesson_id": "sr_two_strike_body_language_foul",
+      "pillar_id": "pressure-resilience",
+      "unit_id": "two_strike_compete",
+      "title": "Two-Strike Body Language After a Foul Ball",
+      "subtitle": "Compete posture is visible.",
+      "difficulty_tier": "builder",
+      "duration_sec": 105,
+      "xp_reward": 25,
+      "order_index": 7,
+      "is_checkpoint": false,
+      "is_boss": false,
+      "lesson_family": "Freeze/Film Read",
+      "sport_scope": "baseball",
+      "role_tags": [
+        "hitter",
+        "all"
+      ],
+      "skill_tags": [
+        "two_strike",
+        "body_language"
+      ],
+      "steps": [
+        {
+          "type": "spark",
+          "title": "Two-Strike Body Language After a Foul Ball",
+          "content": "8th inning, 1-2, 2 outs, runner on second, down one."
+        },
+        {
+          "type": "decision",
+          "ui_variant": "snapshot_read",
+          "data": {
+            "prompt": "What body-language clue matters most?",
+            "situation": "8th inning, 1-2, 2 outs, runner on second, down one.",
+            "cue_description": "Compete posture after a tough foul ball.",
+            "image_uri": "snapshot-hitter-07",
+            "diagram_mode": "batter_stance",
+            "cues": [
+              {
+                "id": "composed_reset",
+                "label": "Composed reset and eyes back to pitcher",
+                "description": "Composed reset and eyes back to pitcher",
+                "quality": "correct"
+              },
+              {
+                "id": "breath_control",
+                "label": "Breath control before re-entry",
+                "description": "Breath control before re-entry",
+                "quality": "acceptable"
+              },
+              {
+                "id": "dirty_uniform",
+                "label": "Dirty uniform",
+                "description": "Dirty uniform",
+                "quality": "poor"
+              },
+              {
+                "id": "crowd_standing",
+                "label": "Crowd standing",
+                "description": "Crowd standing",
+                "quality": "poor"
+              }
+            ],
+            "question": "What body-language clue matters most?",
+            "image_generation_prompt": "4:5 realistic baseball close-up, two-strike hitter after foul ball, composed body language, late-inning pressure, no logos, premium dark style."
+          },
+          "responses": {
+            "correct_id": "composed_reset",
+            "acceptable_ids": [
+              "breath_control"
+            ]
+          },
+          "feedback": {
+            "correct": "The reset behavior matters. Cosmetic details do not drive the rep.",
+            "acceptable": "Good read. Tighten it to the main cue: Compete posture after a tough foul ball..",
+            "wrong": "That is noise. Recheck the baseball cue in the frame."
+          }
+        },
+        {
+          "type": "feedback",
+          "title": "CC's Take",
+          "content": "Two-strike hitters cannot leak defeat between pitches. Compete posture is visible."
+        }
+      ],
+      "feedback": {
+        "complete": "Compete posture is visible."
+      },
+      "reward": {
+        "xp": 25,
+        "badge": null
+      },
+      "asset_rights_note": "Use custom/AI-generated or owned visual. Do not ship copyrighted broadcast stills without clearance."
+    },
+    {
+      "id": "sr_bad_call_reset_box",
+      "legacy_lesson_id": "sr_bad_call_reset_box",
+      "pillar_id": "foundation",
+      "unit_id": "reset_basics",
+      "title": "Bad-Call Reset in the Box",
+      "subtitle": "Bad call, clean reset.",
+      "difficulty_tier": "rookie",
+      "duration_sec": 105,
+      "xp_reward": 25,
+      "order_index": 8,
+      "is_checkpoint": false,
+      "is_boss": false,
+      "lesson_family": "Freeze/Film Read",
+      "sport_scope": "baseball",
+      "role_tags": [
+        "hitter",
+        "all"
+      ],
+      "skill_tags": [
+        "bad_call_reset",
+        "routine"
+      ],
+      "steps": [
+        {
+          "type": "spark",
+          "title": "Bad-Call Reset in the Box",
+          "content": "7th inning, 0-1 after a bad called strike, 1 out, bases empty."
+        },
+        {
+          "type": "decision",
+          "ui_variant": "snapshot_read",
+          "data": {
+            "prompt": "What should he do next?",
+            "situation": "7th inning, 0-1 after a bad called strike, 1 out, bases empty.",
+            "cue_description": "Post-bad-call reset.",
+            "image_uri": "snapshot-hitter-08",
+            "diagram_mode": "batter_stance",
+            "cues": [
+              {
+                "id": "reset_return_plan",
+                "label": "Reset and return to the plan",
+                "description": "Reset and return to the plan",
+                "quality": "correct"
+              },
+              {
+                "id": "step_out_regrip",
+                "label": "Step out, regrip, re-enter",
+                "description": "Step out, regrip, re-enter",
+                "quality": "acceptable"
+              },
+              {
+                "id": "stare_umpire",
+                "label": "Stare down umpire",
+                "description": "Stare down umpire",
+                "quality": "poor"
+              },
+              {
+                "id": "rush_back_angry",
+                "label": "Rush back angry",
+                "description": "Rush back angry",
+                "quality": "poor"
+              }
+            ],
+            "question": "What is the winning move here?",
+            "image_generation_prompt": "4:5 realistic freeze frame, hitter stepping out after bad strike call, calm reset routine, subtle breathing cue, premium baseball app look."
+          },
+          "responses": {
+            "correct_id": "reset_return_plan",
+            "acceptable_ids": [
+              "step_out_regrip"
+            ]
+          },
+          "feedback": {
+            "correct": "Own the next pitch. Arguing or rushing gives the call more pitches.",
+            "acceptable": "Good read. Tighten it to the main cue: Post-bad-call reset..",
+            "wrong": "That is noise. Recheck the baseball cue in the frame."
+          }
+        },
+        {
+          "type": "feedback",
+          "title": "CC's Take",
+          "content": "The umpire took one pitch, not the whole at-bat. Bad call, clean reset."
+        }
+      ],
+      "feedback": {
+        "complete": "Bad call, clean reset."
+      },
+      "reward": {
+        "xp": 25,
+        "badge": null
+      },
+      "asset_rights_note": "Use custom/AI-generated or owned visual. Do not ship copyrighted broadcast stills without clearance."
+    },
+    {
+      "id": "sr_high_velo_ready_early_gather",
+      "legacy_lesson_id": "sr_high_velo_ready_early_gather",
+      "pillar_id": "hitter-path",
+      "unit_id": "high_velo",
+      "title": "High-Velo Ready Early Gather",
+      "subtitle": "Be early to be on time.",
+      "difficulty_tier": "competitor",
+      "duration_sec": 135,
+      "xp_reward": 25,
+      "order_index": 9,
+      "is_checkpoint": true,
+      "is_boss": false,
+      "lesson_family": "Freeze/Film Read",
+      "sport_scope": "baseball",
+      "role_tags": [
+        "hitter",
+        "all"
+      ],
+      "skill_tags": [
+        "high_velocity",
+        "early_timing"
+      ],
+      "steps": [
+        {
+          "type": "spark",
+          "title": "High-Velo Ready Early Gather",
+          "content": "Pregame cage or live AB vs power arm."
+        },
+        {
+          "type": "decision",
+          "ui_variant": "snapshot_read",
+          "data": {
+            "prompt": "Why is he ready?",
+            "situation": "Pregame cage or live AB vs power arm.",
+            "cue_description": "Early gather before release.",
+            "image_uri": "snapshot-hitter-09",
+            "diagram_mode": "batter_stance",
+            "cues": [
+              {
+                "id": "early_gather",
+                "label": "Early gather before release",
+                "description": "Early gather before release",
+                "quality": "correct"
+              },
+              {
+                "id": "quiet_head",
+                "label": "Quiet head through gather",
+                "description": "Quiet head through gather",
+                "quality": "acceptable"
+              },
+              {
+                "id": "bigger_stride",
+                "label": "Bigger stride",
+                "description": "Bigger stride",
+                "quality": "poor"
+              },
+              {
+                "id": "hands_drop",
+                "label": "Hands dropping",
+                "description": "Hands dropping",
+                "quality": "poor"
+              }
+            ],
+            "question": "What helped the hitter here?",
+            "image_generation_prompt": "4:5 premium baseball freeze frame vs high velocity, hitter load already gathered before release, realistic indoor or stadium cage feel, no logos."
+          },
+          "responses": {
+            "correct_id": "early_gather",
+            "acceptable_ids": [
+              "quiet_head"
+            ]
+          },
+          "feedback": {
+            "correct": "Velo punishes late moves. Early gather gives the hitter a chance to be on time.",
+            "acceptable": "Good read. Tighten it to the main cue: Early gather before release..",
+            "wrong": "That is noise. Recheck the baseball cue in the frame."
+          }
+        },
+        {
+          "type": "feedback",
+          "title": "CC's Take",
+          "content": "Game speed exposes lazy pre-pitch timing. Be early to be on time."
+        }
+      ],
+      "feedback": {
+        "complete": "Be early to be on time."
+      },
+      "reward": {
+        "xp": 25,
+        "badge": null
+      },
+      "asset_rights_note": "Use custom/AI-generated or owned visual. Do not ship copyrighted broadcast stills without clearance."
+    },
+    {
+      "id": "sr_two_strike_simple_move",
+      "legacy_lesson_id": "sr_two_strike_simple_move",
+      "pillar_id": "hitter-path",
+      "unit_id": "two_strike_compete",
+      "title": "Two-Strike Simple Move",
+      "subtitle": "Simple wins with two strikes.",
+      "difficulty_tier": "builder",
+      "duration_sec": 105,
+      "xp_reward": 25,
+      "order_index": 10,
+      "is_checkpoint": false,
+      "is_boss": false,
+      "lesson_family": "Freeze/Film Read",
+      "sport_scope": "baseball",
+      "role_tags": [
+        "hitter",
+        "all"
+      ],
+      "skill_tags": [
+        "two_strike",
+        "simple_move"
+      ],
+      "steps": [
+        {
+          "type": "spark",
+          "title": "Two-Strike Simple Move",
+          "content": "9th inning, 2-2, runner on third, 1 out."
+        },
+        {
+          "type": "decision",
+          "ui_variant": "snapshot_read",
+          "data": {
+            "prompt": "What changed?",
+            "situation": "9th inning, 2-2, runner on third, 1 out.",
+            "cue_description": "Simplified two-strike move.",
+            "image_uri": "snapshot-hitter-10",
+            "diagram_mode": "batter_stance",
+            "cues": [
+              {
+                "id": "simplified_move",
+                "label": "He simplified the move",
+                "description": "He simplified the move",
+                "quality": "correct"
+              },
+              {
+                "id": "short_direct_path",
+                "label": "Shorter, direct path",
+                "description": "Shorter, direct path",
+                "quality": "acceptable"
+              },
+              {
+                "id": "homer_swing",
+                "label": "Trying to hit a homer",
+                "description": "Trying to hit a homer",
+                "quality": "poor"
+              },
+              {
+                "id": "guess_curveball",
+                "label": "Guessing curveball",
+                "description": "Guessing curveball",
+                "quality": "poor"
+              }
+            ],
+            "question": "What changed for two strikes?",
+            "image_generation_prompt": "Custom 4:5 baseball illustration, two-strike hitter with simplified move, compact stride, direct path cues, premium dark sports-tech style."
+          },
+          "responses": {
+            "correct_id": "simplified_move",
+            "acceptable_ids": [
+              "short_direct_path"
+            ]
+          },
+          "feedback": {
+            "correct": "Simplify without conceding. Guessing and overswinging give the pitcher leverage.",
+            "acceptable": "Good read. Tighten it to the main cue: Simplified two-strike move..",
+            "wrong": "That is noise. Recheck the baseball cue in the frame."
+          }
+        },
+        {
+          "type": "feedback",
+          "title": "CC's Take",
+          "content": "Two-strike approach is not weaker; it is cleaner. Simple wins with two strikes."
+        }
+      ],
+      "feedback": {
+        "complete": "Simple wins with two strikes."
+      },
+      "reward": {
+        "xp": 25,
+        "badge": null
+      },
+      "asset_rights_note": "Use custom/AI-generated or owned visual. Do not ship copyrighted broadcast stills without clearance."
+    },
+    {
+      "id": "sr_spin_vs_heater_out_hand",
+      "legacy_lesson_id": "sr_spin_vs_heater_out_hand",
+      "pillar_id": "baseball-iq",
+      "unit_id": "pitch_recognition",
+      "title": "Spin vs Heater Out of Hand",
+      "subtitle": "Identify shape before location.",
+      "difficulty_tier": "competitor",
+      "duration_sec": 135,
+      "xp_reward": 25,
+      "order_index": 11,
+      "is_checkpoint": true,
+      "is_boss": false,
+      "lesson_family": "Freeze/Film Read",
+      "sport_scope": "baseball",
+      "role_tags": [
+        "hitter",
+        "all"
+      ],
+      "skill_tags": [
+        "spin",
+        "early_shape"
+      ],
+      "steps": [
+        {
+          "type": "spark",
+          "title": "Spin vs Heater Out of Hand",
+          "content": "4th inning, 0-1, bases empty."
+        },
+        {
+          "type": "decision",
+          "ui_variant": "snapshot_read",
+          "data": {
+            "prompt": "What matters out of hand?",
+            "situation": "4th inning, 0-1, bases empty.",
+            "cue_description": "Early pitch-shape clue.",
+            "image_uri": "snapshot-hitter-11",
+            "diagram_mode": "release_point",
+            "cues": [
+              {
+                "id": "early_shape",
+                "label": "Fast early shape cue",
+                "description": "Fast early shape cue",
+                "quality": "correct"
+              },
+              {
+                "id": "release_finger_angle",
+                "label": "Release and finger angle",
+                "description": "Release and finger angle",
+                "quality": "acceptable"
+              },
+              {
+                "id": "catcher_mask",
+                "label": "Catcher mask color",
+                "description": "Catcher mask color",
+                "quality": "poor"
+              },
+              {
+                "id": "pitcher_belt",
+                "label": "Pitcher belt",
+                "description": "Pitcher belt",
+                "quality": "poor"
+              }
+            ],
+            "question": "What should the hitter try to identify first?",
+            "image_generation_prompt": "Recreated baseball close-up, ball just leaving hand, subtle seam/spin cue, hitter-eye perspective, premium training graphic."
+          },
+          "responses": {
+            "correct_id": "early_shape",
+            "acceptable_ids": [
+              "release_finger_angle"
+            ]
+          },
+          "feedback": {
+            "correct": "Early shape buys decisions. Uniform details do not.",
+            "acceptable": "Good read. Tighten it to the main cue: Early pitch-shape clue..",
+            "wrong": "That is noise. Recheck the baseball cue in the frame."
+          }
+        },
+        {
+          "type": "feedback",
+          "title": "CC's Take",
+          "content": "Seeing it early is a trained skill, not magic. Identify shape before location."
+        }
+      ],
+      "feedback": {
+        "complete": "Identify shape before location."
+      },
+      "reward": {
+        "xp": 25,
+        "badge": null
+      },
+      "asset_rights_note": "Use custom/AI-generated or owned visual. Do not ship copyrighted broadcast stills without clearance."
+    },
+    {
+      "id": "sr_2_0_hunt_lane_discipline",
+      "legacy_lesson_id": "sr_2_0_hunt_lane_discipline",
+      "pillar_id": "hitter-path",
+      "unit_id": "count_plans",
+      "title": "2-0 Hunt Lane Discipline",
+      "subtitle": "A good count earns a smaller zone.",
+      "difficulty_tier": "rookie",
+      "duration_sec": 105,
+      "xp_reward": 25,
+      "order_index": 12,
+      "is_checkpoint": false,
+      "is_boss": false,
+      "lesson_family": "Freeze/Film Read",
+      "sport_scope": "baseball",
+      "role_tags": [
+        "hitter",
+        "all"
+      ],
+      "skill_tags": [
+        "count_leverage",
+        "hunt_lane"
+      ],
+      "steps": [
+        {
+          "type": "spark",
+          "title": "2-0 Hunt Lane Discipline",
+          "content": "2-0 count, bases empty, middle innings."
+        },
+        {
+          "type": "decision",
+          "ui_variant": "snapshot_read",
+          "data": {
+            "prompt": "How should the zone change?",
+            "situation": "2-0 count, bases empty, middle innings.",
+            "cue_description": "2-0 hunt lane.",
+            "image_uri": "snapshot-hitter-12",
+            "diagram_mode": "batter_stance",
+            "cues": [
+              {
+                "id": "shrink_hunted_lane",
+                "label": "Shrink to the hunted lane",
+                "description": "Shrink to the hunted lane",
+                "quality": "correct"
+              },
+              {
+                "id": "attack_best_zone",
+                "label": "Attack only best zone",
+                "description": "Attack only best zone",
+                "quality": "acceptable"
+              },
+              {
+                "id": "expand_zone",
+                "label": "Expand because count favors hitter",
+                "description": "Expand because count favors hitter",
+                "quality": "poor"
+              },
+              {
+                "id": "auto_take",
+                "label": "Take no matter what",
+                "description": "Take no matter what",
+                "quality": "poor"
+              }
+            ],
+            "question": "What is the best approach?",
+            "image_generation_prompt": "4:5 strike-zone training map, hitter 2-0 hunt lane highlighted, three decoy pitch paths, dark premium UI."
+          },
+          "responses": {
+            "correct_id": "shrink_hunted_lane",
+            "acceptable_ids": [
+              "attack_best_zone"
+            ]
+          },
+          "feedback": {
+            "correct": "Leverage should narrow your yes-zone, not make you reckless.",
+            "acceptable": "Good read. Tighten it to the main cue: 2-0 hunt lane..",
+            "wrong": "That is noise. Recheck the baseball cue in the frame."
+          }
+        },
+        {
+          "type": "feedback",
+          "title": "CC's Take",
+          "content": "Count leverage should make you selective, not reckless. A good count earns a smaller zone."
+        }
+      ],
+      "feedback": {
+        "complete": "A good count earns a smaller zone."
+      },
+      "reward": {
+        "xp": 25,
+        "badge": null
+      },
+      "asset_rights_note": "Use custom/AI-generated or owned visual. Do not ship copyrighted broadcast stills without clearance."
+    },
+    {
+      "id": "sr_slide_step_timing_runner_on",
+      "legacy_lesson_id": "sr_slide_step_timing_runner_on",
+      "pillar_id": "baseball-iq",
+      "unit_id": "tempo_read",
+      "title": "Slide-Step Timing with Runner On",
+      "subtitle": "Tempo shift is a clue, not chaos.",
+      "difficulty_tier": "builder",
+      "duration_sec": 105,
+      "xp_reward": 25,
+      "order_index": 13,
+      "is_checkpoint": false,
+      "is_boss": false,
+      "lesson_family": "Freeze/Film Read",
+      "sport_scope": "baseball",
+      "role_tags": [
+        "hitter",
+        "all"
+      ],
+      "skill_tags": [
+        "slide_step",
+        "tempo"
+      ],
+      "steps": [
+        {
+          "type": "spark",
+          "title": "Slide-Step Timing with Runner On",
+          "content": "6th inning, 1-1, runner on first, pitcher slide-steps."
+        },
+        {
+          "type": "decision",
+          "ui_variant": "snapshot_read",
+          "data": {
+            "prompt": "What changed?",
+            "situation": "6th inning, 1-1, runner on first, pitcher slide-steps.",
+            "cue_description": "Quicker delivery tempo.",
+            "image_uri": "snapshot-hitter-13",
+            "diagram_mode": "pitcher_delivery",
+            "cues": [
+              {
+                "id": "delivery_tempo_faster",
+                "label": "Delivery tempo got faster",
+                "description": "Delivery tempo got faster",
+                "quality": "correct"
+              },
+              {
+                "id": "quicker_to_plate",
+                "label": "Pitcher is quicker to the plate",
+                "description": "Pitcher is quicker to the plate",
+                "quality": "acceptable"
+              },
+              {
+                "id": "auto_inside",
+                "label": "Pitch automatically inside",
+                "description": "Pitch automatically inside",
+                "quality": "poor"
+              },
+              {
+                "id": "catcher_lazy",
+                "label": "Catcher is lazy",
+                "description": "Catcher is lazy",
+                "quality": "poor"
+              }
+            ],
+            "question": "What changed most?",
+            "image_generation_prompt": "4:5 realistic baseball freeze frame, pitcher slide step with runner on first, hitter staying balanced and ready, premium app lighting."
+          },
+          "responses": {
+            "correct_id": "delivery_tempo_faster",
+            "acceptable_ids": [
+              "quicker_to_plate"
+            ]
+          },
+          "feedback": {
+            "correct": "The clock changed. Location is not guaranteed.",
+            "acceptable": "Good read. Tighten it to the main cue: Quicker delivery tempo..",
+            "wrong": "That is noise. Recheck the baseball cue in the frame."
+          }
+        },
+        {
+          "type": "feedback",
+          "title": "CC's Take",
+          "content": "Runners change pitcher tempo; good hitters notice without panicking. Tempo shift is a clue, not chaos."
+        }
+      ],
+      "feedback": {
+        "complete": "Tempo shift is a clue, not chaos."
+      },
+      "reward": {
+        "xp": 25,
+        "badge": null
+      },
+      "asset_rights_note": "Use custom/AI-generated or owned visual. Do not ship copyrighted broadcast stills without clearance."
+    },
+    {
+      "id": "sr_second_ear_hitting",
+      "legacy_lesson_id": "sr_second_ear_hitting",
+      "pillar_id": "opponent-intel",
+      "unit_id": "dugout_intel",
+      "title": "Second-Ear Hitting",
+      "subtitle": "Own your plan, then use the clue.",
+      "difficulty_tier": "competitor",
+      "duration_sec": 135,
+      "xp_reward": 25,
+      "order_index": 14,
+      "is_checkpoint": false,
+      "is_boss": false,
+      "lesson_family": "Freeze/Film Read",
+      "sport_scope": "baseball",
+      "role_tags": [
+        "hitter",
+        "team"
+      ],
+      "skill_tags": [
+        "dugout_intel",
+        "plan_ownership"
+      ],
+      "steps": [
+        {
+          "type": "spark",
+          "title": "Second-Ear Hitting",
+          "content": "Midgame, dugout relaying a location clue."
+        },
+        {
+          "type": "decision",
+          "ui_variant": "snapshot_read",
+          "data": {
+            "prompt": "How should he use the dugout?",
+            "situation": "Midgame, dugout relaying a location clue.",
+            "cue_description": "Second-ear focus.",
+            "image_uri": "snapshot-hitter-14",
+            "diagram_mode": "batter_stance",
+            "cues": [
+              {
+                "id": "own_plan_confirm_intel",
+                "label": "Keep your plan and confirm clear intel",
+                "description": "Keep your plan and confirm clear intel",
+                "quality": "correct"
+              },
+              {
+                "id": "use_only_verified",
+                "label": "Use only verified clues",
+                "description": "Use only verified clues",
+                "quality": "acceptable"
+              },
+              {
+                "id": "only_listen_dugout",
+                "label": "Only listen to dugout",
+                "description": "Only listen to dugout",
+                "quality": "poor"
+              },
+              {
+                "id": "guess_late_clue",
+                "label": "Guess because clue came late",
+                "description": "Guess because clue came late",
+                "quality": "poor"
+              }
+            ],
+            "question": "What is the right balance?",
+            "image_generation_prompt": "4:5 baseball illustration, hitter in box with dugout intel active, catcher target slightly inside, premium cinematic but clean, no logos."
+          },
+          "responses": {
+            "correct_id": "own_plan_confirm_intel",
+            "acceptable_ids": [
+              "use_only_verified"
+            ]
+          },
+          "feedback": {
+            "correct": "The hitter owns the swing decision. Dugout help works only when the read is clear.",
+            "acceptable": "Good read. Tighten it to the main cue: Second-ear focus..",
+            "wrong": "That is noise. Recheck the baseball cue in the frame."
+          }
+        },
+        {
+          "type": "feedback",
+          "title": "CC's Take",
+          "content": "Dugout help works only when the hitter is already grounded. Own your plan, then use the clue."
+        }
+      ],
+      "feedback": {
+        "complete": "Own your plan, then use the clue."
+      },
+      "reward": {
+        "xp": 25,
+        "badge": null
+      },
+      "asset_rights_note": "Use custom/AI-generated or owned visual. Do not ship copyrighted broadcast stills without clearance."
+    },
+    {
+      "id": "sr_late_inning_box_presence",
+      "legacy_lesson_id": "sr_late_inning_box_presence",
+      "pillar_id": "pressure-resilience",
+      "unit_id": "clutch_body_language",
+      "title": "Late-Inning Box Presence",
+      "subtitle": "Calm body helps on-time swing.",
+      "difficulty_tier": "performer",
+      "duration_sec": 135,
+      "xp_reward": 25,
+      "order_index": 15,
+      "is_checkpoint": true,
+      "is_boss": false,
+      "lesson_family": "Freeze/Film Read",
+      "sport_scope": "baseball",
+      "role_tags": [
+        "hitter",
+        "all"
+      ],
+      "skill_tags": [
+        "composure",
+        "late_inning"
+      ],
+      "steps": [
+        {
+          "type": "spark",
+          "title": "Late-Inning Box Presence",
+          "content": "9th inning, tie game, runner in scoring position."
+        },
+        {
+          "type": "decision",
+          "ui_variant": "snapshot_read",
+          "data": {
+            "prompt": "What says he is ready?",
+            "situation": "9th inning, tie game, runner in scoring position.",
+            "cue_description": "Clutch composure in the box.",
+            "image_uri": "snapshot-hitter-15",
+            "diagram_mode": "batter_stance",
+            "cues": [
+              {
+                "id": "loose_stillness",
+                "label": "Loose stillness with eyes quiet",
+                "description": "Loose stillness with eyes quiet",
+                "quality": "correct"
+              },
+              {
+                "id": "controlled_breath",
+                "label": "Controlled breath and steady posture",
+                "description": "Controlled breath and steady posture",
+                "quality": "acceptable"
+              },
+              {
+                "id": "jaw_clenched",
+                "label": "Jaw clenched",
+                "description": "Jaw clenched",
+                "quality": "poor"
+              },
+              {
+                "id": "death_grip",
+                "label": "Bat death-gripped",
+                "description": "Bat death-gripped",
+                "quality": "poor"
+              }
+            ],
+            "question": "Which clue says he is ready?",
+            "image_generation_prompt": "4:5 realistic late-inning baseball freeze frame, hitter in clutch moment with calm body language, premium dark stadium, no identifiers."
+          },
+          "responses": {
+            "correct_id": "loose_stillness",
+            "acceptable_ids": [
+              "controlled_breath"
+            ]
+          },
+          "feedback": {
+            "correct": "Controlled calm is readiness. Tension leaks timing before the pitch.",
+            "acceptable": "Good read. Tighten it to the main cue: Clutch composure in the box..",
+            "wrong": "That is noise. Recheck the baseball cue in the frame."
+          }
+        },
+        {
+          "type": "feedback",
+          "title": "CC's Take",
+          "content": "Tension makes the bat slower before the pitch ever starts. Calm body helps on-time swing."
+        }
+      ],
+      "feedback": {
+        "complete": "Calm body helps on-time swing."
+      },
+      "reward": {
+        "xp": 25,
+        "badge": null
+      },
+      "asset_rights_note": "Use custom/AI-generated or owned visual. Do not ship copyrighted broadcast stills without clearance."
+    },
+    {
+      "id": "sr_set_height_consistency_check",
+      "legacy_lesson_id": "sr_set_height_consistency_check",
+      "pillar_id": "pitcher-path",
+      "unit_id": "self_scout",
+      "title": "Set Height Consistency Check",
+      "subtitle": "Same look every pitch.",
+      "difficulty_tier": "builder",
+      "duration_sec": 105,
+      "xp_reward": 25,
+      "order_index": 16,
+      "is_checkpoint": true,
+      "is_boss": false,
+      "lesson_family": "Freeze/Film Read",
+      "sport_scope": "baseball",
+      "role_tags": [
+        "pitcher",
+        "catcher",
+        "team"
+      ],
+      "skill_tags": [
+        "pitch_tipping",
+        "set_position"
+      ],
+      "steps": [
+        {
+          "type": "spark",
+          "title": "Set Height Consistency Check",
+          "content": "1st inning, 0-0, bases empty; pitcher from the stretch."
+        },
+        {
+          "type": "decision",
+          "ui_variant": "snapshot_read",
+          "data": {
+            "prompt": "What could hitters notice?",
+            "situation": "1st inning, 0-0, bases empty; pitcher from the stretch.",
+            "cue_description": "Set-height tell.",
+            "image_uri": "snapshot-pitcher-16",
+            "diagram_mode": "pitcher_delivery",
+            "cues": [
+              {
+                "id": "set_height_tell",
+                "label": "He may be tipping by set height",
+                "description": "He may be tipping by set height",
+                "quality": "correct"
+              },
+              {
+                "id": "repeatability_issue",
+                "label": "Repeatability issue before delivery",
+                "description": "Repeatability issue before delivery",
+                "quality": "acceptable"
+              },
+              {
+                "id": "dirty_rubber",
+                "label": "Rubber is dirty",
+                "description": "Rubber is dirty",
+                "quality": "poor"
+              },
+              {
+                "id": "crooked_cap",
+                "label": "Cap is crooked",
+                "description": "Cap is crooked",
+                "quality": "poor"
+              }
+            ],
+            "question": "What is the issue?",
+            "image_generation_prompt": "4:5 baseball analysis graphic, same pitcher shown twice from stretch at slightly different set heights, dark premium coaching style."
+          },
+          "responses": {
+            "correct_id": "set_height_tell",
+            "acceptable_ids": [
+              "repeatability_issue"
+            ]
+          },
+          "feedback": {
+            "correct": "If body position changes by pitch, good dugouts can notice.",
+            "acceptable": "Good read. Tighten it to the main cue: Set-height tell..",
+            "wrong": "That is noise. Recheck the baseball cue in the frame."
+          }
+        },
+        {
+          "type": "feedback",
+          "title": "CC's Take",
+          "content": "If your body changes by pitch, good dugouts notice. Same look every pitch."
+        }
+      ],
+      "feedback": {
+        "complete": "Same look every pitch."
+      },
+      "reward": {
+        "xp": 25,
+        "badge": null
+      },
+      "asset_rights_note": "Use custom/AI-generated or owned visual. Do not ship copyrighted broadcast stills without clearance."
+    },
+    {
+      "id": "sr_front_shoulder_flying_open",
+      "legacy_lesson_id": "sr_front_shoulder_flying_open",
+      "pillar_id": "pitcher-path",
+      "unit_id": "mechanics_command",
+      "title": "Front Shoulder Flying Open",
+      "subtitle": "Closed longer, directed longer.",
+      "difficulty_tier": "builder",
+      "duration_sec": 105,
+      "xp_reward": 25,
+      "order_index": 17,
+      "is_checkpoint": false,
+      "is_boss": false,
+      "lesson_family": "Freeze/Film Read",
+      "sport_scope": "baseball",
+      "role_tags": [
+        "pitcher",
+        "all"
+      ],
+      "skill_tags": [
+        "front_side",
+        "command"
+      ],
+      "steps": [
+        {
+          "type": "spark",
+          "title": "Front Shoulder Flying Open",
+          "content": "Bullpen or game frame at foot strike."
+        },
+        {
+          "type": "decision",
+          "ui_variant": "snapshot_read",
+          "data": {
+            "prompt": "What is causing the miss?",
+            "situation": "Bullpen or game frame at foot strike.",
+            "cue_description": "Front side leak.",
+            "image_uri": "snapshot-pitcher-17",
+            "diagram_mode": "pitcher_delivery",
+            "cues": [
+              {
+                "id": "front_side_open",
+                "label": "Front side is opening early",
+                "description": "Front side is opening early",
+                "quality": "correct"
+              },
+              {
+                "id": "shoulder_leak",
+                "label": "Shoulder is leaking off line",
+                "description": "Shoulder is leaking off line",
+                "quality": "acceptable"
+              },
+              {
+                "id": "auto_velo_up",
+                "label": "Velocity is automatically up",
+                "description": "Velocity is automatically up",
+                "quality": "poor"
+              },
+              {
+                "id": "catcher_wrong_pitch",
+                "label": "Catcher called wrong pitch",
+                "description": "Catcher called wrong pitch",
+                "quality": "poor"
+              }
+            ],
+            "question": "What is most likely happening?",
+            "image_generation_prompt": "4:5 baseball mechanics diagram, pitcher at foot strike with front shoulder opening early, target line and miss path shown, dark premium interface."
+          },
+          "responses": {
+            "correct_id": "front_side_open",
+            "acceptable_ids": [
+              "shoulder_leak"
+            ]
+          },
+          "feedback": {
+            "correct": "Early leak usually drags location and shape. The other conclusions do not follow.",
+            "acceptable": "Good read. Tighten it to the main cue: Front side leak..",
+            "wrong": "That is noise. Recheck the baseball cue in the frame."
+          }
+        },
+        {
+          "type": "feedback",
+          "title": "CC's Take",
+          "content": "Open early and you give the ball away before release. Closed longer, directed longer."
+        }
+      ],
+      "feedback": {
+        "complete": "Closed longer, directed longer."
+      },
+      "reward": {
+        "xp": 25,
+        "badge": null
+      },
+      "asset_rights_note": "Use custom/AI-generated or owned visual. Do not ship copyrighted broadcast stills without clearance."
+    },
+    {
+      "id": "sr_stride_direction_off_line",
+      "legacy_lesson_id": "sr_stride_direction_off_line",
+      "pillar_id": "pitcher-path",
+      "unit_id": "mechanics_command",
+      "title": "Stride Direction Off Line",
+      "subtitle": "Direction drives repeatability.",
+      "difficulty_tier": "builder",
+      "duration_sec": 105,
+      "xp_reward": 25,
+      "order_index": 18,
+      "is_checkpoint": false,
+      "is_boss": false,
+      "lesson_family": "Freeze/Film Read",
+      "sport_scope": "baseball",
+      "role_tags": [
+        "pitcher",
+        "all"
+      ],
+      "skill_tags": [
+        "stride_direction",
+        "command"
+      ],
+      "steps": [
+        {
+          "type": "spark",
+          "title": "Stride Direction Off Line",
+          "content": "2nd inning, 1-0, bases empty."
+        },
+        {
+          "type": "decision",
+          "ui_variant": "snapshot_read",
+          "data": {
+            "prompt": "What matters here?",
+            "situation": "2nd inning, 1-0, bases empty.",
+            "cue_description": "Stride direction.",
+            "image_uri": "snapshot-pitcher-18",
+            "diagram_mode": "pitcher_delivery",
+            "cues": [
+              {
+                "id": "stride_line_missed",
+                "label": "Stride direction missed target line",
+                "description": "Stride direction missed target line",
+                "quality": "correct"
+              },
+              {
+                "id": "line_to_target",
+                "label": "Line to target broke down",
+                "description": "Line to target broke down",
+                "quality": "acceptable"
+              },
+              {
+                "id": "cleat_model",
+                "label": "Cleat model",
+                "description": "Cleat model",
+                "quality": "poor"
+              },
+              {
+                "id": "mound_stain",
+                "label": "Mound slope stain",
+                "description": "Mound slope stain",
+                "quality": "poor"
+              }
+            ],
+            "question": "What cue matters most?",
+            "image_generation_prompt": "4:5 pitching mechanics diagram, stride line crossing body, target line toward plate, premium baseball coaching graphic."
+          },
+          "responses": {
+            "correct_id": "stride_line_missed",
+            "acceptable_ids": [
+              "line_to_target"
+            ]
+          },
+          "feedback": {
+            "correct": "Line to target matters. Surface details do not.",
+            "acceptable": "Good read. Tighten it to the main cue: Stride direction..",
+            "wrong": "That is noise. Recheck the baseball cue in the frame."
+          }
+        },
+        {
+          "type": "feedback",
+          "title": "CC's Take",
+          "content": "Bad line, bad finish, bad command. Direction drives repeatability."
+        }
+      ],
+      "feedback": {
+        "complete": "Direction drives repeatability."
+      },
+      "reward": {
+        "xp": 25,
+        "badge": null
+      },
+      "asset_rights_note": "Use custom/AI-generated or owned visual. Do not ship copyrighted broadcast stills without clearance."
+    },
+    {
+      "id": "sr_low_zone_command_target",
+      "legacy_lesson_id": "sr_low_zone_command_target",
+      "pillar_id": "pitcher-path",
+      "unit_id": "command",
+      "title": "Low-Zone Command Target",
+      "subtitle": "Live low when you choose low.",
+      "difficulty_tier": "rookie",
+      "duration_sec": 105,
+      "xp_reward": 25,
+      "order_index": 19,
+      "is_checkpoint": false,
+      "is_boss": false,
+      "lesson_family": "Freeze/Film Read",
+      "sport_scope": "baseball",
+      "role_tags": [
+        "pitcher",
+        "catcher"
+      ],
+      "skill_tags": [
+        "low_zone",
+        "execution"
+      ],
+      "steps": [
+        {
+          "type": "spark",
+          "title": "Low-Zone Command Target",
+          "content": "5th inning, 0-2, runner on second, 2 outs."
+        },
+        {
+          "type": "decision",
+          "ui_variant": "snapshot_read",
+          "data": {
+            "prompt": "What is the plan?",
+            "situation": "5th inning, 0-2, runner on second, 2 outs.",
+            "cue_description": "Low-zone intent.",
+            "image_uri": "snapshot-pitcher-19",
+            "diagram_mode": "pitcher_delivery",
+            "cues": [
+              {
+                "id": "finish_low_lane",
+                "label": "Finish through the low lane",
+                "description": "Finish through the low lane",
+                "quality": "correct"
+              },
+              {
+                "id": "commit_below_belt",
+                "label": "Commit below the belt",
+                "description": "Commit below the belt",
+                "quality": "acceptable"
+              },
+              {
+                "id": "throw_harder",
+                "label": "Try to throw harder",
+                "description": "Try to throw harder",
+                "quality": "poor"
+              },
+              {
+                "id": "nibble_above_zone",
+                "label": "Nibble above zone",
+                "description": "Nibble above zone",
+                "quality": "poor"
+              }
+            ],
+            "question": "What is the best execution idea?",
+            "image_generation_prompt": "Custom 4:5 baseball scene, catcher low target below knees, pitcher attacking the low lane, dark premium app art."
+          },
+          "responses": {
+            "correct_id": "finish_low_lane",
+            "acceptable_ids": [
+              "commit_below_belt"
+            ]
+          },
+          "feedback": {
+            "correct": "Commit to the lane. Overthrowing usually lifts the ball.",
+            "acceptable": "Good read. Tighten it to the main cue: Low-zone intent..",
+            "wrong": "That is noise. Recheck the baseball cue in the frame."
+          }
+        },
+        {
+          "type": "feedback",
+          "title": "CC's Take",
+          "content": "Better teams hate freeballs above the belt. Live low when you choose low."
+        }
+      ],
+      "feedback": {
+        "complete": "Live low when you choose low."
+      },
+      "reward": {
+        "xp": 25,
+        "badge": null
+      },
+      "asset_rights_note": "Use custom/AI-generated or owned visual. Do not ship copyrighted broadcast stills without clearance."
+    },
+    {
+      "id": "sr_runner_control_look_first",
+      "legacy_lesson_id": "sr_runner_control_look_first",
+      "pillar_id": "pitcher-path",
+      "unit_id": "running_game",
+      "title": "Runner-Control Look to First",
+      "subtitle": "Read rhythm, not costume.",
+      "difficulty_tier": "competitor",
+      "duration_sec": 135,
+      "xp_reward": 25,
+      "order_index": 20,
+      "is_checkpoint": false,
+      "is_boss": false,
+      "lesson_family": "Freeze/Film Read",
+      "sport_scope": "baseball",
+      "role_tags": [
+        "pitcher",
+        "baserunner",
+        "team"
+      ],
+      "skill_tags": [
+        "runner_control",
+        "rhythm_read"
+      ],
+      "steps": [
+        {
+          "type": "spark",
+          "title": "Runner-Control Look to First",
+          "content": "4th inning, 1-1, runner on first."
+        },
+        {
+          "type": "decision",
+          "ui_variant": "snapshot_read",
+          "data": {
+            "prompt": "What should the runner notice?",
+            "situation": "4th inning, 1-1, runner on first.",
+            "cue_description": "Move rhythm.",
+            "image_uri": "snapshot-pitcher-20",
+            "diagram_mode": "pitcher_delivery",
+            "cues": [
+              {
+                "id": "head_shoulder_rhythm",
+                "label": "Head and shoulder rhythm before move",
+                "description": "Head and shoulder rhythm before move",
+                "quality": "correct"
+              },
+              {
+                "id": "upper_body_rhythm",
+                "label": "Upper-body rhythm",
+                "description": "Upper-body rhythm",
+                "quality": "acceptable"
+              },
+              {
+                "id": "sock_color",
+                "label": "Pitcher sock",
+                "description": "Pitcher sock",
+                "quality": "poor"
+              },
+              {
+                "id": "dirt_color",
+                "label": "Dirt color",
+                "description": "Dirt color",
+                "quality": "poor"
+              }
+            ],
+            "question": "What should the runner be reading?",
+            "image_generation_prompt": "4:5 realistic pitcher from stretch with runner on first, subtle look and hold, premium baseball freeze frame, no logos."
+          },
+          "responses": {
+            "correct_id": "head_shoulder_rhythm",
+            "acceptable_ids": [
+              "upper_body_rhythm"
+            ]
+          },
+          "feedback": {
+            "correct": "Movement clues start in the upper body. Costume details are dead.",
+            "acceptable": "Good read. Tighten it to the main cue: Move rhythm..",
+            "wrong": "That is noise. Recheck the baseball cue in the frame."
+          }
+        },
+        {
+          "type": "feedback",
+          "title": "CC's Take",
+          "content": "Controlling the runner starts before the move, and stealing starts before the jump. Read rhythm, not costume."
+        }
+      ],
+      "feedback": {
+        "complete": "Read rhythm, not costume."
+      },
+      "reward": {
+        "xp": 25,
+        "badge": null
+      },
+      "asset_rights_note": "Use custom/AI-generated or owned visual. Do not ship copyrighted broadcast stills without clearance."
+    },
+    {
+      "id": "sr_hold_pattern_from_set",
+      "legacy_lesson_id": "sr_hold_pattern_from_set",
+      "pillar_id": "baseball-iq",
+      "unit_id": "running_game",
+      "title": "Hold Pattern from the Set",
+      "subtitle": "Predictable holds are stolen too.",
+      "difficulty_tier": "builder",
+      "duration_sec": 105,
+      "xp_reward": 25,
+      "order_index": 21,
+      "is_checkpoint": false,
+      "is_boss": false,
+      "lesson_family": "Freeze/Film Read",
+      "sport_scope": "baseball",
+      "role_tags": [
+        "pitcher",
+        "baserunner",
+        "team"
+      ],
+      "skill_tags": [
+        "hold_variance",
+        "steal_timing"
+      ],
+      "steps": [
+        {
+          "type": "spark",
+          "title": "Hold Pattern from the Set",
+          "content": "Late inning, runner on first, pitcher varying hold times."
+        },
+        {
+          "type": "decision",
+          "ui_variant": "snapshot_read",
+          "data": {
+            "prompt": "Why vary holds?",
+            "situation": "Late inning, runner on first, pitcher varying hold times.",
+            "cue_description": "Hold variance.",
+            "image_uri": "snapshot-pitcher-21",
+            "diagram_mode": "pitcher_delivery",
+            "cues": [
+              {
+                "id": "disrupt_runner_timing",
+                "label": "Varied holds disrupt runner timing",
+                "description": "Varied holds disrupt runner timing",
+                "quality": "correct"
+              },
+              {
+                "id": "break_rhythm",
+                "label": "Breaks the runner rhythm",
+                "description": "Breaks the runner rhythm",
+                "quality": "acceptable"
+              },
+              {
+                "id": "faster_velocity",
+                "label": "Makes pitches faster",
+                "description": "Makes pitches faster",
+                "quality": "poor"
+              },
+              {
+                "id": "catcher_throws_better",
+                "label": "Catcher throws better",
+                "description": "Catcher throws better",
+                "quality": "poor"
+              }
+            ],
+            "question": "Why does this matter?",
+            "image_generation_prompt": "4:5 baseball timing illustration, pitcher from set with varied hold counts, subtle timing markers, premium dark sports-tech style."
+          },
+          "responses": {
+            "correct_id": "disrupt_runner_timing",
+            "acceptable_ids": [
+              "break_rhythm"
+            ]
+          },
+          "feedback": {
+            "correct": "Unpredictability attacks the running game. The runner wants rhythm.",
+            "acceptable": "Good read. Tighten it to the main cue: Hold variance..",
+            "wrong": "That is noise. Recheck the baseball cue in the frame."
+          }
+        },
+        {
+          "type": "feedback",
+          "title": "CC's Take",
+          "content": "The runner wants rhythm; the pitcher should break it. Predictable holds are stolen too."
+        }
+      ],
+      "feedback": {
+        "complete": "Predictable holds are stolen too."
+      },
+      "reward": {
+        "xp": 25,
+        "badge": null
+      },
+      "asset_rights_note": "Use custom/AI-generated or owned visual. Do not ship copyrighted broadcast stills without clearance."
+    },
+    {
+      "id": "sr_post_walk_mound_body_language",
+      "legacy_lesson_id": "sr_post_walk_mound_body_language",
+      "pillar_id": "pressure-resilience",
+      "unit_id": "mound_reset",
+      "title": "Post-Walk Mound Body Language",
+      "subtitle": "Reset fast, attack next hitter.",
+      "difficulty_tier": "rookie",
+      "duration_sec": 105,
+      "xp_reward": 25,
+      "order_index": 22,
+      "is_checkpoint": true,
+      "is_boss": false,
+      "lesson_family": "Freeze/Film Read",
+      "sport_scope": "baseball",
+      "role_tags": [
+        "pitcher",
+        "all"
+      ],
+      "skill_tags": [
+        "post_walk",
+        "body_language"
+      ],
+      "steps": [
+        {
+          "type": "spark",
+          "title": "Post-Walk Mound Body Language",
+          "content": "7th inning, just issued leadoff walk."
+        },
+        {
+          "type": "decision",
+          "ui_variant": "snapshot_read",
+          "data": {
+            "prompt": "What should he do now?",
+            "situation": "7th inning, just issued leadoff walk.",
+            "cue_description": "Post-walk reset.",
+            "image_uri": "snapshot-pitcher-22",
+            "diagram_mode": "pitcher_delivery",
+            "cues": [
+              {
+                "id": "short_reset_attack",
+                "label": "Short reset, then back on attack",
+                "description": "Short reset, then back on attack",
+                "quality": "correct"
+              },
+              {
+                "id": "get_ball_breath",
+                "label": "Get ball, breathe, eyes to mitt",
+                "description": "Get ball, breathe, eyes to mitt",
+                "quality": "acceptable"
+              },
+              {
+                "id": "pace_angry",
+                "label": "Pace around angry",
+                "description": "Pace around angry",
+                "quality": "poor"
+              },
+              {
+                "id": "stare_umpire",
+                "label": "Stare at umpire",
+                "description": "Stare at umpire",
+                "quality": "poor"
+              }
+            ],
+            "question": "What is the winning body-language response?",
+            "image_generation_prompt": "4:5 realistic pitcher after walk, controlled body language and reset, no drama, premium late-game baseball image."
+          },
+          "responses": {
+            "correct_id": "short_reset_attack",
+            "acceptable_ids": [
+              "get_ball_breath"
+            ]
+          },
+          "feedback": {
+            "correct": "Short reset protects the inning. Theater helps the offense.",
+            "acceptable": "Good read. Tighten it to the main cue: Post-walk reset..",
+            "wrong": "That is noise. Recheck the baseball cue in the frame."
+          }
+        },
+        {
+          "type": "feedback",
+          "title": "CC's Take",
+          "content": "The walk already happened; do not walk the next hitter emotionally too. Reset fast, attack next hitter."
+        }
+      ],
+      "feedback": {
+        "complete": "Reset fast, attack next hitter."
+      },
+      "reward": {
+        "xp": 25,
+        "badge": null
+      },
+      "asset_rights_note": "Use custom/AI-generated or owned visual. Do not ship copyrighted broadcast stills without clearance."
+    },
+    {
+      "id": "sr_attack_mode_after_error",
+      "legacy_lesson_id": "sr_attack_mode_after_error",
+      "pillar_id": "team-chaos",
+      "unit_id": "after_error",
+      "title": "Attack Mode After an Error",
+      "subtitle": "Do not donate two mistakes.",
+      "difficulty_tier": "builder",
+      "duration_sec": 105,
+      "xp_reward": 25,
+      "order_index": 23,
+      "is_checkpoint": true,
+      "is_boss": false,
+      "lesson_family": "Freeze/Film Read",
+      "sport_scope": "baseball",
+      "role_tags": [
+        "pitcher",
+        "team"
+      ],
+      "skill_tags": [
+        "error_response",
+        "zone_attack"
+      ],
+      "steps": [
+        {
+          "type": "spark",
+          "title": "Attack Mode After an Error",
+          "content": "6th inning, routine error behind pitcher, next hitter stepping in."
+        },
+        {
+          "type": "decision",
+          "ui_variant": "snapshot_read",
+          "data": {
+            "prompt": "What matters after the error?",
+            "situation": "6th inning, routine error behind pitcher, next hitter stepping in.",
+            "cue_description": "Zone attack after chaos.",
+            "image_uri": "snapshot-pitcher-23",
+            "diagram_mode": "pitcher_delivery",
+            "cues": [
+              {
+                "id": "attack_zone_make_earn",
+                "label": "Attack the zone and make them earn it",
+                "description": "Attack the zone and make them earn it",
+                "quality": "correct"
+              },
+              {
+                "id": "strike_one",
+                "label": "Get back to strike one",
+                "description": "Get back to strike one",
+                "quality": "acceptable"
+              },
+              {
+                "id": "try_strikeout_only",
+                "label": "Try for strikeout only",
+                "description": "Try for strikeout only",
+                "quality": "poor"
+              },
+              {
+                "id": "show_frustration",
+                "label": "Show frustration to wake team",
+                "description": "Show frustration to wake team",
+                "quality": "poor"
+              }
+            ],
+            "question": "What matters now?",
+            "image_generation_prompt": "4:5 baseball freeze frame after defensive error, pitcher staying composed on mound, catcher visible, premium dark stadium art."
+          },
+          "responses": {
+            "correct_id": "attack_zone_make_earn",
+            "acceptable_ids": [
+              "strike_one"
+            ]
+          },
+          "feedback": {
+            "correct": "Errors should not create free passes. Hero mode often gets worse.",
+            "acceptable": "Good read. Tighten it to the main cue: Zone attack after chaos..",
+            "wrong": "That is noise. Recheck the baseball cue in the frame."
+          }
+        },
+        {
+          "type": "feedback",
+          "title": "CC's Take",
+          "content": "Your defense needs your strike one more than your feelings. Do not donate two mistakes."
+        }
+      ],
+      "feedback": {
+        "complete": "Do not donate two mistakes."
+      },
+      "reward": {
+        "xp": 25,
+        "badge": null
+      },
+      "asset_rights_note": "Use custom/AI-generated or owned visual. Do not ship copyrighted broadcast stills without clearance."
+    },
+    {
+      "id": "sr_slide_step_vs_normal_move",
+      "legacy_lesson_id": "sr_slide_step_vs_normal_move",
+      "pillar_id": "pitcher-path",
+      "unit_id": "running_game",
+      "title": "Slide-Step vs Normal Move",
+      "subtitle": "Faster to plate, same intent to target.",
+      "difficulty_tier": "competitor",
+      "duration_sec": 135,
+      "xp_reward": 25,
+      "order_index": 24,
+      "is_checkpoint": false,
+      "is_boss": false,
+      "lesson_family": "Freeze/Film Read",
+      "sport_scope": "baseball",
+      "role_tags": [
+        "pitcher",
+        "team"
+      ],
+      "skill_tags": [
+        "slide_step",
+        "command_tradeoff"
+      ],
+      "steps": [
+        {
+          "type": "spark",
+          "title": "Slide-Step vs Normal Move",
+          "content": "Runner on first, 1 out."
+        },
+        {
+          "type": "decision",
+          "ui_variant": "snapshot_read",
+          "data": {
+            "prompt": "What changes here?",
+            "situation": "Runner on first, 1 out.",
+            "cue_description": "Slide-step tradeoff.",
+            "image_uri": "snapshot-pitcher-24",
+            "diagram_mode": "pitcher_delivery",
+            "cues": [
+              {
+                "id": "quicker_plate_command_rhythm",
+                "label": "Quicker plate time can change command rhythm",
+                "description": "Quicker plate time can change command rhythm",
+                "quality": "correct"
+              },
+              {
+                "id": "tempo_command_balance",
+                "label": "Balance tempo and target",
+                "description": "Balance tempo and target",
+                "quality": "acceptable"
+              },
+              {
+                "id": "faster_velocity",
+                "label": "Faster velocity",
+                "description": "Faster velocity",
+                "quality": "poor"
+              },
+              {
+                "id": "guaranteed_weak_contact",
+                "label": "Guaranteed weak contact",
+                "description": "Guaranteed weak contact",
+                "quality": "poor"
+              }
+            ],
+            "question": "What is the trade-off?",
+            "image_generation_prompt": "4:5 coaching comparison graphic, same pitcher normal move vs slide step, clean baseball mechanics presentation."
+          },
+          "responses": {
+            "correct_id": "quicker_plate_command_rhythm",
+            "acceptable_ids": [
+              "tempo_command_balance"
+            ]
+          },
+          "feedback": {
+            "correct": "Quicker move can challenge repeatability. The hitter still matters.",
+            "acceptable": "Good read. Tighten it to the main cue: Slide-step tradeoff..",
+            "wrong": "That is noise. Recheck the baseball cue in the frame."
+          }
+        },
+        {
+          "type": "feedback",
+          "title": "CC's Take",
+          "content": "Control the running game without forgetting the hitter still matters. Faster to plate, same intent to target."
+        }
+      ],
+      "feedback": {
+        "complete": "Faster to plate, same intent to target."
+      },
+      "reward": {
+        "xp": 25,
+        "badge": null
+      },
+      "asset_rights_note": "Use custom/AI-generated or owned visual. Do not ship copyrighted broadcast stills without clearance."
+    },
+    {
+      "id": "sr_front_side_stability_release",
+      "legacy_lesson_id": "sr_front_side_stability_release",
+      "pillar_id": "pitcher-path",
+      "unit_id": "mechanics_command",
+      "title": "Front-Side Stability at Release",
+      "subtitle": "Stable front side, stable release.",
+      "difficulty_tier": "competitor",
+      "duration_sec": 135,
+      "xp_reward": 25,
+      "order_index": 25,
+      "is_checkpoint": false,
+      "is_boss": false,
+      "lesson_family": "Freeze/Film Read",
+      "sport_scope": "baseball",
+      "role_tags": [
+        "pitcher",
+        "all"
+      ],
+      "skill_tags": [
+        "release_consistency",
+        "front_side"
+      ],
+      "steps": [
+        {
+          "type": "spark",
+          "title": "Front-Side Stability at Release",
+          "content": "Bullpen side view at release."
+        },
+        {
+          "type": "decision",
+          "ui_variant": "snapshot_read",
+          "data": {
+            "prompt": "What does this help?",
+            "situation": "Bullpen side view at release.",
+            "cue_description": "Front-side block.",
+            "image_uri": "snapshot-pitcher-25",
+            "diagram_mode": "pitcher_delivery",
+            "cues": [
+              {
+                "id": "release_consistency",
+                "label": "Release consistency",
+                "description": "Release consistency",
+                "quality": "correct"
+              },
+              {
+                "id": "repeatable_finish",
+                "label": "Repeatable finish",
+                "description": "Repeatable finish",
+                "quality": "acceptable"
+              },
+              {
+                "id": "cap_fit",
+                "label": "Cap fit",
+                "description": "Cap fit",
+                "quality": "poor"
+              },
+              {
+                "id": "pickoff_move",
+                "label": "Pickoff move",
+                "description": "Pickoff move",
+                "quality": "poor"
+              }
+            ],
+            "question": "What does the stable leg help preserve?",
+            "image_generation_prompt": "4:5 pitching release diagram, stable front side compared to collapsing block, premium biomechanics coaching style."
+          },
+          "responses": {
+            "correct_id": "release_consistency",
+            "acceptable_ids": [
+              "repeatable_finish"
+            ]
+          },
+          "feedback": {
+            "correct": "Stable front side helps repeatability. It does not solve unrelated details.",
+            "acceptable": "Good read. Tighten it to the main cue: Front-side block..",
+            "wrong": "That is noise. Recheck the baseball cue in the frame."
+          }
+        },
+        {
+          "type": "feedback",
+          "title": "CC's Take",
+          "content": "Weak front side leaks energy and clue consistency. Stable front side, stable release."
+        }
+      ],
+      "feedback": {
+        "complete": "Stable front side, stable release."
+      },
+      "reward": {
+        "xp": 25,
+        "badge": null
+      },
+      "asset_rights_note": "Use custom/AI-generated or owned visual. Do not ship copyrighted broadcast stills without clearance."
+    }
+  ],
+  "film_room_lessons": [
+    {
+      "id": "fr_gibson_1988_ws",
+      "legacy_lesson_id": "fr_gibson_1988_ws",
+      "pillar_id": "pressure-resilience",
+      "unit_id": "postseason_pressure",
+      "title": "Film Room: Pain Does Not Change the Plan",
+      "subtitle": "Big moments still want your normal move.",
+      "difficulty_tier": "competitor",
+      "duration_sec": 129,
+      "xp_reward": 30,
+      "order_index": 1,
+      "is_checkpoint": true,
+      "is_boss": false,
+      "lesson_family": "Freeze/Film Read",
+      "sport_scope": "baseball",
+      "role_tags": [
+        "hitter",
+        "team",
+        "all"
+      ],
+      "skill_tags": [
+        "pressure",
+        "selective_aggression",
+        "body_language"
+      ],
+      "steps": [
+        {
+          "type": "spark",
+          "title": "Film Room: Pain Does Not Change the Plan",
+          "content": "World Series Game 1 - Dodgers vs Athletics (1988). Watch the moment through the Clutchr lens: one read, one decision, one takeaway."
+        },
+        {
+          "type": "decision",
+          "ui_variant": "film_room",
+          "data": {
+            "provider": "external_video",
+            "youtube_id": null,
+            "canonical_url": "https://www.mlb.com/video/must-c-gibson-s-1988-ws-homer-c1864676883",
+            "fallback_url": "https://www.mlb.com/video/must-c-gibson-s-1988-ws-homer-c1864676883",
+            "backup_urls": [
+              "https://www.mlb.com/video/must-c-gibson-s-1988-ws-homer-c1864676883"
+            ],
+            "start_sec": 0,
+            "end_sec": 69,
+            "reliability_rating": "A",
+            "event": "World Series Game 1 - Dodgers vs Athletics",
+            "year": 1988,
+            "athletes": "Kirk Gibson",
+            "setup": "Watch for the baseball behavior before the highlight result.",
+            "question": "Why does this at-bat still look mechanically quiet under max pressure?",
+            "choices": [
+              {
+                "id": "best_read",
+                "label": "He hunted a pitch he could handle and did not let pain or crowd volume speed him up.",
+                "quality": "correct"
+              },
+              {
+                "id": "wrong_1",
+                "label": "He sold out because the moment was huge.",
+                "quality": "poor"
+              },
+              {
+                "id": "wrong_2",
+                "label": "Big moments need a harder swing.",
+                "quality": "poor"
+              }
+            ],
+            "coach_breakdown": "Pressure did not create the swing. It exposed a prepared swing.",
+            "takeaway": "Big moments still want your normal move."
+          },
+          "responses": {
+            "correct_id": "best_read",
+            "acceptable_ids": []
+          },
+          "feedback": {
+            "correct": "Pressure did not create the swing. It exposed a prepared swing.",
+            "wrong": "Rewatch the clip. The highlight is not the lesson; the decision before it is."
+          }
+        },
+        {
+          "type": "feedback",
+          "title": "Takeaway",
+          "content": "Big moments still want your normal move."
+        }
+      ],
+      "feedback": {
+        "complete": "Big moments still want your normal move."
+      },
+      "reward": {
+        "xp": 30,
+        "badge": null
+      },
+      "asset_rights_note": "External official/archive video. Store URL, fallback URL, reliability, and replacement notes. Verify embed behavior before publish."
+    },
+    {
+      "id": "fr_joe_carter_1993_ws",
+      "legacy_lesson_id": "fr_joe_carter_1993_ws",
+      "pillar_id": "pressure-resilience",
+      "unit_id": "postseason_pressure",
+      "title": "Film Room: One Swing Ends It",
+      "subtitle": "The cleanest swing often wins the loudest moment.",
+      "difficulty_tier": "competitor",
+      "duration_sec": 140,
+      "xp_reward": 30,
+      "order_index": 2,
+      "is_checkpoint": false,
+      "is_boss": false,
+      "lesson_family": "Freeze/Film Read",
+      "sport_scope": "baseball",
+      "role_tags": [
+        "hitter",
+        "team",
+        "all"
+      ],
+      "skill_tags": [
+        "damage_intent",
+        "finish"
+      ],
+      "steps": [
+        {
+          "type": "spark",
+          "title": "Film Room: One Swing Ends It",
+          "content": "World Series Game 6 - Blue Jays vs Phillies (1993). Watch the moment through the Clutchr lens: one read, one decision, one takeaway."
+        },
+        {
+          "type": "decision",
+          "ui_variant": "film_room",
+          "data": {
+            "provider": "external_video",
+            "youtube_id": null,
+            "canonical_url": "https://www.mlb.com/video/must-c-classic-touch-em-all-joe-c1865124483",
+            "fallback_url": "https://www.mlb.com/video/must-c-classic-touch-em-all-joe-c1865124483",
+            "backup_urls": [
+              "https://www.mlb.com/video/must-c-classic-touch-em-all-joe-c1865124483"
+            ],
+            "start_sec": 0,
+            "end_sec": 80,
+            "reliability_rating": "A",
+            "event": "World Series Game 6 - Blue Jays vs Phillies",
+            "year": 1993,
+            "athletes": "Joe Carter",
+            "setup": "Watch for the baseball behavior before the highlight result.",
+            "question": "What separates a closer swing from a hero swing here?",
+            "choices": [
+              {
+                "id": "best_read",
+                "label": "Controlled damage intent on a pitch he could drive.",
+                "quality": "correct"
+              },
+              {
+                "id": "wrong_1",
+                "label": "He guessed.",
+                "quality": "poor"
+              },
+              {
+                "id": "wrong_2",
+                "label": "He blacked out and just swung.",
+                "quality": "poor"
+              }
+            ],
+            "coach_breakdown": "Season-ending moments reward hitters who can keep the barrel in the zone when the crowd wants chaos.",
+            "takeaway": "The cleanest swing often wins the loudest moment."
+          },
+          "responses": {
+            "correct_id": "best_read",
+            "acceptable_ids": []
+          },
+          "feedback": {
+            "correct": "Season-ending moments reward hitters who can keep the barrel in the zone when the crowd wants chaos.",
+            "wrong": "Rewatch the clip. The highlight is not the lesson; the decision before it is."
+          }
+        },
+        {
+          "type": "feedback",
+          "title": "Takeaway",
+          "content": "The cleanest swing often wins the loudest moment."
+        }
+      ],
+      "feedback": {
+        "complete": "The cleanest swing often wins the loudest moment."
+      },
+      "reward": {
+        "xp": 30,
+        "badge": null
+      },
+      "asset_rights_note": "External official/archive video. Store URL, fallback URL, reliability, and replacement notes. Verify embed behavior before publish."
+    },
+    {
+      "id": "fr_puckett_1991_ws",
+      "legacy_lesson_id": "fr_puckett_1991_ws",
+      "pillar_id": "pressure-resilience",
+      "unit_id": "late_inning",
+      "title": "Film Room: Reset in Inning 11",
+      "subtitle": "Late inning pressure punishes players who stop resetting.",
+      "difficulty_tier": "competitor",
+      "duration_sec": 360,
+      "xp_reward": 30,
+      "order_index": 3,
+      "is_checkpoint": false,
+      "is_boss": false,
+      "lesson_family": "Freeze/Film Read",
+      "sport_scope": "baseball",
+      "role_tags": [
+        "hitter",
+        "team",
+        "all"
+      ],
+      "skill_tags": [
+        "late_inning",
+        "routine"
+      ],
+      "steps": [
+        {
+          "type": "spark",
+          "title": "Film Room: Reset in Inning 11",
+          "content": "World Series Game 6 - Twins vs Braves (1991). Watch the moment through the Clutchr lens: one read, one decision, one takeaway."
+        },
+        {
+          "type": "decision",
+          "ui_variant": "film_room",
+          "data": {
+            "provider": "external_video",
+            "youtube_id": null,
+            "canonical_url": "https://www.mlb.com/twins/video/puckett-s-game-6-walk-off-homer",
+            "fallback_url": "https://www.mlb.com/twins/video/puckett-s-game-6-walk-off-homer",
+            "backup_urls": [
+              "https://www.mlb.com/twins/video/puckett-s-game-6-walk-off-homer"
+            ],
+            "start_sec": 0,
+            "end_sec": 306,
+            "reliability_rating": "A",
+            "event": "World Series Game 6 - Twins vs Braves",
+            "year": 1991,
+            "athletes": "Kirby Puckett",
+            "setup": "Watch for the baseball behavior before the highlight result.",
+            "question": "What is the pressure lesson in an 11th-inning swing?",
+            "choices": [
+              {
+                "id": "best_read",
+                "label": "Routines have to travel across game length.",
+                "quality": "correct"
+              },
+              {
+                "id": "wrong_1",
+                "label": "Late innings require a different swing.",
+                "quality": "poor"
+              },
+              {
+                "id": "wrong_2",
+                "label": "Fatigue makes mechanics irrelevant.",
+                "quality": "poor"
+              }
+            ],
+            "coach_breakdown": "If your pre-pitch process dies late, your swing usually dies next.",
+            "takeaway": "Late inning pressure punishes players who stop resetting."
+          },
+          "responses": {
+            "correct_id": "best_read",
+            "acceptable_ids": []
+          },
+          "feedback": {
+            "correct": "If your pre-pitch process dies late, your swing usually dies next.",
+            "wrong": "Rewatch the clip. The highlight is not the lesson; the decision before it is."
+          }
+        },
+        {
+          "type": "feedback",
+          "title": "Takeaway",
+          "content": "Late inning pressure punishes players who stop resetting."
+        }
+      ],
+      "feedback": {
+        "complete": "Late inning pressure punishes players who stop resetting."
+      },
+      "reward": {
+        "xp": 30,
+        "badge": null
+      },
+      "asset_rights_note": "External official/archive video. Store URL, fallback URL, reliability, and replacement notes. Verify embed behavior before publish."
+    },
+    {
+      "id": "fr_jeter_mr_november",
+      "legacy_lesson_id": "fr_jeter_mr_november",
+      "pillar_id": "pressure-resilience",
+      "unit_id": "postseason_pressure",
+      "title": "Film Room: Quiet Before the Dogpile",
+      "subtitle": "If the setup looks normal, the result can be special.",
+      "difficulty_tier": "competitor",
+      "duration_sec": 126,
+      "xp_reward": 30,
+      "order_index": 4,
+      "is_checkpoint": true,
+      "is_boss": false,
+      "lesson_family": "Freeze/Film Read",
+      "sport_scope": "baseball",
+      "role_tags": [
+        "hitter",
+        "team",
+        "all"
+      ],
+      "skill_tags": [
+        "poise",
+        "body_language"
+      ],
+      "steps": [
+        {
+          "type": "spark",
+          "title": "Film Room: Quiet Before the Dogpile",
+          "content": "World Series Game 4 - Yankees vs Diamondbacks (2001). Watch the moment through the Clutchr lens: one read, one decision, one takeaway."
+        },
+        {
+          "type": "decision",
+          "ui_variant": "film_room",
+          "data": {
+            "provider": "external_video",
+            "youtube_id": null,
+            "canonical_url": "https://www.mlb.com/yankees/video/must-c-jeter-as-mr-november-c1865136583",
+            "fallback_url": "https://www.mlb.com/yankees/video/must-c-jeter-as-mr-november-c1865136583",
+            "backup_urls": [
+              "https://www.mlb.com/yankees/video/must-c-jeter-as-mr-november-c1865136583"
+            ],
+            "start_sec": 0,
+            "end_sec": 66,
+            "reliability_rating": "A",
+            "event": "World Series Game 4 - Yankees vs Diamondbacks",
+            "year": 2001,
+            "athletes": "Derek Jeter",
+            "setup": "Watch for the baseball behavior before the highlight result.",
+            "question": "What part of Jeter body language tells you he is still in process, not story mode?",
+            "choices": [
+              {
+                "id": "best_read",
+                "label": "The at-bat still looks repeatable.",
+                "quality": "correct"
+              },
+              {
+                "id": "wrong_1",
+                "label": "Clutch means emotionally amped.",
+                "quality": "poor"
+              },
+              {
+                "id": "wrong_2",
+                "label": "The moment made him bigger.",
+                "quality": "poor"
+              }
+            ],
+            "coach_breakdown": "Elite pressure hitters look boring until the ball leaves.",
+            "takeaway": "If the setup looks normal, the result can be special."
+          },
+          "responses": {
+            "correct_id": "best_read",
+            "acceptable_ids": []
+          },
+          "feedback": {
+            "correct": "Elite pressure hitters look boring until the ball leaves.",
+            "wrong": "Rewatch the clip. The highlight is not the lesson; the decision before it is."
+          }
+        },
+        {
+          "type": "feedback",
+          "title": "Takeaway",
+          "content": "If the setup looks normal, the result can be special."
+        }
+      ],
+      "feedback": {
+        "complete": "If the setup looks normal, the result can be special."
+      },
+      "reward": {
+        "xp": 30,
+        "badge": null
+      },
+      "asset_rights_note": "External official/archive video. Store URL, fallback URL, reliability, and replacement notes. Verify embed behavior before publish."
+    },
+    {
+      "id": "fr_gonzalez_2001_ws_game7",
+      "legacy_lesson_id": "fr_gonzalez_2001_ws_game7",
+      "pillar_id": "pressure-resilience",
+      "unit_id": "situational_hitting",
+      "title": "Film Room: The Swing Was Smaller Than the Moment",
+      "subtitle": "Clutch is often contact with purpose.",
+      "difficulty_tier": "competitor",
+      "duration_sec": 162,
+      "xp_reward": 30,
+      "order_index": 5,
+      "is_checkpoint": false,
+      "is_boss": false,
+      "lesson_family": "Freeze/Film Read",
+      "sport_scope": "baseball",
+      "role_tags": [
+        "hitter",
+        "team",
+        "all"
+      ],
+      "skill_tags": [
+        "contact_with_purpose",
+        "situation_awareness"
+      ],
+      "steps": [
+        {
+          "type": "spark",
+          "title": "Film Room: The Swing Was Smaller Than the Moment",
+          "content": "World Series Game 7 - Diamondbacks vs Yankees (2001). Watch the moment through the Clutchr lens: one read, one decision, one takeaway."
+        },
+        {
+          "type": "decision",
+          "ui_variant": "film_room",
+          "data": {
+            "provider": "external_video",
+            "youtube_id": null,
+            "canonical_url": "https://www.mlb.com/dbacks/video/relive-game-7-of-2001-ws",
+            "fallback_url": "https://www.mlb.com/dbacks/video/relive-game-7-of-2001-ws",
+            "backup_urls": [
+              "https://www.mlb.com/dbacks/video/relive-game-7-of-2001-ws"
+            ],
+            "start_sec": 230,
+            "end_sec": 332,
+            "reliability_rating": "A",
+            "event": "World Series Game 7 - Diamondbacks vs Yankees",
+            "year": 2001,
+            "athletes": "Luis Gonzalez",
+            "setup": "Watch for the baseball behavior before the highlight result.",
+            "question": "Why is this a great pressure at-bat even though it is not a monster swing?",
+            "choices": [
+              {
+                "id": "best_read",
+                "label": "Situation awareness beat ego.",
+                "quality": "correct"
+              },
+              {
+                "id": "wrong_1",
+                "label": "You need lift there.",
+                "quality": "poor"
+              },
+              {
+                "id": "wrong_2",
+                "label": "Small result means small pressure skill.",
+                "quality": "poor"
+              }
+            ],
+            "coach_breakdown": "Sometimes the killer move is simply refusing to miss the ball.",
+            "takeaway": "Clutch is often contact with purpose."
+          },
+          "responses": {
+            "correct_id": "best_read",
+            "acceptable_ids": []
+          },
+          "feedback": {
+            "correct": "Sometimes the killer move is simply refusing to miss the ball.",
+            "wrong": "Rewatch the clip. The highlight is not the lesson; the decision before it is."
+          }
+        },
+        {
+          "type": "feedback",
+          "title": "Takeaway",
+          "content": "Clutch is often contact with purpose."
+        }
+      ],
+      "feedback": {
+        "complete": "Clutch is often contact with purpose."
+      },
+      "reward": {
+        "xp": 30,
+        "badge": null
+      },
+      "asset_rights_note": "External official/archive video. Store URL, fallback URL, reliability, and replacement notes. Verify embed behavior before publish."
+    },
+    {
+      "id": "fr_freese_2011_ws_game6",
+      "legacy_lesson_id": "fr_freese_2011_ws_game6",
+      "pillar_id": "pressure-resilience",
+      "unit_id": "resilience_chain",
+      "title": "Film Room: Be the Same Guy Again",
+      "subtitle": "You have to re-earn the next clutch at-bat.",
+      "difficulty_tier": "competitor",
+      "duration_sec": 260,
+      "xp_reward": 30,
+      "order_index": 6,
+      "is_checkpoint": false,
+      "is_boss": true,
+      "lesson_family": "Freeze/Film Read",
+      "sport_scope": "baseball",
+      "role_tags": [
+        "hitter",
+        "team",
+        "all"
+      ],
+      "skill_tags": [
+        "reset",
+        "pressure_chain"
+      ],
+      "steps": [
+        {
+          "type": "spark",
+          "title": "Film Room: Be the Same Guy Again",
+          "content": "World Series Game 6 - Cardinals vs Rangers (2011). Watch the moment through the Clutchr lens: one read, one decision, one takeaway."
+        },
+        {
+          "type": "decision",
+          "ui_variant": "film_room",
+          "data": {
+            "provider": "external_video",
+            "youtube_id": null,
+            "canonical_url": "https://www.mlb.com/video/freese-s-walk-off-homer-c19955637",
+            "fallback_url": "https://www.mlb.com/video/freese-s-walk-off-homer-c19955637",
+            "backup_urls": [
+              "https://www.mlb.com/video/freese-s-walk-off-homer-c19955637"
+            ],
+            "start_sec": 0,
+            "end_sec": 200,
+            "reliability_rating": "A",
+            "event": "World Series Game 6 - Cardinals vs Rangers",
+            "year": 2011,
+            "athletes": "David Freese",
+            "setup": "Watch for the baseball behavior before the highlight result.",
+            "question": "What mental skill matters most when you become the same guy twice in one game?",
+            "choices": [
+              {
+                "id": "best_read",
+                "label": "Emotional reset after the first miracle.",
+                "quality": "correct"
+              },
+              {
+                "id": "wrong_1",
+                "label": "Momentum makes the next at-bat easy.",
+                "quality": "poor"
+              },
+              {
+                "id": "wrong_2",
+                "label": "Adrenaline carries the rest.",
+                "quality": "poor"
+              }
+            ],
+            "coach_breakdown": "The hard part is becoming new pitch-to-pitch again after chaos.",
+            "takeaway": "You have to re-earn the next clutch at-bat."
+          },
+          "responses": {
+            "correct_id": "best_read",
+            "acceptable_ids": []
+          },
+          "feedback": {
+            "correct": "The hard part is becoming new pitch-to-pitch again after chaos.",
+            "wrong": "Rewatch the clip. The highlight is not the lesson; the decision before it is."
+          }
+        },
+        {
+          "type": "feedback",
+          "title": "Takeaway",
+          "content": "You have to re-earn the next clutch at-bat."
+        }
+      ],
+      "feedback": {
+        "complete": "You have to re-earn the next clutch at-bat."
+      },
+      "reward": {
+        "xp": 30,
+        "badge": null
+      },
+      "asset_rights_note": "External official/archive video. Store URL, fallback URL, reliability, and replacement notes. Verify embed behavior before publish."
+    },
+    {
+      "id": "fr_rajai_davis_2016_ws",
+      "legacy_lesson_id": "fr_rajai_davis_2016_ws",
+      "pillar_id": "pressure-resilience",
+      "unit_id": "stay_alive",
+      "title": "Film Room: Stay Alive Long Enough",
+      "subtitle": "Your role label cannot shrink your swing decision.",
+      "difficulty_tier": "competitor",
+      "duration_sec": 180,
+      "xp_reward": 30,
+      "order_index": 7,
+      "is_checkpoint": false,
+      "is_boss": true,
+      "lesson_family": "Freeze/Film Read",
+      "sport_scope": "baseball",
+      "role_tags": [
+        "hitter",
+        "team",
+        "all"
+      ],
+      "skill_tags": [
+        "velocity",
+        "stay_alive"
+      ],
+      "steps": [
+        {
+          "type": "spark",
+          "title": "Film Room: Stay Alive Long Enough",
+          "content": "World Series Game 7 - Cubs vs Cleveland (2016). Watch the moment through the Clutchr lens: one read, one decision, one takeaway."
+        },
+        {
+          "type": "decision",
+          "ui_variant": "film_room",
+          "data": {
+            "provider": "external_video",
+            "youtube_id": null,
+            "canonical_url": "https://www.mlb.com/news/rajai-davis-ties-game-7-with-a-home-run-c207953376",
+            "fallback_url": "https://www.mlb.com/news/rajai-davis-ties-game-7-with-a-home-run-c207953376",
+            "backup_urls": [
+              "https://www.mlb.com/news/rajai-davis-ties-game-7-with-a-home-run-c207953376"
+            ],
+            "start_sec": 0,
+            "end_sec": 120,
+            "reliability_rating": "A/B",
+            "event": "World Series Game 7 - Cubs vs Cleveland",
+            "year": 2016,
+            "athletes": "Rajai Davis vs Aroldis Chapman",
+            "setup": "Watch for the baseball behavior before the highlight result.",
+            "question": "Why is this more than just a surprising homer?",
+            "choices": [
+              {
+                "id": "best_read",
+                "label": "He kept the at-bat alive long enough for one real mistake to matter.",
+                "quality": "correct"
+              },
+              {
+                "id": "wrong_1",
+                "label": "He ran into one.",
+                "quality": "poor"
+              },
+              {
+                "id": "wrong_2",
+                "label": "Speed guys cannot do damage there.",
+                "quality": "poor"
+              }
+            ],
+            "coach_breakdown": "The pressure lesson is belief plus barrel readiness, not profile stereotypes.",
+            "takeaway": "Your role label cannot shrink your swing decision."
+          },
+          "responses": {
+            "correct_id": "best_read",
+            "acceptable_ids": []
+          },
+          "feedback": {
+            "correct": "The pressure lesson is belief plus barrel readiness, not profile stereotypes.",
+            "wrong": "Rewatch the clip. The highlight is not the lesson; the decision before it is."
+          }
+        },
+        {
+          "type": "feedback",
+          "title": "Takeaway",
+          "content": "Your role label cannot shrink your swing decision."
+        }
+      ],
+      "feedback": {
+        "complete": "Your role label cannot shrink your swing decision."
+      },
+      "reward": {
+        "xp": 30,
+        "badge": null
+      },
+      "asset_rights_note": "External official/archive video. Store URL, fallback URL, reliability, and replacement notes. Verify embed behavior before publish."
+    },
+    {
+      "id": "fr_howie_kendrick_2019_ws",
+      "legacy_lesson_id": "fr_howie_kendrick_2019_ws",
+      "pillar_id": "hitter-path",
+      "unit_id": "oppo_barrel",
+      "title": "Film Room: Veteran Barrel, Veteran Nerve",
+      "subtitle": "Under pressure, trust your best path.",
+      "difficulty_tier": "competitor",
+      "duration_sec": 137,
+      "xp_reward": 30,
+      "order_index": 8,
+      "is_checkpoint": true,
+      "is_boss": false,
+      "lesson_family": "Freeze/Film Read",
+      "sport_scope": "baseball",
+      "role_tags": [
+        "hitter",
+        "team",
+        "all"
+      ],
+      "skill_tags": [
+        "opposite_field",
+        "veteran_calm"
+      ],
+      "steps": [
+        {
+          "type": "spark",
+          "title": "Film Room: Veteran Barrel, Veteran Nerve",
+          "content": "World Series Game 7 - Nationals vs Astros (2019). Watch the moment through the Clutchr lens: one read, one decision, one takeaway."
+        },
+        {
+          "type": "decision",
+          "ui_variant": "film_room",
+          "data": {
+            "provider": "external_video",
+            "youtube_id": null,
+            "canonical_url": "https://www.mlb.com/video/kendrick-s-stunning-go-ahead-hr",
+            "fallback_url": "https://www.mlb.com/video/kendrick-s-stunning-go-ahead-hr",
+            "backup_urls": [
+              "https://www.mlb.com/video/kendrick-s-stunning-go-ahead-hr"
+            ],
+            "start_sec": 0,
+            "end_sec": 77,
+            "reliability_rating": "A",
+            "event": "World Series Game 7 - Nationals vs Astros",
+            "year": 2019,
+            "athletes": "Howie Kendrick",
+            "setup": "Watch for the baseball behavior before the highlight result.",
+            "question": "What did Kendrick do right that a hype swing would have ruined?",
+            "choices": [
+              {
+                "id": "best_read",
+                "label": "He let the ball travel and stayed through his lane.",
+                "quality": "correct"
+              },
+              {
+                "id": "wrong_1",
+                "label": "Big spot means pull-side violence.",
+                "quality": "poor"
+              },
+              {
+                "id": "wrong_2",
+                "label": "Clutch means selling out for lift.",
+                "quality": "poor"
+              }
+            ],
+            "coach_breakdown": "Older hitters survive October because they trust path and timing under noise.",
+            "takeaway": "Under pressure, trust your best path."
+          },
+          "responses": {
+            "correct_id": "best_read",
+            "acceptable_ids": []
+          },
+          "feedback": {
+            "correct": "Older hitters survive October because they trust path and timing under noise.",
+            "wrong": "Rewatch the clip. The highlight is not the lesson; the decision before it is."
+          }
+        },
+        {
+          "type": "feedback",
+          "title": "Takeaway",
+          "content": "Under pressure, trust your best path."
+        }
+      ],
+      "feedback": {
+        "complete": "Under pressure, trust your best path."
+      },
+      "reward": {
+        "xp": 30,
+        "badge": null
+      },
+      "asset_rights_note": "External official/archive video. Store URL, fallback URL, reliability, and replacement notes. Verify embed behavior before publish."
+    },
+    {
+      "id": "fr_rays_2020_ws_game4",
+      "legacy_lesson_id": "fr_rays_2020_ws_game4",
+      "pillar_id": "team-chaos",
+      "unit_id": "chaos_finish",
+      "title": "Film Room: Stay in the Clip",
+      "subtitle": "Finish the play after the weird part.",
+      "difficulty_tier": "competitor",
+      "duration_sec": 211,
+      "xp_reward": 30,
+      "order_index": 9,
+      "is_checkpoint": false,
+      "is_boss": false,
+      "lesson_family": "Freeze/Film Read",
+      "sport_scope": "baseball",
+      "role_tags": [
+        "team",
+        "baserunner",
+        "outfielder",
+        "all"
+      ],
+      "skill_tags": [
+        "finish_play",
+        "chaos"
+      ],
+      "steps": [
+        {
+          "type": "spark",
+          "title": "Film Room: Stay in the Clip",
+          "content": "World Series Game 4 - Dodgers vs Rays (2020). Watch the moment through the Clutchr lens: one read, one decision, one takeaway."
+        },
+        {
+          "type": "decision",
+          "ui_variant": "film_room",
+          "data": {
+            "provider": "external_video",
+            "youtube_id": null,
+            "canonical_url": "https://www.mlb.com/video/rays-crazy-game-4-walk-off",
+            "fallback_url": "https://www.mlb.com/video/rays-crazy-game-4-walk-off",
+            "backup_urls": [
+              "https://www.mlb.com/video/rays-crazy-game-4-walk-off"
+            ],
+            "start_sec": 0,
+            "end_sec": 151,
+            "reliability_rating": "A",
+            "event": "World Series Game 4 - Dodgers vs Rays",
+            "year": 2020,
+            "athletes": "Brett Phillips and Randy Arozarena",
+            "setup": "Watch for the baseball behavior before the highlight result.",
+            "question": "Where did each team composure help or hurt?",
+            "choices": [
+              {
+                "id": "best_read",
+                "label": "The winning side never stopped the play; the losing side mentally did.",
+                "quality": "correct"
+              },
+              {
+                "id": "wrong_1",
+                "label": "The fall killed the run.",
+                "quality": "poor"
+              },
+              {
+                "id": "wrong_2",
+                "label": "Once the throw goes home the play is over.",
+                "quality": "poor"
+              }
+            ],
+            "coach_breakdown": "Chaos belongs to the team that keeps processing after the first break.",
+            "takeaway": "Finish the play after the weird part."
+          },
+          "responses": {
+            "correct_id": "best_read",
+            "acceptable_ids": []
+          },
+          "feedback": {
+            "correct": "Chaos belongs to the team that keeps processing after the first break.",
+            "wrong": "Rewatch the clip. The highlight is not the lesson; the decision before it is."
+          }
+        },
+        {
+          "type": "feedback",
+          "title": "Takeaway",
+          "content": "Finish the play after the weird part."
+        }
+      ],
+      "feedback": {
+        "complete": "Finish the play after the weird part."
+      },
+      "reward": {
+        "xp": 30,
+        "badge": null
+      },
+      "asset_rights_note": "External official/archive video. Store URL, fallback URL, reliability, and replacement notes. Verify embed behavior before publish."
+    },
+    {
+      "id": "fr_freeman_2024_ws_gs",
+      "legacy_lesson_id": "fr_freeman_2024_ws_gs",
+      "pillar_id": "pressure-resilience",
+      "unit_id": "injury_pressure",
+      "title": "Film Room: Star Move, Same Move",
+      "subtitle": "Pain changes the body, not the plan.",
+      "difficulty_tier": "competitor",
+      "duration_sec": 150,
+      "xp_reward": 30,
+      "order_index": 10,
+      "is_checkpoint": true,
+      "is_boss": false,
+      "lesson_family": "Freeze/Film Read",
+      "sport_scope": "baseball",
+      "role_tags": [
+        "hitter",
+        "team",
+        "all"
+      ],
+      "skill_tags": [
+        "injured_composure",
+        "pitch_selection"
+      ],
+      "steps": [
+        {
+          "type": "spark",
+          "title": "Film Room: Star Move, Same Move",
+          "content": "World Series Game 1 - Dodgers vs Yankees (2024). Watch the moment through the Clutchr lens: one read, one decision, one takeaway."
+        },
+        {
+          "type": "decision",
+          "ui_variant": "film_room",
+          "data": {
+            "provider": "external_video",
+            "youtube_id": null,
+            "canonical_url": "https://www.mlb.com/dodgers/video/freddie-freeman-hits-a-grand-slam-1-to-right-field-chris-taylor-scores-to",
+            "fallback_url": "https://www.mlb.com/dodgers/video/freddie-freeman-hits-a-grand-slam-1-to-right-field-chris-taylor-scores-to",
+            "backup_urls": [
+              "https://www.mlb.com/dodgers/video/freddie-freeman-hits-a-grand-slam-1-to-right-field-chris-taylor-scores-to"
+            ],
+            "start_sec": 0,
+            "end_sec": 90,
+            "reliability_rating": "A",
+            "event": "World Series Game 1 - Dodgers vs Yankees",
+            "year": 2024,
+            "athletes": "Freddie Freeman",
+            "setup": "Watch for the baseball behavior before the highlight result.",
+            "question": "What made this professional instead of emotional?",
+            "choices": [
+              {
+                "id": "best_read",
+                "label": "Same swing, same gather, right pitch.",
+                "quality": "correct"
+              },
+              {
+                "id": "wrong_1",
+                "label": "He overpowered the moment.",
+                "quality": "poor"
+              },
+              {
+                "id": "wrong_2",
+                "label": "Great players black out and react.",
+                "quality": "poor"
+              }
+            ],
+            "coach_breakdown": "Elite hitting in October still starts with count and pitch discipline.",
+            "takeaway": "Pain changes the body, not the plan."
+          },
+          "responses": {
+            "correct_id": "best_read",
+            "acceptable_ids": []
+          },
+          "feedback": {
+            "correct": "Elite hitting in October still starts with count and pitch discipline.",
+            "wrong": "Rewatch the clip. The highlight is not the lesson; the decision before it is."
+          }
+        },
+        {
+          "type": "feedback",
+          "title": "Takeaway",
+          "content": "Pain changes the body, not the plan."
+        }
+      ],
+      "feedback": {
+        "complete": "Pain changes the body, not the plan."
+      },
+      "reward": {
+        "xp": 30,
+        "badge": null
+      },
+      "asset_rights_note": "External official/archive video. Store URL, fallback URL, reliability, and replacement notes. Verify embed behavior before publish."
+    },
+    {
+      "id": "fr_ohtani_trout_wbc",
+      "legacy_lesson_id": "fr_ohtani_trout_wbc",
+      "pillar_id": "pressure-resilience",
+      "unit_id": "best_on_best",
+      "title": "Film Room: Best on Best",
+      "subtitle": "The moment gets simple when your plan is clear.",
+      "difficulty_tier": "competitor",
+      "duration_sec": 180,
+      "xp_reward": 30,
+      "order_index": 11,
+      "is_checkpoint": false,
+      "is_boss": true,
+      "lesson_family": "Freeze/Film Read",
+      "sport_scope": "baseball",
+      "role_tags": [
+        "pitcher",
+        "hitter",
+        "team",
+        "all"
+      ],
+      "skill_tags": [
+        "conviction",
+        "execution"
+      ],
+      "steps": [
+        {
+          "type": "spark",
+          "title": "Film Room: Best on Best",
+          "content": "World Baseball Classic Final - Japan vs USA (2023). Watch the moment through the Clutchr lens: one read, one decision, one takeaway."
+        },
+        {
+          "type": "decision",
+          "ui_variant": "film_room",
+          "data": {
+            "provider": "external_video",
+            "youtube_id": null,
+            "canonical_url": "https://www.mlb.com/news/shohei-ohtani-strikes-out-mike-trout-world-baseball-classic",
+            "fallback_url": "https://www.mlb.com/news/shohei-ohtani-strikes-out-mike-trout-world-baseball-classic",
+            "backup_urls": [
+              "https://www.mlb.com/news/shohei-ohtani-strikes-out-mike-trout-world-baseball-classic"
+            ],
+            "start_sec": 0,
+            "end_sec": 120,
+            "reliability_rating": "A/B",
+            "event": "World Baseball Classic Final - Japan vs USA",
+            "year": 2023,
+            "athletes": "Shohei Ohtani vs Mike Trout",
+            "setup": "Watch for the baseball behavior before the highlight result.",
+            "question": "What makes this feel like baseball pressure at its purest?",
+            "choices": [
+              {
+                "id": "best_read",
+                "label": "No hiding from the best hitter; conviction and execution decide the rep.",
+                "quality": "correct"
+              },
+              {
+                "id": "wrong_1",
+                "label": "The hype made the at-bat.",
+                "quality": "poor"
+              },
+              {
+                "id": "wrong_2",
+                "label": "Talent, not process, decided it.",
+                "quality": "poor"
+              }
+            ],
+            "coach_breakdown": "This is premium intent versus premium intent.",
+            "takeaway": "The moment gets simple when your plan is clear."
+          },
+          "responses": {
+            "correct_id": "best_read",
+            "acceptable_ids": []
+          },
+          "feedback": {
+            "correct": "This is premium intent versus premium intent.",
+            "wrong": "Rewatch the clip. The highlight is not the lesson; the decision before it is."
+          }
+        },
+        {
+          "type": "feedback",
+          "title": "Takeaway",
+          "content": "The moment gets simple when your plan is clear."
+        }
+      ],
+      "feedback": {
+        "complete": "The moment gets simple when your plan is clear."
+      },
+      "reward": {
+        "xp": 30,
+        "badge": null
+      },
+      "asset_rights_note": "External official/archive video. Store URL, fallback URL, reliability, and replacement notes. Verify embed behavior before publish."
+    },
+    {
+      "id": "fr_lsu_final_out_2023",
+      "legacy_lesson_id": "fr_lsu_final_out_2023",
+      "pillar_id": "team-chaos",
+      "unit_id": "closeout",
+      "title": "Film Room: Finish the Last Out",
+      "subtitle": "Win the final basic play before the pile-on.",
+      "difficulty_tier": "competitor",
+      "duration_sec": 194,
+      "xp_reward": 30,
+      "order_index": 12,
+      "is_checkpoint": true,
+      "is_boss": false,
+      "lesson_family": "Freeze/Film Read",
+      "sport_scope": "baseball",
+      "role_tags": [
+        "team",
+        "all"
+      ],
+      "skill_tags": [
+        "final_out",
+        "finish_rep"
+      ],
+      "steps": [
+        {
+          "type": "spark",
+          "title": "Film Room: Finish the Last Out",
+          "content": "Men College World Series Final - LSU vs Florida (2023). Watch the moment through the Clutchr lens: one read, one decision, one takeaway."
+        },
+        {
+          "type": "decision",
+          "ui_variant": "film_room",
+          "data": {
+            "provider": "external_video",
+            "youtube_id": null,
+            "canonical_url": "https://www.ncaa.com/video/baseball/2023-06-26/lsu-baseball-wins-2023-mens-college-world-series-final-out-0",
+            "fallback_url": "https://www.ncaa.com/video/baseball/2023-06-26/lsu-baseball-wins-2023-mens-college-world-series-final-out-0",
+            "backup_urls": [
+              "https://www.ncaa.com/video/baseball/2023-06-26/lsu-baseball-wins-2023-mens-college-world-series-final-out-0"
+            ],
+            "start_sec": 0,
+            "end_sec": 134,
+            "reliability_rating": "A",
+            "event": "Men College World Series Final - LSU vs Florida",
+            "year": 2023,
+            "athletes": "LSU Baseball",
+            "setup": "Watch for the baseball behavior before the highlight result.",
+            "question": "What does a clean closeout look like in college pressure?",
+            "choices": [
+              {
+                "id": "best_read",
+                "label": "Complete the basic execution before the celebration.",
+                "quality": "correct"
+              },
+              {
+                "id": "wrong_1",
+                "label": "The celebration is the lesson.",
+                "quality": "poor"
+              },
+              {
+                "id": "wrong_2",
+                "label": "The last out is automatic when you are up big.",
+                "quality": "poor"
+              }
+            ],
+            "coach_breakdown": "Players who respect the last rep tend to own the last rep.",
+            "takeaway": "Win the final basic play before the pile-on."
+          },
+          "responses": {
+            "correct_id": "best_read",
+            "acceptable_ids": []
+          },
+          "feedback": {
+            "correct": "Players who respect the last rep tend to own the last rep.",
+            "wrong": "Rewatch the clip. The highlight is not the lesson; the decision before it is."
+          }
+        },
+        {
+          "type": "feedback",
+          "title": "Takeaway",
+          "content": "Win the final basic play before the pile-on."
+        }
+      ],
+      "feedback": {
+        "complete": "Win the final basic play before the pile-on."
+      },
+      "reward": {
+        "xp": 30,
+        "badge": null
+      },
+      "asset_rights_note": "External official/archive video. Store URL, fallback URL, reliability, and replacement notes. Verify embed behavior before publish."
+    },
+    {
+      "id": "fr_pete_alonso_2024_wc",
+      "legacy_lesson_id": "fr_pete_alonso_2024_wc",
+      "pillar_id": "hitter-path",
+      "unit_id": "slump_pressure",
+      "title": "Film Room: Down 0-2, Still Hunting",
+      "subtitle": "Stay alive long enough to get your pitch.",
+      "difficulty_tier": "competitor",
+      "duration_sec": 108,
+      "xp_reward": 30,
+      "order_index": 13,
+      "is_checkpoint": false,
+      "is_boss": true,
+      "lesson_family": "Freeze/Film Read",
+      "sport_scope": "baseball",
+      "role_tags": [
+        "hitter",
+        "team",
+        "all"
+      ],
+      "skill_tags": [
+        "stay_alive",
+        "damage_pitch"
+      ],
+      "steps": [
+        {
+          "type": "spark",
+          "title": "Film Room: Down 0-2, Still Hunting",
+          "content": "NL Wild Card Game 3 - Mets vs Brewers (2024). Watch the moment through the Clutchr lens: one read, one decision, one takeaway."
+        },
+        {
+          "type": "decision",
+          "ui_variant": "film_room",
+          "data": {
+            "provider": "external_video",
+            "youtube_id": null,
+            "canonical_url": "https://www.mlb.com/video/pete-alonso-homers-1-on-a-line-drive-to-right-center-field-francisco-lind",
+            "fallback_url": "https://www.mlb.com/video/pete-alonso-homers-1-on-a-line-drive-to-right-center-field-francisco-lind",
+            "backup_urls": [
+              "https://www.mlb.com/video/pete-alonso-homers-1-on-a-line-drive-to-right-center-field-francisco-lind"
+            ],
+            "start_sec": 0,
+            "end_sec": 48,
+            "reliability_rating": "A",
+            "event": "NL Wild Card Game 3 - Mets vs Brewers",
+            "year": 2024,
+            "athletes": "Pete Alonso",
+            "setup": "Watch for the baseball behavior before the highlight result.",
+            "question": "What was the real win before the homer left the yard?",
+            "choices": [
+              {
+                "id": "best_read",
+                "label": "He stayed alive until the pitch he could attack arrived.",
+                "quality": "correct"
+              },
+              {
+                "id": "wrong_1",
+                "label": "He was just due.",
+                "quality": "poor"
+              },
+              {
+                "id": "wrong_2",
+                "label": "Slumps disappear because the moment is big.",
+                "quality": "poor"
+              }
+            ],
+            "coach_breakdown": "Slumps end when approach gets a real chance to cash.",
+            "takeaway": "Stay alive long enough to get your pitch."
+          },
+          "responses": {
+            "correct_id": "best_read",
+            "acceptable_ids": []
+          },
+          "feedback": {
+            "correct": "Slumps end when approach gets a real chance to cash.",
+            "wrong": "Rewatch the clip. The highlight is not the lesson; the decision before it is."
+          }
+        },
+        {
+          "type": "feedback",
+          "title": "Takeaway",
+          "content": "Stay alive long enough to get your pitch."
+        }
+      ],
+      "feedback": {
+        "complete": "Stay alive long enough to get your pitch."
+      },
+      "reward": {
+        "xp": 30,
+        "badge": null
+      },
+      "asset_rights_note": "External official/archive video. Store URL, fallback URL, reliability, and replacement notes. Verify embed behavior before publish."
+    },
+    {
+      "id": "fr_alonso_breakdown",
+      "legacy_lesson_id": "fr_alonso_breakdown",
+      "pillar_id": "opponent-intel",
+      "unit_id": "hitter_intel",
+      "title": "Film Room: Inside Alonso Biggest At-Bat",
+      "subtitle": "Scouting should simplify, not freeze, the swing.",
+      "difficulty_tier": "competitor",
+      "duration_sec": 240,
+      "xp_reward": 30,
+      "order_index": 14,
+      "is_checkpoint": false,
+      "is_boss": false,
+      "lesson_family": "Freeze/Film Read",
+      "sport_scope": "baseball",
+      "role_tags": [
+        "hitter",
+        "all"
+      ],
+      "skill_tags": [
+        "scouting",
+        "pitch_recognition"
+      ],
+      "steps": [
+        {
+          "type": "spark",
+          "title": "Film Room: Inside Alonso Biggest At-Bat",
+          "content": "NL Wild Card Game 3 breakdown (2024). Watch the moment through the Clutchr lens: one read, one decision, one takeaway."
+        },
+        {
+          "type": "decision",
+          "ui_variant": "film_room",
+          "data": {
+            "provider": "external_video",
+            "youtube_id": null,
+            "canonical_url": "https://www.mlb.com/news/pete-alonso-breaks-down-game-winning-home-run-off-devin-williams",
+            "fallback_url": "https://www.mlb.com/news/pete-alonso-breaks-down-game-winning-home-run-off-devin-williams",
+            "backup_urls": [
+              "https://www.mlb.com/news/pete-alonso-breaks-down-game-winning-home-run-off-devin-williams"
+            ],
+            "start_sec": 0,
+            "end_sec": 180,
+            "reliability_rating": "A",
+            "event": "NL Wild Card Game 3 breakdown",
+            "year": 2024,
+            "athletes": "Pete Alonso vs Devin Williams",
+            "setup": "Watch for the baseball behavior before the highlight result.",
+            "question": "What detail turned a huge moment into a readable at-bat?",
+            "choices": [
+              {
+                "id": "best_read",
+                "label": "Pre-at-bat intel sharpened the decision without creating guess-ball.",
+                "quality": "correct"
+              },
+              {
+                "id": "wrong_1",
+                "label": "He just sat dead red.",
+                "quality": "poor"
+              },
+              {
+                "id": "wrong_2",
+                "label": "Pressure cancels scouting.",
+                "quality": "poor"
+              }
+            ],
+            "coach_breakdown": "Real hitters use info to narrow the map, not erase it.",
+            "takeaway": "Scouting should simplify, not freeze, the swing."
+          },
+          "responses": {
+            "correct_id": "best_read",
+            "acceptable_ids": []
+          },
+          "feedback": {
+            "correct": "Real hitters use info to narrow the map, not erase it.",
+            "wrong": "Rewatch the clip. The highlight is not the lesson; the decision before it is."
+          }
+        },
+        {
+          "type": "feedback",
+          "title": "Takeaway",
+          "content": "Scouting should simplify, not freeze, the swing."
+        }
+      ],
+      "feedback": {
+        "complete": "Scouting should simplify, not freeze, the swing."
+      },
+      "reward": {
+        "xp": 30,
+        "badge": null
+      },
+      "asset_rights_note": "External official/archive video. Store URL, fallback URL, reliability, and replacement notes. Verify embed behavior before publish."
+    },
+    {
+      "id": "fr_trea_turner_wbc_gs",
+      "legacy_lesson_id": "fr_trea_turner_wbc_gs",
+      "pillar_id": "hitter-path",
+      "unit_id": "bases_loaded",
+      "title": "Film Room: Simple Zone, Massive Result",
+      "subtitle": "Do not let bases-loaded noise widen your plan.",
+      "difficulty_tier": "competitor",
+      "duration_sec": 90,
+      "xp_reward": 30,
+      "order_index": 15,
+      "is_checkpoint": true,
+      "is_boss": false,
+      "lesson_family": "Freeze/Film Read",
+      "sport_scope": "baseball",
+      "role_tags": [
+        "hitter",
+        "team",
+        "all"
+      ],
+      "skill_tags": [
+        "zone_control",
+        "leverage"
+      ],
+      "steps": [
+        {
+          "type": "spark",
+          "title": "Film Room: Simple Zone, Massive Result",
+          "content": "WBC Quarterfinal - USA vs Venezuela (2023). Watch the moment through the Clutchr lens: one read, one decision, one takeaway."
+        },
+        {
+          "type": "decision",
+          "ui_variant": "film_room",
+          "data": {
+            "provider": "external_video",
+            "youtube_id": null,
+            "canonical_url": "https://www.mlb.com/video/trea-turner-hits-a-grand-slam-2-to-left-field-tim-anderson-scores-bobby-w",
+            "fallback_url": "https://www.mlb.com/video/trea-turner-hits-a-grand-slam-2-to-left-field-tim-anderson-scores-bobby-w",
+            "backup_urls": [
+              "https://www.mlb.com/video/trea-turner-hits-a-grand-slam-2-to-left-field-tim-anderson-scores-bobby-w"
+            ],
+            "start_sec": 0,
+            "end_sec": 30,
+            "reliability_rating": "A",
+            "event": "WBC Quarterfinal - USA vs Venezuela",
+            "year": 2023,
+            "athletes": "Trea Turner",
+            "setup": "Watch for the baseball behavior before the highlight result.",
+            "question": "Why is this a better approach clip than a highlight clip?",
+            "choices": [
+              {
+                "id": "best_read",
+                "label": "He kept the zone simple even when the score got loud.",
+                "quality": "correct"
+              },
+              {
+                "id": "wrong_1",
+                "label": "Just react faster.",
+                "quality": "poor"
+              },
+              {
+                "id": "wrong_2",
+                "label": "Big swings are mandatory with bases loaded.",
+                "quality": "poor"
+              }
+            ],
+            "coach_breakdown": "The best pressure swings often look like normal leverage on the right pitch.",
+            "takeaway": "Do not let bases-loaded noise widen your plan."
+          },
+          "responses": {
+            "correct_id": "best_read",
+            "acceptable_ids": []
+          },
+          "feedback": {
+            "correct": "The best pressure swings often look like normal leverage on the right pitch.",
+            "wrong": "Rewatch the clip. The highlight is not the lesson; the decision before it is."
+          }
+        },
+        {
+          "type": "feedback",
+          "title": "Takeaway",
+          "content": "Do not let bases-loaded noise widen your plan."
+        }
+      ],
+      "feedback": {
+        "complete": "Do not let bases-loaded noise widen your plan."
+      },
+      "reward": {
+        "xp": 30,
+        "badge": null
+      },
+      "asset_rights_note": "External official/archive video. Store URL, fallback URL, reliability, and replacement notes. Verify embed behavior before publish."
+    },
+    {
+      "id": "fr_soto_2024_alcs_ab",
+      "legacy_lesson_id": "fr_soto_2024_alcs_ab",
+      "pillar_id": "hitter-path",
+      "unit_id": "at_bat_management",
+      "title": "Film Room: Seven Pitches to the Pennant",
+      "subtitle": "Own the at-bat before the highlight.",
+      "difficulty_tier": "competitor",
+      "duration_sec": 293,
+      "xp_reward": 30,
+      "order_index": 16,
+      "is_checkpoint": false,
+      "is_boss": true,
+      "lesson_family": "Freeze/Film Read",
+      "sport_scope": "baseball",
+      "role_tags": [
+        "hitter",
+        "all"
+      ],
+      "skill_tags": [
+        "sequence",
+        "approach"
+      ],
+      "steps": [
+        {
+          "type": "spark",
+          "title": "Film Room: Seven Pitches to the Pennant",
+          "content": "ALCS Game 5 - Yankees vs Guardians (2024). Watch the moment through the Clutchr lens: one read, one decision, one takeaway."
+        },
+        {
+          "type": "decision",
+          "ui_variant": "film_room",
+          "data": {
+            "provider": "external_video",
+            "youtube_id": null,
+            "canonical_url": "https://www.mlb.com/video/juan-soto-s-game-clinching-at-bat",
+            "fallback_url": "https://www.mlb.com/video/juan-soto-s-game-clinching-at-bat",
+            "backup_urls": [
+              "https://www.mlb.com/video/juan-soto-s-game-clinching-at-bat"
+            ],
+            "start_sec": 0,
+            "end_sec": 233,
+            "reliability_rating": "A",
+            "event": "ALCS Game 5 - Yankees vs Guardians",
+            "year": 2024,
+            "athletes": "Juan Soto",
+            "setup": "Watch for the baseball behavior before the highlight result.",
+            "question": "What was Soto doing better than being clutch?",
+            "choices": [
+              {
+                "id": "best_read",
+                "label": "He managed the full at-bat, not just the last pitch.",
+                "quality": "correct"
+              },
+              {
+                "id": "wrong_1",
+                "label": "One mistake pitch decided everything.",
+                "quality": "poor"
+              },
+              {
+                "id": "wrong_2",
+                "label": "Elite hitters guess right more.",
+                "quality": "poor"
+              }
+            ],
+            "coach_breakdown": "Clutch hitters often win the swing before the final pitch by mastering the sequence.",
+            "takeaway": "Own the at-bat before the highlight."
+          },
+          "responses": {
+            "correct_id": "best_read",
+            "acceptable_ids": []
+          },
+          "feedback": {
+            "correct": "Clutch hitters often win the swing before the final pitch by mastering the sequence.",
+            "wrong": "Rewatch the clip. The highlight is not the lesson; the decision before it is."
+          }
+        },
+        {
+          "type": "feedback",
+          "title": "Takeaway",
+          "content": "Own the at-bat before the highlight."
+        }
+      ],
+      "feedback": {
+        "complete": "Own the at-bat before the highlight."
+      },
+      "reward": {
+        "xp": 30,
+        "badge": null
+      },
+      "asset_rights_note": "External official/archive video. Store URL, fallback URL, reliability, and replacement notes. Verify embed behavior before publish."
+    },
+    {
+      "id": "fr_soto_breakdown",
+      "legacy_lesson_id": "fr_soto_breakdown",
+      "pillar_id": "opponent-intel",
+      "unit_id": "coach_eye",
+      "title": "Film Room: Soto Internal Read",
+      "subtitle": "Elite hitters remove noise in real time.",
+      "difficulty_tier": "competitor",
+      "duration_sec": 187,
+      "xp_reward": 30,
+      "order_index": 17,
+      "is_checkpoint": false,
+      "is_boss": false,
+      "lesson_family": "Freeze/Film Read",
+      "sport_scope": "baseball",
+      "role_tags": [
+        "hitter",
+        "all"
+      ],
+      "skill_tags": [
+        "pattern_recall",
+        "decision_ownership"
+      ],
+      "steps": [
+        {
+          "type": "spark",
+          "title": "Film Room: Soto Internal Read",
+          "content": "ALCS Game 5 breakdown (2024). Watch the moment through the Clutchr lens: one read, one decision, one takeaway."
+        },
+        {
+          "type": "decision",
+          "ui_variant": "film_room",
+          "data": {
+            "provider": "external_video",
+            "youtube_id": null,
+            "canonical_url": "https://www.mlb.com/video/juan-soto-breaks-down-his-epic-alcs-game-5-home-run",
+            "fallback_url": "https://www.mlb.com/video/juan-soto-breaks-down-his-epic-alcs-game-5-home-run",
+            "backup_urls": [
+              "https://www.mlb.com/video/juan-soto-breaks-down-his-epic-alcs-game-5-home-run"
+            ],
+            "start_sec": 0,
+            "end_sec": 127,
+            "reliability_rating": "A",
+            "event": "ALCS Game 5 breakdown",
+            "year": 2024,
+            "athletes": "Juan Soto",
+            "setup": "Watch for the baseball behavior before the highlight result.",
+            "question": "What cues was Soto actually using?",
+            "choices": [
+              {
+                "id": "best_read",
+                "label": "He was narrowing the menu through the at-bat.",
+                "quality": "correct"
+              },
+              {
+                "id": "wrong_1",
+                "label": "He knew exactly what was coming.",
+                "quality": "poor"
+              },
+              {
+                "id": "wrong_2",
+                "label": "Great hitters do not think in the box.",
+                "quality": "poor"
+              }
+            ],
+            "coach_breakdown": "Great player explanations reveal what was filtered out, not just what was seen.",
+            "takeaway": "Elite hitters remove noise in real time."
+          },
+          "responses": {
+            "correct_id": "best_read",
+            "acceptable_ids": []
+          },
+          "feedback": {
+            "correct": "Great player explanations reveal what was filtered out, not just what was seen.",
+            "wrong": "Rewatch the clip. The highlight is not the lesson; the decision before it is."
+          }
+        },
+        {
+          "type": "feedback",
+          "title": "Takeaway",
+          "content": "Elite hitters remove noise in real time."
+        }
+      ],
+      "feedback": {
+        "complete": "Elite hitters remove noise in real time."
+      },
+      "reward": {
+        "xp": 30,
+        "badge": null
+      },
+      "asset_rights_note": "External official/archive video. Store URL, fallback URL, reliability, and replacement notes. Verify embed behavior before publish."
+    },
+    {
+      "id": "fr_yordan_alvarez_2022_alds",
+      "legacy_lesson_id": "fr_yordan_alvarez_2022_alds",
+      "pillar_id": "hitter-path",
+      "unit_id": "early_attack",
+      "title": "Film Room: Two Pitches, Whole Series Tone",
+      "subtitle": "If the pitch is yours early, take it early.",
+      "difficulty_tier": "competitor",
+      "duration_sec": 93,
+      "xp_reward": 30,
+      "order_index": 18,
+      "is_checkpoint": true,
+      "is_boss": false,
+      "lesson_family": "Freeze/Film Read",
+      "sport_scope": "baseball",
+      "role_tags": [
+        "hitter",
+        "team",
+        "all"
+      ],
+      "skill_tags": [
+        "early_count",
+        "selective_aggression"
+      ],
+      "steps": [
+        {
+          "type": "spark",
+          "title": "Film Room: Two Pitches, Whole Series Tone",
+          "content": "ALDS Game 1 - Astros vs Mariners (2022). Watch the moment through the Clutchr lens: one read, one decision, one takeaway."
+        },
+        {
+          "type": "decision",
+          "ui_variant": "film_room",
+          "data": {
+            "provider": "external_video",
+            "youtube_id": null,
+            "canonical_url": "https://www.mlb.com/video/yordan-alvarez-homers-1-on-a-line-drive-to-right-field-jake-meyers-scores",
+            "fallback_url": "https://www.mlb.com/video/yordan-alvarez-homers-1-on-a-line-drive-to-right-field-jake-meyers-scores",
+            "backup_urls": [
+              "https://www.mlb.com/video/yordan-alvarez-homers-1-on-a-line-drive-to-right-field-jake-meyers-scores"
+            ],
+            "start_sec": 0,
+            "end_sec": 33,
+            "reliability_rating": "A",
+            "event": "ALDS Game 1 - Astros vs Mariners",
+            "year": 2022,
+            "athletes": "Yordan Alvarez",
+            "setup": "Watch for the baseball behavior before the highlight result.",
+            "question": "Why does this teach count leverage better than pure power?",
+            "choices": [
+              {
+                "id": "best_read",
+                "label": "He was ready to attack early because the zone picture was clear.",
+                "quality": "correct"
+              },
+              {
+                "id": "wrong_1",
+                "label": "Ambush means reckless.",
+                "quality": "poor"
+              },
+              {
+                "id": "wrong_2",
+                "label": "Power hitters should always wait.",
+                "quality": "poor"
+              }
+            ],
+            "coach_breakdown": "Selective aggression is still aggression.",
+            "takeaway": "If the pitch is yours early, take it early."
+          },
+          "responses": {
+            "correct_id": "best_read",
+            "acceptable_ids": []
+          },
+          "feedback": {
+            "correct": "Selective aggression is still aggression.",
+            "wrong": "Rewatch the clip. The highlight is not the lesson; the decision before it is."
+          }
+        },
+        {
+          "type": "feedback",
+          "title": "Takeaway",
+          "content": "If the pitch is yours early, take it early."
+        }
+      ],
+      "feedback": {
+        "complete": "If the pitch is yours early, take it early."
+      },
+      "reward": {
+        "xp": 30,
+        "badge": null
+      },
+      "asset_rights_note": "External official/archive video. Store URL, fallback URL, reliability, and replacement notes. Verify embed behavior before publish."
+    },
+    {
+      "id": "fr_yordan_breakdown",
+      "legacy_lesson_id": "fr_yordan_breakdown",
+      "pillar_id": "opponent-intel",
+      "unit_id": "coach_eye",
+      "title": "Film Room: What Yordan Knew",
+      "subtitle": "Confidence gets stronger when it has specifics.",
+      "difficulty_tier": "competitor",
+      "duration_sec": 155,
+      "xp_reward": 30,
+      "order_index": 19,
+      "is_checkpoint": false,
+      "is_boss": false,
+      "lesson_family": "Freeze/Film Read",
+      "sport_scope": "baseball",
+      "role_tags": [
+        "hitter",
+        "all"
+      ],
+      "skill_tags": [
+        "informational_confidence",
+        "plan"
+      ],
+      "steps": [
+        {
+          "type": "spark",
+          "title": "Film Room: What Yordan Knew",
+          "content": "ALDS Game 1 postgame breakdown (2022). Watch the moment through the Clutchr lens: one read, one decision, one takeaway."
+        },
+        {
+          "type": "decision",
+          "ui_variant": "film_room",
+          "data": {
+            "provider": "external_video",
+            "youtube_id": null,
+            "canonical_url": "https://www.mlb.com/astros/video/alvarez-on-walk-off-home-run",
+            "fallback_url": "https://www.mlb.com/astros/video/alvarez-on-walk-off-home-run",
+            "backup_urls": [
+              "https://www.mlb.com/astros/video/alvarez-on-walk-off-home-run"
+            ],
+            "start_sec": 0,
+            "end_sec": 95,
+            "reliability_rating": "A",
+            "event": "ALDS Game 1 postgame breakdown",
+            "year": 2022,
+            "athletes": "Yordan Alvarez",
+            "setup": "Watch for the baseball behavior before the highlight result.",
+            "question": "What kind of confidence shows up here: emotional or informational?",
+            "choices": [
+              {
+                "id": "best_read",
+                "label": "Informational confidence.",
+                "quality": "correct"
+              },
+              {
+                "id": "wrong_1",
+                "label": "Swagger is the plan.",
+                "quality": "poor"
+              },
+              {
+                "id": "wrong_2",
+                "label": "Big hitters ignore detail.",
+                "quality": "poor"
+              }
+            ],
+            "coach_breakdown": "The calmer the hitter explanation, the more you usually hear a real plan.",
+            "takeaway": "Confidence gets stronger when it has specifics."
+          },
+          "responses": {
+            "correct_id": "best_read",
+            "acceptable_ids": []
+          },
+          "feedback": {
+            "correct": "The calmer the hitter explanation, the more you usually hear a real plan.",
+            "wrong": "Rewatch the clip. The highlight is not the lesson; the decision before it is."
+          }
+        },
+        {
+          "type": "feedback",
+          "title": "Takeaway",
+          "content": "Confidence gets stronger when it has specifics."
+        }
+      ],
+      "feedback": {
+        "complete": "Confidence gets stronger when it has specifics."
+      },
+      "reward": {
+        "xp": 30,
+        "badge": null
+      },
+      "asset_rights_note": "External official/archive video. Store URL, fallback URL, reliability, and replacement notes. Verify embed behavior before publish."
+    },
+    {
+      "id": "fr_harper_2022_nlcs",
+      "legacy_lesson_id": "fr_harper_2022_nlcs",
+      "pillar_id": "team-chaos",
+      "unit_id": "leadership_rep",
+      "title": "Film Room: Swing as Leadership",
+      "subtitle": "One great rep can move a whole team state.",
+      "difficulty_tier": "competitor",
+      "duration_sec": 98,
+      "xp_reward": 30,
+      "order_index": 20,
+      "is_checkpoint": true,
+      "is_boss": false,
+      "lesson_family": "Freeze/Film Read",
+      "sport_scope": "baseball",
+      "role_tags": [
+        "hitter",
+        "team",
+        "all"
+      ],
+      "skill_tags": [
+        "leadership",
+        "conviction"
+      ],
+      "steps": [
+        {
+          "type": "spark",
+          "title": "Film Room: Swing as Leadership",
+          "content": "NLCS Game 5 - Phillies vs Padres (2022). Watch the moment through the Clutchr lens: one read, one decision, one takeaway."
+        },
+        {
+          "type": "decision",
+          "ui_variant": "film_room",
+          "data": {
+            "provider": "external_video",
+            "youtube_id": null,
+            "canonical_url": "https://www.mlb.com/phillies/video/iconic-moment-harper-s-clutch-hr",
+            "fallback_url": "https://www.mlb.com/phillies/video/iconic-moment-harper-s-clutch-hr",
+            "backup_urls": [
+              "https://www.mlb.com/phillies/video/iconic-moment-harper-s-clutch-hr"
+            ],
+            "start_sec": 0,
+            "end_sec": 38,
+            "reliability_rating": "A",
+            "event": "NLCS Game 5 - Phillies vs Padres",
+            "year": 2022,
+            "athletes": "Bryce Harper",
+            "setup": "Watch for the baseball behavior before the highlight result.",
+            "question": "What is the leadership piece hidden inside this swing?",
+            "choices": [
+              {
+                "id": "best_read",
+                "label": "His conviction transfers belief to the entire dugout.",
+                "quality": "correct"
+              },
+              {
+                "id": "wrong_1",
+                "label": "Leadership is what you say after.",
+                "quality": "poor"
+              },
+              {
+                "id": "wrong_2",
+                "label": "Emotion alone creates the barrel.",
+                "quality": "poor"
+              }
+            ],
+            "coach_breakdown": "Sometimes leadership is visible in the quality of the rep itself.",
+            "takeaway": "One great rep can move a whole team state."
+          },
+          "responses": {
+            "correct_id": "best_read",
+            "acceptable_ids": []
+          },
+          "feedback": {
+            "correct": "Sometimes leadership is visible in the quality of the rep itself.",
+            "wrong": "Rewatch the clip. The highlight is not the lesson; the decision before it is."
+          }
+        },
+        {
+          "type": "feedback",
+          "title": "Takeaway",
+          "content": "One great rep can move a whole team state."
+        }
+      ],
+      "feedback": {
+        "complete": "One great rep can move a whole team state."
+      },
+      "reward": {
+        "xp": 30,
+        "badge": null
+      },
+      "asset_rights_note": "External official/archive video. Store URL, fallback URL, reliability, and replacement notes. Verify embed behavior before publish."
+    },
+    {
+      "id": "fr_kendrick_2019_nlds",
+      "legacy_lesson_id": "fr_kendrick_2019_nlds",
+      "pillar_id": "hitter-path",
+      "unit_id": "extra_inning_pressure",
+      "title": "Film Room: Truck in the Tenth",
+      "subtitle": "The barrel path still decides the moment.",
+      "difficulty_tier": "competitor",
+      "duration_sec": 210,
+      "xp_reward": 30,
+      "order_index": 21,
+      "is_checkpoint": false,
+      "is_boss": false,
+      "lesson_family": "Freeze/Film Read",
+      "sport_scope": "baseball",
+      "role_tags": [
+        "hitter",
+        "team",
+        "all"
+      ],
+      "skill_tags": [
+        "veteran_path",
+        "stay_through"
+      ],
+      "steps": [
+        {
+          "type": "spark",
+          "title": "Film Room: Truck in the Tenth",
+          "content": "NLDS Game 5 - Nationals vs Dodgers (2019). Watch the moment through the Clutchr lens: one read, one decision, one takeaway."
+        },
+        {
+          "type": "decision",
+          "ui_variant": "film_room",
+          "data": {
+            "provider": "external_video",
+            "youtube_id": null,
+            "canonical_url": "https://www.mlb.com/news/howie-kendrick-grand-slam-nlds-game-5",
+            "fallback_url": "https://www.mlb.com/news/howie-kendrick-grand-slam-nlds-game-5",
+            "backup_urls": [
+              "https://www.mlb.com/news/howie-kendrick-grand-slam-nlds-game-5"
+            ],
+            "start_sec": 0,
+            "end_sec": 150,
+            "reliability_rating": "A/B",
+            "event": "NLDS Game 5 - Nationals vs Dodgers",
+            "year": 2019,
+            "athletes": "Howie Kendrick",
+            "setup": "Watch for the baseball behavior before the highlight result.",
+            "question": "What was mature about the swing path here?",
+            "choices": [
+              {
+                "id": "best_read",
+                "label": "Staying through the fastball instead of trying to create magic by hand speed alone.",
+                "quality": "correct"
+              },
+              {
+                "id": "wrong_1",
+                "label": "Extra innings require hero mechanics.",
+                "quality": "poor"
+              },
+              {
+                "id": "wrong_2",
+                "label": "Veterans can coast on feel.",
+                "quality": "poor"
+              }
+            ],
+            "coach_breakdown": "Pressure and path are tied together.",
+            "takeaway": "The barrel path still decides the moment."
+          },
+          "responses": {
+            "correct_id": "best_read",
+            "acceptable_ids": []
+          },
+          "feedback": {
+            "correct": "Pressure and path are tied together.",
+            "wrong": "Rewatch the clip. The highlight is not the lesson; the decision before it is."
+          }
+        },
+        {
+          "type": "feedback",
+          "title": "Takeaway",
+          "content": "The barrel path still decides the moment."
+        }
+      ],
+      "feedback": {
+        "complete": "The barrel path still decides the moment."
+      },
+      "reward": {
+        "xp": 30,
+        "badge": null
+      },
+      "asset_rights_note": "External official/archive video. Store URL, fallback URL, reliability, and replacement notes. Verify embed behavior before publish."
+    },
+    {
+      "id": "fr_ortiz_2004_alds",
+      "legacy_lesson_id": "fr_ortiz_2004_alds",
+      "pillar_id": "hitter-path",
+      "unit_id": "walkoff_approach",
+      "title": "Film Room: Walk-Off Ready",
+      "subtitle": "A walk-off is still one well-managed at-bat.",
+      "difficulty_tier": "competitor",
+      "duration_sec": 156,
+      "xp_reward": 30,
+      "order_index": 22,
+      "is_checkpoint": true,
+      "is_boss": false,
+      "lesson_family": "Freeze/Film Read",
+      "sport_scope": "baseball",
+      "role_tags": [
+        "hitter",
+        "team",
+        "all"
+      ],
+      "skill_tags": [
+        "walkoff",
+        "discipline"
+      ],
+      "steps": [
+        {
+          "type": "spark",
+          "title": "Film Room: Walk-Off Ready",
+          "content": "ALDS Clincher - Red Sox vs Angels (2004). Watch the moment through the Clutchr lens: one read, one decision, one takeaway."
+        },
+        {
+          "type": "decision",
+          "ui_variant": "film_room",
+          "data": {
+            "provider": "external_video",
+            "youtube_id": null,
+            "canonical_url": "https://www.mlb.com/video/david-ortiz-ends-alds-with-hr",
+            "fallback_url": "https://www.mlb.com/video/david-ortiz-ends-alds-with-hr",
+            "backup_urls": [
+              "https://www.mlb.com/video/david-ortiz-ends-alds-with-hr"
+            ],
+            "start_sec": 0,
+            "end_sec": 96,
+            "reliability_rating": "A",
+            "event": "ALDS Clincher - Red Sox vs Angels",
+            "year": 2004,
+            "athletes": "David Ortiz",
+            "setup": "Watch for the baseball behavior before the highlight result.",
+            "question": "What hitter behavior says walk-off ready here?",
+            "choices": [
+              {
+                "id": "best_read",
+                "label": "No expansion, no over-rotation, clear barrel intent.",
+                "quality": "correct"
+              },
+              {
+                "id": "wrong_1",
+                "label": "Walk-off swings are different swings.",
+                "quality": "poor"
+              },
+              {
+                "id": "wrong_2",
+                "label": "Closers beat hitters unless the hitter guesses.",
+                "quality": "poor"
+              }
+            ],
+            "coach_breakdown": "The walk-off myth is usually just a disciplined swing with fireworks after it.",
+            "takeaway": "A walk-off is still one well-managed at-bat."
+          },
+          "responses": {
+            "correct_id": "best_read",
+            "acceptable_ids": []
+          },
+          "feedback": {
+            "correct": "The walk-off myth is usually just a disciplined swing with fireworks after it.",
+            "wrong": "Rewatch the clip. The highlight is not the lesson; the decision before it is."
+          }
+        },
+        {
+          "type": "feedback",
+          "title": "Takeaway",
+          "content": "A walk-off is still one well-managed at-bat."
+        }
+      ],
+      "feedback": {
+        "complete": "A walk-off is still one well-managed at-bat."
+      },
+      "reward": {
+        "xp": 30,
+        "badge": null
+      },
+      "asset_rights_note": "External official/archive video. Store URL, fallback URL, reliability, and replacement notes. Verify embed behavior before publish."
+    },
+    {
+      "id": "fr_ortiz_2013_alcs",
+      "legacy_lesson_id": "fr_ortiz_2013_alcs",
+      "pillar_id": "pressure-resilience",
+      "unit_id": "quiet_offense",
+      "title": "Film Room: Stay Available",
+      "subtitle": "You only need one real pitch if you are still ready for it.",
+      "difficulty_tier": "competitor",
+      "duration_sec": 180,
+      "xp_reward": 30,
+      "order_index": 23,
+      "is_checkpoint": false,
+      "is_boss": true,
+      "lesson_family": "Freeze/Film Read",
+      "sport_scope": "baseball",
+      "role_tags": [
+        "hitter",
+        "team",
+        "all"
+      ],
+      "skill_tags": [
+        "staying_available",
+        "team_momentum"
+      ],
+      "steps": [
+        {
+          "type": "spark",
+          "title": "Film Room: Stay Available",
+          "content": "ALCS Game 2 - Red Sox vs Tigers (2013). Watch the moment through the Clutchr lens: one read, one decision, one takeaway."
+        },
+        {
+          "type": "decision",
+          "ui_variant": "film_room",
+          "data": {
+            "provider": "external_video",
+            "youtube_id": null,
+            "canonical_url": "https://www.mlb.com/news/david-ortiz-clutch-grand-slam-2013-alcs",
+            "fallback_url": "https://www.mlb.com/news/david-ortiz-clutch-grand-slam-2013-alcs",
+            "backup_urls": [
+              "https://www.mlb.com/news/david-ortiz-clutch-grand-slam-2013-alcs"
+            ],
+            "start_sec": 0,
+            "end_sec": 120,
+            "reliability_rating": "A/B",
+            "event": "ALCS Game 2 - Red Sox vs Tigers",
+            "year": 2013,
+            "athletes": "David Ortiz",
+            "setup": "Watch for the baseball behavior before the highlight result.",
+            "question": "What matters more here: swing violence or staying available for one mistake?",
+            "choices": [
+              {
+                "id": "best_read",
+                "label": "Staying available.",
+                "quality": "correct"
+              },
+              {
+                "id": "wrong_1",
+                "label": "He muscled the whole game around.",
+                "quality": "poor"
+              },
+              {
+                "id": "wrong_2",
+                "label": "A cold hitter must force the issue.",
+                "quality": "poor"
+              }
+            ],
+            "coach_breakdown": "Quiet series or loud series, the at-bat stays the at-bat.",
+            "takeaway": "You only need one real pitch if you are still ready for it."
+          },
+          "responses": {
+            "correct_id": "best_read",
+            "acceptable_ids": []
+          },
+          "feedback": {
+            "correct": "Quiet series or loud series, the at-bat stays the at-bat.",
+            "wrong": "Rewatch the clip. The highlight is not the lesson; the decision before it is."
+          }
+        },
+        {
+          "type": "feedback",
+          "title": "Takeaway",
+          "content": "You only need one real pitch if you are still ready for it."
+        }
+      ],
+      "feedback": {
+        "complete": "You only need one real pitch if you are still ready for it."
+      },
+      "reward": {
+        "xp": 30,
+        "badge": null
+      },
+      "asset_rights_note": "External official/archive video. Store URL, fallback URL, reliability, and replacement notes. Verify embed behavior before publish."
+    },
+    {
+      "id": "fr_bautista_bat_flip",
+      "legacy_lesson_id": "fr_bautista_bat_flip",
+      "pillar_id": "pressure-resilience",
+      "unit_id": "emotion_control",
+      "title": "Film Room: Swing First, Stare Later",
+      "subtitle": "Do not copy the celebration before you copy the read.",
+      "difficulty_tier": "competitor",
+      "duration_sec": 180,
+      "xp_reward": 30,
+      "order_index": 24,
+      "is_checkpoint": false,
+      "is_boss": false,
+      "lesson_family": "Freeze/Film Read",
+      "sport_scope": "baseball",
+      "role_tags": [
+        "hitter",
+        "team",
+        "all"
+      ],
+      "skill_tags": [
+        "emotion",
+        "zone_control"
+      ],
+      "steps": [
+        {
+          "type": "spark",
+          "title": "Film Room: Swing First, Stare Later",
+          "content": "ALDS Game 5 - Blue Jays vs Rangers (2015). Watch the moment through the Clutchr lens: one read, one decision, one takeaway."
+        },
+        {
+          "type": "decision",
+          "ui_variant": "film_room",
+          "data": {
+            "provider": "external_video",
+            "youtube_id": null,
+            "canonical_url": "https://www.mlb.com/news/jose-bautista-bat-flip-game",
+            "fallback_url": "https://www.mlb.com/news/jose-bautista-bat-flip-game",
+            "backup_urls": [
+              "https://www.mlb.com/news/jose-bautista-bat-flip-game"
+            ],
+            "start_sec": 0,
+            "end_sec": 120,
+            "reliability_rating": "A",
+            "event": "ALDS Game 5 - Blue Jays vs Rangers",
+            "year": 2015,
+            "athletes": "Jose Bautista",
+            "setup": "Watch for the baseball behavior before the highlight result.",
+            "question": "What part of this moment is teachable, and what part is theater?",
+            "choices": [
+              {
+                "id": "best_read",
+                "label": "The swing decision is teachable; the celebration is optional.",
+                "quality": "correct"
+              },
+              {
+                "id": "wrong_1",
+                "label": "The bat flip is the lesson.",
+                "quality": "poor"
+              },
+              {
+                "id": "wrong_2",
+                "label": "Emotion created the barrel.",
+                "quality": "poor"
+              }
+            ],
+            "coach_breakdown": "Players copy the wrong half of this clip all the time.",
+            "takeaway": "Do not copy the celebration before you copy the read."
+          },
+          "responses": {
+            "correct_id": "best_read",
+            "acceptable_ids": []
+          },
+          "feedback": {
+            "correct": "Players copy the wrong half of this clip all the time.",
+            "wrong": "Rewatch the clip. The highlight is not the lesson; the decision before it is."
+          }
+        },
+        {
+          "type": "feedback",
+          "title": "Takeaway",
+          "content": "Do not copy the celebration before you copy the read."
+        }
+      ],
+      "feedback": {
+        "complete": "Do not copy the celebration before you copy the read."
+      },
+      "reward": {
+        "xp": 30,
+        "badge": null
+      },
+      "asset_rights_note": "External official/archive video. Store URL, fallback URL, reliability, and replacement notes. Verify embed behavior before publish."
+    },
+    {
+      "id": "fr_adolis_garcia_2023_alcs",
+      "legacy_lesson_id": "fr_adolis_garcia_2023_alcs",
+      "pillar_id": "pressure-resilience",
+      "unit_id": "hostile_environment",
+      "title": "Film Room: Hit Through the Noise",
+      "subtitle": "Use the edge; do not let the edge use you.",
+      "difficulty_tier": "competitor",
+      "duration_sec": 90,
+      "xp_reward": 30,
+      "order_index": 25,
+      "is_checkpoint": true,
+      "is_boss": false,
+      "lesson_family": "Freeze/Film Read",
+      "sport_scope": "baseball",
+      "role_tags": [
+        "hitter",
+        "team",
+        "all"
+      ],
+      "skill_tags": [
+        "emotion_organization",
+        "recovery"
+      ],
+      "steps": [
+        {
+          "type": "spark",
+          "title": "Film Room: Hit Through the Noise",
+          "content": "ALCS Game 6 - Rangers vs Astros (2023). Watch the moment through the Clutchr lens: one read, one decision, one takeaway."
+        },
+        {
+          "type": "decision",
+          "ui_variant": "film_room",
+          "data": {
+            "provider": "external_video",
+            "youtube_id": null,
+            "canonical_url": "https://www.mlb.com/video/adolis-garcia-hits-a-grand-slam-5-to-left-field-leody-taveras-scores-marc",
+            "fallback_url": "https://www.mlb.com/video/adolis-garcia-hits-a-grand-slam-5-to-left-field-leody-taveras-scores-marc",
+            "backup_urls": [
+              "https://www.mlb.com/video/adolis-garcia-hits-a-grand-slam-5-to-left-field-leody-taveras-scores-marc"
+            ],
+            "start_sec": 0,
+            "end_sec": 27,
+            "reliability_rating": "A",
+            "event": "ALCS Game 6 - Rangers vs Astros",
+            "year": 2023,
+            "athletes": "Adolis Garcia",
+            "setup": "Watch for the baseball behavior before the highlight result.",
+            "question": "Why is this a recovery clip, not just a power clip?",
+            "choices": [
+              {
+                "id": "best_read",
+                "label": "He did not carry emotional debt into the next decision.",
+                "quality": "correct"
+              },
+              {
+                "id": "wrong_1",
+                "label": "Anger made him better.",
+                "quality": "poor"
+              },
+              {
+                "id": "wrong_2",
+                "label": "Hostile environments automatically fuel stars.",
+                "quality": "poor"
+              }
+            ],
+            "coach_breakdown": "Emotion can fuel attention, but only if it stays organized.",
+            "takeaway": "Use the edge; do not let the edge use you."
+          },
+          "responses": {
+            "correct_id": "best_read",
+            "acceptable_ids": []
+          },
+          "feedback": {
+            "correct": "Emotion can fuel attention, but only if it stays organized.",
+            "wrong": "Rewatch the clip. The highlight is not the lesson; the decision before it is."
+          }
+        },
+        {
+          "type": "feedback",
+          "title": "Takeaway",
+          "content": "Use the edge; do not let the edge use you."
+        }
+      ],
+      "feedback": {
+        "complete": "Use the edge; do not let the edge use you."
+      },
+      "reward": {
+        "xp": 30,
+        "badge": null
+      },
+      "asset_rights_note": "External official/archive video. Store URL, fallback URL, reliability, and replacement notes. Verify embed behavior before publish."
+    }
+  ]
+}

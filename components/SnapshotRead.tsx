@@ -1,78 +1,144 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import React, { useRef, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { Animated, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Colors, Radius, Spacing } from '@/constants/theme';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
+export type SnapshotCueQuality = 'correct' | 'acceptable' | 'poor';
+
 export interface SnapshotCue {
   id: string;
   label: string;
-  quality: 'correct' | 'acceptable' | 'poor';
-  feedback: string;
+  description?: string;
+  quality?: SnapshotCueQuality;
+  feedback?: string;
 }
 
 export interface SnapshotOverlayLabel {
-  text: string;
-  position: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | 'center';
+  // New format: normalized x/y in [0, 1]
+  id?: string;
+  label?: string;
+  x?: number;
+  y?: number;
+  // Old format: positional string
+  text?: string;
+  position?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | 'center';
 }
 
 export interface SnapshotReadData {
-  prompt: string;
-  situation: string;
-  cue_description: string;
+  prompt?: string;
+  situation?: string;
+  cue_description?: string;
   image_uri?: string;
   overlay_labels?: SnapshotOverlayLabel[];
-  diagram_mode?: 'pitcher_delivery' | 'hand_break' | 'release_point' | 'batter_stance';
-  cues: SnapshotCue[];
-  question: string;
+  diagram_mode?: 'pitcher_delivery' | 'hand_break' | 'release_point' | 'batter_stance' | 'field_map' | 'runner_read';
+  cues?: SnapshotCue[];
+  question?: string;
 }
 
 export interface SnapshotReadResponses {
-  correct_id: string;
+  correct_id?: string;
   acceptable_ids?: string[];
 }
 
 export interface SnapshotReadFeedback {
-  correct: string;
-  acceptable: string;
-  poor: string;
+  correct?: string;
+  acceptable?: string;
+  wrong?: string;
+  poor?: string; // backward-compat alias for wrong
 }
 
 interface Props {
   data: SnapshotReadData;
-  responses: SnapshotReadResponses;
-  feedback: SnapshotReadFeedback;
+  responses?: SnapshotReadResponses;
+  feedback?: SnapshotReadFeedback;
   onComplete: (passed: boolean) => void;
 }
 
+// ─── Quality derivation ───────────────────────────────────────────────────────
+
+function deriveCueQuality(cue: SnapshotCue, responses: SnapshotReadResponses | undefined): SnapshotCueQuality {
+  if (cue.quality) return cue.quality;
+  if (responses?.correct_id && responses.correct_id === cue.id) return 'correct';
+  if (responses?.acceptable_ids?.includes(cue.id)) return 'acceptable';
+  if (__DEV__) {
+    // eslint-disable-next-line no-console
+    console.warn(`[SnapshotRead] Cue "${cue.id}" has no quality and no matching response. Defaulting to poor.`);
+  }
+  return 'poor';
+}
+
+// ─── Malformed fallback ───────────────────────────────────────────────────────
+
+function MalformedSnapshotCard({ onSkip }: { onSkip: () => void }) {
+  return (
+    <View style={mStyles.card}>
+      <View style={mStyles.iconRow}>
+        <Ionicons name="construct-outline" size={22} color={Colors.warning} />
+        <Text style={mStyles.title}>This rep needs an update.</Text>
+      </View>
+      <Text style={mStyles.body}>
+        This Snapshot Read is missing key data. Tap below to skip and keep the session going.
+      </Text>
+      <Pressable style={mStyles.btn} onPress={onSkip}>
+        <Text style={mStyles.btnText}>Skip Step →</Text>
+      </Pressable>
+    </View>
+  );
+}
+
+const mStyles = StyleSheet.create({
+  card: {
+    backgroundColor: Colors.surface,
+    borderRadius: Radius.xl,
+    borderWidth: 1.5,
+    borderColor: Colors.warningBorder,
+    padding: Spacing.xl,
+    gap: Spacing.md,
+  },
+  iconRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
+  title: { fontSize: 15, fontFamily: 'Inter_700Bold', color: Colors.textPrimary, flex: 1 },
+  body: { fontSize: 13, fontFamily: 'Inter_400Regular', color: Colors.textSecondary, lineHeight: 19 },
+  btn: {
+    alignSelf: 'flex-start',
+    borderRadius: Radius.pill,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+    backgroundColor: Colors.warningMuted,
+    borderWidth: 1,
+    borderColor: Colors.warningBorder,
+  },
+  btnText: { fontSize: 13, fontFamily: 'Inter_600SemiBold', color: Colors.warning },
+});
+
 // ─── Diagram modes ────────────────────────────────────────────────────────────
 
-function DiagramCard({ mode, cueDesc }: { mode?: string; cueDesc: string }) {
+function DiagramCard({ mode, cueDesc }: { mode?: string; cueDesc?: string }) {
   const config: Record<string, { icon: string; color: string; label: string }> = {
     pitcher_delivery: { icon: 'body', color: Colors.warning, label: 'PITCHER' },
-    hand_break:       { icon: 'hand-left', color: Colors.info ?? '#4BA3E3', label: 'HAND BREAK' },
+    hand_break:       { icon: 'hand-left', color: Colors.info, label: 'HAND BREAK' },
     release_point:    { icon: 'radio-button-on', color: Colors.primary, label: 'RELEASE' },
     batter_stance:    { icon: 'person', color: '#BF5AF2', label: 'BATTER' },
+    field_map:        { icon: 'map-outline', color: Colors.info, label: 'FIELD READ' },
+    runner_read:      { icon: 'walk-outline', color: Colors.warning, label: 'RUNNER' },
   };
-  const cfg = config[mode ?? ''] ?? { icon: 'eye', color: Colors.textTertiary, label: 'READ' };
+  const cfg = config[mode ?? ''] ?? { icon: 'eye-outline', color: Colors.textTertiary, label: 'READ' };
 
   return (
     <View style={dStyles.card}>
-      {/* Visual frame */}
       <View style={dStyles.frame}>
         <View style={[dStyles.iconWrap, { borderColor: cfg.color, backgroundColor: `${cfg.color}15` }]}>
           <Ionicons name={cfg.icon as any} size={36} color={cfg.color} />
         </View>
         <View style={[dStyles.scanLine, { backgroundColor: `${cfg.color}30` }]} />
       </View>
-      {/* Cue label */}
       <View style={[dStyles.cueLabel, { borderColor: `${cfg.color}55`, backgroundColor: `${cfg.color}10` }]}>
         <View style={[dStyles.cueAccent, { backgroundColor: cfg.color }]} />
         <Text style={[dStyles.cueLabelText, { color: cfg.color }]}>{cfg.label} CUE</Text>
       </View>
-      <Text style={dStyles.cueDesc}>{cueDesc}</Text>
+      {!!cueDesc && <Text style={dStyles.cueDesc}>{cueDesc}</Text>}
     </View>
   );
 }
@@ -132,11 +198,29 @@ const dStyles = StyleSheet.create({
 
 export default function SnapshotRead({ data, responses, feedback, onComplete }: Props) {
   const [selected, setSelected] = useState<string | null>(null);
+  // resolved = feedback shown; does NOT mean lesson advancing (poor answers set resolved but skip onComplete)
   const [resolved, setResolved] = useState(false);
   const fadeAnim = useRef(new Animated.Value(1)).current;
 
-  const selectedCue = data.cues.find((c) => c.id === selected);
-  const quality = selectedCue?.quality ?? null;
+  const cues = data?.cues ?? [];
+  const question = data?.question;
+
+  // Pre-compute derived quality for every cue — must run before any early return
+  const cueQualities = useMemo<Record<string, SnapshotCueQuality>>(() => {
+    const map: Record<string, SnapshotCueQuality> = {};
+    for (const cue of cues) {
+      map[cue.id] = deriveCueQuality(cue, responses);
+    }
+    return map;
+  }, [cues, responses]);
+
+  // Guard: missing required content (after all hooks)
+  if (!cues.length || !question) {
+    return <MalformedSnapshotCard onSkip={() => onComplete(false)} />;
+  }
+
+  const selectedCue = cues.find((c) => c.id === selected);
+  const quality = selected ? (cueQualities[selected] ?? null) : null;
 
   const qualityColor =
     quality === 'correct' ? Colors.primary
@@ -145,26 +229,29 @@ export default function SnapshotRead({ data, responses, feedback, onComplete }: 
     : Colors.border;
 
   const globalFeedback =
-    quality === 'correct' ? feedback.correct
-    : quality === 'acceptable' ? feedback.acceptable
-    : quality === 'poor' ? feedback.poor
+    quality === 'correct' ? (feedback?.correct ?? '')
+    : quality === 'acceptable' ? (feedback?.acceptable ?? '')
+    : quality === 'poor' ? (feedback?.wrong ?? feedback?.poor ?? '')
     : '';
 
   function handleSelect(id: string) {
     if (resolved) return;
     Haptics.selectionAsync();
     setSelected(id);
-    const cue = data.cues.find((c) => c.id === id);
-    if (cue?.quality === 'correct') {
+    const q = cueQualities[id] ?? 'poor';
+    if (q === 'correct') {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    } else if (cue?.quality === 'poor') {
+    } else if (q === 'poor') {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     } else {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
     setTimeout(() => {
       setResolved(true);
-      onComplete(cue?.quality === 'correct' || cue?.quality === 'acceptable');
+      // Poor answers show feedback and retry — do NOT advance the lesson
+      if (q !== 'poor') {
+        onComplete(q === 'correct');
+      }
     }, 350);
   }
 
@@ -179,12 +266,17 @@ export default function SnapshotRead({ data, responses, feedback, onComplete }: 
 
   return (
     <View style={styles.container}>
-      {/* Situation */}
+      {/* Optional prompt headline */}
+      {!!data.prompt && <Text style={styles.prompt}>{data.prompt}</Text>}
+
+      {/* Situation badge row */}
       <View style={styles.situationRow}>
         <View style={styles.situationBadge}>
           <Text style={styles.situationText}>SNAPSHOT</Text>
         </View>
-        <Text style={styles.situationDesc}>{data.situation}</Text>
+        {!!data.situation && (
+          <Text style={styles.situationDesc}>{data.situation}</Text>
+        )}
       </View>
 
       {/* Visual — image or diagram */}
@@ -192,8 +284,8 @@ export default function SnapshotRead({ data, responses, feedback, onComplete }: 
         <View style={styles.imageWrap}>
           <Image source={{ uri: data.image_uri }} style={styles.image} resizeMode="cover" />
           {(data.overlay_labels ?? []).map((label, i) => (
-            <View key={i} style={[styles.overlayLabel, overlayPositionStyle(label.position)]}>
-              <Text style={styles.overlayText}>{label.text}</Text>
+            <View key={label.id ?? i} style={[styles.overlayLabel, overlayLabelStyle(label)]}>
+              <Text style={styles.overlayText}>{label.label ?? label.text ?? ''}</Text>
             </View>
           ))}
         </View>
@@ -202,23 +294,24 @@ export default function SnapshotRead({ data, responses, feedback, onComplete }: 
       )}
 
       {/* Question */}
-      <Text style={styles.question}>{data.question}</Text>
+      <Text style={styles.question}>{question}</Text>
 
       {/* Cue choices */}
       <Animated.View style={{ opacity: fadeAnim, gap: Spacing.sm }}>
-        {data.cues.map((cue) => {
+        {cues.map((cue) => {
+          const derivedQ = cueQualities[cue.id];
           const isSelected = selected === cue.id;
           const isAnswered = !!selected;
           const borderColor =
             isAnswered && isSelected
-              ? cue.quality === 'correct' ? Colors.primary
-                : cue.quality === 'acceptable' ? Colors.warning
+              ? derivedQ === 'correct' ? Colors.primary
+                : derivedQ === 'acceptable' ? Colors.warning
                 : Colors.danger
               : Colors.border;
           const bgColor =
             isAnswered && isSelected
-              ? cue.quality === 'correct' ? Colors.primaryMuted
-                : cue.quality === 'acceptable' ? 'rgba(245,166,35,0.1)'
+              ? derivedQ === 'correct' ? Colors.primaryMuted
+                : derivedQ === 'acceptable' ? 'rgba(245,166,35,0.10)'
                 : 'rgba(255,59,48,0.08)'
               : Colors.surface;
 
@@ -235,7 +328,7 @@ export default function SnapshotRead({ data, responses, feedback, onComplete }: 
               ]}>
                 {isAnswered && isSelected && (
                   <Ionicons
-                    name={cue.quality === 'correct' ? 'checkmark' : cue.quality === 'acceptable' ? 'remove' : 'close'}
+                    name={derivedQ === 'correct' ? 'checkmark' : derivedQ === 'acceptable' ? 'remove' : 'close'}
                     size={11}
                     color="#fff"
                   />
@@ -259,12 +352,12 @@ export default function SnapshotRead({ data, responses, feedback, onComplete }: 
               </Text>
             </View>
           </View>
-          <Text style={styles.fbGlobal}>{globalFeedback}</Text>
-          <Text style={styles.fbDetail}>{selectedCue.feedback}</Text>
+          {!!globalFeedback && <Text style={styles.fbGlobal}>{globalFeedback}</Text>}
+          {!!selectedCue.feedback && <Text style={styles.fbDetail}>{selectedCue.feedback}</Text>}
           {quality === 'poor' && (
             <Pressable style={styles.retryBtn} onPress={handleRetry}>
               <Ionicons name="refresh" size={13} color={Colors.primary} />
-              <Text style={styles.retryText}>Try again</Text>
+              <Text style={styles.retryText}>Try Again</Text>
             </Pressable>
           )}
         </View>
@@ -273,28 +366,45 @@ export default function SnapshotRead({ data, responses, feedback, onComplete }: 
   );
 }
 
-function overlayPositionStyle(pos: string) {
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function overlayLabelStyle(label: SnapshotOverlayLabel): any {
   const base: any = { position: 'absolute' };
-  if (pos === 'top-left') return { ...base, top: 8, left: 8 };
-  if (pos === 'top-right') return { ...base, top: 8, right: 8 };
-  if (pos === 'bottom-left') return { ...base, bottom: 8, left: 8 };
+  // New spec format: x/y in [0, 1] range
+  if (typeof label.x === 'number' && typeof label.y === 'number') {
+    return { ...base, left: `${label.x * 100}%`, top: `${label.y * 100}%` };
+  }
+  // Old format: positional string
+  const pos = label.position ?? 'center';
+  if (pos === 'top-left')     return { ...base, top: 8, left: 8 };
+  if (pos === 'top-right')    return { ...base, top: 8, right: 8 };
+  if (pos === 'bottom-left')  return { ...base, bottom: 8, left: 8 };
   if (pos === 'bottom-right') return { ...base, bottom: 8, right: 8 };
   return { ...base, top: '45%', left: '35%' };
 }
 
+// ─── Styles ───────────────────────────────────────────────────────────────────
+
 const styles = StyleSheet.create({
   container: { gap: Spacing.lg },
+
+  prompt: {
+    fontSize: 16,
+    fontFamily: 'Inter_700Bold',
+    color: Colors.textPrimary,
+    lineHeight: 22,
+  },
 
   situationRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, flexWrap: 'wrap' },
   situationBadge: {
     borderWidth: 1,
-    borderColor: `${Colors.info ?? '#4BA3E3'}55`,
-    backgroundColor: `${Colors.info ?? '#4BA3E3'}12`,
+    borderColor: `${Colors.info}55`,
+    backgroundColor: `${Colors.info}12`,
     borderRadius: Radius.pill,
     paddingHorizontal: 9,
     paddingVertical: 3,
   },
-  situationText: { fontSize: 9, fontFamily: 'Inter_700Bold', color: Colors.info ?? '#4BA3E3', letterSpacing: 1.3 },
+  situationText: { fontSize: 9, fontFamily: 'Inter_700Bold', color: Colors.info, letterSpacing: 1.3 },
   situationDesc: { fontSize: 13, fontFamily: 'Inter_500Medium', color: Colors.textSecondary, flex: 1 },
 
   imageWrap: {

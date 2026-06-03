@@ -1,3 +1,6 @@
+import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
+import { Linking } from 'react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Animated,
@@ -12,22 +15,42 @@ import { Colors, Radius, Spacing } from '@/constants/theme';
 
 // ─── TYPES ────────────────────────────────────────────────────────────────────
 
-interface Choice {
+export type FilmRoomProvider = 'youtube' | 'external_video' | 'mlb' | 'ncaa' | 'hosted';
+
+export type FilmRoomChoiceQuality = 'correct' | 'acceptable' | 'poor';
+
+export interface FilmRoomChoice {
   id: string;
-  text: string;
-  correct?: boolean;
+  label?: string;
+  text?: string;        // backward-compat alias for label
+  quality?: FilmRoomChoiceQuality;
+  correct?: boolean;    // backward-compat boolean
 }
 
-interface FilmRoomStep {
-  title?: string;
+export interface FilmRoomData {
+  provider?: FilmRoomProvider;
+  youtube_id?: string | null;
+  canonical_url?: string;
+  fallback_url?: string;
+  backup_urls?: string[];
+  start_sec?: number;
+  end_sec?: number;
+  reliability_rating?: 'A' | 'B' | 'C' | 'A/B';
+  event?: string;
+  year?: number;
+  athletes?: string;
+  setup?: string;
+  question?: string;
+  choices?: FilmRoomChoice[];
+  coach_breakdown?: string;
+  takeaway?: string;
+  // backward-compat fields (old step format)
   prompt?: string;
   body?: string;
+  title?: string;
   study_seconds?: number;
-  question?: string;
-  choices?: Choice[];
   scene_tags?: string[];
   coach_feedback?: { correct?: string; incorrect?: string };
-  [key: string]: any;
 }
 
 interface FilmRoomResult {
@@ -36,11 +59,64 @@ interface FilmRoomResult {
 }
 
 interface Props {
-  step: FilmRoomStep;
+  step: FilmRoomData & { [key: string]: any };
   onComplete: (result: FilmRoomResult) => void;
 }
 
-// ─── DIAMOND ─────────────────────────────────────────────────────────────────
+// ─── Quality derivation ───────────────────────────────────────────────────────
+
+function deriveChoiceQuality(choice: FilmRoomChoice): FilmRoomChoiceQuality {
+  if (choice.quality) return choice.quality;
+  // backward-compat: boolean correct field
+  if (choice.correct === true) return 'correct';
+  if (choice.correct === false) return 'poor';
+  return 'poor';
+}
+
+// ─── Malformed fallback ───────────────────────────────────────────────────────
+
+function MalformedFilmRoomCard({ onSkip }: { onSkip: () => void }) {
+  return (
+    <View style={mStyles.card}>
+      <View style={mStyles.iconRow}>
+        <Ionicons name="videocam-off-outline" size={22} color={Colors.warning} />
+        <Text style={mStyles.title}>This Film Room rep needs an update.</Text>
+      </View>
+      <Text style={mStyles.body}>
+        This step is missing key data. Skip it and keep the session moving.
+      </Text>
+      <Pressable style={mStyles.btn} onPress={onSkip}>
+        <Text style={mStyles.btnText}>Skip Step →</Text>
+      </Pressable>
+    </View>
+  );
+}
+
+const mStyles = StyleSheet.create({
+  card: {
+    backgroundColor: Colors.surface,
+    borderRadius: Radius.xl,
+    borderWidth: 1.5,
+    borderColor: Colors.warningBorder,
+    padding: Spacing.xl,
+    gap: Spacing.md,
+  },
+  iconRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
+  title: { fontSize: 15, fontFamily: 'Inter_700Bold', color: Colors.textPrimary, flex: 1 },
+  body: { fontSize: 13, fontFamily: 'Inter_400Regular', color: Colors.textSecondary, lineHeight: 19 },
+  btn: {
+    alignSelf: 'flex-start',
+    borderRadius: Radius.pill,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+    backgroundColor: Colors.warningMuted,
+    borderWidth: 1,
+    borderColor: Colors.warningBorder,
+  },
+  btnText: { fontSize: 13, fontFamily: 'Inter_600SemiBold', color: Colors.warning },
+});
+
+// ─── DIAMOND SCENE ────────────────────────────────────────────────────────────
 
 function DiamondScene({ sceneTags }: { sceneTags: string[] }) {
   const hasRunner = (base: string) =>
@@ -52,27 +128,24 @@ function DiamondScene({ sceneTags }: { sceneTags: string[] }) {
     third:  hasRunner('runner_3') || hasRunner('runners_13') || hasRunner('runners_23'),
   };
 
-  // Diamond coords — 120x120 SVG, home at bottom
   const home  = { x: 60, y: 108 };
   const first = { x: 108, y: 60 };
   const sec   = { x: 60, y: 12 };
   const third = { x: 12, y: 60 };
 
   const basePos = [
-    { pos: home,  label: 'H', active: false },
-    { pos: first, label: '1', active: runners.first },
-    { pos: sec,   label: '2', active: runners.second },
-    { pos: third, label: '3', active: runners.third },
+    { pos: home,  active: false },
+    { pos: first, active: runners.first },
+    { pos: sec,   active: runners.second },
+    { pos: third, active: runners.third },
   ];
 
   return (
     <Svg width={120} height={120}>
-      {/* Baseline paths */}
       <Line x1={home.x} y1={home.y} x2={first.x} y2={first.y} stroke="#2A2A2A" strokeWidth={1.5} />
       <Line x1={first.x} y1={first.y} x2={sec.x} y2={sec.y} stroke="#2A2A2A" strokeWidth={1.5} />
       <Line x1={sec.x} y1={sec.y} x2={third.x} y2={third.y} stroke="#2A2A2A" strokeWidth={1.5} />
       <Line x1={third.x} y1={third.y} x2={home.x} y2={home.y} stroke="#2A2A2A" strokeWidth={1.5} />
-      {/* Bases */}
       {basePos.map(({ pos, active }) => (
         <Circle
           key={`${pos.x}-${pos.y}`}
@@ -88,58 +161,218 @@ function DiamondScene({ sceneTags }: { sceneTags: string[] }) {
   );
 }
 
-// ─── COMPONENT ───────────────────────────────────────────────────────────────
+// ─── VIDEO CARD ───────────────────────────────────────────────────────────────
+
+function VideoCard({ step }: { step: FilmRoomData }) {
+  const [openError, setOpenError] = useState(false);
+
+  const videoUrl = step.youtube_id
+    ? `https://www.youtube.com/watch?v=${step.youtube_id}${step.start_sec != null ? `&t=${step.start_sec}s` : ''}`
+    : (step.canonical_url ?? step.fallback_url ?? null);
+
+  async function handleOpenVideo() {
+    if (!videoUrl) return;
+    try {
+      const canOpen = await Linking.canOpenURL(videoUrl);
+      if (canOpen) {
+        await Linking.openURL(videoUrl);
+        setOpenError(false);
+      } else {
+        setOpenError(true);
+      }
+    } catch {
+      setOpenError(true);
+    }
+  }
+
+  const sceneTags: string[] = step.scene_tags ?? [];
+  const hasMeta = step.event || step.year || step.athletes;
+
+  return (
+    <View style={vStyles.card}>
+      <View style={vStyles.header}>
+        <Text style={vStyles.tag}>FILM ROOM</Text>
+        {step.provider && (
+          <Text style={vStyles.provider}>{step.provider.replace(/_/g, ' ').toUpperCase()}</Text>
+        )}
+      </View>
+
+      {hasMeta && (
+        <View style={vStyles.metaRow}>
+          {step.athletes && <Text style={vStyles.meta}>{step.athletes}</Text>}
+          {step.event && <Text style={vStyles.meta}>{step.event}</Text>}
+          {step.year && <Text style={vStyles.meta}>{step.year}</Text>}
+        </View>
+      )}
+
+      {/* Scene diagram */}
+      {sceneTags.length > 0 && (
+        <View style={vStyles.diamondWrap}>
+          <DiamondScene sceneTags={sceneTags} />
+          <View style={vStyles.tagRow}>
+            {sceneTags.map(t => (
+              <View key={t} style={vStyles.tag2}>
+                <Text style={vStyles.tagText}>{t.replace(/_/g, ' ')}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+      )}
+
+      {/* Timestamp hint for external links */}
+      {step.start_sec != null && !step.youtube_id && (
+        <Text style={vStyles.timestamp}>
+          Start at {formatTime(step.start_sec)}{step.end_sec != null ? ` — ${formatTime(step.end_sec)}` : ''}
+        </Text>
+      )}
+
+      {/* Open video button — always present */}
+      {videoUrl ? (
+        <Pressable
+          style={({ pressed }) => [vStyles.openBtn, pressed && { opacity: 0.75 }]}
+          onPress={handleOpenVideo}
+        >
+          <Ionicons name="play-circle-outline" size={17} color="#000" />
+          <Text style={vStyles.openBtnText}>Open Video</Text>
+        </Pressable>
+      ) : (
+        <View style={vStyles.noVideoCard}>
+          <Ionicons name="videocam-off-outline" size={16} color={Colors.textTertiary} />
+          <Text style={vStyles.noVideoText}>No video link available — read the setup and answer the question.</Text>
+        </View>
+      )}
+
+      {openError && (
+        <Text style={vStyles.errorText}>Couldn't open the video. Check your connection and try again.</Text>
+      )}
+    </View>
+  );
+}
+
+function formatTime(sec: number): string {
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  return `${m}:${String(s).padStart(2, '0')}`;
+}
+
+const vStyles = StyleSheet.create({
+  card: {
+    backgroundColor: Colors.surface,
+    borderRadius: Radius.lg,
+    padding: Spacing.lg,
+    gap: Spacing.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  tag: { fontSize: 10, fontFamily: 'Inter_700Bold', color: Colors.primary, letterSpacing: 2 },
+  provider: { fontSize: 9, fontFamily: 'Inter_500Medium', color: Colors.textTertiary, letterSpacing: 1 },
+  metaRow: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
+  meta: { fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.textSecondary },
+  diamondWrap: { alignItems: 'center', gap: Spacing.sm, paddingVertical: Spacing.xs },
+  tagRow: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.xs, justifyContent: 'center' },
+  tag2: {
+    backgroundColor: '#1A1A1A',
+    borderRadius: Radius.pill,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 3,
+  },
+  tagText: { fontSize: 10, color: Colors.textTertiary, fontFamily: 'Inter_400Regular', textTransform: 'capitalize' },
+  timestamp: { fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.textTertiary, textAlign: 'center' },
+  openBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.sm,
+    backgroundColor: Colors.primary,
+    borderRadius: Radius.md,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.xl,
+  },
+  openBtnText: { fontSize: 14, fontFamily: 'Inter_700Bold', color: '#000' },
+  noVideoCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    backgroundColor: Colors.surfaceElevated,
+    borderRadius: Radius.md,
+    padding: Spacing.md,
+  },
+  noVideoText: { fontSize: 12, fontFamily: 'Inter_400Regular', color: Colors.textTertiary, flex: 1, lineHeight: 17 },
+  errorText: { fontSize: 12, fontFamily: 'Inter_400Regular', color: Colors.danger, textAlign: 'center' },
+});
+
+// ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
 
 export default function FilmRoom({ step, onComplete }: Props) {
-  const studyMs = (step.study_seconds ?? 6) * 1000;
-  const choices: Choice[] = step.choices ?? [];
-  const sceneTags: string[] = step.scene_tags ?? [];
+  const choices: FilmRoomChoice[] = step.choices ?? [];
+  const question = step.question ?? step.prompt ?? null;
+  const setup = step.setup ?? step.body ?? step.title ?? null;
+  const coachBreakdown = step.coach_breakdown ?? step.coach_feedback?.correct ?? null;
+  const coachIncorrect = step.coach_feedback?.incorrect ?? null;
+  const takeaway = step.takeaway ?? null;
 
-  const [phase, setPhase] = useState<'study' | 'question' | 'reveal'>('study');
-  const [selected, setSelected] = useState<Choice | null>(null);
-  const [studyProgress, setStudyProgress] = useState(0);
-
-  const sceneOpacity = useRef(new Animated.Value(1)).current;
+  // All hooks must run before any conditional return
+  const [selected, setSelected] = useState<FilmRoomChoice | null>(null);
+  // revealed = feedback shown; poor answers set resolved but skip onComplete
+  const [revealed, setRevealed] = useState(false);
   const resultFade = useRef(new Animated.Value(0)).current;
-  const studyStart = useRef(Date.now());
-
-  // Study timer — progress bar + fade out
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const elapsed = Date.now() - studyStart.current;
-      const pct = Math.min(1, elapsed / studyMs);
-      setStudyProgress(pct);
-      if (pct >= 1) {
-        clearInterval(interval);
-        // Fade scene to near-invisible, then show question
-        Animated.timing(sceneOpacity, {
-          toValue: 0.1,
-          duration: 400,
-          useNativeDriver: true,
-        }).start(() => setPhase('question'));
-      }
-    }, 80);
-    return () => clearInterval(interval);
-  }, []);
 
   useEffect(() => {
-    if (phase === 'reveal') {
+    if (revealed) {
       Animated.timing(resultFade, { toValue: 1, duration: 300, useNativeDriver: true }).start();
     }
-  }, [phase]);
+  }, [revealed]);
 
-  function handleChoice(choice: Choice) {
-    if (selected || phase !== 'question') return;
+  // Guard after hooks
+  if (!question || !choices.length) {
+    return <MalformedFilmRoomCard onSkip={() => onComplete({ correct: false, choiceId: null })} />;
+  }
+
+  function handleChoice(choice: FilmRoomChoice) {
+    if (selected || revealed) return;
+    const q = deriveChoiceQuality(choice);
+    Haptics.selectionAsync();
+    if (q === 'correct') {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    } else if (q === 'poor') {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+    } else {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    }
     setSelected(choice);
-    Animated.timing(sceneOpacity, { toValue: 1, duration: 300, useNativeDriver: true }).start();
-    setPhase('reveal');
+    setRevealed(true);
+    // Poor answers show feedback + retry, do NOT advance
+    if (q !== 'poor') {
+      onComplete({ correct: q === 'correct', choiceId: choice.id });
+    }
+  }
+
+  function handleRetry() {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    resultFade.setValue(0);
+    setSelected(null);
+    setRevealed(false);
   }
 
   function handleContinue() {
-    onComplete({ correct: selected?.correct ?? false, choiceId: selected?.id ?? null });
+    const q = selected ? deriveChoiceQuality(selected) : 'poor';
+    onComplete({ correct: q === 'correct', choiceId: selected?.id ?? null });
   }
 
-  const isQuestionOrReveal = phase === 'question' || phase === 'reveal';
+  const selectedQuality = selected ? deriveChoiceQuality(selected) : null;
+  const qualityColor =
+    selectedQuality === 'correct' ? Colors.primary
+    : selectedQuality === 'acceptable' ? Colors.warning
+    : Colors.danger;
+
+  const feedbackText = selected
+    ? selectedQuality === 'correct'
+      ? (coachBreakdown ?? 'Right read. You saw it.')
+      : selectedQuality === 'acceptable'
+        ? (coachBreakdown ?? 'Solid read. There was a better answer, but this works.')
+        : (coachIncorrect ?? 'Watch this one again. The tell is there.')
+    : '';
 
   return (
     <ScrollView
@@ -148,48 +381,17 @@ export default function FilmRoom({ step, onComplete }: Props) {
       showsVerticalScrollIndicator={false}
       keyboardShouldPersistTaps="handled"
     >
-      {/* SCENE CARD */}
-      <Animated.View style={[styles.sceneCard, { opacity: sceneOpacity }]}>
-        <View style={styles.sceneHeader}>
-          <Text style={styles.sceneTag}>FILM ROOM</Text>
-          {phase === 'study' && (
-            <Text style={styles.sceneTimer}>{step.study_seconds ?? 6}s</Text>
-          )}
-        </View>
+      {/* VIDEO CARD */}
+      <VideoCard step={step} />
 
-        {/* Diamond */}
-        <View style={styles.diamondWrap}>
-          <DiamondScene sceneTags={sceneTags} />
-        </View>
+      {/* SETUP / CONTEXT */}
+      {!!setup && <Text style={styles.setup}>{setup}</Text>}
 
-        {/* Context tags */}
-        {sceneTags.length > 0 && (
-          <View style={styles.tagRow}>
-            {sceneTags.map(t => (
-              <View key={t} style={styles.tag}>
-                <Text style={styles.tagText}>{t.replace(/_/g, ' ')}</Text>
-              </View>
-            ))}
-          </View>
-        )}
-
-        {/* Study progress bar */}
-        {phase === 'study' && (
-          <View style={styles.progressTrack}>
-            <View style={[styles.progressFill, { width: `${studyProgress * 100}%` }]} />
-          </View>
-        )}
-      </Animated.View>
-
-      {/* PROMPT/QUESTION */}
-      <Text style={styles.question}>
-        {isQuestionOrReveal
-          ? (step.question ?? step.prompt ?? "What's the right play?")
-          : (step.prompt ?? step.body ?? step.title ?? 'Study the situation.')}
-      </Text>
+      {/* QUESTION */}
+      <Text style={styles.question}>{question}</Text>
 
       {/* CHOICES */}
-      {phase === 'question' && (
+      {!revealed && (
         <View style={styles.choicesWrap}>
           {choices.map(c => (
             <Pressable
@@ -197,159 +399,137 @@ export default function FilmRoom({ step, onComplete }: Props) {
               style={({ pressed }) => [styles.choiceBtn, pressed && styles.choiceBtnPressed]}
               onPress={() => handleChoice(c)}
             >
-              <Text style={styles.choiceText}>{c.text}</Text>
+              <Text style={styles.choiceText}>{c.label ?? c.text ?? c.id}</Text>
             </Pressable>
           ))}
         </View>
       )}
 
       {/* RESULT */}
-      {phase === 'reveal' && (
-        <Animated.View style={[styles.resultWrap, { opacity: resultFade }]}>
-          {selected?.correct ? (
-            <Text style={[styles.resultLabel, { color: Colors.primary }]}>Right Read</Text>
-          ) : (
-            <Text style={[styles.resultLabel, { color: '#FF4444' }]}>Wrong Read</Text>
+      {revealed && selected && (
+        <Animated.View style={[styles.resultWrap, { opacity: resultFade, borderColor: qualityColor }]}>
+          <View style={styles.resultHeader}>
+            <View style={[styles.resultBadge, { borderColor: qualityColor }]}>
+              <Text style={[styles.resultBadgeText, { color: qualityColor }]}>
+                {selectedQuality === 'correct' ? 'RIGHT READ' : selectedQuality === 'acceptable' ? 'CLOSE READ' : 'MISSED IT'}
+              </Text>
+            </View>
+          </View>
+          <Text style={styles.feedbackText}>{feedbackText}</Text>
+          {!!takeaway && selectedQuality !== 'poor' && (
+            <View style={styles.takeawayCard}>
+              <Text style={styles.takeawayLabel}>TAKEAWAY</Text>
+              <Text style={styles.takeawayText}>{takeaway}</Text>
+            </View>
           )}
-          <Text style={styles.resultSub}>
-            {selected?.correct
-              ? (step.coach_feedback?.correct ?? 'Good film study. You saw it.')
-              : (step.coach_feedback?.incorrect ?? 'Watch this one again. The tell is there.')}
-          </Text>
-          <Pressable style={styles.continueBtn} onPress={handleContinue}>
-            <Text style={styles.continueBtnText}>Got It →</Text>
-          </Pressable>
+          {selectedQuality === 'poor' ? (
+            <Pressable style={styles.retryBtn} onPress={handleRetry}>
+              <Ionicons name="refresh" size={13} color={Colors.primary} />
+              <Text style={styles.retryBtnText}>Try Again</Text>
+            </Pressable>
+          ) : (
+            <Pressable style={styles.continueBtn} onPress={handleContinue}>
+              <Text style={styles.continueBtnText}>Finish Rep →</Text>
+            </Pressable>
+          )}
         </Animated.View>
       )}
     </ScrollView>
   );
 }
 
-// ─── STYLES ──────────────────────────────────────────────────────────────────
+// ─── STYLES ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  scroll: {
-    flex: 1,
-  },
+  scroll: { flex: 1 },
   container: {
     paddingHorizontal: Spacing.xl,
     paddingTop: Spacing.lg,
     paddingBottom: Spacing.xl,
     gap: Spacing.lg,
   },
-  sceneCard: {
-    backgroundColor: Colors.surface,
-    borderRadius: Radius.lg,
-    padding: Spacing.lg,
-    gap: Spacing.md,
-    borderWidth: 1,
-    borderColor: '#1C1C1C',
-  },
-  sceneHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  sceneTag: {
-    fontSize: 10,
-    fontFamily: 'Inter_700Bold',
-    color: Colors.primary,
-    letterSpacing: 2,
-  },
-  sceneTimer: {
-    fontSize: 11,
-    fontFamily: 'Inter_500Medium',
-    color: 'rgba(255,255,255,0.4)',
-  },
-  diamondWrap: {
-    alignItems: 'center',
-    paddingVertical: Spacing.sm,
-  },
-  tagRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.xs,
-  },
-  tag: {
-    backgroundColor: '#1A1A1A',
-    borderRadius: Radius.pill,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 3,
-  },
-  tagText: {
-    fontSize: 10,
-    color: 'rgba(255,255,255,0.4)',
+  setup: {
+    fontSize: 14,
     fontFamily: 'Inter_400Regular',
-    textTransform: 'capitalize',
-  },
-  progressTrack: {
-    height: 2,
-    backgroundColor: '#1C1C1C',
-    borderRadius: 1,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: 2,
-    backgroundColor: Colors.primary,
-    borderRadius: 1,
+    color: Colors.textSecondary,
+    lineHeight: 20,
   },
   question: {
-    fontSize: 18,
-    fontFamily: 'Inter_600SemiBold',
+    fontSize: 17,
+    fontFamily: 'Inter_700Bold',
     color: Colors.textPrimary,
-    lineHeight: 26,
+    lineHeight: 24,
   },
-  choicesWrap: {
-    gap: Spacing.sm,
-    minHeight: 120,
-  },
+  choicesWrap: { gap: Spacing.sm },
   choiceBtn: {
     backgroundColor: Colors.surface,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: '#2A2A2A',
+    borderColor: Colors.border,
     paddingVertical: Spacing.lg,
     paddingHorizontal: Spacing.lg,
     alignItems: 'center',
   },
-  choiceBtnPressed: {
-    opacity: 0.75,
-    transform: [{ scale: 0.98 }],
-  },
+  choiceBtnPressed: { opacity: 0.75 },
   choiceText: {
     color: Colors.textPrimary,
     fontSize: 15,
     fontFamily: 'Inter_500Medium',
     textAlign: 'center',
+    lineHeight: 21,
   },
   resultWrap: {
     backgroundColor: Colors.surface,
-    borderRadius: Radius.lg,
+    borderRadius: Radius.xl,
+    borderWidth: 1.5,
     padding: Spacing.xl,
     gap: Spacing.md,
-    alignItems: 'center',
   },
-  resultLabel: {
-    fontSize: 22,
-    fontFamily: 'Inter_700Bold',
+  resultHeader: { flexDirection: 'row' },
+  resultBadge: {
+    borderWidth: 1,
+    borderRadius: Radius.pill,
+    paddingHorizontal: 9,
+    paddingVertical: 3,
   },
-  resultSub: {
+  resultBadgeText: { fontSize: 9, fontFamily: 'Inter_700Bold', letterSpacing: 1.3 },
+  feedbackText: {
     fontSize: 14,
     fontFamily: 'Inter_400Regular',
     color: Colors.textSecondary,
-    textAlign: 'center',
     lineHeight: 20,
   },
+  takeawayCard: {
+    backgroundColor: Colors.surfaceElevated,
+    borderRadius: Radius.lg,
+    padding: Spacing.lg,
+    gap: Spacing.xs,
+    borderLeftWidth: 3,
+    borderLeftColor: Colors.primary,
+  },
+  takeawayLabel: { fontSize: 8, fontFamily: 'Inter_700Bold', color: Colors.primary, letterSpacing: 1.5 },
+  takeawayText: { fontSize: 13, fontFamily: 'Inter_500Medium', color: Colors.textPrimary, lineHeight: 19 },
+  retryBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    alignSelf: 'flex-start',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: Radius.pill,
+    backgroundColor: Colors.primaryMuted,
+    borderWidth: 1,
+    borderColor: Colors.primaryBorder,
+    marginTop: Spacing.xs,
+  },
+  retryBtnText: { fontSize: 12, fontFamily: 'Inter_600SemiBold', color: Colors.primary },
   continueBtn: {
-    marginTop: Spacing.sm,
     backgroundColor: Colors.primary,
     borderRadius: Radius.md,
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.xl,
+    alignItems: 'center',
+    marginTop: Spacing.xs,
   },
-  continueBtnText: {
-    color: '#000',
-    fontSize: 15,
-    fontFamily: 'Inter_700Bold',
-  },
+  continueBtnText: { color: '#000', fontSize: 15, fontFamily: 'Inter_700Bold' },
 });

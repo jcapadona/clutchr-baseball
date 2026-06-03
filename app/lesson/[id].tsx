@@ -166,6 +166,11 @@ function VariantRenderer({ step, onAdvance }: { step: any; onAdvance: (passed?: 
     case 'confidence_slider':        return <ConfidenceSlider key={variantKey} {...props} />;
     case 'pitch_count_board':        return <PitchCountBoard key={variantKey} {...props} />;
     case 'diamond_cursor':           return <DiamondCursor key={variantKey} {...props} />;
+    case 'film_room': {
+      // Merge data + feedback into step-like shape FilmRoom expects
+      const filmStep = { ...(step?.data ?? {}), coach_feedback: step?.feedback ? { correct: step.feedback.correct, incorrect: step.feedback.wrong ?? step.feedback.poor } : undefined };
+      return <FilmRoom key={variantKey} step={filmStep} onComplete={(r) => handleComplete(r.correct)} />;
+    }
     default:
       return (
         <View style={stepRouterStyles.fallbackCard}>
