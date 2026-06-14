@@ -19,6 +19,7 @@ import { pickNextLesson, type RoutingResult } from '@/lib/lessonRouter';
 import { SkeletonBox, SkeletonCard } from '@/components/SkeletonLoader';
 import { EmblemBadge } from '@/components/EmblemBadge';
 import { getCurrentRank, getRankProgress } from '@/lib/progressionRanks';
+import { useMicrocopy } from '@/hooks/useMicrocopy';
 
 const MISSIONS_DATE_KEY  = 'missions_date';
 const MISSIONS_PROG_KEY  = 'missions_progress';
@@ -39,12 +40,20 @@ function formatLabel(value?: string | null) {
 
 // ─── SCREEN ──────────────────────────────────────────────────────────────────
 
+const LAST_ACTIVE_KEY = 'last_active_date';
+
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { athleteState, isLoading, completedTodayCount, updateAthleteState } = useAthlete();
   const [routingResult, setRoutingResult]   = useState<RoutingResult | null>(null);
   const [loadingLesson, setLoadingLesson]   = useState(true);
   const [missions, setMissions]             = useState<MissionsProgress>({ lessonsCompleted: 0, gameModeOpened: false });
+  const [isReturn, setIsReturn]             = useState(false);
+
+  const microcopy = useMicrocopy();
+  // TODO: wire isGameDay from AthleteState or schedule data (added during game-mode prompt)
+  const isGameDay = false;
+  const greetingRef = useRef<string | null>(null);
 
   const anim1 = useRef(new Animated.Value(0)).current;
   const anim2 = useRef(new Animated.Value(0)).current;
@@ -56,6 +65,19 @@ export default function HomeScreen() {
       Animated.spring(anim2, { toValue: 1, tension: 80, friction: 11, useNativeDriver: true }),
       Animated.spring(anim3, { toValue: 1, tension: 80, friction: 11, useNativeDriver: true }),
     ]).start();
+  }, []);
+
+  // Track return status and stamp last_active_date
+  useEffect(() => {
+    (async () => {
+      const today = new Date().toISOString().slice(0, 10);
+      const last = await AsyncStorage.getItem(LAST_ACTIVE_KEY);
+      if (last) {
+        const dayGap = Math.round((new Date(today).getTime() - new Date(last).getTime()) / 86400000);
+        if (dayGap >= 3) setIsReturn(true);
+      }
+      await AsyncStorage.setItem(LAST_ACTIVE_KEY, today);
+    })();
   }, []);
 
   // Daily missions — reset on new day, hydrate from storage
@@ -198,8 +220,12 @@ export default function HomeScreen() {
   const reason        = routingResult?.reason ?? '';
   const heroSubtitle  = lesson?.subtitle || 'Command, tempo, and mound IQ.';
   const firstName     = athleteState.first_name?.trim();
-  const planTitle     = firstName ? `Ready to work, ${firstName}?` : "Today's Plan";
-  const planSubtitle  = `${phaseLabel} · ${roleLabel} · Next rep loaded`;
+  // Compute greeting once per mount via ref so re-renders don't re-pick
+  if (greetingRef.current === null) {
+    greetingRef.current = microcopy.useHomeGreeting({ isGameDay, isReturn });
+  }
+  const planTitle     = greetingRef.current;
+  const planSubtitle  = firstName ? `${firstName} · ${phaseLabel} · ${roleLabel}` : `${phaseLabel} · ${roleLabel} · Next rep loaded`;
   const edgeLine      = reason && reason.length <= 82 ? reason : 'Build command and tempo before the game speeds up.';
   const repsProgressPercent = `${(mission1Progress / 2) * 100}%`;
   const resetProgressPercent = `${mission2Progress * 100}%`;

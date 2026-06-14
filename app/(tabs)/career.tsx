@@ -18,6 +18,7 @@ import { useAthlete } from '@/context/AthleteContext';
 import { fetchLessons, type LegacyLesson } from '@/lib/supabase';
 import { Colors, Radius, Spacing } from '@/constants/theme';
 import { ClutchrHeader } from '@/components/ClutchrHeader';
+import { useMicrocopy } from '@/hooks/useMicrocopy';
 import { ErrorState, SkeletonCard } from '@/components/SkeletonLoader';
 
 // ─── DEV FLAGS ────────────────────────────────────────────────────────────────
@@ -972,11 +973,12 @@ function WorldMapSection({ world, lessons, completed }: {
   completed: string[];
 }) {
   const { color, label, tagline } = world;
+  const microcopy = useMicrocopy();
 
   if (lessons.length === 0) {
     return (
       <View style={mapStyles.emptyWrap}>
-        <Text style={mapStyles.emptyText}>Lessons coming soon.</Text>
+        <Text style={mapStyles.emptyText}>{microcopy.useEmptyState('noLessonsInWorld')}</Text>
       </View>
     );
   }

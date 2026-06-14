@@ -26,6 +26,7 @@ import { CompletionInteraction, type CompletionIntent } from '@/components/Compl
 import { EmblemBadge } from '@/components/EmblemBadge';
 import { getCurrentRank, getRankProgress, getRankProgressPercent } from '@/lib/progressionRanks';
 
+import { useMicrocopy } from '@/hooks/useMicrocopy';
 import StrikeZoneVisualizer from '@/components/StrikeZoneVisualizer';
 import PitchSequenceChess from '@/components/PitchSequenceChess';
 import FieldIQBoard from '@/components/FieldIQBoard';
@@ -311,6 +312,12 @@ function ChoiceStep({ step, onAdvance, finalAction, advanceLabel = 'Next Rep →
   const [revealed, setRevealed] = useState(false);
   const [selectedPassed, setSelectedPassed] = useState<boolean | undefined>(undefined);
 
+  const microcopy = useMicrocopy();
+  const correctFbRef = useRef<string | null>(null);
+  const wrongFbRef = useRef<string | null>(null);
+  if (correctFbRef.current === null) correctFbRef.current = microcopy.useStepFeedback(true);
+  if (wrongFbRef.current === null) wrongFbRef.current = microcopy.useStepFeedback(false);
+
   // Shuffle once on mount so correctness never relies on answer position.
   const shuffledRef = useRef<any[] | null>(null);
   if (shuffledRef.current === null) {
@@ -367,7 +374,7 @@ function ChoiceStep({ step, onAdvance, finalAction, advanceLabel = 'Next Rep →
             <ChoiceButton
               key={cid}
               label={c.text ?? c.label ?? ''}
-              feedback={c.feedback ?? choiceFallbackFeedback(quality)}
+              feedback={c.feedback ?? (quality !== 'wrong' ? correctFbRef.current! : wrongFbRef.current!)}
               quality={quality}
               isSelected={isSel}
               isRevealed={revealed}
@@ -1113,6 +1120,16 @@ function LessonCompletionPayoff({
   const pathFill = useRef(new Animated.Value(0)).current;
   const badgeFill = useRef(new Animated.Value(0)).current;
 
+  const microcopy = useMicrocopy();
+  const capLineRef = useRef<string | null>(null);
+  if (capLineRef.current === null) {
+    capLineRef.current = type === 'boss'
+      ? microcopy.useBossComplete()
+      : type === 'checkpoint'
+      ? microcopy.useWorldComplete()
+      : microcopy.useLessonComplete();
+  }
+
   useEffect(() => {
     Animated.parallel([
       Animated.spring(slideAnim, { toValue: 0, tension: 70, friction: 12, useNativeDriver: true }),
@@ -1122,7 +1139,7 @@ function LessonCompletionPayoff({
   }, []);
 
   const isBoss = type === 'boss';
-  const title = isBoss ? 'Boss Cleared' : type === 'checkpoint' ? 'Checkpoint Cleared' : 'Rep Complete';
+  const title = capLineRef.current!;
   const currentPathName = lesson?.path_name ?? lesson?.lesson_family ?? lesson?.pillar_id ?? 'Career Path';
   const beforeRank = getCurrentRank(startingXP);
   const afterTotalXP = startingXP + awardedXP;

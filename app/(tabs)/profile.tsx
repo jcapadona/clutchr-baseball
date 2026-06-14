@@ -25,6 +25,7 @@ import { RolePill } from '@/components/ui';
 import { ClutchrHeader } from '@/components/ClutchrHeader';
 import { EmblemBadge } from '@/components/EmblemBadge';
 import { getRankProgress } from '@/lib/progressionRanks';
+import { useMicrocopy } from '@/hooks/useMicrocopy';
 
 // ─── CONSTANTS ───────────────────────────────────────────────────────────────
 
@@ -262,6 +263,7 @@ function StrengthsSection({ completedCount }: { completedCount: number }) {
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const { athleteState, signOut } = useAthlete();
+  const microcopy = useMicrocopy();
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -475,7 +477,7 @@ export default function ProfileScreen() {
             <Text style={styles.playbookSub}>
               {playbookBuilt
                 ? (athleteState as any)?.playbook?.approach ?? 'Your 5 personal cues are set'
-                : 'Create your 5 personal cue words'}
+                : microcopy.useEmptyState('noSavedCues')}
             </Text>
           </View>
           <Ionicons name="chevron-forward" size={16} color={Colors.purple + '80'} />
