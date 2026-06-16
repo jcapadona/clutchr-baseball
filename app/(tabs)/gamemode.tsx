@@ -656,6 +656,130 @@ const GAME_TOOLS: GameTool[] = [
     ],
     printCue: "SHRINK IT · ONE GOAL · BREATHE · COMPETE",
   },
+  {
+    id: "pregame_underdog_plan",
+    name: "90-Second Underdog Plan",
+    tagline: "No freebies. Make them earn every run.",
+    icon: "trending-up",
+    color: Colors.warning,
+    bucket: "pregame",
+    roles: "all",
+    mode: "interactive",
+    duration: "90 sec",
+    whenToUse: "When you are the underdog, short on rest, or facing a tough opponent.",
+    steps: [
+      {
+        cue: "RESET THE STORY",
+        instruction: "The scoreboard has not started yet. Nobody on that field has beaten you today. Come in with zero baggage.",
+      },
+      {
+        cue: "ONE CONTROLLABLE",
+        instruction: "Name one thing you fully control for the first inning: effort, tempo, body language, or first rep execution.",
+      },
+      {
+        cue: "ATTACK MENTALITY",
+        instruction: "No freebies. Attack the zone. Every pitch you throw or see is a competitive rep. Make them earn it.",
+      },
+      {
+        cue: "GO",
+        instruction: "Step on the field with that plan. You do not need to be the favorite. You need to compete.",
+      },
+    ],
+    printCue: "RESET · ONE CONTROLLABLE · NO FREEBIES · ATTACK THE ZONE",
+  },
+  {
+    id: "pregame_high_velo",
+    name: "High Velo Ready",
+    tagline: "See the release early. Load early. Hunt your lane.",
+    icon: "speedometer",
+    color: Colors.danger,
+    bucket: "pregame",
+    roles: ["infielder", "outfielder", "catcher"],
+    mode: "interactive",
+    duration: "90 sec",
+    whenToUse: "Before facing a pitcher with above-average velocity.",
+    steps: [
+      {
+        cue: "FIND THE RELEASE",
+        instruction: "Locate his release point during warmups. That window is everything. Your eyes go there on pitch one.",
+      },
+      {
+        cue: "LOAD EARLY",
+        instruction: "Move your hands and weight transfer earlier than normal. You do not have time to react late against high heat.",
+      },
+      {
+        cue: "HUNT YOUR LANE",
+        instruction: "Pick your zone. Middle-in or middle-away. Do not cover the whole plate. Shrink the decision.",
+      },
+      {
+        cue: "YES-YES-NO",
+        instruction: 'Stay on fast: assume heat, adjust to off-speed. "Yes. Yes. No." — not "No, No, Yes."',
+      },
+    ],
+    printCue: "FIND RELEASE · LOAD EARLY · HUNT YOUR LANE",
+  },
+  {
+    id: "pregame_dugout_intel",
+    name: "Dugout Intel Setup",
+    tagline: "Assign eyes before pitch one.",
+    icon: "eye",
+    color: Colors.info,
+    bucket: "pregame",
+    roles: "all",
+    mode: "interactive",
+    duration: "2 min",
+    whenToUse: "Before the first pitch. Assign roles in the dugout so your team gathers info all game.",
+    steps: [
+      {
+        cue: "PITCHER WATCHER",
+        instruction: "Assign one player to track the pitcher: release point, off-speed grip, timing tells, and first-pitch habits.",
+      },
+      {
+        cue: "CATCHER WATCHER",
+        instruction: "Assign one player to watch the catcher's setup: where does he set up with runners on, and what does he call first-pitch?",
+      },
+      {
+        cue: "COACH WATCHER",
+        instruction: "Assign one player to read the third-base coach signs earlier in the count so runners are prepared.",
+      },
+      {
+        cue: "VERIFY BEFORE YOU USE IT",
+        instruction: "No one acts on one data point. See it twice, confirm it, then pass it on.",
+      },
+    ],
+    printCue: "PITCHER · CATCHER · COACH · VERIFY FIRST",
+  },
+  {
+    id: "pregame_mound_lockin",
+    name: "Mound Lock-In",
+    tagline: "Command starts before first pitch.",
+    icon: "radio-button-on",
+    color: Colors.purple,
+    bucket: "pregame",
+    roles: ["pitcher"],
+    mode: "interactive",
+    duration: "90 sec",
+    whenToUse: "Before taking the mound for your first inning.",
+    steps: [
+      {
+        cue: "FEEL THE RUBBER",
+        instruction: "Toe on the rubber. Take a breath. This is your space. You control what happens in this circle.",
+      },
+      {
+        cue: "TEMPO CUE",
+        instruction: 'Set your tempo before pitch one. "Same tempo every pitch." Slow is under control. Rushed is not.',
+      },
+      {
+        cue: "ATTACK THE ZONE",
+        instruction: "One job for the first pitch: attack the zone. Not the perfect pitch — a competitive strike.",
+      },
+      {
+        cue: "CUE LOADED",
+        instruction: '"Attack the zone. Same tempo every pitch." Repeat it once. Walk off ready.',
+      },
+    ],
+    printCue: "RUBBER · TEMPO · ATTACK THE ZONE · GO",
+  },
 
   // ── IN-GAME ───────────────────────────────────────────────────────────────
   {
@@ -871,6 +995,95 @@ const GAME_TOOLS: GameTool[] = [
     ],
     printCue: "SLOW WALK · ONE CUE · I GOT YOU",
   },
+  {
+    id: "ingame_no_freebies",
+    name: "No Freebies Mound Reset",
+    tagline: "Eyes to the mitt. One job. Next pitch.",
+    icon: "refresh-circle",
+    color: Colors.danger,
+    bucket: "ingame",
+    roles: ["pitcher"],
+    mode: "print_card",
+    duration: "15 sec",
+    whenToUse: "After a walk, a missed location, or when tempo is slipping.",
+    steps: [
+      {
+        cue: "STEP OFF",
+        instruction: "Step back off the rubber. Physical reset, not just mental.",
+      },
+      {
+        cue: "EYES TO THE MITT",
+        instruction: "Lock eyes on the glove. That is the only target.",
+      },
+      {
+        cue: "ONE JOB",
+        instruction: "Attack the zone. Not the corners. Not perfect. Competitive strike.",
+      },
+      {
+        cue: "NEXT PITCH",
+        instruction: "Step back on. Set. Go. No freebies.",
+      },
+    ],
+    printCue: "STEP OFF · EYES · ONE JOB · NEXT PITCH",
+  },
+  {
+    id: "ingame_second_ear",
+    name: "Second Ear Lock-In",
+    tagline: "Own the plan. Open the second ear.",
+    icon: "headset",
+    color: Colors.info,
+    bucket: "ingame",
+    roles: ["infielder", "outfielder", "catcher"],
+    mode: "print_card",
+    duration: "15 sec",
+    whenToUse: "After receiving an adjustment from a coach mid-at-bat or between pitches.",
+    steps: [
+      {
+        cue: "RECEIVE IT",
+        instruction: "Eye contact. Nod. Make the coach confident you heard it.",
+      },
+      {
+        cue: "OWN THE PLAN",
+        instruction: "Make the cue yours. Say it your way. It is not the coach's at-bat — it is yours.",
+      },
+      {
+        cue: "OPEN THE SECOND EAR",
+        instruction: "Stay coachable without losing your read. Hold both: your instinct and the adjustment.",
+      },
+      {
+        cue: "STEP IN READY",
+        instruction: "One plan. One cue. Walk back in and compete.",
+      },
+    ],
+    printCue: "RECEIVE · OWN THE PLAN · OPEN THE SECOND EAR",
+  },
+  {
+    id: "ingame_big_chest",
+    name: "Big Chest Next Play",
+    tagline: "Body language is your reset button.",
+    icon: "body",
+    color: Colors.primary,
+    bucket: "ingame",
+    roles: "all",
+    mode: "print_card",
+    duration: "10 sec",
+    whenToUse: "After a mistake, a tough pitch, or any moment when your body starts to shrink.",
+    steps: [
+      {
+        cue: "BIG CHEST",
+        instruction: "Shoulders back. Chin level. Chest up. Your body leads your brain out of a bad moment.",
+      },
+      {
+        cue: "BREATHE",
+        instruction: "One exhale. Clear the mistake from your posture.",
+      },
+      {
+        cue: "NEXT PLAY",
+        instruction: "That play is done. The next one is the only one on the field right now.",
+      },
+    ],
+    printCue: "BIG CHEST · BREATHE · NEXT PLAY",
+  },
 
   // ── BETWEEN INNINGS ───────────────────────────────────────────────────────
   {
@@ -1055,6 +1268,33 @@ const GAME_TOOLS: GameTool[] = [
       },
     ],
     printCue: "WHAT'S WORKING · ADJUST · NEXT 3 · ONE WORD",
+  },
+  {
+    id: "between_intel_update",
+    name: "Between-Inning Intel Update",
+    tagline: "Update the read. Do not run on old info.",
+    icon: "sync",
+    color: Colors.info,
+    bucket: "between",
+    roles: "all",
+    mode: "print_card",
+    duration: "30 sec",
+    whenToUse: "Between every inning. Quickly update what the dugout has gathered.",
+    steps: [
+      {
+        cue: "WHAT DID WE SEE",
+        instruction: "Quick check: what did the pitcher watcher, catcher watcher, or coach watcher pick up last inning?",
+      },
+      {
+        cue: "VERIFY IT",
+        instruction: "One data point is a guess. Two data points is a pattern. Verify before you use it.",
+      },
+      {
+        cue: "PASS IT ON",
+        instruction: "Tell the next batter one thing. Concise. Actionable. Not five things — one.",
+      },
+    ],
+    printCue: "WHAT DID WE SEE · VERIFY · PASS IT ON",
   },
 
   // ── POST-GAME ─────────────────────────────────────────────────────────────
@@ -1292,6 +1532,91 @@ const GAME_TOOLS: GameTool[] = [
       },
     ],
     printCue: "FLUSH · STRETCH · HYDRATE · SLEEP",
+  },
+  {
+    id: "postgame_win_fix_carry",
+    name: "Win / Fix / Carry",
+    tagline: "Leave the field with three things locked.",
+    icon: "checkmark-circle",
+    color: Colors.primary,
+    bucket: "postgame",
+    roles: "all",
+    mode: "interactive",
+    duration: "60 sec",
+    whenToUse: "Right after the final out. Three quick answers before you leave the field.",
+    steps: [
+      {
+        cue: "ONE WIN",
+        instruction: "Name one controllable win from today. Routine, effort, response, body language, or communication. One.",
+      },
+      {
+        cue: "ONE FIX",
+        instruction: "Name the one thing to adjust. Not three things. One fix as data, not self-punishment.",
+      },
+      {
+        cue: "ONE CUE",
+        instruction: "Pick the line you carry into the next rep. Short. Baseball-native. Usable under pressure.",
+      },
+    ],
+    printCue: "ONE WIN · ONE FIX · ONE CUE",
+  },
+  {
+    id: "postgame_buzzsaw",
+    name: "Buzzsaw Debrief",
+    tagline: "When you lose big, make it useful.",
+    icon: "analytics",
+    color: Colors.danger,
+    bucket: "postgame",
+    roles: "all",
+    mode: "interactive",
+    duration: "2 min",
+    whenToUse: "After a lopsided loss. Turn the result into information instead of damage.",
+    steps: [
+      {
+        cue: "SAY THE SCORE",
+        instruction: "Name the score out loud. Own it. Then move past it — the debrief is not about the score.",
+      },
+      {
+        cue: "WHAT THEY DID WELL",
+        instruction: "Name one thing the other team executed that hurt you most. Study it without making it personal.",
+      },
+      {
+        cue: "WHAT YOU CONTROLLED",
+        instruction: "Name one thing you competed well despite the score. Effort, body language, one good rep.",
+      },
+      {
+        cue: "LEARN FROM THE TEAM THAT BEAT YOU",
+        instruction: "What can you steal from what they did? Better teams teach you things. Take the lesson.",
+      },
+    ],
+    printCue: "OWN IT · WHAT THEY DID · LEARN FROM IT",
+  },
+  {
+    id: "postgame_next_game_reset",
+    name: "Next Game Reset",
+    tagline: "Close it. Start fresh.",
+    icon: "arrow-forward-circle",
+    color: Colors.primary,
+    bucket: "postgame",
+    roles: "all",
+    mode: "interactive",
+    duration: "60 sec",
+    whenToUse: "After the debrief. Close today before tomorrow's game starts in your head.",
+    steps: [
+      {
+        cue: "CLOSE IT",
+        instruction: "This game is done. Good or bad, it is a closed file. Name one word to describe how you competed today.",
+      },
+      {
+        cue: "LESSON LOCKED",
+        instruction: "One fix loaded. One carry-forward cue ready. That is all you are taking with you.",
+      },
+      {
+        cue: "START FRESH",
+        instruction: "Tomorrow's game starts at zero. Not up, not down. Same player. Same standard. Better information.",
+      },
+    ],
+    printCue: "CLOSE IT · LESSON LOCKED · START FRESH",
   },
 ];
 
