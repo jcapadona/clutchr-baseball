@@ -817,6 +817,19 @@ const WORLDS: World[] = [
     worldNumber: 58,
     icon: 'pulse-outline',
   },
+  {
+    id: 'team-chaos',
+    label: 'Team Chaos',
+    tagline: "Execute when it falls apart.",
+    color: '#C84B00',
+    chapter: 'edge',
+    roles: [],
+    isStateTrigger: false,
+    triggerState: null,
+    isPremium: false,
+    worldNumber: 59,
+    icon: 'alert-circle-outline',
+  },
 ];
 
 const CHAPTERS = [
