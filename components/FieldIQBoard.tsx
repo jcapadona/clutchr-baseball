@@ -1,8 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import React, { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { ImageBackground, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Colors, Radius, Spacing } from '@/constants/theme';
+
+let diamondOverlay: any = null;
+try { diamondOverlay = require('../assets/overlays/diamond-decision-board.png'); } catch (_) {}
 
 // ─── Target definitions ───────────────────────────────────────────────────────
 
@@ -106,7 +109,7 @@ function DiamondBoard({
   onTap: (id: string) => void;
 }) {
   return (
-    <View style={[boardStyles.board, { width: BOARD_SIZE, height: BOARD_SIZE }]}>
+    <ImageBackground source={diamondOverlay} style={[boardStyles.board, { width: BOARD_SIZE, height: BOARD_SIZE }]} imageStyle={{ opacity: 0.25 }} resizeMode="contain">
       {/* Diamond field lines */}
       <View style={boardStyles.fieldCircle} />
       <View style={boardStyles.diamondLines}>
@@ -158,7 +161,7 @@ function DiamondBoard({
           </Pressable>
         );
       })}
-    </View>
+    </ImageBackground>
   );
 }
 
@@ -195,7 +198,7 @@ export default function FieldIQBoard({ data, responses, feedback, onComplete }: 
   const ctx = data.context ?? {};
   const contextParts: string[] = [];
   if (ctx.outs !== undefined) contextParts.push(`${ctx.outs} out${ctx.outs !== 1 ? 's' : ''}`);
-  if (ctx.runners?.length) contextParts.push(`Runners: ${ctx.runners.join(', ')}`);
+  if (ctx.runners?.length) contextParts.push(`Runners: ${Array.isArray(ctx.runners) ? ctx.runners.join(', ') : String(ctx.runners)}`);
   if (ctx.score_state) contextParts.push(ctx.score_state.replace(/_/g, ' '));
   if (ctx.position) contextParts.push(`Position: ${ctx.position}`);
 

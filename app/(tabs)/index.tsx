@@ -1,9 +1,10 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Animated,
+  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -12,320 +13,109 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAthlete } from '@/context/AthleteContext';
-import { fetchLessons, type LegacyLesson } from '@/lib/supabase';
-import { Colors, Radius, Spacing } from '@/constants/theme';
-import type { PositionRole, SeasonPhase, Struggle } from '@/context/AthleteContext';
-import ToolShelfModal from '@/components/ToolShelfModal';
-import { RolePill } from '@/components/ui';
+import { fetchLessons } from '@/lib/supabase';
+import { Colors } from '@/constants/theme';
 import { pickNextLesson, type RoutingResult } from '@/lib/lessonRouter';
+import { SkeletonBox, SkeletonCard } from '@/components/SkeletonLoader';
+import { EmblemBadge } from '@/components/EmblemBadge';
+import { getCurrentRank, getRankProgress } from '@/lib/progressionRanks';
+import { useMicrocopy } from '@/hooks/useMicrocopy';
 
-// ─── PERSONALIZED FOCUS ENGINE ────────────────────────────────────────────────
+const MISSIONS_DATE_KEY  = 'missions_date';
+const MISSIONS_PROG_KEY  = 'missions_progress';
 
-interface FocusMessage { focus: string; label: string; }
-
-const STRUGGLE_FOCUS: Record<Struggle, FocusMessage> = {
-  bouncing_back:     { label: 'BOUNCE BACK',    focus: 'One bad rep does not define the next. Short memory is a skill. Practice it today.' },
-  confidence:        { label: 'CONFIDENCE',     focus: 'Confidence is built rep by rep. Do the work today. Let the results follow.' },
-  pregame_nerves:    { label: 'PREGAME MIND',   focus: 'Nerves mean you care. Rename it: not nervous — ready. Channel it.' },
-  throwing_safely:   { label: 'ARM HEALTH',     focus: 'Take care of the arm today. Warmup fully. Do not rush the progression.' },
-  throwing_strikes:  { label: 'COMMAND',        focus: 'Attack the zone. Every pitch has a target. See the glove. Throw to it.' },
-  fielding_cleanly:  { label: 'FIELDING',       focus: 'Soft hands start in the ready position. See the ball early. Trust your feet.' },
-  better_routine:    { label: 'ROUTINE',        focus: 'The routine is your armor. Same process every time — the game cannot break what is already set.' },
-  staying_locked_in: { label: 'FOCUS',          focus: 'One pitch. This pitch. Everything else is noise. See it early and compete.' },
-  reading_hitters:   { label: 'READ HITTERS',   focus: 'Every swing is information. Watch the load, watch the timing, adjust.' },
-  plate_approach:    { label: 'APPROACH',       focus: 'Know your damage zone before you step in. Hunt your pitch. Attack it.' },
-};
-
-const SEASON_FOCUS: Record<SeasonPhase, FocusMessage> = {
-  preseason:       { label: 'PRESEASON',        focus: 'Build the habits now that will hold up in June. Reps in February pay dividends in the playoffs.' },
-  in_season:       { label: 'IN SEASON',        focus: 'You are in it now. Compete today. Process over results. One rep at a time.' },
-  slump_reset:     { label: 'SLUMP RESET',      focus: 'Slumps end when you stop trying to fix them and start competing in the process.' },
-  offseason_build: { label: 'OFF SEASON',       focus: 'This is when the gap closes. The work you do now shows up when the games matter.' },
-  return_to_throw: { label: 'RETURN TO THROW',  focus: 'Patience is the work right now. Trust the progression. The arm comes back.' },
-};
-
-const ROLE_FOCUS: Record<PositionRole, string[]> = {
-  pitcher:   ['Attack the zone. No free passes.', 'Hip drive leads. Arm follows.', 'Next pitch. Short memory.', 'Tempo controls the game.', 'Read the swing. Adjust the sequence.'],
-  catcher:   ['You run this game. Own every pitch.', 'Frame early. Block hard. Lead loud.', 'Your energy sets your pitcher\'s energy.', 'The best mound visit is short and direct.'],
-  infielder: ['Ready hop. Soft hands. Attack.', 'Know the situation before every pitch.', 'Routine play first. Every single time.', 'Quick transfer. Strong throw. No hesitation.'],
-  outfielder:['First step wins the play — build it now.', 'Read the pitch before you read the ball.', 'Crow hop on every throw. No exceptions.', 'Track it early. Move before you are sure.'],
-};
-
-function getPersonalizedFocus(role: PositionRole, struggles: Struggle[], phase: SeasonPhase): FocusMessage {
-  if (struggles.length > 0) {
-    const idx = new Date().getDay() % struggles.length;
-    return STRUGGLE_FOCUS[struggles[idx]];
-  }
-  if (phase === 'slump_reset' || phase === 'return_to_throw' || phase === 'preseason') return SEASON_FOCUS[phase];
-  const list = ROLE_FOCUS[role] ?? ROLE_FOCUS.infielder;
-  return { label: role.toUpperCase(), focus: list[new Date().getDay() % list.length] };
+interface MissionsProgress {
+  lessonsCompleted: number;
+  gameModeOpened: boolean;
 }
 
-function getGreeting() {
-  const h = new Date().getHours();
-  if (h < 12) return 'Morning';
-  if (h < 17) return 'Afternoon';
-  return 'Evening';
-}
-
-function getRoleLabel(role: string) {
-  const map: Record<string, string> = { pitcher: 'Pitcher', catcher: 'Catcher', infielder: 'Infielder', outfielder: 'Outfielder' };
-  return map[role] ?? role;
-}
-
-function getStreakMilestone(count: number): string | null {
-  if (count === 3)  return '3-Day Streak 🔥';
-  if (count === 7)  return '7-Day Commander';
-  if (count === 14) return '14-Day Grinder';
-  if (count === 21) return '21-Day Pro';
-  if (count === 30) return '30-Day Legend';
-  return null;
-}
-
-// ─── STREAK BANNER ────────────────────────────────────────────────────────────
-
-function StreakBanner({ streakCount, streakStatus, completedToday, streakBest, onContinue }: {
-  streakCount: number; streakStatus: 'none'|'active'|'at_risk'|'done_today';
-  completedToday: number; streakBest: number; onContinue: () => void;
-}) {
-  const milestone = getStreakMilestone(streakCount);
-
-  if (streakStatus === 'done_today') {
-    return (
-      <View style={[bannerStyles.wrap, bannerStyles.wrapDone]}>
-        <View style={bannerStyles.row}>
-          <Text style={bannerStyles.fireEmoji}>🔥</Text>
-          <View style={bannerStyles.info}>
-            <Text style={bannerStyles.title}>{milestone ? `${milestone} unlocked` : 'Rep done. Streak active.'}</Text>
-            <Text style={bannerStyles.sub}>{completedToday} today · {streakCount}-day streak{streakBest > streakCount ? ` · Best: ${streakBest}` : ''}</Text>
-          </View>
-          <View style={bannerStyles.checkCircle}><Ionicons name="checkmark" size={14} color="#fff" /></View>
-        </View>
-        {milestone && (
-          <View style={bannerStyles.milestoneBar}>
-            <Ionicons name="trophy" size={11} color={Colors.warning} />
-            <Text style={bannerStyles.milestoneText}>{milestone} achieved today</Text>
-          </View>
-        )}
-      </View>
-    );
-  }
-
-  if (streakStatus === 'at_risk') {
-    return (
-      <Pressable style={[bannerStyles.wrap, bannerStyles.wrapRisk]} onPress={onContinue}>
-        <View style={bannerStyles.row}>
-          <Text style={[bannerStyles.fireEmoji, { opacity: 0.5 }]}>🔥</Text>
-          <View style={bannerStyles.info}>
-            <Text style={[bannerStyles.title, { color: Colors.warning }]}>Streak at risk — do a rep today</Text>
-            <Text style={bannerStyles.sub}>Miss again and your {streakCount}-day streak resets</Text>
-          </View>
-          <Ionicons name="chevron-forward" size={14} color={Colors.warning} />
-        </View>
-      </Pressable>
-    );
-  }
-
-  if (streakStatus === 'active' && streakCount > 0) {
-    return (
-      <Pressable style={[bannerStyles.wrap, bannerStyles.wrapActive]} onPress={onContinue}>
-        <View style={bannerStyles.row}>
-          <Text style={bannerStyles.fireEmoji}>🔥</Text>
-          <View style={bannerStyles.info}>
-            <Text style={bannerStyles.title}>{streakCount}-day streak — keep it going</Text>
-            <Text style={bannerStyles.sub}>Do your rep today to extend it</Text>
-          </View>
-          <Ionicons name="chevron-forward" size={14} color={Colors.primary} />
-        </View>
-      </Pressable>
-    );
-  }
-
-  return (
-    <Pressable style={[bannerStyles.wrap, bannerStyles.wrapNone]} onPress={onContinue}>
-      <View style={bannerStyles.row}>
-        <Text style={[bannerStyles.fireEmoji, { opacity: 0.35 }]}>🔥</Text>
-        <View style={bannerStyles.info}>
-          <Text style={bannerStyles.title}>Start your streak today</Text>
-          <Text style={bannerStyles.sub}>Complete one lesson to light the fire</Text>
-        </View>
-        <Ionicons name="chevron-forward" size={14} color={Colors.textTertiary} />
-      </View>
-    </Pressable>
-  );
-}
-
-// ─── HERO CONTINUE CARD ───────────────────────────────────────────────────────
-// Now accepts a RoutingResult so the "why it matters" reason shows on the card.
-
-function HeroContinueCard({ lesson, reason, loading, onPress }: {
-  lesson: LegacyLesson | null;
-  reason: string;
-  loading: boolean;
-  onPress: () => void;
-}) {
-  const dotAnim = useRef(new Animated.Value(0.3)).current;
-  const glowFade = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(dotAnim, { toValue: 1, duration: 1000, useNativeDriver: true }),
-        Animated.timing(dotAnim, { toValue: 0.3, duration: 1000, useNativeDriver: true }),
-      ])
-    ).start();
-  }, []);
-
-  useEffect(() => {
-    if (!loading && lesson) {
-      Animated.timing(glowFade, { toValue: 1, duration: 800, useNativeDriver: true }).start();
-    }
-  }, [loading, lesson]);
-
-  const difficultyColor =
-    lesson?.difficulty_tier === 'advanced' ? Colors.warning :
-    lesson?.difficulty_tier === 'intermediate' ? Colors.info :
-    Colors.primary;
-
-  return (
-    <Pressable
-      style={({ pressed }) => [heroStyles.outer, pressed && { opacity: 0.93, transform: [{ scale: 0.985 }] }]}
-      onPress={onPress}
-      disabled={loading || !lesson}
-    >
-      {/* Dark base */}
-      <LinearGradient
-        colors={['#0D1F11', '#090E0A', '#060606']}
-        style={heroStyles.gradient}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 1 }}
-      />
-
-      {/* Green radial bloom from top */}
-      <Animated.View style={[heroStyles.bloomWrap, { opacity: glowFade }]}>
-        <LinearGradient
-          colors={[
-            'rgba(34,204,94,0.22)',
-            'rgba(34,204,94,0.08)',
-            'rgba(34,204,94,0.02)',
-            'transparent',
-          ]}
-          style={heroStyles.bloom}
-          start={{ x: 0.5, y: 0 }}
-          end={{ x: 0.5, y: 1 }}
-        />
-      </Animated.View>
-
-      {/* Card border */}
-      <View style={heroStyles.border} />
-
-      {/* Content */}
-      <View style={heroStyles.content}>
-
-        {/* Top: badge + meta */}
-        <View style={heroStyles.topRow}>
-          <View style={heroStyles.liveBadge}>
-            <Animated.View style={[heroStyles.liveDot, { opacity: dotAnim }]} />
-            <Text style={heroStyles.liveBadgeText}>CONTINUE CAREER</Text>
-          </View>
-          {!loading && lesson && (
-            <View style={heroStyles.topMeta}>
-              <View style={[heroStyles.tierPill, { borderColor: difficultyColor + '50', backgroundColor: difficultyColor + '12' }]}>
-                <Text style={[heroStyles.tierText, { color: difficultyColor }]}>
-                  {lesson.difficulty_tier ?? 'starter'}
-                </Text>
-              </View>
-              <Text style={heroStyles.durationMeta}>
-                {Math.ceil((lesson.duration_sec ?? 90) / 60)} min
-              </Text>
-            </View>
-          )}
-        </View>
-
-        {/* Title block — the hero moment */}
-        <View style={heroStyles.titleBlock}>
-          {loading ? (
-            <>
-              <View style={[heroStyles.skeletonLine, { width: '85%', height: 32 }]} />
-              <View style={[heroStyles.skeletonLine, { width: '60%', height: 18, marginTop: 6 }]} />
-            </>
-          ) : (
-            <>
-              <Text style={heroStyles.title} numberOfLines={3}>
-                {lesson?.title ?? 'Control the Controllables'}
-              </Text>
-              {/* ── ROUTING REASON — the "why it matters" line ─────────────
-                  Previously showed lesson.subtitle (often null).
-                  Now shows the router's reason — always specific and relevant. */}
-              <Text style={heroStyles.subtitle} numberOfLines={2}>
-                {reason || lesson?.subtitle || 'Your next rep is ready.'}
-              </Text>
-            </>
-          )}
-        </View>
-
-        {/* Bottom row: XP + CTA button */}
-        <View style={heroStyles.bottomRow}>
-          <View style={heroStyles.xpRow}>
-            <View style={heroStyles.xpIconBox}>
-              <Ionicons name="flash" size={12} color={Colors.warning} />
-            </View>
-            <Text style={heroStyles.xpAmount}>+{lesson?.xp_reward ?? 50}</Text>
-            <Text style={heroStyles.xpUnit}>XP</Text>
-          </View>
-
-          <View style={heroStyles.ctaBtn}>
-            <Text style={heroStyles.ctaText}>Let's go</Text>
-            <Ionicons name="arrow-forward" size={13} color="#000" />
-          </View>
-        </View>
-      </View>
-
-      {/* Bottom glow line */}
-      <View style={heroStyles.bottomGlow} />
-    </Pressable>
-  );
+function formatLabel(value?: string | null) {
+  if (!value) return '';
+  return value
+    .split('_')
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join('-');
 }
 
 // ─── SCREEN ──────────────────────────────────────────────────────────────────
 
+const LAST_ACTIVE_KEY = 'last_active_date';
+
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
-  const { athleteState, streakStatus, completedTodayCount } = useAthlete();
-  const [toolShelfOpen, setToolShelfOpen] = useState(false);
-  const [routingResult, setRoutingResult] = useState<RoutingResult | null>(null);
-  const [loadingLesson, setLoadingLesson] = useState(true);
+  const { athleteState, isLoading, completedTodayCount, updateAthleteState } = useAthlete();
+  const [routingResult, setRoutingResult]   = useState<RoutingResult | null>(null);
+  const [loadingLesson, setLoadingLesson]   = useState(true);
+  const [missions, setMissions]             = useState<MissionsProgress>({ lessonsCompleted: 0, gameModeOpened: false });
+  const [isReturn, setIsReturn]             = useState(false);
 
-  // Staggered entry animations
-  const anim0 = useRef(new Animated.Value(0)).current;
+  const microcopy = useMicrocopy();
+  // TODO: wire isGameDay from AthleteState or schedule data (added during game-mode prompt)
+  const isGameDay = false;
+  const greetingRef = useRef<string | null>(null);
+
   const anim1 = useRef(new Animated.Value(0)).current;
   const anim2 = useRef(new Animated.Value(0)).current;
   const anim3 = useRef(new Animated.Value(0)).current;
-  const anim4 = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     Animated.stagger(70, [
-      Animated.spring(anim0, { toValue: 1, tension: 80, friction: 11, useNativeDriver: true }),
       Animated.spring(anim1, { toValue: 1, tension: 80, friction: 11, useNativeDriver: true }),
       Animated.spring(anim2, { toValue: 1, tension: 80, friction: 11, useNativeDriver: true }),
       Animated.spring(anim3, { toValue: 1, tension: 80, friction: 11, useNativeDriver: true }),
-      Animated.spring(anim4, { toValue: 1, tension: 80, friction: 11, useNativeDriver: true }),
     ]).start();
   }, []);
 
-  // ── ROUTING ENGINE — replaces the old dumb find() ──────────────────────────
+  // Track return status and stamp last_active_date
+  useEffect(() => {
+    (async () => {
+      const today = new Date().toISOString().slice(0, 10);
+      const last = await AsyncStorage.getItem(LAST_ACTIVE_KEY);
+      if (last) {
+        const dayGap = Math.round((new Date(today).getTime() - new Date(last).getTime()) / 86400000);
+        if (dayGap >= 3) setIsReturn(true);
+      }
+      await AsyncStorage.setItem(LAST_ACTIVE_KEY, today);
+    })();
+  }, []);
+
+  // Daily missions — reset on new day, hydrate from storage
+  useEffect(() => {
+    (async () => {
+      const today = new Date().toISOString().slice(0, 10);
+      const storedDate = await AsyncStorage.getItem(MISSIONS_DATE_KEY);
+      if (storedDate !== today) {
+        const fresh: MissionsProgress = { lessonsCompleted: 0, gameModeOpened: false };
+        await AsyncStorage.setItem(MISSIONS_DATE_KEY, today);
+        await AsyncStorage.setItem(MISSIONS_PROG_KEY, JSON.stringify(fresh));
+        setMissions(fresh);
+      } else {
+        const raw = await AsyncStorage.getItem(MISSIONS_PROG_KEY);
+        if (raw) setMissions(JSON.parse(raw));
+      }
+    })();
+  }, []);
+
+  // Keep mission lessons count in sync with athlete context
+  useEffect(() => {
+    setMissions(prev => {
+      const next = { ...prev, lessonsCompleted: completedTodayCount };
+      AsyncStorage.setItem(MISSIONS_PROG_KEY, JSON.stringify(next)).catch(() => {});
+      return next;
+    });
+  }, [completedTodayCount]);
+
+  // Routing engine
   useEffect(() => {
     if (!athleteState) return;
     let cancelled = false;
     (async () => {
       try {
         setLoadingLesson(true);
-        // Fetch a larger pool so the router has full visibility.
-        // The router handles all selection logic client-side.
         const lessons = await fetchLessons({ limit: 200 });
         if (cancelled) return;
-        const result = pickNextLesson(lessons, athleteState);
-        setRoutingResult(result);
+        setRoutingResult(pickNextLesson(lessons, athleteState));
       } catch (err) {
         console.error('Lesson routing failed:', err);
       } finally {
@@ -334,38 +124,126 @@ export default function HomeScreen() {
     })();
     return () => { cancelled = true; };
   }, [
-    // Re-route whenever any of these change — covers lesson completion,
-    // phase change, or struggle update without requiring a full app restart.
     athleteState?.completed_lessons?.length,
     athleteState?.season_phase,
     athleteState?.biggest_struggle?.join(','),
     athleteState?.primary_role,
   ]);
 
-  if (!athleteState) return null;
+  const [gmDoneToday, setGmDoneToday] = useState(false);
 
-  const greeting = getGreeting();
-  const completedCount = athleteState.completed_lessons.length;
-  const phaseProgress = (completedCount % 5) / 5;
-  const phaseNum = athleteState.current_phase + 1;
-  const playbookBuilt = !!(athleteState as any)?.playbook?.built_at;
-  const approachCue = (athleteState as any)?.playbook?.approach ?? '';
+  useEffect(() => {
+    const checkGM = async () => {
+      const date = await AsyncStorage.getItem('gm_completed_date');
+      setGmDoneToday(date === new Date().toDateString());
+    };
+    checkGM();
+  }, []);
 
-  const { focus, label: focusLabel } = getPersonalizedFocus(
-    athleteState.primary_role,
-    athleteState.biggest_struggle ?? [],
-    athleteState.season_phase
-  );
+  const lessonsToday    = completedTodayCount;
+  const mission1Progress = Math.min(lessonsToday, 2);
+  const mission1Done    = mission1Progress >= 2;
+  const mission2Progress = gmDoneToday ? 1 : 0;
+  const mission2Done    = gmDoneToday;
 
-function handleContinueCareer() {
-  if (!routingResult?.lesson) return;
-  const encodedReason = encodeURIComponent(routingResult.reason ?? '');
-  router.push(`/lesson/${routingResult.lesson.id}?reason=${encodedReason}`);
-}
+  useEffect(() => {
+    if (!athleteState || !mission1Done) return;
+    const today = new Date().toDateString();
+    const key = `mission1_awarded_${today}`;
+    (async () => {
+      const already = await AsyncStorage.getItem(key);
+      if (already) return;
+      await updateAthleteState({ total_xp: (athleteState.total_xp ?? 0) + 30 });
+      await AsyncStorage.setItem(key, '1');
+    })();
+  }, [mission1Done]);
 
-  const FAB_BOTTOM = insets.bottom + 72;
+  useEffect(() => {
+    if (!athleteState || !mission2Done) return;
+    const today = new Date().toDateString();
+    const key = `mission2_awarded_${today}`;
+    (async () => {
+      const already = await AsyncStorage.getItem(key);
+      if (already) return;
+      await updateAthleteState({ total_xp: (athleteState.total_xp ?? 0) + 15 });
+      await AsyncStorage.setItem(key, '1');
+    })();
+  }, [mission2Done]);
 
-  // Animated card wrapper helper
+  const totalXp  = athleteState?.total_xp ?? 0;
+  const currentRank = getCurrentRank(totalXp);
+  const rankProgress = getRankProgress(totalXp);
+  const streak   = athleteState?.streak_count ?? 0;
+
+  if (isLoading || !athleteState) {
+    return (
+      <View style={s.container}>
+        <View style={[s.topHeader, { paddingTop: insets.top + 14 }]}>
+          <Image
+            source={require('../../assets/branding/main-wordmark.png')}
+            style={s.headerWordmark}
+            resizeMode="contain"
+          />
+          <View style={s.navRight}>
+            <View style={s.statPill}>
+              <Ionicons name="flame" size={12} color="#C58A2A" />
+              <Text style={s.pillStat}>0</Text>
+            </View>
+            <View style={s.statPill}>
+              <Ionicons name="flash" size={12} color="#C58A2A" />
+              <Text style={s.pillStat}>0</Text>
+            </View>
+          </View>
+        </View>
+        <ScrollView
+          contentContainerStyle={[s.scroll, { paddingBottom: insets.bottom + 140 }]}
+          showsVerticalScrollIndicator={false}
+        >
+          <SkeletonBox width="55%" height={20} radius={6} />
+          <SkeletonBox width="75%" height={13} radius={5} style={{ marginTop: 4 }} />
+          <SkeletonCard style={{ marginTop: 10 }} />
+          <View style={{ flexDirection: 'row', gap: 12 }}>
+            <SkeletonBox width="47%" height={80} radius={12} />
+            <SkeletonBox width="47%" height={80} radius={12} />
+          </View>
+          <SkeletonCard />
+        </ScrollView>
+      </View>
+    );
+  }
+
+  const roleLabel = athleteState.primary_role
+    ? athleteState.primary_role.charAt(0).toUpperCase() + athleteState.primary_role.slice(1)
+    : 'Player';
+  const phaseLabel = formatLabel(athleteState.season_phase) || 'Train';
+  const lesson        = routingResult?.lesson ?? null;
+  const reason        = routingResult?.reason ?? '';
+  const heroSubtitle  = lesson?.subtitle || 'Command, tempo, and mound IQ.';
+  const firstName     = athleteState.first_name?.trim();
+  // Compute greeting once per mount via ref so re-renders don't re-pick
+  if (greetingRef.current === null) {
+    greetingRef.current = microcopy.useHomeGreeting({ isGameDay, isReturn });
+  }
+  const planTitle     = greetingRef.current;
+  const planSubtitle  = firstName ? `${firstName} · ${phaseLabel} · ${roleLabel}` : `${phaseLabel} · ${roleLabel} · Next rep loaded`;
+  const edgeLine      = reason && reason.length <= 82 ? reason : 'Build command and tempo before the game speeds up.';
+  const repsProgressPercent = `${(mission1Progress / 2) * 100}%`;
+  const resetProgressPercent = `${mission2Progress * 100}%`;
+  const earnedMissionXp = (mission1Done ? 30 : 0) + (mission2Done ? 15 : 0);
+
+  function handleContinueCareer() {
+    if (!routingResult?.lesson) return;
+    const encodedReason = encodeURIComponent(routingResult.reason ?? '');
+    router.push(`/lesson/${routingResult.lesson.id}?reason=${encodedReason}`);
+  }
+
+  async function handleGameModePress() {
+    const next = { ...missions, gameModeOpened: true };
+    setMissions(next);
+    await AsyncStorage.setItem(MISSIONS_PROG_KEY, JSON.stringify(next));
+    router.push('/(tabs)/gamemode');
+  }
+
   const animCard = (anim: Animated.Value, child: React.ReactNode) => (
     <Animated.View style={{
       opacity: anim,
@@ -376,587 +254,457 @@ function handleContinueCareer() {
   );
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={s.container}>
+
+      {/* ── CLEAN COMMAND HEADER ── */}
+      <View style={[s.topHeader, { paddingTop: insets.top + 14 }]}>
+        <Image
+          source={require('../../assets/branding/main-wordmark.png')}
+          style={s.headerWordmark}
+          resizeMode="contain"
+        />
+        <View style={s.navRight}>
+          <View style={s.statPill}>
+            <Ionicons name="flame" size={12} color="#C58A2A" />
+            <Text style={s.pillStat}>{streak}</Text>
+          </View>
+          <View style={s.statPill}>
+            <Ionicons name="flash" size={12} color="#C58A2A" />
+            <Text style={s.pillStat}>{totalXp}</Text>
+          </View>
+        </View>
+      </View>
+
       <ScrollView
-        contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 140 }]}
+        contentContainerStyle={[s.scroll, { paddingBottom: insets.bottom + 120 }]}
         showsVerticalScrollIndicator={false}
       >
 
-        {/* ── HEADER ── */}
-        {animCard(anim0,
-          <View style={styles.header}>
-            <View style={styles.headerLeft}>
-              <Text style={styles.clutchrWordmark}>{'<< CLUTCHR'}</Text>
-              <View style={styles.greetingRow}>
-                <Text style={styles.greetingLight}>{greeting}, </Text>
-                <Text style={styles.greetingBold}>{athleteState.first_name}.</Text>
-              </View>
-              <View style={styles.metaRow}>
-                <RolePill label={getRoleLabel(athleteState.primary_role).toUpperCase()} />
-                <Text style={styles.metaSep}>·</Text>
-                <Text style={styles.seasonText}>
-                  {athleteState.season_phase.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
-                </Text>
-              </View>
-            </View>
-            <View style={styles.headerRight}>
-              <View style={styles.xpBlock}>
-                <Ionicons name="flash" size={12} color={Colors.warning} />
-                <Text style={styles.xpNumber}>{athleteState.total_xp}</Text>
-              </View>
-              <Text style={styles.xpSuffix}>XP</Text>
-            </View>
-          </View>
-        )}
+        <View style={s.planIntro}>
+          <Text style={s.planTitle}>{planTitle}</Text>
+          <Text style={s.planSubtitle}>{planSubtitle}</Text>
+        </View>
 
-        {/* ── STREAK BANNER ── */}
+        {/* ── NEXT REP HERO ── */}
         {animCard(anim1,
-          <StreakBanner
-            streakCount={athleteState.streak_count ?? 0}
-            streakStatus={streakStatus}
-            completedToday={completedTodayCount}
-            streakBest={athleteState.streak_best ?? 0}
-            onContinue={handleContinueCareer}
-          />
-        )}
-
-        {/* ── HERO CARD — the centerpiece ── */}
-        {animCard(anim2,
-          <HeroContinueCard
-            lesson={routingResult?.lesson ?? null}
-            reason={routingResult?.reason ?? ''}
-            loading={loadingLesson}
-            onPress={handleContinueCareer}
-          />
-        )}
-
-        {/* ── QUICK ACTIONS ── */}
-        {animCard(anim3,
-          <View style={styles.quickRow}>
-            <Pressable style={styles.quickCard} onPress={() => router.push('/(tabs)/gamemode')}>
-              <LinearGradient
-                colors={['rgba(245,166,35,0.10)', 'transparent']}
-                style={StyleSheet.absoluteFill}
-                start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-              />
-              <View style={[styles.quickIconBox, { backgroundColor: Colors.warningMuted }]}>
-                <Ionicons name="flash" size={17} color={Colors.warning} />
-              </View>
-              <View style={styles.quickMeta}>
-                <Text style={styles.quickTitle}>GAME MODE</Text>
-                <Text style={styles.quickDesc}>Pre · in · post</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={12} color={Colors.warning + '60'} />
-            </Pressable>
-
-            <Pressable style={styles.quickCard} onPress={() => router.push('/(tabs)/locker')}>
-              <LinearGradient
-                colors={['rgba(34,204,94,0.08)', 'transparent']}
-                style={StyleSheet.absoluteFill}
-                start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-              />
-              <View style={[styles.quickIconBox, { backgroundColor: Colors.primaryGlow }]}>
-                <Ionicons name="library" size={17} color={Colors.primary} />
-              </View>
-              <View style={styles.quickMeta}>
-                <Text style={styles.quickTitle}>LOCKER</Text>
-                <Text style={styles.quickDesc}>Articles · tools</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={12} color={Colors.primary + '60'} />
-            </Pressable>
-          </View>
-        )}
-
-        {/* ── TODAY'S FOCUS ── */}
-        {animCard(anim3,
-          <View style={styles.focusCard}>
-            <View style={styles.focusLeftBar} />
-            <View style={styles.focusBody}>
-              <View style={styles.focusHeader}>
-                <Text style={styles.focusEyebrow}>TODAY'S FOCUS</Text>
-                <View style={styles.focusTagPill}>
-                  <Text style={styles.focusTagText}>{focusLabel}</Text>
-                </View>
-              </View>
-              <Text style={styles.focusText}>{focus}</Text>
-            </View>
-          </View>
-        )}
-
-        {/* ── PLAYBOOK ── */}
-        {animCard(anim4,
           <Pressable
-            style={({ pressed }) => [
-              playbookBuilt ? styles.playbookBuilt : styles.playbookCta,
-              pressed && { opacity: 0.82 },
-            ]}
-            onPress={() => router.push('/playbook')}
+            style={({ pressed }) => [c.card, pressed && { opacity: 0.95, transform: [{ scale: 0.992 }] }]}
+            onPress={handleContinueCareer}
+            disabled={loadingLesson || !lesson}
           >
-            {playbookBuilt && (
-              <LinearGradient
-                colors={['rgba(191,90,242,0.10)', 'transparent']}
-                style={StyleSheet.absoluteFill}
-                start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-              />
+            <View pointerEvents="none" style={c.plateMark} />
+            <Image
+              pointerEvents="none"
+              source={require('../../assets/branding/c-mark.png')}
+              style={c.heroCMark}
+              resizeMode="contain"
+            />
+            <View pointerEvents="none" style={c.ctaGlow} />
+            <View style={c.nextRepBadge}>
+              <View style={c.greenDot} />
+              <Text style={c.nextRepText}>NEXT REP</Text>
+            </View>
+
+            {loadingLesson ? (
+              <>
+                <View style={[c.skeleton, { width: '85%', height: 28, marginTop: 18 }]} />
+                <View style={[c.skeleton, { width: '60%', height: 16, marginTop: 8 }]} />
+              </>
+            ) : (
+              <>
+                <Text style={c.lessonTitle} numberOfLines={2}>
+                  {lesson?.title ?? 'Control the Controllables'}
+                </Text>
+                <Text style={c.lessonSubtitle} numberOfLines={2}>
+                  {heroSubtitle}
+                </Text>
+              </>
             )}
-            <View style={[styles.playbookIcon, { backgroundColor: Colors.purple + '18' }]}>
-              <Ionicons name="book" size={16} color={Colors.purple} />
+
+            <View style={c.edgeNote}>
+              <Text style={c.edgeLabel}>TODAY'S EDGE</Text>
+              <Text style={c.edgeText} numberOfLines={2}>{edgeLine}</Text>
             </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.playbookEyebrow}>
-                {playbookBuilt ? 'MY PLAYBOOK' : 'BUILD YOUR PLAYBOOK'}
-              </Text>
-              <Text style={styles.playbookSub} numberOfLines={1}>
-                {playbookBuilt ? (approachCue || 'Your cues are set') : 'Create your 5 personal cues'}
-              </Text>
+
+            <View style={c.rankMini}>
+              <EmblemBadge rank={currentRank} size="small" />
+              <View style={c.rankMiniCopy}>
+                <Text style={c.rankMiniText}>{currentRank.name}</Text>
+                <Text style={c.rankMiniSub}>{rankProgress.nextRank ? `Next rank: ${rankProgress.nextRank.name}` : 'Elite standard held'}</Text>
+              </View>
             </View>
-            <Ionicons name="chevron-forward" size={14} color={playbookBuilt ? Colors.purple : Colors.textTertiary} />
+
+            <Pressable
+              style={({ pressed }) => [c.ctaBtn, pressed && { opacity: 0.9 }]}
+              onPress={handleContinueCareer}
+              disabled={loadingLesson || !lesson}
+            >
+              <Text style={c.ctaBtnText}>Start Next Rep →</Text>
+            </Pressable>
           </Pressable>
         )}
 
-        {/* ── PROGRESS ── */}
-        {animCard(anim4,
-          <View style={styles.progressWrap}>
-            <View style={styles.progressLabelRow}>
-              <Text style={styles.progressPhaseText}>Phase {phaseNum}</Text>
-              <Text style={styles.progressCountText}>{completedCount} lessons</Text>
+
+        {/* ── TODAY'S PROGRESS ── */}
+        {animCard(anim2,
+          <View style={s.progressWrap}>
+            <View style={s.sectionHeaderRow}>
+              <Text style={s.sectionHeader}>TODAY'S PROGRESS</Text>
+              <Text style={s.progressSummary}>+{earnedMissionXp} XP</Text>
             </View>
-            <View style={styles.progressTrack}>
-              <View style={[styles.progressFill, { width: `${Math.min(100, phaseProgress * 100)}%` }]} />
+
+            <View style={s.progressPanel}>
+              <View style={s.progressLineRow}>
+                <View style={s.progressCopy}>
+                  <Text style={s.progressLabel}>Reps complete</Text>
+                  <Text style={s.progressValue}>{mission1Progress}/2</Text>
+                </View>
+                <View style={s.miniTrack}>
+                  <View style={[s.miniFill, { width: repsProgressPercent }]} />
+                </View>
+              </View>
+              <View style={s.progressDivider} />
+              <View style={s.progressLineRow}>
+                <View style={s.progressCopy}>
+                  <Text style={s.progressLabel}>Run 1 reset</Text>
+                  <Text style={s.progressValue}>{mission2Progress}/1</Text>
+                </View>
+                <View style={s.miniTrack}>
+                  <View style={[s.miniFill, { width: resetProgressPercent, backgroundColor: mission2Done ? '#22CC5E' : '#C58A2A' }]} />
+                </View>
+              </View>
             </View>
+          </View>
+        )}
+
+        {/* ── SHORTCUTS ── */}
+        {animCard(anim3,
+          <View style={s.shortcutsRow}>
+            <Pressable
+              style={({ pressed }) => [s.shortcutCard, pressed && { opacity: 0.82 }]}
+              onPress={handleGameModePress}
+            >
+              <View style={s.shortcutTopRow}>
+                <Ionicons name="flash" size={22} color="#F5A623" style={s.shortcutIcon} />
+                <Ionicons name="chevron-forward" size={16} color="rgba(247,255,249,0.42)" />
+              </View>
+              <Text style={s.shortcutTitle}>GAME MODE</Text>
+              <Text style={s.shortcutSub}>Pre · In · Post</Text>
+            </Pressable>
+            <Pressable
+              style={({ pressed }) => [s.shortcutCard, pressed && { opacity: 0.82 }]}
+              onPress={() => router.push('/(tabs)/locker')}
+            >
+              <View style={s.shortcutTopRow}>
+                <Image
+                  source={require('../../assets/branding/simplified-wordmark.png')}
+                  style={s.shortcutWordmark}
+                  resizeMode="contain"
+                />
+                <Ionicons name="chevron-forward" size={16} color="rgba(247,255,249,0.42)" />
+              </View>
+              <Text style={s.shortcutTitle}>LOCKER</Text>
+              <Text style={s.shortcutSub}>Articles · Tools</Text>
+            </Pressable>
           </View>
         )}
 
       </ScrollView>
 
-      {/* ── FAB ── */}
-      <Pressable
-        style={[styles.fab, { bottom: FAB_BOTTOM }]}
-        onPress={() => setToolShelfOpen(true)}
-      >
-        <LinearGradient
-          colors={[Colors.primary, '#18A84A']}
-          style={StyleSheet.absoluteFill}
-          start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-        />
-        <Ionicons name="flash" size={15} color="#000" />
-        <Text style={styles.fabText}>TOOLS</Text>
-      </Pressable>
-
-      <ToolShelfModal visible={toolShelfOpen} onClose={() => setToolShelfOpen(false)} />
     </View>
   );
 }
 
-// ─── HERO STYLES ─────────────────────────────────────────────────────────────
+// ─── MAIN STYLES ─────────────────────────────────────────────────────────────
 
-const heroStyles = StyleSheet.create({
-  outer: {
-    borderRadius: Radius.xl,
-    overflow: 'hidden',
-    minHeight: 210,
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.22,
-    shadowRadius: 24,
-    elevation: 12,
+const s = StyleSheet.create({
+  container: { flex: 1, backgroundColor: Colors.background },
+  scroll: { paddingTop: 10 },
+  topHeader: {
+    paddingHorizontal: 22,
+    paddingBottom: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: Colors.background,
   },
-  gradient: {
-    ...StyleSheet.absoluteFillObject,
+  headerWordmark: {
+    width: 132,
+    height: 34,
   },
-  bloomWrap: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 160,
+  brandText: {
+    color: '#F7FFF9',
+    fontSize: 22,
+    fontFamily: 'Inter_700Bold',
+    letterSpacing: 4,
   },
-  bloom: {
-    flex: 1,
+  navRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
-  border: {
-    position: 'absolute',
-    inset: 0,
-    borderRadius: Radius.xl,
+  statPill: {
+    minHeight: 30,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    backgroundColor: 'rgba(255,255,255,0.055)',
+  },
+  pillStat: {
+    color: 'rgba(247,255,249,0.88)',
+    fontSize: 12,
+    fontFamily: 'Inter_700Bold',
+  },
+  planIntro: {
+    marginHorizontal: 18,
+    marginBottom: 16,
+  },
+  planTitle: {
+    color: '#F7FFF9',
+    fontSize: 30,
+    fontFamily: 'Inter_700Bold',
+    letterSpacing: -0.6,
+    lineHeight: 35,
+  },
+  planSubtitle: {
+    marginTop: 5,
+    color: 'rgba(247,255,249,0.52)',
+    fontSize: 13,
+    fontFamily: 'Inter_600SemiBold',
+    letterSpacing: 0.2,
+  },
+  progressWrap: {
+    paddingHorizontal: 16,
+    marginBottom: 24,
+  },
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  sectionHeader: {
+    fontSize: 10,
+    color: 'rgba(255,255,255,0.34)',
+    letterSpacing: 2,
+    fontFamily: 'Inter_700Bold',
+  },
+  progressSummary: {
+    color: 'rgba(197,138,42,0.86)',
+    fontSize: 11,
+    fontFamily: 'Inter_700Bold',
+  },
+  progressPanel: {
+    borderRadius: 18,
+    paddingHorizontal: 15,
+    paddingVertical: 13,
+    backgroundColor: '#0D100E',
     borderWidth: 1,
-    borderColor: 'rgba(34,204,94,0.18)',
-  } as any,
-  content: {
-    padding: Spacing.xl,
-    gap: Spacing.md,
+    borderColor: 'rgba(255,255,255,0.065)',
   },
-  topRow: {
+  progressLineRow: {
+    gap: 8,
+  },
+  progressCopy: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  liveBadge: {
+  progressLabel: {
+    color: 'rgba(247,255,249,0.68)',
+    fontSize: 13,
+    fontFamily: 'Inter_600SemiBold',
+  },
+  progressValue: {
+    color: '#F7FFF9',
+    fontSize: 12,
+    fontFamily: 'Inter_700Bold',
+  },
+  miniTrack: {
+    height: 5,
+    borderRadius: 999,
+    overflow: 'hidden',
+    backgroundColor: 'rgba(255,255,255,0.07)',
+  },
+  miniFill: {
+    height: '100%',
+    borderRadius: 999,
+    backgroundColor: '#22CC5E',
+  },
+  progressDivider: {
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.055)',
+    marginVertical: 12,
+  },
+  shortcutsRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginHorizontal: 16,
+    marginBottom: 18,
+  },
+  shortcutCard: {
+    flex: 1,
+    minHeight: 116,
+    backgroundColor: '#0D100E',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 20,
+    padding: 16,
+    justifyContent: 'space-between',
+  },
+  shortcutTopRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
-    backgroundColor: 'rgba(34,204,94,0.12)',
-    borderRadius: Radius.pill,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderWidth: 1,
-    borderColor: 'rgba(34,204,94,0.20)',
+    justifyContent: 'space-between',
   },
-  liveDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: Colors.primary,
+  shortcutIcon: { marginBottom: 10 },
+  shortcutWordmark: {
+    width: 88,
+    height: 26,
+    marginBottom: 8,
   },
-  liveBadgeText: {
-    fontSize: 9,
+  shortcutTitle: {
+    fontSize: 15,
     fontFamily: 'Inter_700Bold',
-    color: Colors.primary,
-    letterSpacing: 1.4,
+    color: '#F7FFF9',
+    marginBottom: 5,
   },
-  topMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  tierPill: {
-    borderRadius: Radius.pill,
-    paddingHorizontal: 7,
-    paddingVertical: 3,
-    borderWidth: 1,
-  },
-  tierText: {
-    fontSize: 9,
-    fontFamily: 'Inter_700Bold',
-    letterSpacing: 0.8,
-    textTransform: 'capitalize',
-  },
-  durationMeta: {
-    fontSize: 11,
+  shortcutSub: {
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.42)',
     fontFamily: 'Inter_400Regular',
-    color: Colors.textTertiary,
   },
-  titleBlock: {
-    gap: 4,
+});
+
+// ─── CONTINUE CAREER CARD STYLES ─────────────────────────────────────────────
+
+const c = StyleSheet.create({
+  card: {
+    position: 'relative',
+    overflow: 'hidden',
+    marginHorizontal: 16,
+    marginBottom: 18,
+    backgroundColor: '#0B150D',
+    borderWidth: 1,
+    borderColor: 'rgba(35,209,96,0.24)',
+    borderRadius: 26,
+    padding: 22,
   },
-  skeletonLine: {
+  plateMark: {
+    position: 'absolute',
+    right: -14,
+    top: 18,
+    width: 118,
+    height: 118,
+    borderWidth: 1,
+    borderColor: 'rgba(247,255,249,0.055)',
+    transform: [{ rotate: '45deg' }],
+  },
+  heroCMark: {
+    position: 'absolute',
+    right: 12,
+    top: 18,
+    width: 112,
+    height: 112,
+    opacity: 0.12,
+  },
+  ctaGlow: {
+    position: 'absolute',
+    left: 26,
+    right: 26,
+    bottom: 18,
+    height: 54,
+    borderRadius: 24,
+    backgroundColor: 'rgba(35,209,96,0.12)',
+  },
+  nextRepBadge: {
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 18,
+  },
+  greenDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+    backgroundColor: '#22CC5E',
+  },
+  nextRepText: {
+    fontSize: 10,
+    color: '#22CC5E',
+    fontFamily: 'Inter_700Bold',
+    letterSpacing: 2.2,
+  },
+  skeleton: {
     backgroundColor: 'rgba(255,255,255,0.06)',
     borderRadius: 6,
   },
-  title: {
-    fontSize: 24,
+  lessonTitle: {
+    fontSize: 28,
+    color: '#F7FFF9',
     fontFamily: 'Inter_700Bold',
-    color: Colors.textPrimary,
-    lineHeight: 30,
-    letterSpacing: -0.3,
+    lineHeight: 34,
+    letterSpacing: -0.5,
   },
-  subtitle: {
-    fontSize: 13,
+  lessonSubtitle: {
+    fontSize: 14,
+    color: 'rgba(247,255,249,0.56)',
+    marginTop: 7,
     fontFamily: 'Inter_400Regular',
-    color: Colors.primary,
-    lineHeight: 18,
-    opacity: 0.85,
+    lineHeight: 20,
   },
-  bottomRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: Spacing.sm,
+  edgeNote: {
+    marginTop: 17,
+    borderLeftWidth: 2,
+    borderLeftColor: 'rgba(35,209,96,0.52)',
+    paddingLeft: 10,
+    paddingRight: 4,
   },
-  xpRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  xpIconBox: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: Colors.warningMuted,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  xpAmount: {
-    fontSize: 15,
-    fontFamily: 'Inter_700Bold',
-    color: Colors.warning,
-  },
-  xpUnit: {
+  edgeLabel: {
+    color: 'rgba(35,209,96,0.9)',
     fontSize: 9,
     fontFamily: 'Inter_700Bold',
-    color: Colors.textTertiary,
-    letterSpacing: 1,
+    letterSpacing: 1.4,
+    marginBottom: 4,
+  },
+  edgeText: {
+    color: 'rgba(247,255,249,0.70)',
+    fontSize: 13,
+    fontFamily: 'Inter_400Regular',
+    lineHeight: 18,
+  },
+  rankMini: {
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    marginTop: 18,
+    opacity: 0.78,
+  },
+  rankMiniCopy: { gap: 1 },
+  rankMiniText: {
+    color: 'rgba(247,255,249,0.68)',
+    fontSize: 11,
+    fontFamily: 'Inter_700Bold',
+  },
+  rankMiniSub: {
+    color: 'rgba(247,255,249,0.38)',
+    fontSize: 10,
+    fontFamily: 'Inter_500Medium',
   },
   ctaBtn: {
-    flexDirection: 'row',
+    backgroundColor: '#22CC5E',
+    borderRadius: 16,
+    paddingVertical: 16,
     alignItems: 'center',
-    gap: 5,
-    backgroundColor: Colors.primary,
-    borderRadius: Radius.lg,
-    paddingVertical: 10,
-    paddingHorizontal: Spacing.lg,
+    marginTop: 22,
   },
-  ctaText: {
-    fontSize: 13,
-    fontFamily: 'Inter_700Bold',
-    color: '#000',
-    letterSpacing: 0.3,
-  },
-  bottomGlow: {
-    height: 2,
-    backgroundColor: Colors.primary,
-    opacity: 0.25,
-  },
-});
-
-// ─── STYLES ──────────────────────────────────────────────────────────────────
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
-  scroll: { gap: Spacing.lg, paddingHorizontal: Spacing.xl, paddingTop: Spacing.md },
-
-  // Header
-  header: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    paddingVertical: Spacing.md,
-  },
-  headerLeft: { gap: 3 },
-  clutchrWordmark: {
-    fontSize: 10,
-    fontFamily: 'Inter_700Bold',
-    color: Colors.primary,
-    letterSpacing: 2,
-    marginBottom: 2,
-  },
-  greetingRow: { flexDirection: 'row', alignItems: 'baseline' },
-  greetingLight: { fontSize: 28, fontFamily: 'Inter_300Light', color: Colors.textSecondary },
-  greetingBold: { fontSize: 28, fontFamily: 'Inter_700Bold', color: Colors.textPrimary },
-  metaRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 },
-  metaSep: { fontSize: 11, color: Colors.textTertiary },
-  seasonText: { fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.textSecondary },
-  headerRight: { alignItems: 'flex-end', paddingTop: 4, gap: 1 },
-  xpBlock: { flexDirection: 'row', alignItems: 'center', gap: 3 },
-  xpNumber: {
-    fontSize: 16,
-    fontFamily: 'Inter_700Bold',
-    color: Colors.warning,
-  },
-  xpSuffix: {
-    fontSize: 9,
-    fontFamily: 'Inter_700Bold',
-    color: Colors.textTertiary,
-    letterSpacing: 1,
-    textAlign: 'right',
-  },
-
-  // Quick actions
-  quickRow: { flexDirection: 'row', gap: 12 },
-  quickCard: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.surface,
-    borderRadius: Radius.xl,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    padding: Spacing.md,
-    gap: Spacing.sm,
-    overflow: 'hidden',
-  },
-  quickIconBox: {
-    width: 34,
-    height: 34,
-    borderRadius: Radius.sm,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-  },
-  quickMeta: { flex: 1, gap: 2 },
-  quickTitle: {
-    fontSize: 10,
-    fontFamily: 'Inter_700Bold',
-    color: Colors.textPrimary,
-    letterSpacing: 0.8,
-  },
-  quickDesc: {
-    fontSize: 11,
-    fontFamily: 'Inter_400Regular',
-    color: Colors.textTertiary,
-  },
-
-  // Focus card
-  focusCard: {
-    flexDirection: 'row',
-    backgroundColor: Colors.surface,
-    borderRadius: Radius.xl,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.18,
-    shadowRadius: 6,
-    elevation: 3,
-  },
-  focusLeftBar: {
-    width: 3,
-    backgroundColor: Colors.primary,
-  },
-  focusBody: {
-    flex: 1,
-    padding: Spacing.lg,
-    gap: 8,
-  },
-  focusHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  focusEyebrow: {
-    fontSize: 9,
-    fontFamily: 'Inter_700Bold',
-    color: Colors.textTertiary,
-    letterSpacing: 1.5,
-  },
-  focusTagPill: {
-    backgroundColor: Colors.primaryMuted,
-    borderRadius: Radius.pill,
-    paddingHorizontal: 7,
-    paddingVertical: 2,
-    borderWidth: 1,
-    borderColor: Colors.primaryBorder,
-  },
-  focusTagText: {
-    fontSize: 8,
-    fontFamily: 'Inter_700Bold',
-    color: Colors.primary,
-    letterSpacing: 0.8,
-  },
-  focusText: {
+  ctaBtnText: {
     fontSize: 15,
-    fontFamily: 'Inter_500Medium',
-    color: Colors.textPrimary,
-    lineHeight: 22,
-  },
-
-  // Playbook
-  playbookCta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-    borderRadius: Radius.lg,
-    borderWidth: 1.5,
-    borderColor: Colors.purple + '38',
-    padding: Spacing.md,
-    backgroundColor: Colors.purple + '07',
-    overflow: 'hidden',
-  },
-  playbookBuilt: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-    backgroundColor: Colors.surface,
-    borderRadius: Radius.lg,
-    borderWidth: 1,
-    borderColor: Colors.purple + '28',
-    padding: Spacing.md,
-    overflow: 'hidden',
-  },
-  playbookIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: Radius.sm,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-  },
-  playbookEyebrow: {
-    fontSize: 9,
+    color: '#050806',
     fontFamily: 'Inter_700Bold',
-    color: Colors.purple,
-    letterSpacing: 1,
-    marginBottom: 2,
   },
-  playbookSub: {
-    fontSize: 12,
-    fontFamily: 'Inter_400Regular',
-    color: Colors.textSecondary,
-    lineHeight: 16,
-  },
-
-  // Progress
-  progressWrap: { gap: 6, paddingBottom: 4 },
-  progressLabelRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  progressPhaseText: {
-    fontSize: 11,
-    fontFamily: 'Inter_600SemiBold',
-    color: Colors.textTertiary,
-  },
-  progressCountText: {
-    fontSize: 11,
-    fontFamily: 'Inter_400Regular',
-    color: Colors.textTertiary,
-  },
-  progressTrack: {
-    height: 3,
-    backgroundColor: Colors.surfaceElevated,
-    borderRadius: 2,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: 3,
-    backgroundColor: Colors.primary,
-    borderRadius: 2,
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.9,
-    shadowRadius: 4,
-  },
-
-  // FAB
-  fab: {
-    position: 'absolute',
-    right: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    borderRadius: Radius.pill,
-    paddingVertical: 11,
-    paddingHorizontal: Spacing.lg,
-    overflow: 'hidden',
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.5,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-  fabText: {
-    fontSize: 11,
-    fontFamily: 'Inter_700Bold',
-    color: '#000',
-    letterSpacing: 1.2,
-  },
-});
-
-// ─── BANNER STYLES ────────────────────────────────────────────────────────────
-
-const bannerStyles = StyleSheet.create({
-  wrap: { borderRadius: Radius.lg, borderWidth: 1, paddingHorizontal: Spacing.md, paddingVertical: 10 },
-  wrapDone:   { backgroundColor: Colors.primaryMuted, borderColor: Colors.primaryBorder },
-  wrapActive: { backgroundColor: Colors.surface, borderColor: Colors.primaryBorder },
-  wrapRisk:   { backgroundColor: Colors.warningMuted, borderColor: `${Colors.warning}50` },
-  wrapNone:   { backgroundColor: Colors.surface, borderColor: Colors.border },
-  row: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
-  fireEmoji: { fontSize: 18, lineHeight: 22 },
-  info: { flex: 1, gap: 1 },
-  title: { fontSize: 13, fontFamily: 'Inter_600SemiBold', color: Colors.textPrimary },
-  sub: { fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.textSecondary },
-  checkCircle: { width: 26, height: 26, borderRadius: 13, backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center' },
-  milestoneBar: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 7, paddingTop: 7, borderTopWidth: 1, borderTopColor: Colors.primaryBorder },
-  milestoneText: { fontSize: 11, fontFamily: 'Inter_600SemiBold', color: Colors.warning },
 });

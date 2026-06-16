@@ -1,11 +1,15 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
+import * as Speech from 'expo-speech';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Animated,
+  Image,
+  ImageBackground,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -16,8 +20,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAthlete } from '@/context/AthleteContext';
 import { supabase } from '@/lib/supabase';
 import { Colors, Radius, Spacing } from '@/constants/theme';
-import { speakLessonIntro, stopSpeech } from '@/lib/lessonAudio';
+import { stopSpeech } from '@/lib/lessonAudio';
+import { ClutchrHeader } from '@/components/ClutchrHeader';
+import { CompletionInteraction, type CompletionIntent } from '@/components/CompletionInteraction';
+import { EmblemBadge } from '@/components/EmblemBadge';
+import { getCurrentRank, getRankProgress, getRankProgressPercent } from '@/lib/progressionRanks';
 
+import { useMicrocopy } from '@/hooks/useMicrocopy';
 import StrikeZoneVisualizer from '@/components/StrikeZoneVisualizer';
 import PitchSequenceChess from '@/components/PitchSequenceChess';
 import FieldIQBoard from '@/components/FieldIQBoard';
@@ -30,6 +39,33 @@ import JumpRead from '@/components/JumpRead';
 import TimingTrack from '@/components/TimingTrack';
 import ConfidenceSlider from '@/components/ConfidenceSlider';
 import PitchCountBoard from '@/components/PitchCountBoard';
+import PressureClock from '@/components/lesson-steps/PressureClock';
+import FilmRoom from '@/components/lesson-steps/FilmRoom';
+import BuildYourRep from '@/components/lesson-steps/BuildYourRep';
+import HotRead from '@/components/lesson-steps/HotRead';
+import VisualizationRep from '@/components/lesson-steps/VisualizationRep';
+import OneWordLock from '@/components/lesson-steps/OneWordLock';
+import DragSequence from '@/components/lesson-steps/DragSequence';
+import DiamondCursor from '@/components/DiamondCursor';
+
+const LESSON_BACKGROUNDS = {
+  boss: require('../../assets/backgrounds/boss-battle-entrance.png'),
+  pressure: require('../../assets/backgrounds/pressure-rep-background.png'),
+  scenario: require('../../assets/backgrounds/scenario-pick-screen.png'),
+  default: require('../../assets/backgrounds/lesson-background-screen.png'),
+};
+
+const completionBg = require('../../assets/backgrounds/lesson-completion-background.png');
+const completionGlow = require('../../assets/overlays/completion-glow.png');
+const ccsTakeIcon = require('../../assets/icons/coach-cap-ccs-take.png');
+
+const STEP_TYPE_ICONS: Record<string, any> = {
+  choice: require('../../assets/icons/scenario-pick.png'),
+  notice_wonder: require('../../assets/icons/freeze-frame-icon.png'),
+  checklist: require('../../assets/icons/routine-builder.png'),
+  action: require('../../assets/icons/clipboard-icon.png'),
+  boss: require('../../assets/icons/boss-challenge-icon.png'),
+};
 
 // ─── SELF-RATING CHECK-IN ─────────────────────────────────────────────────────
 
@@ -104,27 +140,49 @@ function SelfRatingCheckIn({ role, lessonTitle, isBoss, onSubmit }: { role: stri
 
 function VariantRenderer({ step, onAdvance }: { step: any; onAdvance: (passed?: boolean) => void }) {
   const firedRef = useRef(false);
+  const variantKey = `${step?.ui_variant ?? 'unsupported'}:${step?.id ?? step?.prompt ?? step?.title ?? ''}`;
+
+  useEffect(() => {
+    firedRef.current = false;
+  }, [variantKey]);
+
   const handleComplete = useCallback((passed: boolean) => {
     if (firedRef.current) return;
     firedRef.current = true;
     setTimeout(() => onAdvance(passed), 1800);
   }, [onAdvance]);
 
-  const props = { data: step.data, responses: step.responses, feedback: step.feedback, onComplete: handleComplete };
-  switch (step.ui_variant) {
-    case 'strike_zone_visualizer':   return <StrikeZoneVisualizer {...props} />;
-    case 'pitch_sequence_chess':     return <PitchSequenceChess {...props} />;
-    case 'field_iq_board':           return <FieldIQBoard {...props} />;
-    case 'throw_decision_board':     return <ThrowDecisionBoard {...props} />;
-    case 'leverage_ladder':          return <LeverageLadder {...props} />;
-    case 'routine_card_builder':     return <RoutineCardBuilder {...props} />;
-    case 'pressure_replay':          return <PressureReplay {...props} />;
-    case 'snapshot_read':            return <SnapshotRead {...props} />;
-    case 'jump_read':                return <JumpRead {...props} />;
-    case 'timing_track':             return <TimingTrack {...props} />;
-    case 'confidence_slider':        return <ConfidenceSlider {...props} />;
-    case 'pitch_count_board':        return <PitchCountBoard {...props} />;
-    default:                         return null;
+  const props = { data: step?.data ?? {}, responses: step?.responses ?? {}, feedback: step?.feedback ?? {}, onComplete: handleComplete };
+  switch (step?.ui_variant) {
+    case 'strike_zone_visualizer':   return <StrikeZoneVisualizer key={variantKey} {...props} />;
+    case 'pitch_sequence_chess':     return <PitchSequenceChess key={variantKey} {...props} />;
+    case 'field_iq_board':           return <FieldIQBoard key={variantKey} {...props} />;
+    case 'throw_decision_board':     return <ThrowDecisionBoard key={variantKey} {...props} />;
+    case 'leverage_ladder':          return <LeverageLadder key={variantKey} {...props} />;
+    case 'routine_card_builder':     return <RoutineCardBuilder key={variantKey} {...props} />;
+    case 'pressure_replay':          return <PressureReplay key={variantKey} {...props} />;
+    case 'snapshot_read':            return <SnapshotRead key={variantKey} {...props} />;
+    case 'jump_read':                return <JumpRead key={variantKey} {...props} />;
+    case 'timing_track':             return <TimingTrack key={variantKey} {...props} />;
+    case 'confidence_slider':        return <ConfidenceSlider key={variantKey} {...props} />;
+    case 'pitch_count_board':        return <PitchCountBoard key={variantKey} {...props} />;
+    case 'diamond_cursor':           return <DiamondCursor key={variantKey} {...props} />;
+    case 'film_room': {
+      // Merge data + feedback into step-like shape FilmRoom expects
+      const filmStep = { ...(step?.data ?? {}), coach_feedback: step?.feedback ? { correct: step.feedback.correct, incorrect: step.feedback.wrong ?? step.feedback.poor } : undefined };
+      return <FilmRoom key={variantKey} step={filmStep} onComplete={(r) => handleComplete(r.correct)} />;
+    }
+    default:
+      return (
+        <View style={stepRouterStyles.fallbackCard}>
+          <Ionicons name="alert-circle" size={18} color={Colors.warning} />
+          <View style={{ flex: 1 }}>
+            <Text style={stepRouterStyles.fallbackTitle}>This rep needs cleanup.</Text>
+            <Text style={stepRouterStyles.fallbackText}>This interactive setup is unsupported or missing data. Skip this step and keep the session moving.</Text>
+          </View>
+          <AdvanceButton label="Skip Step →" onPress={() => onAdvance(false)} />
+        </View>
+      );
   }
 }
 
@@ -135,7 +193,7 @@ function VariantRenderer({ step, onAdvance }: { step: any; onAdvance: (passed?: 
 // ─── SPARK STEP — Editorial pull-quote style ──────────────────────────────────
 // The "here's the insight" moment. Big, bold, almost like a magazine spread.
 
-function SparkStep({ step, onAdvance }: { step: any; onAdvance: () => void }) {
+function SparkStep({ step, onAdvance, finalAction }: { step: any; onAdvance: () => void; finalAction?: React.ReactNode }) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(16)).current;
 
@@ -146,9 +204,15 @@ function SparkStep({ step, onAdvance }: { step: any; onAdvance: () => void }) {
     ]).start();
   }, []);
 
-  const content = step.content ?? step.text ?? step.body ?? '';
+  const headline = step.headline ?? '';
+  const bodyText = step.content ?? step.text ?? step.body ?? step.prompt ?? step.message ?? step.instructions ?? step.action ?? '';
+  const content = headline && bodyText && headline !== bodyText ? '' : (headline || bodyText);
+  const hasHeadlineAndBody = !!(headline && bodyText && headline !== bodyText);
   const cue = step.cue ?? '';
-  const action = step.action ?? '';
+  const action = (!hasHeadlineAndBody && step.action) ? step.action : '';
+  if (__DEV__ && !content && !hasHeadlineAndBody) {
+    console.warn('[StepFallback] SparkStep has no displayable content', { type: step.type, keys: Object.keys(step) });
+  }
 
   return (
     <Animated.View style={[sparkStyles.container, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
@@ -160,7 +224,14 @@ function SparkStep({ step, onAdvance }: { step: any; onAdvance: () => void }) {
       </View>
 
       {/* The insight text — large, editorial */}
-      <Text style={sparkStyles.body}>{content}</Text>
+      {hasHeadlineAndBody ? (
+        <>
+          <Text style={[sparkStyles.body, { fontFamily: 'Inter_700Bold', marginBottom: 8 }]}>{headline}</Text>
+          <Text style={sparkStyles.body}>{bodyText}</Text>
+        </>
+      ) : (
+        <Text style={sparkStyles.body}>{content}</Text>
+      )}
 
       {/* Cue box — if present */}
       {cue !== '' && <CueBox cue={cue} />}
@@ -173,7 +244,7 @@ function SparkStep({ step, onAdvance }: { step: any; onAdvance: () => void }) {
         </View>
       )}
 
-      <AdvanceButton label="Got it →" onPress={onAdvance} />
+      {finalAction ?? <AdvanceButton label="Got it →" onPress={onAdvance} />}
     </Animated.View>
   );
 }
@@ -214,21 +285,78 @@ function CueBox({ cue, label = 'YOUR CUE' }: { cue: string; label?: string }) {
 // ─── CHOICE STEP — High-stakes decision cards ────────────────────────────────
 // Before: clean bordered tiles. After: dramatic success/fail states.
 
-function ChoiceStep({ step, onAdvance }: { step: any; onAdvance: () => void }) {
+function getChoiceId(choice: any, index: number): string {
+  return String(choice?.id ?? choice?.key ?? choice?.value ?? index);
+}
+
+function getChoiceQuality(choice: any, step: any, index: number): 'correct' | 'acceptable' | 'wrong' {
+  const raw = String(choice?.quality ?? choice?.outcome ?? choice?.status ?? '').toLowerCase();
+  if (choice?.is_correct === true || choice?.correct === true || raw === 'success' || raw === 'correct' || raw === 'best') return 'correct';
+  if (raw === 'acceptable' || raw === 'partial' || raw === 'ok') return 'acceptable';
+  const choiceId = getChoiceId(choice, index);
+  const correctId = step?.correct_choice_id ?? step?.correct_answer_id ?? step?.answer_id;
+  if (correctId !== undefined && correctId !== null && String(correctId) === choiceId) return 'correct';
+  const correctIndex = step?.correct_index ?? step?.answer_index;
+  if (typeof correctIndex === 'number' && correctIndex === index) return 'correct';
+  return 'wrong';
+}
+
+function choiceFallbackFeedback(quality: 'correct' | 'acceptable' | 'wrong'): string {
+  if (quality === 'correct') return 'Good read. That choice keeps the rep under control.';
+  if (quality === 'acceptable') return 'That can work, but there is a cleaner baseball decision here.';
+  return 'Not the move. Reset the situation, simplify the decision, and try again.';
+}
+
+function ChoiceStep({ step, onAdvance, finalAction, advanceLabel = 'Next Rep →' }: { step: any; onAdvance: (passed?: boolean) => void; finalAction?: React.ReactNode; advanceLabel?: string }) {
   const [selected, setSelected] = useState<string | null>(null);
   const [revealed, setRevealed] = useState(false);
-  const choices = step.choices ?? step.options ?? [];
+  const [selectedPassed, setSelectedPassed] = useState<boolean | undefined>(undefined);
 
-  function handlePick(id: string, outcome?: string) {
+  const microcopy = useMicrocopy();
+  const correctFbRef = useRef<string | null>(null);
+  const wrongFbRef = useRef<string | null>(null);
+  if (correctFbRef.current === null) correctFbRef.current = microcopy.useStepFeedback(true);
+  if (wrongFbRef.current === null) wrongFbRef.current = microcopy.useStepFeedback(false);
+
+  // Shuffle once on mount so correctness never relies on answer position.
+  const shuffledRef = useRef<any[] | null>(null);
+  if (shuffledRef.current === null) {
+    const raw = Array.isArray(step?.choices) ? step.choices : Array.isArray(step?.options) ? step.options : [];
+    shuffledRef.current = [...raw].sort(() => Math.random() - 0.5);
+  }
+  const choices = shuffledRef.current;
+
+  function handlePick(id: string, quality: 'correct' | 'acceptable' | 'wrong') {
     if (revealed) return;
     Haptics.selectionAsync();
     setSelected(id);
     setRevealed(true);
-    if (outcome === 'success') {
+    const passed = quality !== 'wrong';
+    setSelectedPassed(passed);
+    if (quality === 'correct') {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    } else if (quality === 'acceptable') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     } else {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     }
+  }
+
+  if (choices.length === 0) {
+    if (__DEV__) console.warn('[StepFallback] ChoiceStep has no choices/options', { type: step.type, keys: Object.keys(step) });
+    return (
+      <View style={choiceStyles.container}>
+        {(step.prompt ?? step.question) ? <Text style={choiceStyles.prompt}>{step.prompt ?? step.question}</Text> : null}
+        <View style={stepRouterStyles.fallbackCard}>
+          <Ionicons name="alert-circle" size={18} color={Colors.warning} />
+          <View style={{ flex: 1 }}>
+            <Text style={stepRouterStyles.fallbackTitle}>This rep needs an update.</Text>
+            <Text style={stepRouterStyles.fallbackText}>Answer choices haven't been added yet. Keep moving.</Text>
+          </View>
+        </View>
+        {finalAction ?? <AdvanceButton label="Continue →" onPress={() => onAdvance(undefined)} />}
+      </View>
+    );
   }
 
   return (
@@ -237,33 +365,35 @@ function ChoiceStep({ step, onAdvance }: { step: any; onAdvance: () => void }) {
 
       <View style={choiceStyles.list}>
         {choices.map((c: any, i: number) => {
-          const cid = c.id ?? String(i);
+          const cid = getChoiceId(c, i);
           const isSel = selected === cid;
-          const isOk = c.outcome === 'success' || c.quality === 'correct';
+          const quality = getChoiceQuality(c, step, i);
+          const isOk = quality === 'correct';
 
           return (
             <ChoiceButton
               key={cid}
               label={c.text ?? c.label ?? ''}
-              feedback={c.feedback}
+              feedback={c.feedback ?? (quality !== 'wrong' ? correctFbRef.current! : wrongFbRef.current!)}
+              quality={quality}
               isSelected={isSel}
               isRevealed={revealed}
               isCorrect={isOk}
               index={i}
-              onPress={() => handlePick(cid, c.outcome)}
+              onPress={() => handlePick(cid, quality)}
               disabled={revealed}
             />
           );
         })}
       </View>
 
-      {revealed && <AdvanceButton label="Next →" onPress={onAdvance} />}
+      {revealed && finalAction ? finalAction : <AdvanceButton label={revealed ? advanceLabel : 'Lock in a read'} onPress={revealed ? () => onAdvance(selectedPassed) : undefined} disabled={!revealed} />}
     </View>
   );
 }
 
-function ChoiceButton({ label, feedback, isSelected, isRevealed, isCorrect, index, onPress, disabled }: {
-  label: string; feedback?: string; isSelected: boolean; isRevealed: boolean;
+function ChoiceButton({ label, feedback, quality, isSelected, isRevealed, isCorrect, index, onPress, disabled }: {
+  label: string; feedback?: string; quality: 'correct' | 'acceptable' | 'wrong'; isSelected: boolean; isRevealed: boolean;
   isCorrect: boolean; index: number; onPress: () => void; disabled: boolean;
 }) {
   const revealAnim = useRef(new Animated.Value(0)).current;
@@ -272,7 +402,7 @@ function ChoiceButton({ label, feedback, isSelected, isRevealed, isCorrect, inde
   useEffect(() => {
     if (isSelected && isRevealed) {
       Animated.timing(revealAnim, { toValue: 1, duration: 300, useNativeDriver: false }).start();
-      if (!isCorrect) {
+      if (quality === 'wrong') {
         // Shake on wrong answer
         Animated.sequence([
           Animated.timing(shakeAnim, { toValue: 6, duration: 60, useNativeDriver: true }),
@@ -295,6 +425,11 @@ function ChoiceButton({ label, feedback, isSelected, isRevealed, isCorrect, inde
       borderColor = Colors.primary;
       bgColor = 'rgba(34,204,94,0.10)';
       iconName = 'checkmark-circle';
+    } else if (quality === 'acceptable') {
+      borderColor = Colors.warning;
+      bgColor = 'rgba(245,158,11,0.08)';
+      iconName = 'information-circle';
+      textColor = Colors.warning;
     } else {
       borderColor = Colors.danger;
       bgColor = 'rgba(255,59,48,0.08)';
@@ -336,7 +471,7 @@ function ChoiceButton({ label, feedback, isSelected, isRevealed, isCorrect, inde
           {/* Feedback slides in after reveal */}
           {isSelected && isRevealed && feedback && (
             <Animated.View style={{ opacity: revealAnim }}>
-              <Text style={[choiceStyles.feedback, { color: isCorrect ? Colors.primary : Colors.textSecondary }]}>
+              <Text style={[choiceStyles.feedback, { color: isCorrect ? Colors.primary : quality === 'acceptable' ? Colors.warning : Colors.textSecondary }]}>
                 {feedback}
               </Text>
             </Animated.View>
@@ -345,7 +480,7 @@ function ChoiceButton({ label, feedback, isSelected, isRevealed, isCorrect, inde
 
         {/* Result icon */}
         {isSelected && isRevealed && iconName && (
-          <Ionicons name={iconName} size={20} color={isCorrect ? Colors.primary : Colors.danger} />
+          <Ionicons name={iconName} size={20} color={isCorrect ? Colors.primary : quality === 'acceptable' ? Colors.warning : Colors.danger} />
         )}
       </Pressable>
 
@@ -359,8 +494,9 @@ function ChoiceButton({ label, feedback, isSelected, isRevealed, isCorrect, inde
 
 // ─── CHECKLIST STEP — Pregame card, satisfying completion ────────────────────
 
-function ChecklistStep({ step, onAdvance }: { step: any; onAdvance: () => void }) {
-  const items: string[] = step.instructions ?? step.items ?? step.steps ?? [];
+function ChecklistStep({ step, onAdvance, finalAction }: { step: any; onAdvance: () => void; finalAction?: React.ReactNode }) {
+  const rawItems = step.instructions ?? step.items ?? step.steps ?? [];
+  const items: string[] = Array.isArray(rawItems) ? rawItems.map(String) : [];
   const [checked, setChecked] = useState<Set<number>>(new Set());
   const allDone = checked.size >= items.length && items.length > 0;
   const progress = items.length > 0 ? checked.size / items.length : 0;
@@ -399,11 +535,13 @@ function ChecklistStep({ step, onAdvance }: { step: any; onAdvance: () => void }
         })}
       </View>
 
-      <AdvanceButton
-        label={allDone ? 'Done →' : `${checked.size}/${items.length} checked`}
-        onPress={allDone ? onAdvance : undefined}
-        disabled={!allDone}
-      />
+      {allDone && finalAction ? finalAction : (
+        <AdvanceButton
+          label={allDone ? 'Done →' : `${checked.size}/${items.length} checked`}
+          onPress={allDone ? onAdvance : undefined}
+          disabled={!allDone}
+        />
+      )}
     </View>
   );
 }
@@ -442,7 +580,7 @@ function ChecklistRow({ text, done, index, onToggle }: { text: string; done: boo
 
 // ─── VISUALIZATION / CUE STEP — Focused, meditative ─────────────────────────
 
-function VisualizationStep({ step, onAdvance }: { step: any; onAdvance: () => void }) {
+function VisualizationStep({ step, onAdvance, finalAction }: { step: any; onAdvance: () => void; finalAction?: React.ReactNode }) {
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -475,14 +613,14 @@ function VisualizationStep({ step, onAdvance }: { step: any; onAdvance: () => vo
 
       {cue !== '' && <CueBox cue={cue} />}
 
-      <AdvanceButton label="Locked in →" onPress={onAdvance} />
+      {finalAction ?? <AdvanceButton label="Locked in →" onPress={onAdvance} />}
     </Animated.View>
   );
 }
 
 // ─── TIMER STEP — Athletic game clock ────────────────────────────────────────
 
-function TimerStep({ step, onAdvance }: { step: any; onAdvance: () => void }) {
+function TimerStep({ step, onAdvance, finalAction }: { step: any; onAdvance: () => void; finalAction?: React.ReactNode }) {
   const duration = step.timer_sec ?? step.duration ?? 15;
   const [seconds, setSeconds] = useState(duration);
   const [running, setRunning] = useState(false);
@@ -568,14 +706,14 @@ function TimerStep({ step, onAdvance }: { step: any; onAdvance: () => void }) {
         </View>
       )}
 
-      {done && <AdvanceButton label="Done →" onPress={onAdvance} />}
+      {done && (finalAction ?? <AdvanceButton label="Done →" onPress={onAdvance} />)}
     </View>
   );
 }
 
 // ─── REFLECTION STEP ─────────────────────────────────────────────────────────
 
-function ReflectionStep({ step, onAdvance }: { step: any; onAdvance: () => void }) {
+function ReflectionStep({ step, onAdvance, finalAction }: { step: any; onAdvance: () => void; finalAction?: React.ReactNode }) {
   return (
     <View style={reflectStyles.container}>
       <View style={reflectStyles.bulbWrap}>
@@ -589,18 +727,18 @@ function ReflectionStep({ step, onAdvance }: { step: any; onAdvance: () => void 
       <Text style={reflectStyles.body}>{step.content ?? step.text ?? step.prompt ?? step.reframe_prompt ?? ''}</Text>
       {step.example_reframe && (
         <View style={reflectStyles.exampleBox}>
-          <Text style={reflectStyles.exampleLabel}>EXAMPLE</Text>
+          <Text style={reflectStyles.exampleLabel}>REP EXAMPLE</Text>
           <Text style={reflectStyles.exampleText}>{step.example_reframe}</Text>
         </View>
       )}
-      <AdvanceButton label="Got it →" onPress={onAdvance} />
+      {finalAction ?? <AdvanceButton label="Got it →" onPress={onAdvance} />}
     </View>
   );
 }
 
 // ─── FEEDBACK STEP ───────────────────────────────────────────────────────────
 
-function FeedbackStep({ step, onAdvance }: { step: any; onAdvance: () => void }) {
+function FeedbackStep({ step, onAdvance, finalAction }: { step: any; onAdvance: () => void; finalAction?: React.ReactNode }) {
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
   useEffect(() => {
     Animated.spring(scaleAnim, { toValue: 1, tension: 80, friction: 8, useNativeDriver: true }).start();
@@ -611,21 +749,31 @@ function FeedbackStep({ step, onAdvance }: { step: any; onAdvance: () => void })
         <Ionicons name="checkmark-circle" size={44} color={Colors.primary} />
       </Animated.View>
       <Text style={feedbackStyles.text}>{step.content ?? step.text ?? step.message ?? ''}</Text>
-      <AdvanceButton label="Continue →" onPress={onAdvance} />
+      {finalAction ?? <AdvanceButton label="Continue →" onPress={onAdvance} />}
     </View>
   );
 }
 
 // ─── NOTICE/WONDER STEP — Three completely different phase identities ─────────
 
-function NoticeWonderStep({ step, onAdvance }: { step: any; onAdvance: () => void }) {
+function NoticeWonderStep({ step, onAdvance, finalAction }: { step: any; onAdvance: () => void; finalAction?: React.ReactNode }) {
   type Phase = 'notice' | 'wonder' | 'reveal';
   const [phase, setPhase] = useState<Phase>('notice');
   const [noticePicks, setNoticePicks] = useState<string[]>([]);
   const [wonderPick, setWonderPick] = useState<string | null>(null);
   const phaseAnim = useRef(new Animated.Value(1)).current;
-  const noticeItems: string[] = step.notice_items ?? [];
-  const wonderOptions: { id: string; text: string }[] = step.wonder_options ?? [];
+  const noticeItems: string[] = Array.isArray(step.notice_items) ? step.notice_items.map(String) : [];
+  const wonderOptions: { id: string; text: string }[] = Array.isArray(step.wonder_options) ? step.wonder_options.map((opt: any, i: number) => ({ id: String(opt?.id ?? i), text: String(opt?.text ?? opt?.label ?? opt ?? '') })) : [];
+
+  // Legacy schema detection
+  const isLegacyNotice = noticeItems.length === 0 && typeof step.notice === 'string' && step.notice.length > 0;
+  const isLegacyWonder = wonderOptions.length === 0 && typeof step.wonder === 'string' && step.wonder.length > 0;
+  if (__DEV__ && (isLegacyNotice || isLegacyWonder)) {
+    console.warn('[StepFallback] NoticeWonderStep using legacy schema', { reason: isLegacyNotice ? 'no notice_items' : 'no wonder_options', keys: Object.keys(step) });
+  }
+
+  const situation = step.situation ?? step.content ?? step.body ?? step.notice ?? step.headline ?? '';
+  const revealCue = step.reveal_cue ?? step.cue ?? step.takeaway_cue ?? '';
 
   function transition(next: Phase) {
     Haptics.selectionAsync();
@@ -655,41 +803,60 @@ function NoticeWonderStep({ step, onAdvance }: { step: any; onAdvance: () => voi
           <View style={[nwStyles.situationBorder, { backgroundColor: Colors.info }]} />
           <View style={nwStyles.situationInner}>
             <Text style={nwStyles.situationLabel}>THE SITUATION</Text>
-            <Text style={nwStyles.situationText}>{step.situation ?? step.content ?? ''}</Text>
+            <Text style={nwStyles.situationText}>{situation}</Text>
           </View>
         </View>
 
-        <Text style={nwStyles.noticeInstruct}>Tap everything you notice. No wrong answers.</Text>
+        {isLegacyNotice ? (
+          // Legacy: show notice text directly, no chip tap required
+          <>
+            <View style={nwStyles.situationCard}>
+              <View style={[nwStyles.situationBorder, { backgroundColor: Colors.info }]} />
+              <View style={nwStyles.situationInner}>
+                <Text style={nwStyles.situationLabel}>NOTICE</Text>
+                <Text style={nwStyles.situationText}>{step.notice}</Text>
+              </View>
+            </View>
+            <Pressable style={nwStyles.phaseBtn} onPress={() => transition('wonder')}>
+              <Text style={nwStyles.phaseBtnText}>Wonder →</Text>
+              <Ionicons name="arrow-forward" size={14} color="#000" />
+            </Pressable>
+          </>
+        ) : (
+          <>
+            <Text style={nwStyles.noticeInstruct}>Scout the scene. Tap every clue you see.</Text>
 
-        {/* Chip grid */}
-        <View style={nwStyles.chipGrid}>
-          {noticeItems.map((item, i) => {
-            const picked = noticePicks.includes(item);
-            return (
-              <Pressable
-                key={i}
-                style={[nwStyles.chip, picked && nwStyles.chipPicked]}
-                onPress={() => {
-                  Haptics.selectionAsync();
-                  setNoticePicks((p) => p.includes(item) ? p.filter((x) => x !== item) : [...p, item]);
-                }}
-              >
-                {picked && <Ionicons name="checkmark" size={10} color={Colors.primary} style={{ marginRight: 3 }} />}
-                <Text style={[nwStyles.chipText, picked && nwStyles.chipTextPicked]}>{item}</Text>
-              </Pressable>
-            );
-          })}
-        </View>
+            {/* Chip grid */}
+            <View style={nwStyles.chipGrid}>
+              {noticeItems.map((item, i) => {
+                const picked = noticePicks.includes(item);
+                return (
+                  <Pressable
+                    key={i}
+                    style={[nwStyles.chip, picked && nwStyles.chipPicked]}
+                    onPress={() => {
+                      Haptics.selectionAsync();
+                      setNoticePicks((p) => p.includes(item) ? p.filter((x) => x !== item) : [...p, item]);
+                    }}
+                  >
+                    {picked && <Ionicons name="checkmark" size={10} color={Colors.primary} style={{ marginRight: 3 }} />}
+                    <Text style={[nwStyles.chipText, picked && nwStyles.chipTextPicked]}>{item}</Text>
+                  </Pressable>
+                );
+              })}
+            </View>
 
-        <Pressable
-          style={[nwStyles.phaseBtn, noticePicks.length === 0 && nwStyles.phaseBtnDisabled]}
-          onPress={noticePicks.length > 0 ? () => transition('wonder') : undefined}
-        >
-          <Text style={nwStyles.phaseBtnText}>
-            {noticePicks.length === 0 ? 'Tap what you notice' : `I noticed ${noticePicks.length} → Wonder`}
-          </Text>
-          {noticePicks.length > 0 && <Ionicons name="arrow-forward" size={14} color="#000" />}
-        </Pressable>
+            <Pressable
+              style={[nwStyles.phaseBtn, noticePicks.length === 0 && nwStyles.phaseBtnDisabled]}
+              onPress={noticePicks.length > 0 ? () => transition('wonder') : undefined}
+            >
+              <Text style={nwStyles.phaseBtnText}>
+                {noticePicks.length === 0 ? 'Tap what you notice' : `I noticed ${noticePicks.length} → Wonder`}
+              </Text>
+              {noticePicks.length > 0 && <Ionicons name="arrow-forward" size={14} color="#000" />}
+            </Pressable>
+          </>
+        )}
       </Animated.View>
     );
   }
@@ -708,33 +875,50 @@ function NoticeWonderStep({ step, onAdvance }: { step: any; onAdvance: () => voi
 
         <Text style={nwStyles.wonderPrompt}>{step.wonder_prompt ?? 'What do you think happens next?'}</Text>
 
-        <View style={nwStyles.wonderList}>
-          {wonderOptions.map((opt) => {
-            const picked = wonderPick === opt.id;
-            return (
-              <Pressable
-                key={opt.id}
-                style={[nwStyles.wonderOption, picked && nwStyles.wonderOptionPicked]}
-                onPress={() => {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                  setWonderPick(opt.id);
-                }}
-              >
-                <View style={[nwStyles.wonderRadio, picked && nwStyles.wonderRadioFilled]}>
-                  {picked && <View style={nwStyles.wonderRadioDot} />}
-                </View>
-                <Text style={[nwStyles.wonderOptionText, picked && { color: Colors.textPrimary, fontFamily: 'Inter_600SemiBold' }]}>
-                  {opt.text}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
+        {isLegacyWonder ? (
+          // Legacy: show wonder text directly, no option tap required
+          <>
+            <View style={nwStyles.situationCard}>
+              <View style={[nwStyles.situationBorder, { backgroundColor: Colors.warning }]} />
+              <View style={nwStyles.situationInner}>
+                <Text style={nwStyles.situationText}>{step.wonder}</Text>
+              </View>
+            </View>
+            <Pressable style={[nwStyles.phaseBtn, nwStyles.phaseBtnWonder]} onPress={() => transition('reveal')}>
+              <Text style={nwStyles.phaseBtnText}>Reveal →</Text>
+            </Pressable>
+          </>
+        ) : (
+          <>
+            <View style={nwStyles.wonderList}>
+              {wonderOptions.map((opt) => {
+                const picked = wonderPick === opt.id;
+                return (
+                  <Pressable
+                    key={opt.id}
+                    style={[nwStyles.wonderOption, picked && nwStyles.wonderOptionPicked]}
+                    onPress={() => {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                      setWonderPick(opt.id);
+                    }}
+                  >
+                    <View style={[nwStyles.wonderRadio, picked && nwStyles.wonderRadioFilled]}>
+                      {picked && <View style={nwStyles.wonderRadioDot} />}
+                    </View>
+                    <Text style={[nwStyles.wonderOptionText, picked && { color: Colors.textPrimary, fontFamily: 'Inter_600SemiBold' }]}>
+                      {opt.text}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
 
-        {wonderPick && (
-          <Pressable style={[nwStyles.phaseBtn, nwStyles.phaseBtnWonder]} onPress={() => transition('reveal')}>
-            <Text style={nwStyles.phaseBtnText}>Show me what happens →</Text>
-          </Pressable>
+            {wonderPick && (
+              <Pressable style={[nwStyles.phaseBtn, nwStyles.phaseBtnWonder]} onPress={() => transition('reveal')}>
+                <Text style={nwStyles.phaseBtnText}>Show me what happens →</Text>
+              </Pressable>
+            )}
+          </>
         )}
       </Animated.View>
     );
@@ -788,11 +972,11 @@ function NoticeWonderStep({ step, onAdvance }: { step: any; onAdvance: () => voi
       )}
 
       {/* Cue box — the stamped takeaway */}
-      {(step.reveal_cue ?? step.cue ?? '') !== '' && (
-        <CueBox cue={step.reveal_cue ?? step.cue} label="LOCK IN YOUR CUE" />
+      {revealCue !== '' && (
+        <CueBox cue={revealCue} label="LOCK IN YOUR CUE" />
       )}
 
-      <AdvanceButton label="Locked in →" onPress={onAdvance} variant="primary" />
+      {finalAction ?? <AdvanceButton label="Locked in →" onPress={onAdvance} variant="primary" />}
     </Animated.View>
   );
 }
@@ -829,74 +1013,261 @@ function AdvanceButton({ label, onPress, disabled = false, variant = 'default' }
 
 // ─── STEP ROUTER ─────────────────────────────────────────────────────────────
 
-function StepRenderer({ step, onAdvance }: { step: any; onAdvance: (passed?: boolean) => void }) {
-  if (step.ui_variant) return <View style={stepRouterStyles.interactiveWrap}><VariantRenderer step={step} onAdvance={onAdvance} /></View>;
+function StepRenderer({
+  step,
+  onAdvance,
+  isFinal = false,
+  completionIntent = 'rep',
+}: {
+  step: any;
+  onAdvance: (passed?: boolean) => void;
+  isFinal?: boolean;
+  completionIntent?: CompletionIntent;
+}) {
+  const [finalVariantPassed, setFinalVariantPassed] = useState<boolean | null>(null);
+  useEffect(() => { setFinalVariantPassed(null); }, [step]);
   const adv = () => onAdvance();
+  const finalAction = isFinal ? (
+    <CompletionInteraction
+      variant={completionIntent === 'boss' ? 'card-swipe' : 'swipe'}
+      intent={completionIntent}
+      fallbackLabel="Finish Rep"
+      onComplete={() => onAdvance(finalVariantPassed ?? undefined)}
+    />
+  ) : undefined;
+  if (step.ui_variant) {
+    return (
+      <View style={stepRouterStyles.interactiveWrap}>
+        <VariantRenderer
+          step={step}
+          onAdvance={(passed) => {
+            if (isFinal) setFinalVariantPassed(passed ?? true);
+            else onAdvance(passed);
+          }}
+        />
+        {finalVariantPassed !== null && finalAction}
+      </View>
+    );
+  }
   switch (step.type ?? '') {
     case 'spark': case 'text': case 'action':
-      return <SparkStep step={step} onAdvance={adv} />;
+      return <SparkStep step={step} onAdvance={adv} finalAction={finalAction} />;
     case 'choice': case 'scenario': case 'scenario_pick': case 'decision': case 'freeze_frame':
-      return <ChoiceStep step={step} onAdvance={adv} />;
+      return <ChoiceStep step={step} onAdvance={onAdvance} finalAction={isFinal ? undefined : finalAction} advanceLabel={isFinal ? 'Finish Rep →' : 'Next Rep →'} />;
     case 'checklist': case 'quick_reset':
-      return <ChecklistStep step={step} onAdvance={adv} />;
+      return <ChecklistStep step={step} onAdvance={adv} finalAction={finalAction} />;
     case 'cue': case 'visualization': case 'reframe_builder': case 'pressureRep':
-      return <VisualizationStep step={step} onAdvance={adv} />;
+      return <VisualizationStep step={step} onAdvance={adv} finalAction={finalAction} />;
     case 'timer': case 'pressure_rep':
-      return <TimerStep step={step} onAdvance={adv} />;
+      return <TimerStep step={step} onAdvance={adv} finalAction={finalAction} />;
     case 'reflection':
-      return <ReflectionStep step={step} onAdvance={adv} />;
+      return <ReflectionStep step={step} onAdvance={adv} finalAction={finalAction} />;
     case 'feedback': case 'reward':
-      return <FeedbackStep step={step} onAdvance={adv} />;
+      return <FeedbackStep step={step} onAdvance={adv} finalAction={finalAction} />;
     case 'notice_wonder':
-      return <NoticeWonderStep step={step} onAdvance={adv} />;
+      return <NoticeWonderStep step={step} onAdvance={adv} finalAction={finalAction} />;
+    case 'pressure_clock':
+      return <PressureClock step={step} onComplete={(r) => onAdvance(r.correct)} />;
+    case 'film_room':
+      return <FilmRoom step={step} onComplete={(r) => onAdvance(r.correct)} />;
+    case 'build_your_rep':
+      return <BuildYourRep step={step} onComplete={() => onAdvance(true)} />;
+    case 'hot_read':
+      return <HotRead step={step} onComplete={() => onAdvance(true)} />;
+    case 'visualization_rep':
+      return <VisualizationRep step={step} onComplete={() => onAdvance(true)} />;
+    case 'one_word_lock':
+      return <OneWordLock step={step} onComplete={() => onAdvance(true)} />;
+    case 'drag_sequence':
+      return <DragSequence step={step} onComplete={() => onAdvance(true)} />;
     default:
-      return <SparkStep step={step} onAdvance={adv} />;
+      return <SparkStep step={step} onAdvance={adv} finalAction={finalAction} />;
   }
 }
 
-// ─── COMPLETION OVERLAY ───────────────────────────────────────────────────────
+function StepTypeIcon({ stepType, isBoss, isFinal }: { stepType: string; isBoss: boolean; isFinal: boolean }) {
+  if (isBoss && isFinal) {
+    return <Image source={STEP_TYPE_ICONS.boss} style={{ width: 26, height: 26 }} resizeMode="contain" />;
+  }
+  const src = STEP_TYPE_ICONS[stepType];
+  if (!src) return null;
+  return <Image source={src} style={{ width: 22, height: 22 }} resizeMode="contain" />;
+}
 
-function CompletionOverlay({ lesson, passed, onClose }: { lesson: any; passed: boolean; onClose: () => void }) {
-  const scaleAnim = useRef(new Animated.Value(0.7)).current;
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const xpBounce = useRef(new Animated.Value(0.5)).current;
+type CompletionKind = 'lesson' | 'checkpoint' | 'boss';
+
+function LessonCompletionPayoff({
+  lesson,
+  xpDisplay,
+  contentFadeAnim,
+  type,
+  onContinue,
+  athleteState,
+  startingXP,
+  awardedXP,
+}: {
+  lesson: any;
+  xpDisplay: number;
+  contentFadeAnim: Animated.Value;
+  type: CompletionKind;
+  onContinue: () => void;
+  athleteState: any;
+  startingXP: number;
+  awardedXP: number;
+}) {
+  const insets = useSafeAreaInsets();
+  const slideAnim = useRef(new Animated.Value(18)).current;
+  const pathFill = useRef(new Animated.Value(0)).current;
+  const badgeFill = useRef(new Animated.Value(0)).current;
+
+  const microcopy = useMicrocopy();
+  const capLineRef = useRef<string | null>(null);
+  if (capLineRef.current === null) {
+    capLineRef.current = type === 'boss'
+      ? microcopy.useBossComplete()
+      : type === 'checkpoint'
+      ? microcopy.useWorldComplete()
+      : microcopy.useLessonComplete();
+  }
+
   useEffect(() => {
-    Haptics.notificationAsync(passed ? Haptics.NotificationFeedbackType.Success : Haptics.NotificationFeedbackType.Warning);
     Animated.parallel([
-      Animated.spring(scaleAnim, { toValue: 1, tension: 80, friction: 8, useNativeDriver: true }),
-      Animated.timing(fadeAnim, { toValue: 1, duration: 300, useNativeDriver: true }),
-    ]).start(() => Animated.spring(xpBounce, { toValue: 1, tension: 100, friction: 6, useNativeDriver: true }).start());
+      Animated.spring(slideAnim, { toValue: 0, tension: 70, friction: 12, useNativeDriver: true }),
+      Animated.timing(pathFill, { toValue: Math.min(0.92, ((athleteState?.completed_lessons?.length ?? 0) % 5 + 1) / 5), duration: 780, useNativeDriver: false }),
+      Animated.timing(badgeFill, { toValue: getRankProgressPercent(startingXP + awardedXP), duration: 900, useNativeDriver: false }),
+    ]).start();
   }, []);
-  const xp = passed ? (lesson?.xp_reward ?? 50) : Math.floor((lesson?.xp_reward ?? 50) * 0.5);
+
+  const isBoss = type === 'boss';
+  const title = capLineRef.current!;
+  const currentPathName = lesson?.path_name ?? lesson?.lesson_family ?? lesson?.pillar_id ?? 'Career Path';
+  const beforeRank = getCurrentRank(startingXP);
+  const afterTotalXP = startingXP + awardedXP;
+  const rankProgress = getRankProgress(afterTotalXP);
+  const afterRank = rankProgress.currentRank;
+  const rankUpgraded = beforeRank.id !== afterRank.id;
+  const isReplay = awardedXP <= 0;
+  const isFirstClear = !isReplay;
+  const rankProgressLabel = rankProgress.nextRank
+    ? `${rankProgress.xpIntoCurrentRank.toLocaleString()} / ${rankProgress.xpNeededForNextRank?.toLocaleString()} XP`
+    : 'Elite standard held';
+  const pathWidth = pathFill.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] });
+  const badgeWidth = badgeFill.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] });
+  const secondary = isBoss ? { label: 'Back Home', route: '/(tabs)' } : { label: 'Open Playbook', route: '/playbook' };
+  const topSafePadding = Math.max(insets.top + Spacing.lg, Spacing.xxxl);
+
   return (
-    <Animated.View style={[completionStyles.overlay, { opacity: fadeAnim }]}>
-      <Animated.View style={[completionStyles.card, { transform: [{ scale: scaleAnim }] }]}>
-        <Animated.View style={[completionStyles.xpBurst, { transform: [{ scale: xpBounce }] }, !passed && completionStyles.xpBurstPartial]}>
-          <Ionicons name="flash" size={28} color={Colors.background} />
-          <Text style={completionStyles.xpNum}>+{xp}</Text>
-          <Text style={completionStyles.xpLabel}>XP</Text>
-        </Animated.View>
-        <Text style={completionStyles.title}>{passed ? 'Rep Complete.' : 'Keep Working.'}</Text>
-        <Text style={completionStyles.feedback}>{passed ? 'Rep complete. Keep stacking.' : 'Good effort. Come back and run it again.'}</Text>
-        {!passed && (
-          <Pressable style={completionStyles.retryBtn} onPress={() => router.replace(`/lesson/${lesson?.id}`)}>
-            <Ionicons name="refresh" size={16} color={Colors.primary} />
-            <Text style={completionStyles.retryBtnText}>Run it again</Text>
+    <Animated.View style={[payoffStyles.wrap, { opacity: contentFadeAnim, transform: [{ translateY: slideAnim }] }]}>
+      <ImageBackground source={completionBg} style={StyleSheet.absoluteFill} resizeMode="cover">
+        <View style={payoffStyles.bgOverlay} />
+      </ImageBackground>
+      <Image source={completionGlow} style={payoffStyles.completionGlowImg} pointerEvents="none" />
+      <ScrollView contentContainerStyle={[payoffStyles.scrollContent, { paddingTop: topSafePadding }]} showsVerticalScrollIndicator={false}>
+        <View style={payoffStyles.heroCard}>
+          <LinearGradient colors={['rgba(35,209,96,0.16)', 'rgba(5,8,6,0)']} style={StyleSheet.absoluteFill} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} />
+          <Image
+            pointerEvents="none"
+            source={require('../../assets/branding/c-mark.png')}
+            style={payoffStyles.heroWatermark}
+            resizeMode="contain"
+          />
+          <View style={payoffStyles.signalLine} />
+          <Image
+            source={require('../../assets/branding/simplified-wordmark.png')}
+            style={payoffStyles.heroWordmark}
+            resizeMode="contain"
+          />
+          <View style={payoffStyles.heroTopRow}>
+            <View>
+              {isBoss && <Text style={payoffStyles.bossCleared}>BOSS CLEARED</Text>}
+              <Text style={payoffStyles.kicker}>{isBoss ? 'CLOSE IT OUT' : 'REP COMPLETE'}</Text>
+              <Text style={payoffStyles.title}>{title}</Text>
+            </View>
+            <CoachCapMoment />
+          </View>
+          <Text style={payoffStyles.lessonTitle} numberOfLines={2}>{lesson?.title}</Text>
+          <View style={payoffStyles.xpRow}>
+            <Text style={payoffStyles.xpText}>+{xpDisplay}</Text>
+            <View style={{ justifyContent: 'flex-end', paddingBottom: 7, gap: 4 }}>
+              <Text style={[payoffStyles.xpLabel, { paddingBottom: 0 }]}>{isReplay ? 'REPLAY' : 'EARNED XP'}</Text>
+              {isFirstClear && (
+                <View style={payoffStyles.firstClearBadge}>
+                  <Text style={payoffStyles.firstClearText}>FIRST CLEAR</Text>
+                </View>
+              )}
+            </View>
+          </View>
+        </View>
+
+        <View style={payoffStyles.card}>
+          <View style={payoffStyles.cardHeaderRow}>
+            <Text style={payoffStyles.cardLabel}>{currentPathName}</Text>
+            <Text style={payoffStyles.cardValue}>{isBoss ? 'Boss cleared' : 'Next rep loaded'}</Text>
+          </View>
+          <View style={payoffStyles.progressTrack}><Animated.View style={[payoffStyles.progressFill, { width: pathWidth }]} /></View>
+        </View>
+
+        <View style={payoffStyles.card}>
+          <View style={payoffStyles.cardHeaderRow}>
+            <Text style={payoffStyles.cardLabel}>Rank Progress</Text>
+            <Text style={[payoffStyles.cardValue, { color: rankUpgraded ? afterRank.accentColor : afterRank.primaryColor }]}>{rankUpgraded ? 'Rank upgraded' : rankProgressLabel}</Text>
+          </View>
+          <View style={payoffStyles.badgeRow}>
+            <EmblemBadge rank={afterRank} size="small" />
+            <View style={{ flex: 1 }}>
+              <View style={[payoffStyles.rankTrack, { borderColor: afterRank.borderColor }]}><Animated.View style={[payoffStyles.rankFill, { width: badgeWidth, backgroundColor: afterRank.accentColor }]} /></View>
+              <Text style={payoffStyles.helperText}>{isReplay ? 'Replay logged for practice. XP is earned on first clear.' : rankUpgraded ? `${afterRank.name} unlocked. Standard raised.` : rankProgress.nextRank ? `Rank progress moved. Next rank: ${rankProgress.nextRank.name}. ${rankProgress.xpRemaining.toLocaleString()} XP left.` : 'Elite held. Keep stacking clean reps.'}</Text>
+            </View>
+          </View>
+        </View>
+
+        <View style={payoffStyles.takeCard}>
+          <View style={payoffStyles.takeHeaderRow}>
+            <Image source={ccsTakeIcon} style={payoffStyles.takeIcon} resizeMode="cover" />
+            <Text style={payoffStyles.takeLabel}>CC'S TAKE</Text>
+          </View>
+          <Text style={payoffStyles.takeText}>{lesson?.cc_take ?? 'You stayed with the cue. Next time the count gets loud, shrink it: target, breath, attack.'}</Text>
+        </View>
+
+        <View style={payoffStyles.actions}>
+          <Pressable style={payoffStyles.primaryCta} onPress={onContinue}>
+            <LinearGradient colors={['#23D160', '#18A84A']} style={StyleSheet.absoluteFill} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} />
+            <Text style={payoffStyles.primaryCtaText}>Continue Career</Text>
+            <Ionicons name="arrow-forward" size={18} color="#050806" />
           </Pressable>
-        )}
-        <Pressable style={completionStyles.nextBtn} onPress={onClose}>
-          <LinearGradient colors={[Colors.primary, '#18A84A']} style={StyleSheet.absoluteFill} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} />
-          <Text style={completionStyles.nextBtnText}>{passed ? 'Back to Career →' : 'Continue anyway →'}</Text>
-        </Pressable>
-      </Animated.View>
+          <Pressable style={payoffStyles.secondaryCta} onPress={() => router.push(secondary.route as any)}>
+            <Text style={payoffStyles.secondaryCtaText}>{secondary.label}</Text>
+          </Pressable>
+        </View>
+      </ScrollView>
     </Animated.View>
   );
+}
+
+function CoachCapMoment() {
+  return (
+    <View style={payoffStyles.ccHook}>
+      <Image
+        source={require('../../assets/coach-cap/circular-avatar.png')}
+        style={payoffStyles.ccImage}
+        resizeMode="cover"
+      />
+    </View>
+  );
+}
+
+// ─── STEP TEXT EXTRACTOR ─────────────────────────────────────────────────────
+
+function getStepReadText(step: any): string | null {
+  if (!step) return null;
+  return step.content ?? step.text ?? step.prompt ??
+         step.question ?? step.body ?? step.title ?? null;
 }
 
 // ─── MAIN SCREEN ─────────────────────────────────────────────────────────────
 
 export default function LessonPlayerScreen() {
-  const { id, reason } = useLocalSearchParams<{ id: string; reason?: string }>();
+  const { id } = useLocalSearchParams<{ id: string; reason?: string }>();
   const insets = useSafeAreaInsets();
   const { athleteState, completeLesson, updateAthleteState } = useAthlete();
   const [lesson, setLesson] = useState<any>(null);
@@ -908,6 +1279,44 @@ export default function LessonPlayerScreen() {
   const completionTriggered = useRef(false);
   const stepFade = useRef(new Animated.Value(1)).current;
   const progressAnim = useRef(new Animated.Value(0)).current;
+  const [showComplete, setShowComplete] = useState<'lesson' | 'checkpoint' | 'boss' | null>(null);
+  const [xpDisplay, setXpDisplay] = useState(0);
+  const overlayFadeAnim = useRef(new Animated.Value(0)).current;
+  const contentFadeAnim = useRef(new Animated.Value(0)).current;
+  const xpCountAnim = useRef(new Animated.Value(0)).current;
+  const finalXPRef = useRef(0);
+  const startingXPRef = useRef(0);
+  const lessonStartTime = useRef(Date.now());
+  const visitedSteps = useRef(new Set<number>());
+
+  useEffect(() => {
+    lessonStartTime.current = Date.now();
+    visitedSteps.current = new Set<number>();
+  }, [id]);
+
+  useEffect(() => {
+    visitedSteps.current.add(stepIndex);
+  }, [stepIndex]);
+
+  const [isMuted, setIsMuted] = useState(false);
+
+  useEffect(() => {
+    AsyncStorage.getItem('lesson_tts_muted').then(val => {
+      if (val === 'true') setIsMuted(true);
+    });
+  }, []);
+
+  useEffect(() => {
+    return () => { stopSpeech(); };
+  }, []);
+
+  async function toggleMute() {
+    const next = !isMuted;
+    setIsMuted(next);
+    await AsyncStorage.setItem('lesson_tts_muted', String(next));
+    if (next) stopSpeech();
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  }
 
   useEffect(() => {
     if (!id) return;
@@ -923,29 +1332,74 @@ export default function LessonPlayerScreen() {
       finally { setLoading(false); }
     })();
   }, [id]);
-useEffect(() => {
-  if (!lesson) return;
-  speakLessonIntro(lesson, reason ?? undefined);
-  return () => { stopSpeech(); };
-}, [lesson]);
-  const steps: any[] = lesson?.steps ?? [];
+  const steps: any[] = Array.isArray(lesson?.steps) ? lesson.steps : [];
+
+  useEffect(() => {
+    stopSpeech();
+    return () => { stopSpeech(); };
+  }, [id]);
   const totalSteps = steps.length;
+
+  useEffect(() => {
+    if (!lesson || totalSteps === 0) return;
+    const step = steps[Math.min(stepIndex, totalSteps - 1)];
+    const text = getStepReadText(step);
+    if (text && !isMuted) {
+      stopSpeech();
+      Speech.speak(text, { language: 'en-US', pitch: 1.0, rate: 0.92 });
+    }
+    return () => { stopSpeech(); };
+  }, [stepIndex, isMuted, totalSteps, lesson]);
 
   useEffect(() => {
     if (totalSteps === 0) return;
     Animated.spring(progressAnim, { toValue: (stepIndex + 1) / totalSteps, tension: 60, friction: 10, useNativeDriver: false }).start();
   }, [stepIndex, totalSteps]);
 
+  useEffect(() => {
+    if (!showComplete) return;
+    overlayFadeAnim.setValue(0);
+    contentFadeAnim.setValue(0);
+    xpCountAnim.setValue(0);
+    setXpDisplay(0);
+    Animated.timing(overlayFadeAnim, { toValue: 1, duration: 350, useNativeDriver: true }).start();
+    setTimeout(() => {
+      Animated.timing(contentFadeAnim, { toValue: 1, duration: 400, useNativeDriver: true }).start();
+    }, 200);
+    const xp = finalXPRef.current;
+    if (xp > 0) {
+      const listenerId = xpCountAnim.addListener(({ value }) => setXpDisplay(Math.round(value)));
+      setTimeout(() => {
+        Animated.timing(xpCountAnim, { toValue: xp, duration: 800, useNativeDriver: false }).start();
+      }, 400);
+      return () => xpCountAnim.removeListener(listenerId);
+    }
+  }, [showComplete]);
+
   const advanceStep = useCallback((passed?: boolean) => {
     if (completionTriggered.current) return;
     if (passed === false) setSessionPassed(false);
     if (stepIndex >= totalSteps - 1) {
+      const elapsed = Date.now() - lessonStartTime.current;
+      if (elapsed < 45000 && !__DEV__) return;
+      const allVisited = visitedSteps.current.size >= totalSteps - 1;
+      if (!allVisited && !__DEV__) return;
       completionTriggered.current = true;
       const xp = lesson?.xp_reward ?? 50;
       const finalPassed = passed !== false && sessionPassed;
-      if (athleteState && lesson) completeLesson(lesson.id ?? id, finalPassed ? xp : Math.floor(xp * 0.5));
-      if (lesson?.is_boss || lesson?.is_checkpoint) { setCompletionStage('check_in'); }
-      else { setCompletionStage('overlay'); }
+      const lessonKey = String(lesson?.id ?? id);
+      const alreadyCompleted = !!athleteState?.completed_lessons?.includes(lessonKey);
+      const awardedXP = alreadyCompleted ? 0 : finalPassed ? xp : Math.floor(xp * 0.5);
+      startingXPRef.current = athleteState?.total_xp ?? 0;
+      if (athleteState && lesson && !alreadyCompleted) completeLesson(lessonKey, awardedXP);
+      finalXPRef.current = awardedXP;
+      if (lesson?.is_boss || lesson?.is_checkpoint) {
+        setCompletionStage('check_in');
+      } else {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        setTimeout(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light), 250);
+        setShowComplete('lesson');
+      }
       return;
     }
     Animated.timing(stepFade, { toValue: 0, duration: 100, useNativeDriver: true }).start(() => {
@@ -956,7 +1410,7 @@ useEffect(() => {
   }, [stepIndex, totalSteps, lesson, athleteState, completeLesson, id, sessionPassed]);
 
   async function handleRatingsSubmit(ratings: Record<string, number>) {
-    if (!athleteState) { setCompletionStage('overlay'); return; }
+    if (!athleteState) { setShowComplete('lesson'); return; }
     const current = athleteState.self_ratings;
     const merged: any = { ...current };
     Object.entries(ratings).forEach(([key, val]) => {
@@ -964,11 +1418,20 @@ useEffect(() => {
       merged[key] = Math.round((val * 0.6 + existing * 0.4) * 10) / 10;
     });
     await updateAthleteState({ self_ratings: merged });
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    setCompletionStage('overlay');
+    if (lesson?.is_boss) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).then(() => {
+        setTimeout(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy), 200);
+        setTimeout(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium), 350);
+      });
+      setShowComplete('boss');
+    } else {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      setShowComplete('checkpoint');
+    }
   }
 
   function handleExit() {
+    stopSpeech();
     if (completionStage !== 'none' || stepIndex === 0) { router.back(); return; }
     Alert.alert('Exit lesson?', "Progress won't be saved.", [
       { text: 'Keep going', style: 'cancel' },
@@ -985,14 +1448,18 @@ useEffect(() => {
   );
   if (totalSteps === 0) return (
     <View style={[screenStyles.container, { paddingTop: insets.top }]}>
-      <View style={screenStyles.header}>
-        <Pressable onPress={handleExit} hitSlop={12} style={screenStyles.closeBtn}>
-          <Ionicons name="close" size={22} color={Colors.textSecondary} />
-        </Pressable>
-      </View>
+      <ClutchrHeader
+        variant="flow"
+        title={lesson?.title ?? 'Finish the Rep'}
+        leftAction={
+          <Pressable onPress={handleExit} hitSlop={12} style={screenStyles.closeBtn}>
+            <Ionicons name="close" size={22} color={Colors.textSecondary} />
+          </Pressable>
+        }
+      />
       <View style={screenStyles.center}>
-        <Text style={screenStyles.loadingText}>No steps in this lesson yet.</Text>
-        <Pressable style={screenStyles.backBtn} onPress={() => router.back()}><Text style={screenStyles.backBtnText}>← Go back</Text></Pressable>
+        <Text style={screenStyles.loadingText}>This rep needs cleanup.</Text>
+        <Pressable style={screenStyles.backBtn} onPress={() => router.back()}><Text style={screenStyles.backBtnText}>Return Home</Text></Pressable>
       </View>
     </View>
   );
@@ -1000,48 +1467,62 @@ useEffect(() => {
   const safeIndex = Math.min(stepIndex, totalSteps - 1);
   const currentStep = steps[safeIndex] ?? null;
   const lessonFamily = lesson.lesson_family ?? lesson.pillar_id ?? 'Spark Card';
-  const durationMin = Math.ceil((lesson.duration_sec ?? lesson.expected_time_sec ?? 90) / 60);
-  const roleTag = (lesson.role_tags ?? [])[0] ?? '';
-  const difficulty = lesson.difficulty_tier ?? lesson.difficulty ?? '';
   const isBoss = !!lesson.is_boss;
   const isCheckpoint = !!lesson.is_checkpoint;
+  const finalStepType = String(currentStep?.type ?? currentStep?.ui_variant ?? '');
+  const completionIntent: CompletionIntent = isBoss || isCheckpoint
+    ? 'boss'
+    : finalStepType.includes('cue') || finalStepType.includes('routine')
+      ? 'save'
+      : 'rep';
+
+  const hasChoiceStep = steps.some((s: any) => s.type === 'choice' || s.ui_variant === 'choice');
+  const isPressure = lessonFamily === 'Pressure Rep' || hasChoiceStep || (Array.isArray(lesson.skill_tags) && lesson.skill_tags.includes('pressure'));
+  const backgroundSource = isBoss
+    ? LESSON_BACKGROUNDS.boss
+    : isPressure
+      ? LESSON_BACKGROUNDS.pressure
+      : LESSON_BACKGROUNDS.default;
 
   return (
     <View style={[screenStyles.container, { paddingTop: insets.top }]}>
+      <ImageBackground source={backgroundSource} style={screenStyles.background} resizeMode="cover" />
+      <View style={screenStyles.backgroundOverlay} />
+      {isBoss && <View style={screenStyles.bossAccentBorder} />}
 
       {/* ── HEADER ── */}
-      <View style={screenStyles.header}>
-        <Pressable onPress={handleExit} hitSlop={12} style={screenStyles.closeBtn}>
-          <Ionicons name="close" size={20} color={Colors.textSecondary} />
-        </Pressable>
-        <View style={screenStyles.headerBadges}>
-          {roleTag !== '' && (
-            <View style={screenStyles.roleBadge}>
-              <Text style={screenStyles.roleBadgeText}>{roleTag.toUpperCase()}</Text>
-            </View>
-          )}
-          {currentStep?.ui_variant && (
-            <View style={screenStyles.interactiveBadge}>
-              <Ionicons name="game-controller" size={9} color={Colors.purple} />
-              <Text style={screenStyles.interactiveBadgeText}>INTERACTIVE</Text>
-            </View>
-          )}
-          {isBoss && (
-            <View style={screenStyles.bossBadge}>
-              <Ionicons name="trophy" size={9} color={Colors.warning} />
-              <Text style={screenStyles.bossBadgeText}>BOSS</Text>
-            </View>
-          )}
-          {isCheckpoint && !isBoss && (
-            <View style={screenStyles.checkpointBadge}>
-              <Ionicons name="flag" size={9} color={Colors.info} />
-              <Text style={screenStyles.checkpointBadgeText}>CHECKPOINT</Text>
-            </View>
-          )}
-          {difficulty !== '' && <Text style={screenStyles.diffText}>{difficulty}</Text>}
-          <Text style={screenStyles.durationText}>{durationMin} min</Text>
-        </View>
-      </View>
+      <ClutchrHeader
+        variant="flow"
+        kicker={lessonFamily.toUpperCase()}
+        title={lesson.title}
+        leftAction={
+          <Pressable onPress={handleExit} hitSlop={12} style={screenStyles.closeBtn}>
+            <Ionicons name="close" size={20} color={Colors.textSecondary} />
+          </Pressable>
+        }
+        rightAction={
+          <View style={screenStyles.flowRightActions}>
+            <Pressable
+              onPress={toggleMute}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              style={[
+                screenStyles.muteBtn,
+                {
+                  backgroundColor: isMuted ? '#1a1a1a' : '#0F2410',
+                  borderColor: isMuted ? '#333' : '#22CC5E44',
+                },
+              ]}
+            >
+              <Ionicons
+                name={isMuted ? 'volume-mute-outline' : 'volume-medium-outline'}
+                size={15}
+                color={isMuted ? '#555' : '#22CC5E'}
+              />
+            </Pressable>
+            <Text style={screenStyles.durationText}>{safeIndex + 1} / {totalSteps}</Text>
+          </View>
+        }
+      />
 
       {/* ── PROGRESS BAR ── */}
       <View style={screenStyles.progressTrack}>
@@ -1066,13 +1547,13 @@ useEffect(() => {
       {safeIndex === 0 && (
         <View style={screenStyles.lessonHeader}>
           <Text style={screenStyles.lessonFamily}>{lessonFamily.toUpperCase()}</Text>
-          <Text style={screenStyles.lessonTitle}>{lesson.title}</Text>
           {lesson.subtitle && <Text style={screenStyles.lessonSubtitle}>{lesson.subtitle}</Text>}
         </View>
       )}
 
       {/* ── STEP COUNTER ── */}
-      <View style={screenStyles.stepCounter}>
+      <View style={[screenStyles.stepCounter, { flexDirection: 'row', alignItems: 'center', gap: 6 }]}>
+        <StepTypeIcon stepType={finalStepType} isBoss={isBoss} isFinal={safeIndex === totalSteps - 1} />
         <Text style={screenStyles.stepCounterText}>{safeIndex + 1} / {totalSteps}</Text>
       </View>
 
@@ -1084,7 +1565,15 @@ useEffect(() => {
         keyboardShouldPersistTaps="handled"
       >
         <Animated.View style={{ opacity: stepFade }}>
-          {currentStep && <StepRenderer step={currentStep} onAdvance={advanceStep} />}
+          {currentStep && (
+            <StepRenderer
+              key={stepIndex}
+              step={currentStep}
+              onAdvance={advanceStep}
+              isFinal={safeIndex === totalSteps - 1}
+              completionIntent={completionIntent}
+            />
+          )}
         </Animated.View>
       </ScrollView>
 
@@ -1096,8 +1585,19 @@ useEffect(() => {
           onSubmit={handleRatingsSubmit}
         />
       )}
-      {completionStage === 'overlay' && (
-        <CompletionOverlay lesson={lesson} passed={sessionPassed} onClose={() => router.push('/(tabs)/career')} />
+      {showComplete !== null && (
+        <Animated.View style={[celebStyles.overlay, { opacity: overlayFadeAnim }]}>
+          <LessonCompletionPayoff
+            lesson={lesson}
+            xpDisplay={xpDisplay}
+            contentFadeAnim={contentFadeAnim}
+            type={showComplete}
+            athleteState={athleteState}
+            startingXP={startingXPRef.current}
+            awardedXP={finalXPRef.current}
+            onContinue={() => router.push('/(tabs)/career')}
+          />
+        </Animated.View>
       )}
     </View>
   );
@@ -1756,11 +2256,36 @@ const advanceStyles = StyleSheet.create({
 // ─── Step Router ──────────────────────────────────────────────────────────────
 const stepRouterStyles = StyleSheet.create({
   interactiveWrap: { gap: Spacing.lg },
+  fallbackCard: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: Spacing.md,
+    padding: Spacing.lg,
+    borderRadius: Radius.lg,
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  fallbackTitle: {
+    fontSize: 15,
+    fontFamily: 'Inter_700Bold',
+    color: Colors.textPrimary,
+    marginBottom: 4,
+  },
+  fallbackText: {
+    fontSize: 13,
+    fontFamily: 'Inter_400Regular',
+    color: Colors.textSecondary,
+    lineHeight: 18,
+  },
 });
 
 // ─── Screen ───────────────────────────────────────────────────────────────────
 const screenStyles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
+  background: { flex: 1, position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, opacity: 0.18 },
+  backgroundOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(5, 8, 6, 0.72)' },
+  bossAccentBorder: { position: 'absolute', top: 0, left: 0, right: 0, height: 2, backgroundColor: '#F5A623', opacity: 0.7, zIndex: 10 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.background, gap: Spacing.lg, paddingHorizontal: Spacing.xl },
   loadingText: { fontSize: 16, fontFamily: 'Inter_400Regular', color: Colors.textSecondary },
   errorText: { fontSize: 15, fontFamily: 'Inter_400Regular', color: Colors.danger, textAlign: 'center' },
@@ -1780,6 +2305,14 @@ const screenStyles = StyleSheet.create({
     backgroundColor: Colors.surface,
     borderRadius: Radius.sm,
     borderWidth: 1, borderColor: Colors.border,
+  },
+  flowRightActions: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: Spacing.sm },
+  muteBtn: {
+    width: 32, height: 32,
+    borderRadius: 16,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   headerBadges: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
   roleBadge: {
@@ -1873,4 +2406,283 @@ const ratingStyles = StyleSheet.create({
   dot: { width: 28, height: 28, borderRadius: 14, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
   dotFill: { width: 10, height: 10, borderRadius: 5 },
   dotLabel: { fontSize: 12, fontFamily: 'Inter_600SemiBold', color: Colors.textTertiary, marginLeft: 4, minWidth: 40 },
+});
+
+// ─── Celebration ──────────────────────────────────────────────────────────────
+
+const payoffStyles = StyleSheet.create({
+  wrap: {
+    flex: 1,
+    width: '100%',
+  },
+  bgOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(4, 10, 6, 0.78)',
+  },
+  completionGlowImg: {
+    position: 'absolute',
+    bottom: 0,
+    alignSelf: 'center',
+    width: 260,
+    height: 260,
+    opacity: 0.55,
+  },
+  scrollContent: {
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.xxl,
+    paddingBottom: Spacing.xxxl,
+    gap: Spacing.md,
+  },
+  heroCard: {
+    backgroundColor: '#111612',
+    borderColor: '#242B26',
+    borderWidth: 1,
+    borderRadius: Radius.xl,
+    padding: Spacing.lg,
+    overflow: 'hidden',
+    gap: Spacing.md,
+  },
+  signalLine: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    height: 2,
+    backgroundColor: '#39FF88',
+    shadowColor: '#39FF88',
+    shadowOpacity: 0.6,
+    shadowRadius: 12,
+  },
+  heroWatermark: {
+    position: 'absolute',
+    right: -18,
+    bottom: -24,
+    width: 142,
+    height: 142,
+    opacity: 0.08,
+  },
+  heroWordmark: {
+    width: 104,
+    height: 28,
+    marginBottom: -Spacing.xs,
+  },
+  heroTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: Spacing.md },
+  kicker: { color: '#23D160', fontFamily: 'Inter_700Bold', fontSize: 10, letterSpacing: 1.8 },
+  title: { color: '#F7FFF9', fontFamily: 'Inter_700Bold', fontSize: 34, lineHeight: 38, letterSpacing: -0.8, marginTop: 4 },
+  lessonTitle: { color: '#A8B3AA', fontFamily: 'Inter_500Medium', fontSize: 14, lineHeight: 20 },
+  xpRow: { flexDirection: 'row', alignItems: 'flex-end', gap: Spacing.sm, marginTop: Spacing.xs },
+  xpText: { color: '#39FF88', fontFamily: 'Inter_700Bold', fontSize: 44, lineHeight: 48, letterSpacing: -1 },
+  xpLabel: { color: '#23D160', fontFamily: 'Inter_700Bold', fontSize: 14, letterSpacing: 1.8, paddingBottom: 7 },
+  ccHook: {
+    width: 54,
+    height: 54,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: 'rgba(35,209,96,0.3)',
+    backgroundColor: '#0B100C',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  ccImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 18,
+  },
+  card: {
+    backgroundColor: '#111612',
+    borderColor: '#242B26',
+    borderWidth: 1,
+    borderRadius: Radius.lg,
+    padding: Spacing.lg,
+    gap: Spacing.md,
+  },
+  cardHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: Spacing.md },
+  cardLabel: { color: '#F7FFF9', fontFamily: 'Inter_700Bold', fontSize: 14, flex: 1 },
+  cardValue: { color: '#A8B3AA', fontFamily: 'Inter_600SemiBold', fontSize: 12 },
+  progressTrack: { height: 9, borderRadius: 5, backgroundColor: '#050806', borderWidth: 1, borderColor: '#242B26', overflow: 'hidden' },
+  progressFill: { height: '100%', backgroundColor: '#23D160', shadowColor: '#39FF88', shadowOpacity: 0.55, shadowRadius: 9 },
+  badgeRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
+  badgeMark: {
+    width: 42,
+    height: 42,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(245,166,35,0.42)',
+    backgroundColor: 'rgba(245,166,35,0.10)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  rankTrack: { height: 8, borderRadius: 4, backgroundColor: '#050806', overflow: 'hidden', borderWidth: 1, borderColor: '#2A2518' },
+  rankFill: { height: '100%', backgroundColor: Colors.warning },
+  helperText: { color: '#A8B3AA', fontFamily: 'Inter_400Regular', fontSize: 12, lineHeight: 17, marginTop: Spacing.sm },
+  takeCard: {
+    backgroundColor: '#0B100C',
+    borderColor: 'rgba(35,209,96,0.24)',
+    borderWidth: 1,
+    borderRadius: Radius.lg,
+    padding: Spacing.lg,
+    gap: Spacing.sm,
+  },
+  takeHeaderRow: { flexDirection: 'row', alignItems: 'center' },
+  takeIcon: { width: 40, height: 40, borderRadius: 8, marginRight: 10 },
+  takeLabel: { color: '#23D160', fontFamily: 'Inter_700Bold', fontSize: 10, letterSpacing: 1.6 },
+  takeText: { color: '#F7FFF9', fontFamily: 'Inter_500Medium', fontSize: 15, lineHeight: 23 },
+  bossCleared: { fontSize: 11, letterSpacing: 2.5, fontFamily: 'Inter_700Bold', color: '#F5A623', alignSelf: 'center', marginBottom: 6 },
+  firstClearBadge: { backgroundColor: 'rgba(34, 204, 94, 0.15)', borderColor: 'rgba(34, 204, 94, 0.4)', borderWidth: 1, borderRadius: 99, paddingHorizontal: 8, paddingVertical: 3 },
+  firstClearText: { fontSize: 10, color: '#22CC5E', fontFamily: 'Inter_700Bold', letterSpacing: 1.5 },
+  actions: { gap: Spacing.sm, marginTop: Spacing.sm },
+  primaryCta: {
+    minHeight: 54,
+    borderRadius: Radius.md,
+    overflow: 'hidden',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.sm,
+  },
+  primaryCtaText: { color: '#050806', fontFamily: 'Inter_700Bold', fontSize: 15, letterSpacing: 0.3 },
+  secondaryCta: {
+    minHeight: 48,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: '#242B26',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#111612',
+  },
+  secondaryCtaText: { color: '#A8B3AA', fontFamily: 'Inter_700Bold', fontSize: 13, letterSpacing: 0.4 },
+});
+
+const celebStyles = StyleSheet.create({
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.97)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 999,
+    paddingHorizontal: Spacing.xl,
+  },
+  contentCenter: {
+    alignItems: 'center',
+    gap: Spacing.md,
+  },
+  voltAvatar: {
+    width: 80,
+    height: 80,
+    borderRadius: 12,
+    marginBottom: 8,
+  },
+  voltAvatarLg: {
+    width: 110,
+    height: 110,
+    borderRadius: 14,
+    marginBottom: 8,
+  },
+  tierLabel: {
+    color: Colors.primary,
+    fontFamily: 'Inter_700Bold',
+    fontSize: 18,
+    letterSpacing: 1.2,
+  },
+  lessonTitleText: {
+    color: Colors.textPrimary,
+    fontFamily: 'Inter_600SemiBold',
+    fontSize: 16,
+    textAlign: 'center',
+    opacity: 0.9,
+  },
+  xpPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    borderWidth: 1.5,
+    borderColor: Colors.primary,
+    borderRadius: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+  },
+  xpPillText: {
+    color: Colors.primary,
+    fontFamily: 'Inter_700Bold',
+    fontSize: 16,
+  },
+  voltLine: {
+    color: Colors.textSecondary,
+    fontFamily: 'Inter_600SemiBold',
+    fontSize: 14,
+    textAlign: 'center',
+    fontStyle: 'italic',
+  },
+  voltLabel: {
+    color: Colors.primary,
+    fontFamily: 'Inter_700Bold',
+    fontSize: 11,
+    letterSpacing: 1.5,
+  },
+  bossScroll: { width: '100%', maxHeight: '90%' },
+  bossScrollContent: {
+    alignItems: 'center',
+    gap: Spacing.md,
+    paddingVertical: Spacing.xl,
+    paddingHorizontal: Spacing.xl,
+  },
+  bossQuote: {
+    color: Colors.textPrimary,
+    fontFamily: 'Inter_400Regular',
+    fontSize: 15,
+    textAlign: 'center',
+    lineHeight: 22,
+    opacity: 0.85,
+  },
+  dividerLine: {
+    width: 60,
+    height: 1,
+    backgroundColor: Colors.border,
+    marginVertical: Spacing.sm,
+  },
+  crown: {
+    fontSize: 36,
+    color: Colors.warning,
+  },
+  bossBattleLabel: {
+    color: Colors.warning,
+    fontFamily: 'Inter_700Bold',
+    fontSize: 11,
+    letterSpacing: 2,
+  },
+  defeatedLabel: {
+    color: Colors.textSecondary,
+    fontFamily: 'Inter_600SemiBold',
+    fontSize: 13,
+    letterSpacing: 1,
+  },
+  continueBtn: {
+    marginTop: Spacing.md,
+    backgroundColor: Colors.primary,
+    borderRadius: Radius.md,
+    paddingVertical: 12,
+    paddingHorizontal: 32,
+    alignItems: 'center',
+  },
+  continueBtnText: {
+    color: '#000',
+    fontFamily: 'Inter_700Bold',
+    fontSize: 15,
+    letterSpacing: 0.4,
+  },
+  backBtn: {
+    position: 'absolute',
+    bottom: 48,
+    alignSelf: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 28,
+    backgroundColor: Colors.primary,
+    borderRadius: Radius.md,
+  },
+  backBtnText: {
+    color: '#000',
+    fontFamily: 'Inter_700Bold',
+    fontSize: 15,
+    letterSpacing: 0.4,
+  },
 });

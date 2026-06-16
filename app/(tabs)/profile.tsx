@@ -2,19 +2,30 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React, { useRef, useEffect, useState } from 'react';
+import * as Notifications from 'expo-notifications';
 import {
   Alert,
   Animated,
+  Image,
   Pressable,
   ScrollView,
   StyleSheet,
+  Switch,
   Text,
   View,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { registerForPushNotifications, scheduleStreakReminder } from '@/lib/notifications';
+import Svg, { Polygon, Line, Text as SvgText, Circle } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAthlete } from '@/context/AthleteContext';
 import { Colors, Radius, Spacing } from '@/constants/theme';
+import { getBestCue } from '@/lib/personalCue';
 import { RolePill } from '@/components/ui';
+import { ClutchrHeader } from '@/components/ClutchrHeader';
+import { EmblemBadge } from '@/components/EmblemBadge';
+import { getRankProgress } from '@/lib/progressionRanks';
+import { useMicrocopy } from '@/hooks/useMicrocopy';
 
 // ─── CONSTANTS ───────────────────────────────────────────────────────────────
 
@@ -44,8 +55,6 @@ const PHASES = [
   { name: 'Elite',          skill: 'Championship DNA', icon: 'star',          xpNeeded: 7500 },
 ];
 
-const RANK_LABELS = ['Rookie', 'Prospect', 'Player', 'Starter', 'Veteran', 'All-Star', 'Ace', 'Legend'];
-
 // Strength chips — unlock based on completed_lessons count thresholds
 // These feel earned, not arbitrary — tied to real lesson milestones
 const STRENGTH_CHIPS = [
@@ -60,6 +69,75 @@ const STRENGTH_CHIPS = [
   { id: 'clutch',         label: 'Clutch Moments',   icon: 'flash',       unlockAt: 27, color: Colors.warning  },
   { id: 'elite_mindset',  label: 'Elite Mindset',    icon: 'star',        unlockAt: 35, color: Colors.purple   },
 ];
+
+// ─── RADAR CHART ─────────────────────────────────────────────────────────────
+
+const RADAR_STATS = ['Confidence', 'Focus', 'Composure', 'Consistency', 'Mechanics', 'Mental Edge'];
+const RADAR_SIZE = 220;
+const CENTER = RADAR_SIZE / 2;
+const RADIUS = 80;
+
+function RadarChart({ ratings }: { ratings: Record<string, number> }) {
+  const values = [
+    ratings?.confidence ?? 3,
+    ratings?.focus ?? 3,
+    ratings?.composure ?? 3,
+    ratings?.consistency ?? 3,
+    ratings?.mechanics ?? 3,
+    ratings?.mental_edge ?? 3,
+  ];
+
+  const angleStep = (Math.PI * 2) / 6;
+
+  function getPoint(index: number, value: number, maxValue = 5) {
+    const angle = angleStep * index - Math.PI / 2;
+    const r = (value / maxValue) * RADIUS;
+    return { x: CENTER + r * Math.cos(angle), y: CENTER + r * Math.sin(angle) };
+  }
+
+  function getLabelPoint(index: number) {
+    const angle = angleStep * index - Math.PI / 2;
+    const r = RADIUS + 20;
+    return { x: CENTER + r * Math.cos(angle), y: CENTER + r * Math.sin(angle) };
+  }
+
+  const dataPoints = values.map((v, i) => getPoint(i, v));
+  const polygonPoints = dataPoints.map(p => `${p.x},${p.y}`).join(' ');
+  const gridLevels = [1, 2, 3, 4, 5];
+
+  return (
+    <View style={{ alignItems: 'center', marginVertical: 8 }}>
+      <Svg width={RADAR_SIZE} height={RADAR_SIZE}>
+        {gridLevels.map(level => {
+          const gridPoints = RADAR_STATS.map((_, i) => getPoint(i, level));
+          const gridPolygon = gridPoints.map(p => `${p.x},${p.y}`).join(' ');
+          return (
+            <Polygon key={level} points={gridPolygon} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
+          );
+        })}
+        {RADAR_STATS.map((_, i) => {
+          const outer = getPoint(i, 5);
+          return <Line key={i} x1={CENTER} y1={CENTER} x2={outer.x} y2={outer.y} stroke="rgba(255,255,255,0.1)" strokeWidth="1" />;
+        })}
+        <Polygon points={polygonPoints} fill="rgba(34,204,94,0.15)" stroke="#22CC5E" strokeWidth="2" />
+        {dataPoints.map((p, i) => (
+          <Circle key={i} cx={p.x} cy={p.y} r={4} fill="#22CC5E" />
+        ))}
+        {RADAR_STATS.map((label, i) => {
+          const lp = getLabelPoint(i);
+          return (
+            <SvgText key={i} x={lp.x} y={lp.y} textAnchor="middle" alignmentBaseline="middle" fontSize="9" fontWeight="600" fill="rgba(255,255,255,0.55)">
+              {label.toUpperCase()}
+            </SvgText>
+          );
+        })}
+      </Svg>
+      <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 10, marginTop: 4 }}>
+        Based on your self-ratings
+      </Text>
+    </View>
+  );
+}
 
 // ─── PHASE MAP COMPONENT ─────────────────────────────────────────────────────
 
@@ -185,6 +263,7 @@ function StrengthsSection({ completedCount }: { completedCount: number }) {
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const { athleteState, signOut } = useAthlete();
+  const microcopy = useMicrocopy();
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -196,15 +275,32 @@ export default function ProfileScreen() {
   const xp           = athleteState.total_xp;
   const phase        = athleteState.current_phase;
   const completedCount = athleteState.completed_lessons.length;
-  const rank         = RANK_LABELS[Math.min(phase, RANK_LABELS.length - 1)];
-  const currentPhaseData = PHASES[Math.min(phase, PHASES.length - 1)];
-  const nextPhaseData    = PHASES[Math.min(phase + 1, PHASES.length - 1)];
-  const xpToNext     = nextPhaseData?.xpNeeded ?? PHASES[PHASES.length - 1].xpNeeded;
-  const xpProgress   = phase >= PHASES.length - 1 ? 1 : Math.min((xp - currentPhaseData.xpNeeded) / (xpToNext - currentPhaseData.xpNeeded), 1);
+  const rankProgress = getRankProgress(xp);
+  const rank = rankProgress.currentRank;
   const playbookBuilt = !!(athleteState as any)?.playbook?.built_at;
   const ratings       = athleteState.self_ratings;
+  const focusCue = getBestCue(athleteState, 'focus');
+  const pressureCue = getBestCue(athleteState, 'pressure');
+  const confidenceCue = getBestCue(athleteState, 'confidence');
   const [devTapCount, setDevTapCount] = useState(0);
   const [devTapReset, setDevTapReset] = useState<ReturnType<typeof setTimeout> | null>(null);
+  const [notifsOn, setNotifsOn] = useState(false);
+
+  useEffect(() => {
+    AsyncStorage.getItem('clutchr_notifs_setup').then(v => setNotifsOn(!!v));
+  }, []);
+
+  async function handleNotifToggle(val: boolean) {
+    setNotifsOn(val);
+    if (val) {
+      await registerForPushNotifications();
+      await scheduleStreakReminder(athleteState?.streak_count ?? 0);
+      await AsyncStorage.setItem('clutchr_notifs_setup', 'true');
+    } else {
+      await Notifications.cancelAllScheduledNotificationsAsync();
+      await AsyncStorage.removeItem('clutchr_notifs_setup');
+    }
+  }
 
   function handleSignOut() {
     Alert.alert('Sign Out', 'Are you sure?', [
@@ -231,12 +327,20 @@ export default function ProfileScreen() {
     <View style={[styles.container, { paddingTop: insets.top }]}>
 
       {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.clutchrLogo}>{'<< CLUTCHR'}</Text>
-        <Pressable onPress={handleDevTap} hitSlop={10}>
-          <Text style={styles.headerTitle}>PROFILE</Text>
-        </Pressable>
-      </View>
+      <Pressable onPress={handleDevTap}>
+        <Image
+          source={require('../../assets/branding/simplified-wordmark.png')}
+          style={styles.profileHeaderWordmark}
+          resizeMode="contain"
+        />
+        <ClutchrHeader
+          variant="mainTab"
+          kicker="PROFILE"
+          title="Your Player OS"
+          subtitle="Role, routines, progress."
+          statusPill={rank.shortLabel}
+        />
+      </Pressable>
 
       <Animated.ScrollView
         style={{ opacity: fadeAnim }}
@@ -254,9 +358,11 @@ export default function ProfileScreen() {
           {/* Left: avatar + info */}
           <View style={styles.identityLeft}>
             <View style={styles.avatarWrap}>
-              <Text style={styles.avatarLetter}>
-                {athleteState.first_name[0]?.toUpperCase() ?? 'A'}
-              </Text>
+              <Image
+                source={require('../../assets/coach-cap/circular-avatar.png')}
+                style={styles.avatarImage}
+                resizeMode="contain"
+              />
               {/* Rank ring glow */}
               <View style={styles.avatarRing} />
             </View>
@@ -274,13 +380,23 @@ export default function ProfileScreen() {
             </View>
           </View>
 
-          {/* Right: rank badge */}
+          {/* Right: rank emblem */}
           <View style={styles.rankBlock}>
-            <View style={styles.rankBadge}>
-              <Ionicons name="trophy" size={12} color={Colors.warning} />
-              <Text style={styles.rankText}>{rank.toUpperCase()}</Text>
-            </View>
-            <Text style={styles.rankPhase}>{currentPhaseData.name}</Text>
+            <EmblemBadge rank={rank} size="medium" />
+            <Text style={[styles.rankText, { color: rank.primaryColor }]}>{rank.name}</Text>
+          </View>
+        </View>
+        <Text style={styles.rankProof}>{rank.description}</Text>
+
+        <View style={styles.coachCallout}>
+          <Image
+            source={require('../../assets/coach-cap/calm-standing-portrait.png')}
+            style={styles.coachPortrait}
+            resizeMode="contain"
+          />
+          <View style={styles.coachCopy}>
+            <Text style={styles.coachLabel}>COACH CAP</Text>
+            <Text style={styles.coachText}>Player OS stays simple: know your role, stack reps, carry one cue into the next moment.</Text>
           </View>
         </View>
 
@@ -295,16 +411,16 @@ export default function ProfileScreen() {
               <Text style={styles.xpUnit}>XP</Text>
             </View>
             <Text style={styles.xpPhaseLabel}>
-              Phase {phase + 1} · {currentPhaseData.name}
+              {rankProgress.nextMilestoneLabel}
             </Text>
           </View>
           <View style={styles.xpTrack}>
-            <View style={[styles.xpFill, { width: `${Math.max(2, xpProgress * 100)}%` }]} />
+            <View style={[styles.xpFill, { width: `${Math.max(2, rankProgress.percent * 100)}%`, backgroundColor: rank.accentColor }]} />
           </View>
           <Text style={styles.xpSub}>
-            {phase < PHASES.length - 1
-              ? `${(xpToNext - xp).toLocaleString()} XP to ${nextPhaseData.name} · ${RANK_LABELS[Math.min(phase + 1, RANK_LABELS.length - 1)]}`
-              : 'Maximum phase reached — Legend status'}
+            {rankProgress.nextRank
+              ? `${rankProgress.xpIntoCurrentRank.toLocaleString()} / ${rankProgress.xpNeededForNextRank?.toLocaleString()} XP in ${rank.name}. Earned through completed work.`
+              : 'Elite reached. Keep climbing; prestige can extend this later.'}
           </Text>
         </View>
 
@@ -326,37 +442,24 @@ export default function ProfileScreen() {
         {/* ── STRENGTHS DEVELOPING ── */}
         <StrengthsSection completedCount={completedCount} />
 
+
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>COACH'S EYE · SNAPSHOT</Text>
+          <Text style={styles.cardBody}>Earned work: {completedCount} completed reps · {xp.toLocaleString()} XP · {rank.name} rank.</Text>
+          <Text style={styles.cardBody}>Strengths: {athleteState.self_ratings.focus >= 4 ? 'Focus under reps' : 'Process commitment'}, {athleteState.streak_count >= 3 ? 'Consistency streak' : 'Daily return mindset'}, {athleteState.routine_consistency >= 4 ? 'Routine discipline' : 'Coachable adjustments'}</Text>
+          <Text style={styles.cardBody}>Growth: {athleteState.self_ratings.confidence <= 3 ? 'Pre-pitch confidence' : 'Pressure execution'}, {athleteState.routine_consistency <= 3 ? 'Pregame routine quality' : 'Late-game composure'}</Text>
+          <Text style={styles.cardBody}>Focus cue: {focusCue} · Pressure cue: {pressureCue}</Text>
+          <Text style={styles.cardBody}>Recommended next rep: {athleteState.primary_role === 'pitcher' ? 'Pitch IQ' : 'Field IQ'} · Cue: {confidenceCue}</Text>
+        </View>
+
         {/* ── PHASE / CAREER MAP ── */}
         <PhaseMap currentPhase={phase} xp={xp} />
 
         {/* ── MENTAL EDGE RATINGS ── */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>MENTAL EDGE</Text>
-            <Text style={styles.sectionSub}>Self-rated at onboarding · 1–5</Text>
-          </View>
-          <View style={styles.ratingsCard}>
-            {(
-              [
-                ['confidence',          'Confidence',  Colors.primary  ],
-                ['focus',               'Focus',       Colors.info     ],
-                ['composure',           'Composure',   Colors.purple   ],
-                ['recovery_discipline', 'Recovery',    Colors.warning  ],
-                ['reset_skill',         'Reset Skill', Colors.danger   ],
-              ] as [keyof typeof ratings, string, string][]
-            ).map(([key, label, color]) => (
-              <View key={key} style={styles.ratingRow}>
-                <Text style={styles.ratingLabel}>{label}</Text>
-                <View style={styles.ratingBar}>
-                  <View style={[styles.ratingFill, {
-                    width: `${(ratings[key] / 5) * 100}%`,
-                    backgroundColor: color,
-                  }]} />
-                </View>
-                <Text style={[styles.ratingNum, { color }]}>{ratings[key]}</Text>
-              </View>
-            ))}
-          </View>
+        <View style={{ backgroundColor: '#0D0D12', borderRadius: 12, padding: 16, marginHorizontal: 16, marginBottom: 16, borderWidth: 1, borderColor: '#1a1a1a' }}>
+          <Text style={{ color: '#22CC5E', fontSize: 11, fontWeight: '700', letterSpacing: 2, marginBottom: 4 }}>MENTAL EDGE</Text>
+          <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, marginBottom: 12 }}>Your performance profile</Text>
+          <RadarChart ratings={athleteState?.self_ratings ?? {}} />
         </View>
 
         {/* ── PLAYBOOK CTA ── */}
@@ -374,7 +477,7 @@ export default function ProfileScreen() {
             <Text style={styles.playbookSub}>
               {playbookBuilt
                 ? (athleteState as any)?.playbook?.approach ?? 'Your 5 personal cues are set'
-                : 'Create your 5 personal cue words'}
+                : microcopy.useEmptyState('noSavedCues')}
             </Text>
           </View>
           <Ionicons name="chevron-forward" size={16} color={Colors.purple + '80'} />
@@ -382,11 +485,22 @@ export default function ProfileScreen() {
 
         {/* ── ACTIONS ── */}
         <View style={styles.actionsSection}>
-          <Pressable style={styles.actionRow} onPress={() => router.push('/onboarding')}>
+          <Pressable style={styles.actionRow} onPress={() => router.push('/edit-profile')}>
             <Ionicons name="person-outline" size={18} color={Colors.textSecondary} />
-            <Text style={styles.actionLabel}>Update Profile</Text>
+            <Text style={styles.actionLabel}>Edit Profile</Text>
             <Ionicons name="chevron-forward" size={14} color={Colors.textTertiary} />
           </Pressable>
+          <View style={styles.actionDivider} />
+          <View style={styles.actionRow}>
+            <Ionicons name="notifications-outline" size={18} color={Colors.textSecondary} />
+            <Text style={[styles.actionLabel, { flex: 1 }]}>Streak Reminders</Text>
+            <Switch
+              value={notifsOn}
+              onValueChange={handleNotifToggle}
+              trackColor={{ false: '#222', true: '#22CC5E33' }}
+              thumbColor={notifsOn ? '#22CC5E' : '#555'}
+            />
+          </View>
           <View style={styles.actionDivider} />
           <Pressable style={styles.actionRow} onPress={() => router.push('/upgrade')}>
             <Ionicons name="flash-outline" size={18} color={Colors.warning} />
@@ -417,6 +531,12 @@ const styles = StyleSheet.create({
   clutchrLogo: { fontSize: 13, fontFamily: 'Inter_700Bold', color: Colors.primary, letterSpacing: 1 },
   headerTitle: { fontSize: 12, fontFamily: 'Inter_600SemiBold', color: Colors.textTertiary, letterSpacing: 1 },
   scroll: { paddingHorizontal: Spacing.xl, gap: Spacing.xl },
+  profileHeaderWordmark: {
+    width: 116,
+    height: 30,
+    marginLeft: Spacing.xl,
+    marginBottom: -4,
+  },
 
   // Identity card
   identityCard: {
@@ -437,20 +557,73 @@ const styles = StyleSheet.create({
     borderWidth: 2, borderColor: Colors.primary + '50',
   } as any,
   avatarLetter: { fontSize: 24, fontFamily: 'Inter_700Bold', color: Colors.primary },
+  avatarImage: {
+    width: 52,
+    height: 52,
+  },
   identityInfo: { flex: 1, gap: 4 },
   identityName: { fontSize: 20, fontFamily: 'Inter_700Bold', color: Colors.textPrimary },
   identityMeta: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   identityLevel: { fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.textSecondary },
   seasonLine: { fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.textTertiary },
-  rankBlock: { alignItems: 'flex-end', gap: 4 },
-  rankBadge: {
-    flexDirection: 'row', alignItems: 'center', gap: 4,
-    backgroundColor: Colors.warningMuted, borderRadius: Radius.pill,
-    paddingHorizontal: 9, paddingVertical: 5,
-    borderWidth: 1, borderColor: Colors.warning + '40',
+  rankBlock: { alignItems: 'center', gap: 4, minWidth: 58 },
+  rankText: { fontSize: 10, fontFamily: 'Inter_700Bold', letterSpacing: 0.8, textAlign: 'center' },
+  rankProof: { marginTop: Spacing.md, fontSize: 12, fontFamily: 'Inter_500Medium', color: Colors.textSecondary, lineHeight: 18 },
+  coachCallout: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginTop: Spacing.sm,
+    padding: 14,
+    borderRadius: 18,
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.primaryBorder,
   },
-  rankText: { fontSize: 10, fontFamily: 'Inter_700Bold', color: Colors.warning, letterSpacing: 0.8 },
-  rankPhase: { fontSize: 10, fontFamily: 'Inter_400Regular', color: Colors.textTertiary, textAlign: 'right' },
+  coachPortrait: {
+    width: 52,
+    height: 64,
+    marginVertical: -8,
+  },
+  coachBadge: {
+    width: 42,
+    height: 42,
+    borderRadius: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: Colors.primaryBorder,
+    backgroundColor: Colors.surfaceGlow,
+  },
+  coachCap: {
+    position: 'absolute',
+    top: 8,
+    width: 22,
+    height: 7,
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
+    backgroundColor: Colors.primary,
+  },
+  coachBadgeText: {
+    color: Colors.textPrimary,
+    fontSize: 11,
+    fontFamily: 'Inter_700Bold',
+    letterSpacing: 0.8,
+    marginTop: 7,
+  },
+  coachCopy: { flex: 1, gap: 3 },
+  coachLabel: {
+    color: Colors.primary,
+    fontSize: 9,
+    fontFamily: 'Inter_700Bold',
+    letterSpacing: 1.5,
+  },
+  coachText: {
+    color: Colors.textSecondary,
+    fontSize: 12,
+    fontFamily: 'Inter_500Medium',
+    lineHeight: 17,
+  },
 
   // XP
   xpCard: {
@@ -467,7 +640,7 @@ const styles = StyleSheet.create({
   },
   xpNum: { fontSize: 18, fontFamily: 'Inter_700Bold', color: Colors.warning },
   xpUnit: { fontSize: 10, fontFamily: 'Inter_700Bold', color: Colors.textTertiary, letterSpacing: 1 },
-  xpPhaseLabel: { fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.textTertiary },
+  xpPhaseLabel: { fontSize: 11, fontFamily: 'Inter_600SemiBold', color: Colors.textSecondary },
   xpTrack: { height: 5, backgroundColor: Colors.border, borderRadius: 3 },
   xpFill: {
     height: 5, backgroundColor: Colors.warning, borderRadius: 3,
@@ -485,6 +658,16 @@ const styles = StyleSheet.create({
   },
   statValue: { fontSize: 18, fontFamily: 'Inter_700Bold', color: Colors.textPrimary },
   statLabel: { fontSize: 10, fontFamily: 'Inter_400Regular', color: Colors.textTertiary },
+  card: {
+    backgroundColor: Colors.surface,
+    borderRadius: Radius.lg,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    padding: Spacing.lg,
+    gap: 8,
+  },
+  cardTitle: { fontSize: 11, fontFamily: 'Inter_700Bold', color: Colors.primary, letterSpacing: 1.2 },
+  cardBody: { fontSize: 12, fontFamily: 'Inter_400Regular', color: Colors.textSecondary, lineHeight: 18 },
 
   // Mental Edge
   section: { gap: Spacing.sm },

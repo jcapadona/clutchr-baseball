@@ -24,9 +24,9 @@ import type { AthleteState, PositionRole, SeasonPhase, Struggle } from '@/contex
 
 /** Maps primary_role → its dedicated pillar_id */
 const ROLE_TO_PILLAR: Record<PositionRole, string> = {
-  pitcher:   'pitcher-path',
-  catcher:   'catcher-path',
-  infielder: 'infield-path',
+  pitcher:    'pitcher-path',
+  catcher:    'catcher-path',
+  infielder:  'infield-path',
   outfielder: 'outfield-path',
 };
 
@@ -118,6 +118,19 @@ function completedInPillar(
   ).length;
 }
 
+/**
+ * Returns the number of completed lessons for a given pillar_id.
+ */
+function completedInPillarCount(
+  all: LegacyLesson[],
+  pillar: string,
+  completed: string[]
+): number {
+  return all.filter(
+    (l) => l.pillar_id === pillar && completed.includes(l.id)
+  ).length;
+}
+
 // ─── REASON COPY ─────────────────────────────────────────────────────────────
 // These strings land on the Hero card's subtitle — keep them punchy & baseball-native.
 
@@ -143,7 +156,15 @@ function reasonForPillar(pillar: string): string {
 /**
  * pickNextLesson
  *
- * @param allLessons  Full pool fetched from Supabase (already active, sorted)
+ * Priority-weighted selector driven by athlete state tags:
+ *   1. Emergency override  — slump_reset / return_to_throw phases
+ *   2. Foundation gate     — new athletes must build the base first
+ *   3. Struggle injection  — active struggle pillar bumped to front
+ *   4. Role path           — athlete's position-specific world
+ *   5. Universal fallback  — pressure-resilience, built-different, etc.
+ *   6. Any uncompleted     — catch-all so the user never hits a dead end
+ *
+ * @param allLessons  Full pool fetched from Supabase
  * @param athlete     Current AthleteState from context
  * @returns           RoutingResult with the chosen lesson + metadata, or null
  *                    if there are genuinely no lessons left to complete.
@@ -153,124 +174,149 @@ export function pickNextLesson(
   athlete: AthleteState
 ): RoutingResult | null {
   const completed = athlete.completed_lessons ?? [];
+  const struggles = athlete.biggest_struggle ?? [];
+  const phase     = athlete.season_phase ?? '';
+  const role      = athlete.primary_role ?? '';
 
-  // ── 1. EMERGENCY PHASE OVERRIDE ─────────────────────────────────────────
-  // Slump or injury? Route straight to the healing pillar.
-  const emergencyPillar = EMERGENCY_PHASE_TO_PILLAR[athlete.season_phase];
-  if (emergencyPillar) {
-    const lesson = firstUncompletedInPillar(allLessons, emergencyPillar, completed);
-    if (lesson) {
-      const reason =
-        athlete.season_phase === 'slump_reset'
-          ? 'Slumps end when you compete in the process. Reset starts here.'
-          : 'Patience is the work. Arm care and smart progression only.';
-      return { lesson, reason, pillar: emergencyPillar };
-    }
-    // If emergency pillar is fully completed, fall through to normal routing
+  const incomplete = allLessons.filter(l => !completed.includes(l.id));
+  if (incomplete.length === 0) {
+    const last = allLessons[allLessons.length - 1];
+    return last
+      ? { lesson: last, reason: 'All caught up. Keep the reps going.', pillar: last.pillar_id }
+      : null;
   }
 
-  // ── 2. FOUNDATION GATE ──────────────────────────────────────────────────
-  // New athlete or not enough foundation? Send them there first.
-  const foundationDone = completedInPillar(allLessons, 'foundation', completed);
-  if (foundationDone < FOUNDATION_GATE_LESSONS) {
+  // ── LEVEL 1: EMERGENCY OVERRIDE ──────────────────────────────────────────
+  if (phase === 'slump_reset') {
+    const lesson = firstUncompletedInPillar(allLessons, 'pressure-resilience', completed);
+    if (lesson) {
+      return {
+        lesson,
+        reason: 'You are in a slump. This rep is built for right now.',
+        pillar: 'pressure-resilience',
+      };
+    }
+  }
+  if (phase === 'return_to_throw') {
+    const lesson = firstUncompletedInPillar(allLessons, 'built-different', completed);
+    if (lesson) {
+      return {
+        lesson,
+        reason: 'Arm care first. Come back smarter than you left.',
+        pillar: 'built-different',
+      };
+    }
+  }
+
+  // ── LEVEL 2: FOUNDATION GATE ─────────────────────────────────────────────
+  const foundationCompleted = completedInPillarCount(allLessons, 'foundation', completed);
+  if (foundationCompleted < FOUNDATION_GATE_LESSONS) {
     const lesson = firstUncompletedInPillar(allLessons, 'foundation', completed);
     if (lesson) {
       return {
         lesson,
-        reason: 'Build the mental base every ballplayer needs.',
+        reason: 'Every athlete starts here. Build the base first.',
         pillar: 'foundation',
       };
     }
   }
 
-  // ── 3. STRUGGLE INJECTION ────────────────────────────────────────────────
-  // If the athlete named a struggle that maps to a specific pillar,
-  // inject one lesson from that pillar before returning to the role path.
-  // We only inject one at a time (not the whole pillar) to keep variety.
-  for (const struggle of athlete.biggest_struggle ?? []) {
-    const targetPillar = STRUGGLE_TO_PILLAR[struggle];
-    if (!targetPillar) continue;
-
-    // Don't re-inject foundation if they've already passed the gate
-    if (targetPillar === 'foundation' && foundationDone >= FOUNDATION_GATE_LESSONS) continue;
-
-    // Check if we already did a lesson from this struggle's pillar recently
-    // (simple check: if the last completed lesson was in this pillar, skip)
-    const lastCompletedLesson =
-      completed.length > 0
-        ? allLessons.find((l) => l.id === completed[completed.length - 1])
-        : null;
-
-    if (lastCompletedLesson?.pillar_id === targetPillar) continue;
-
-    const lesson = firstUncompletedInPillar(allLessons, targetPillar, completed);
-    if (lesson) {
-      const struggleReason: Partial<Record<Struggle, string>> = {
-        bouncing_back:     'Short memory is a skill. Build your reset rep.',
-        confidence:        'Confidence is built rep by rep. Start here.',
-        pregame_nerves:    'Nerves mean you care. Learn to channel them.',
-        throwing_strikes:  'Command starts in the mind. Attack the zone.',
-        reading_hitters:   'Every swing is data. Learn to read it.',
-        staying_locked_in: 'One pitch. This pitch. Lock in.',
-        better_routine:    'The routine is your armor. Build it here.',
-        plate_approach:    'Hunt your pitch. Know your zone before you step in.',
-        fielding_cleanly:  'Soft hands start in the ready position.',
-        throwing_safely:   'Take care of the arm today. Smart progression only.',
-      };
+  // ── LEVEL 3: STRUGGLE INJECTION ──────────────────────────────────────────
+  if (struggles.length > 0) {
+    // First pass: look inside each struggle's mapped pillar for a skill_tags match.
+    for (const s of struggles) {
+      const mappedPillar = STRUGGLE_TO_PILLAR[s as Struggle];
+      if (mappedPillar) {
+        const inPillar = [...allLessons]
+          .filter((l) => l.pillar_id === mappedPillar && !completed.includes(l.id))
+          .sort((a, b) => a.order_index - b.order_index);
+        const lesson = inPillar.find((l) =>
+          l.skill_tags?.some((tag) =>
+            struggles.some(
+              (str) =>
+                tag.toLowerCase().includes(str.toLowerCase()) ||
+                str.toLowerCase().includes(tag.toLowerCase())
+            )
+          )
+        ) ?? null;
+        if (lesson) {
+          return {
+            lesson,
+            reason: reasonForPillar(mappedPillar),
+            pillar: mappedPillar,
+          };
+        }
+      }
+    }
+    // Second pass: any pillar — fires when no mapped-pillar lesson matched.
+    const anyMatch = [...allLessons]
+      .filter((l) => !completed.includes(l.id))
+      .sort((a, b) => a.order_index - b.order_index)
+      .find((l) =>
+        l.skill_tags?.some((tag) =>
+          struggles.some(
+            (s) =>
+              tag.toLowerCase().includes(s.toLowerCase()) ||
+              s.toLowerCase().includes(tag.toLowerCase())
+          )
+        )
+      );
+    if (anyMatch) {
       return {
-        lesson,
-        reason: struggleReason[struggle] ?? reasonForPillar(targetPillar),
-        pillar: targetPillar,
+        lesson: anyMatch,
+        reason: reasonForPillar(anyMatch.pillar_id),
+        pillar: anyMatch.pillar_id,
       };
     }
   }
 
-  // ── 4. ROLE PATH ────────────────────────────────────────────────────────
-  // Athlete has their foundation. Route them into their position world.
-  const rolePillar = ROLE_TO_PILLAR[athlete.primary_role];
-  if (rolePillar) {
-    const lesson = firstUncompletedInPillar(allLessons, rolePillar, completed);
-    if (lesson) {
+  // ── LEVEL 4: ROLE PATH ───────────────────────────────────────────────────
+  if (role) {
+    const rolesToMatch = athlete.is_two_way
+      ? [athlete.primary_role, athlete.primary_role === 'pitcher' ? 'hitter' : 'pitcher']
+      : athlete.primary_role === 'catcher'
+      ? ['catcher', 'hitter']
+      : [athlete.primary_role];
+    const roleMatch = [...allLessons]
+      .filter((l) => !completed.includes(l.id))
+      .sort((a, b) => a.order_index - b.order_index)
+      .find((l) => rolesToMatch.some(r => l.role_tags?.includes(r)));
+    if (roleMatch) {
       return {
-        lesson,
-        reason: reasonForPillar(rolePillar),
-        pillar: rolePillar,
+        lesson: roleMatch,
+        reason: reasonForPillar(roleMatch.pillar_id),
+        pillar: roleMatch.pillar_id,
       };
     }
   }
 
-  // ── 5. UNIVERSAL FALLBACKS ───────────────────────────────────────────────
-  // Role path is complete (or thin). Offer universal worlds in a logical order.
-  const fallbackPillars = [
-    'pressure-resilience',
-    'built-different',
-    'hitter-path',
-    'baserunner-path',
-    'gamemode',
-  ];
-
-  for (const pillar of fallbackPillars) {
-    const lesson = firstUncompletedInPillar(allLessons, pillar, completed);
-    if (lesson) {
-      return {
-        lesson,
-        reason: reasonForPillar(pillar),
-        pillar,
-      };
-    }
-  }
-
-  // ── 6. ABSOLUTE CATCH-ALL ────────────────────────────────────────────────
-  // Something is in the DB. Never leave the user stranded.
-  const any = firstUncompleted(allLessons, completed);
-  if (any) {
+  // ── LEVEL 5: UNIVERSAL FALLBACK ──────────────────────────────────────────
+  const prLesson = firstUncompletedInPillar(allLessons, 'pressure-resilience', completed);
+  if (prLesson) {
     return {
-      lesson: any,
-      reason: 'Keep building your career.',
-      pillar: any.pillar_id,
+      lesson: prLesson,
+      reason: reasonForPillar('pressure-resilience'),
+      pillar: 'pressure-resilience',
+    };
+  }
+  const bdLesson = firstUncompletedInPillar(allLessons, 'built-different', completed);
+  if (bdLesson) {
+    return {
+      lesson: bdLesson,
+      reason: reasonForPillar('built-different'),
+      pillar: 'built-different',
     };
   }
 
-  // Truly nothing left — all lessons completed. Shouldn't happen in prod yet.
+  // ── LEVEL 6: CATCH-ALL ───────────────────────────────────────────────────
+  const catchAll = firstUncompleted(allLessons, completed);
+  if (catchAll) {
+    return {
+      lesson: catchAll,
+      reason: 'Keep building your career.',
+      pillar: catchAll.pillar_id,
+    };
+  }
+
   return null;
 }

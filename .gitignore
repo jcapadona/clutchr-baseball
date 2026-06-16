@@ -20,3 +20,7 @@ node_modules/
 
 expo-env.d.ts
 # @end expo-cli
+# Local-only files
+.env
+node_modules/
+.local/

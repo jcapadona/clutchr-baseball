@@ -23,6 +23,7 @@ export interface ContentCard {
   body_markdown: string | null;
   card_type: 'article' | 'exercise' | 'image' | 'video' | 'audio';
   content_category: string;
+  resource_group?: string | null;
   lesson_family: string;
   sport_scope: string;
   role_tags: string[];
@@ -67,7 +68,6 @@ export async function fetchContentCards(filters?: {
   let query = supabase
     .from('content_cards')
     .select('*')
-    .eq('is_active', true)
     .order('priority', { ascending: false });
 
   if (filters?.category && filters.category !== 'all') {
@@ -81,6 +81,7 @@ export async function fetchContentCards(filters?: {
   }
 
   const { data, error } = await query;
+  console.log('[fetchContentCards] count:', data?.length ?? 0, 'error:', error ?? null);
   if (error) throw error;
   return data as ContentCard[];
 }
@@ -93,7 +94,6 @@ export async function fetchLessons(filters?: {
   let query = supabase
     .from('legacy_lessons_staging')
     .select('*')
-    .eq('is_active', true)
     .order('order_index', { ascending: true });
 
   if (filters?.pillar) {
@@ -107,6 +107,7 @@ export async function fetchLessons(filters?: {
   }
 
   const { data, error } = await query;
+  console.log('[fetchLessons] pillar:', filters?.pillar ?? 'all', 'count:', data?.length ?? 0, 'error:', error ?? null);
   if (error) throw error;
   return data as LegacyLesson[];
 }
