@@ -1706,7 +1706,10 @@ function getToolIntent(tool: GameTool): IntentKey {
     tool.id.includes("tough_night") ||
     tool.id.includes("miss_next_rep") ||
     tool.id.includes("carry_forward") ||
-    tool.id.includes("postgame_carry_card")
+    tool.id.includes("postgame_carry_card") ||
+    tool.id.includes("win_fix_carry") ||
+    tool.id.includes("buzzsaw") ||
+    tool.id.includes("next_game_reset")
   )
     return "debrief";
   if (
@@ -1716,7 +1719,11 @@ function getToolIntent(tool: GameTool): IntentKey {
     tool.id.includes("pregame_confidence") ||
     tool.id.includes("pregame_carry_card") ||
     tool.id.includes("first_ab") ||
-    tool.id.includes("pre_bullpen")
+    tool.id.includes("pre_bullpen") ||
+    tool.id.includes("underdog_plan") ||
+    tool.id.includes("high_velo") ||
+    tool.id.includes("dugout_intel") ||
+    tool.id.includes("mound_lockin")
   )
     return "get_ready";
   if (
