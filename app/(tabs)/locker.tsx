@@ -162,7 +162,10 @@ export default function LockerScreen() {
     setLoading(true);
     setLoadError(false);
     try {
-      const data = await fetchContentCards({ limit: 75 });
+      const data = await fetchContentCards();
+      const groups = { dugout: 0, bullpen: 0, grind: 0 };
+      data.forEach(c => { groups[inferLockerGroup(c)]++; });
+      console.log('[Locker] total:', data.length, 'groups:', groups);
       setCards(data);
     } catch (err) {
       console.error(err);

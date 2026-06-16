@@ -81,6 +81,7 @@ export async function fetchContentCards(filters?: {
   }
 
   const { data, error } = await query;
+  console.log('[fetchContentCards] count:', data?.length ?? 0, 'error:', error ?? null);
   if (error) throw error;
   return data as ContentCard[];
 }
@@ -106,6 +107,7 @@ export async function fetchLessons(filters?: {
   }
 
   const { data, error } = await query;
+  console.log('[fetchLessons] pillar:', filters?.pillar ?? 'all', 'count:', data?.length ?? 0, 'error:', error ?? null);
   if (error) throw error;
   return data as LegacyLesson[];
 }
