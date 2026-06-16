@@ -68,7 +68,6 @@ export async function fetchContentCards(filters?: {
   let query = supabase
     .from('content_cards')
     .select('*')
-    .eq('is_active', true)
     .order('priority', { ascending: false });
 
   if (filters?.category && filters.category !== 'all') {
@@ -94,7 +93,6 @@ export async function fetchLessons(filters?: {
   let query = supabase
     .from('legacy_lessons_staging')
     .select('*')
-    .eq('is_active', true)
     .order('order_index', { ascending: true });
 
   if (filters?.pillar) {
