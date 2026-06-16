@@ -81,6 +81,7 @@ export interface AthleteState {
   lessons_today: number;         // how many lessons completed today
   // ────────────────────────────────────────────────────────────────────────
   last_session_date?: string;  // toDateString() format, for cross-device streak sync
+  capVoice?: 'direct' | 'mentor' | 'firedUp';
   created_at: string;
   updated_at: string;
 }
@@ -191,6 +192,7 @@ export function buildDefaultState(name: string): AthleteState {
     last_lesson_date: '',
     lessons_today: 0,
     last_session_date: '',
+    capVoice: 'mentor',
     created_at: now,
     updated_at: now,
   };

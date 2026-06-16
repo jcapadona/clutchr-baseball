@@ -1179,7 +1179,10 @@ export default function CareerScreen() {
     setLoading(true);
     setLoadError(false);
     try {
-      const data = await fetchLessons({ limit: 1000 });
+      const results = await Promise.all(
+        WORLDS.map(world => fetchLessons({ pillar: world.id }))
+      );
+      const data = results.flat();
       setLessons(data);
       if (__DEV__) {
         const pillarIds = [...new Set(data.map(l => l.pillar_id).filter(Boolean))];
