@@ -18,6 +18,7 @@ import { useAthlete } from '@/context/AthleteContext';
 import { fetchLessons, type LegacyLesson } from '@/lib/supabase';
 import { Colors, Radius, Spacing } from '@/constants/theme';
 import { ClutchrHeader } from '@/components/ClutchrHeader';
+import { ProgressBar } from '@/components/ProgressBar';
 import { useMicrocopy } from '@/hooks/useMicrocopy';
 import { ErrorState, SkeletonCard } from '@/components/SkeletonLoader';
 
@@ -1021,9 +1022,13 @@ function WorldBanner({
 
       {!isCleared && total > 0 && (
         <View style={cardStyles.progressRow}>
-          <View style={cardStyles.progressTrack}>
-            <View style={[cardStyles.progressFill, { width: `${stagePct * 100}%` as any, backgroundColor: color }]} />
-          </View>
+          <ProgressBar
+            value={stagePct}
+            color={color}
+            trackColor="rgba(255,255,255,0.06)"
+            height={3}
+            style={{ flex: 1 }}
+          />
           <Text style={[cardStyles.progressCount, { color }]}>{stageLabel}</Text>
         </View>
       )}
@@ -1572,11 +1577,6 @@ const cardStyles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', gap: 8,
     paddingHorizontal: 16, paddingBottom: 10,
   },
-  progressTrack: {
-    flex: 1, height: 3, backgroundColor: 'rgba(255,255,255,0.06)',
-    borderRadius: 2, overflow: 'hidden',
-  },
-  progressFill:  { height: 3, borderRadius: 2 },
   progressCount: { fontSize: 10, fontFamily: 'Inter_700Bold', minWidth: 80, textAlign: 'right' },
   nextRow: {
     flexDirection: 'row', alignItems: 'center', gap: 5,

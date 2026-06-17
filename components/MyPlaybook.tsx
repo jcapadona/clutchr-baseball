@@ -14,6 +14,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAthlete } from '@/context/AthleteContext';
 import { Colors, Radius, Spacing } from '@/constants/theme';
+import { ProgressBar } from '@/components/ProgressBar';
 
 // ─── CUE SLOT DEFINITIONS ────────────────────────────────────────────────────
 // Five situations every baseball player faces. Each gets one personal cue.
@@ -426,9 +427,7 @@ export default function MyPlaybookScreen() {
 
         {/* Progress strip */}
         <View style={styles.progressStrip}>
-          <View style={styles.progressTrack}>
-            <View style={[styles.progressFill, { width: `${(completedCount / CUE_SLOTS.length) * 100}%` }]} />
-          </View>
+          <ProgressBar value={completedCount / CUE_SLOTS.length} height={4} />
           <Text style={styles.progressLabel}>
             {completedCount} of {CUE_SLOTS.length} cues built
           </Text>
@@ -513,8 +512,6 @@ const styles = StyleSheet.create({
   subtitle: { fontSize: 13, fontFamily: 'Inter_400Regular', color: Colors.textSecondary, lineHeight: 19 },
 
   progressStrip: { gap: 5 },
-  progressTrack: { height: 4, backgroundColor: Colors.border, borderRadius: 2 },
-  progressFill: { height: 4, backgroundColor: Colors.primary, borderRadius: 2 },
   progressLabel: { fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.textTertiary },
 
   introCard: {

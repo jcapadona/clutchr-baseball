@@ -24,6 +24,8 @@ import { getBestCue } from '@/lib/personalCue';
 import { RolePill } from '@/components/ui';
 import { ClutchrHeader } from '@/components/ClutchrHeader';
 import { EmblemBadge } from '@/components/EmblemBadge';
+import { ProgressBar } from '@/components/ProgressBar';
+import { ProgressRing } from '@/components/ProgressRing';
 import { getRankProgress } from '@/lib/progressionRanks';
 import { useMicrocopy } from '@/hooks/useMicrocopy';
 
@@ -414,9 +416,7 @@ export default function ProfileScreen() {
               {rankProgress.nextMilestoneLabel}
             </Text>
           </View>
-          <View style={styles.xpTrack}>
-            <View style={[styles.xpFill, { width: `${Math.max(2, rankProgress.percent * 100)}%`, backgroundColor: rank.accentColor }]} />
-          </View>
+          <ProgressBar value={rankProgress.percent} color={rank.accentColor} height={5} />
           <Text style={styles.xpSub}>
             {rankProgress.nextRank
               ? `${rankProgress.xpIntoCurrentRank.toLocaleString()} / ${rankProgress.xpNeededForNextRank?.toLocaleString()} XP in ${rank.name}. Earned through completed work.`
@@ -458,7 +458,23 @@ export default function ProfileScreen() {
         {/* ── MENTAL EDGE RATINGS ── */}
         <View style={{ backgroundColor: '#0D0D12', borderRadius: 12, padding: 16, marginHorizontal: 16, marginBottom: 16, borderWidth: 1, borderColor: '#1a1a1a' }}>
           <Text style={{ color: '#22CC5E', fontSize: 11, fontWeight: '700', letterSpacing: 2, marginBottom: 4 }}>MENTAL EDGE</Text>
-          <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, marginBottom: 12 }}>Your performance profile</Text>
+          <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11, marginBottom: 16 }}>Your performance profile</Text>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginBottom: 20 }}>
+            {([
+              { key: 'confidence',          label: 'CONF'    },
+              { key: 'focus',               label: 'FOCUS'   },
+              { key: 'composure',           label: 'COMP'    },
+              { key: 'recovery_discipline', label: 'RECOVER' },
+            ] as const).map(({ key, label }) => (
+              <ProgressRing
+                key={key}
+                value={(athleteState.self_ratings[key as keyof typeof athleteState.self_ratings] as number ?? 3) / 5}
+                label={label}
+                size={64}
+                strokeWidth={4}
+              />
+            ))}
+          </View>
           <RadarChart ratings={athleteState?.self_ratings ?? {}} />
         </View>
 
@@ -641,12 +657,6 @@ const styles = StyleSheet.create({
   xpNum: { fontSize: 18, fontFamily: 'Inter_700Bold', color: Colors.warning },
   xpUnit: { fontSize: 10, fontFamily: 'Inter_700Bold', color: Colors.textTertiary, letterSpacing: 1 },
   xpPhaseLabel: { fontSize: 11, fontFamily: 'Inter_600SemiBold', color: Colors.textSecondary },
-  xpTrack: { height: 5, backgroundColor: Colors.border, borderRadius: 3 },
-  xpFill: {
-    height: 5, backgroundColor: Colors.warning, borderRadius: 3,
-    shadowColor: Colors.warning, shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8, shadowRadius: 4,
-  },
   xpSub: { fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.textTertiary },
 
   // Stats row

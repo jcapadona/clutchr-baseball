@@ -3,6 +3,7 @@ import { Image, Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyl
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Radius, Spacing } from '@/constants/theme';
 import { ClutchrLogo } from '@/components/ClutchrLogo';
+import { ProgressBar } from '@/components/ProgressBar';
 
 export type ClutchrHeaderVariant = 'home' | 'mainTab' | 'flow' | 'contextCard';
 
@@ -61,12 +62,7 @@ export function BrandMark({ wordmark = false }: { wordmark?: boolean }) {
 }
 
 export function HeaderProgressBar({ progress = 0 }: { progress?: number }) {
-  const safeProgress = Math.max(0, Math.min(1, Number.isFinite(progress) ? progress : 0));
-  return (
-    <View style={progressStyles.track}>
-      <View style={[progressStyles.fill, { width: `${safeProgress * 100}%` }]} />
-    </View>
-  );
+  return <ProgressBar value={progress} height={3} />;
 }
 
 export function ClutchrHeader({
@@ -308,19 +304,6 @@ const brandMarkStyles = StyleSheet.create({
   markImage: {
     width: 17,
     height: 17,
-  },
-});
-
-const progressStyles = StyleSheet.create({
-  track: {
-    height: 3,
-    overflow: 'hidden',
-    backgroundColor: HEADER_BORDER,
-  },
-  fill: {
-    height: 3,
-    borderRadius: 2,
-    backgroundColor: BRAND_GREEN,
   },
 });
 
