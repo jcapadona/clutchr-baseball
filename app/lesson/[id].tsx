@@ -56,9 +56,11 @@ const LESSON_BACKGROUNDS = {
   default: require('../../assets/backgrounds/lesson-background-screen.png'),
 };
 
-const completionBg = require('../../assets/backgrounds/lesson-completion-background.png');
+const completionBg   = require('../../assets/backgrounds/lesson-completion-background.png');
 const completionGlow = require('../../assets/overlays/completion-glow.png');
-const ccsTakeIcon = require('../../assets/icons/coach-cap-ccs-take.png');
+const pulseRingImg   = require('../../assets/branding/start-rep-pulse-ring.png');
+const greenGlowImg   = require('../../assets/overlays/green-accent-glow.png');
+const ccsTakeIcon    = require('../../assets/icons/coach-cap-ccs-take.png');
 
 const STEP_TYPE_ICONS: Record<string, any> = {
   choice: require('../../assets/icons/scenario-pick.png'),
@@ -1100,7 +1102,6 @@ type CompletionKind = 'lesson' | 'checkpoint' | 'boss';
 function LessonCompletionPayoff({
   lesson,
   xpDisplay,
-  contentFadeAnim,
   type,
   onContinue,
   athleteState,
@@ -1109,7 +1110,6 @@ function LessonCompletionPayoff({
 }: {
   lesson: any;
   xpDisplay: number;
-  contentFadeAnim: Animated.Value;
   type: CompletionKind;
   onContinue: () => void;
   athleteState: any;
@@ -1117,16 +1117,31 @@ function LessonCompletionPayoff({
   awardedXP: number;
 }) {
   const insets = useSafeAreaInsets();
-  const slideAnim = useRef(new Animated.Value(18)).current;
-  const pathFill = useRef(new Animated.Value(0)).current;
+  const pathFill  = useRef(new Animated.Value(0)).current;
   const badgeFill = useRef(new Animated.Value(0)).current;
-  const ctaScale = useRef(new Animated.Value(1)).current;
+  const ctaScale   = useRef(new Animated.Value(1)).current;
   const ctaOpacity = useRef(new Animated.Value(1)).current;
 
-  const xpBounce = useSharedValue(0.4);
-  const boltScale = useSharedValue(0.3);
-  const boltOpacity = useSharedValue(0);
+  // ── Stagger sequence (Reanimated) ─────────────────────────────
+  const burstScale   = useSharedValue(0.5);
+  const burstOpacity = useSharedValue(0);
+  const headlineY    = useSharedValue(20);
+  const headlineOp   = useSharedValue(0);
+  const xpBounce     = useSharedValue(0.4);
+  const boltScale    = useSharedValue(0.3);
+  const boltOpacity  = useSharedValue(0);
+  const cueSlideY    = useSharedValue(14);
+  const cueOp        = useSharedValue(0);
+  const ctaFadeOp    = useSharedValue(0);
 
+  const burstStyle    = useAnimatedStyle(() => ({
+    transform: [{ scale: burstScale.value }],
+    opacity: burstOpacity.value,
+  }));
+  const headlineStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: headlineY.value }],
+    opacity: headlineOp.value,
+  }));
   const xpBounceStyle = useAnimatedStyle(() => ({
     transform: [{ scale: xpBounce.value }],
     opacity: Math.min(1, xpBounce.value * 2.5),
@@ -1135,6 +1150,11 @@ function LessonCompletionPayoff({
     transform: [{ scale: boltScale.value }],
     opacity: boltOpacity.value,
   }));
+  const cueStyle  = useAnimatedStyle(() => ({
+    transform: [{ translateY: cueSlideY.value }],
+    opacity: cueOp.value,
+  }));
+  const ctaStyle  = useAnimatedStyle(() => ({ opacity: ctaFadeOp.value }));
 
   function ctaPressIn() {
     H.tap();
@@ -1162,14 +1182,38 @@ function LessonCompletionPayoff({
   }
 
   useEffect(() => {
+    // Background progress bars
     Animated.parallel([
-      Animated.spring(slideAnim, { toValue: 0, tension: 70, friction: 12, useNativeDriver: true }),
-      Animated.timing(pathFill, { toValue: Math.min(0.92, ((athleteState?.completed_lessons?.length ?? 0) % 5 + 1) / 5), duration: 780, useNativeDriver: false }),
-      Animated.timing(badgeFill, { toValue: getRankProgressPercent(startingXP + awardedXP), duration: 900, useNativeDriver: false }),
+      Animated.timing(pathFill, {
+        toValue: Math.min(0.92, ((athleteState?.completed_lessons?.length ?? 0) % 5 + 1) / 5),
+        duration: 780, useNativeDriver: false,
+      }),
+      Animated.timing(badgeFill, {
+        toValue: getRankProgressPercent(startingXP + awardedXP),
+        duration: 900, useNativeDriver: false,
+      }),
     ]).start();
-    xpBounce.value = withDelay(500, withSpring(1, { damping: 10, stiffness: 180, mass: 0.7 }));
-    boltScale.value = withDelay(460, withSpring(1, { damping: 8, stiffness: 200, mass: 0.6 }));
-    boltOpacity.value = withDelay(460, withSpring(1, { damping: 14, stiffness: 220 }));
+
+    // t=0 — burst visual pops in as screen darkens
+    burstScale.value   = withSpring(1, { damping: 7, stiffness: 160, mass: 0.9 });
+    burstOpacity.value = withSpring(1, { damping: 14, stiffness: 200 });
+    setTimeout(() => H.success(), 80); // haptic at burst moment
+
+    // t=350ms — headline slides up
+    headlineY.value  = withDelay(350, withSpring(0, { damping: 20, stiffness: 180 }));
+    headlineOp.value = withDelay(350, withSpring(1, { damping: 18, stiffness: 200 }));
+
+    // t=560ms — XP bolt + row bounce in
+    boltScale.value   = withDelay(560, withSpring(1, { damping: 8, stiffness: 200, mass: 0.6 }));
+    boltOpacity.value = withDelay(560, withSpring(1, { damping: 14, stiffness: 220 }));
+    xpBounce.value    = withDelay(600, withSpring(1, { damping: 10, stiffness: 180, mass: 0.7 }));
+
+    // t=950ms — cue saved pill slides up
+    cueSlideY.value = withDelay(950, withSpring(0, { damping: 20, stiffness: 180 }));
+    cueOp.value     = withDelay(950, withSpring(1, { damping: 18, stiffness: 200 }));
+
+    // t=1200ms — CTA buttons fade in
+    ctaFadeOp.value = withDelay(1200, withSpring(1, { damping: 18, stiffness: 200 }));
   }, []);
 
   const isBoss = type === 'boss';
@@ -1185,41 +1229,43 @@ function LessonCompletionPayoff({
   const rankProgressLabel = rankProgress.nextRank
     ? `${rankProgress.xpIntoCurrentRank.toLocaleString()} / ${rankProgress.xpNeededForNextRank?.toLocaleString()} XP`
     : 'Elite standard held';
-  const pathWidth = pathFill.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] });
+  const pathWidth  = pathFill.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] });
   const badgeWidth = badgeFill.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] });
   const secondary = isBoss ? { label: 'Back Home', route: '/(tabs)' } : { label: 'Open Playbook', route: '/playbook' };
-  const topSafePadding = Math.max(insets.top + Spacing.lg, Spacing.xxxl);
 
   return (
-    <Animated.View style={[payoffStyles.wrap, { opacity: contentFadeAnim, transform: [{ translateY: slideAnim }] }]}>
+    <View style={payoffStyles.wrap}>
       <ImageBackground source={completionBg} style={StyleSheet.absoluteFill} resizeMode="cover">
         <View style={payoffStyles.bgOverlay} />
       </ImageBackground>
-      <Image source={completionGlow} style={payoffStyles.completionGlowImg} pointerEvents="none" />
-      <ScrollView contentContainerStyle={[payoffStyles.scrollContent, { paddingTop: topSafePadding }]} showsVerticalScrollIndicator={false}>
-        <View style={payoffStyles.heroCard}>
-          <LinearGradient colors={['rgba(35,209,96,0.16)', 'rgba(5,8,6,0)']} style={StyleSheet.absoluteFill} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} />
-          <Image
-            pointerEvents="none"
-            source={require('../../assets/branding/c-mark.png')}
-            style={payoffStyles.heroWatermark}
-            resizeMode="contain"
-          />
-          <View style={payoffStyles.signalLine} />
-          <Image
-            source={require('../../assets/branding/simplified-wordmark.png')}
-            style={payoffStyles.heroWordmark}
-            resizeMode="contain"
-          />
-          <View style={payoffStyles.heroTopRow}>
-            <View>
-              {isBoss && <Text style={payoffStyles.bossCleared}>BOSS CLEARED</Text>}
-              <Text style={payoffStyles.kicker}>{isBoss ? 'CLOSE IT OUT' : 'REP COMPLETE'}</Text>
-              <Text style={payoffStyles.title}>{title}</Text>
+
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }} showsVerticalScrollIndicator={false} bounces={false}>
+
+        {/* ── HERO ZONE ── */}
+        <View style={[payoffStyles.heroZone, { paddingTop: insets.top }]}>
+          <Image source={greenGlowImg} style={payoffStyles.heroGlow} pointerEvents="none" resizeMode="contain" />
+          {isBoss && (
+            <View style={payoffStyles.bossChip}>
+              <Text style={payoffStyles.bossCleared}>BOSS CLEARED</Text>
             </View>
-            <CoachCapMoment />
-          </View>
-          <Text style={payoffStyles.lessonTitle} numberOfLines={2}>{lesson?.title}</Text>
+          )}
+          <Reanimated.View style={[payoffStyles.burstWrap, burstStyle]}>
+            <Image source={pulseRingImg} style={payoffStyles.pulseRing} resizeMode="contain" />
+            <Image source={completionGlow} style={payoffStyles.burstGlow} pointerEvents="none" resizeMode="contain" />
+          </Reanimated.View>
+          <Text style={payoffStyles.heroBadge}>{isBoss ? 'CLOSE IT OUT' : 'REP COMPLETE'}</Text>
+        </View>
+
+        {/* ── CONTENT ZONE ── */}
+        <View style={payoffStyles.contentZone}>
+
+          {/* Headline */}
+          <Reanimated.View style={[payoffStyles.headlineBlock, headlineStyle]}>
+            <Text style={payoffStyles.title}>{title}</Text>
+            <Text style={payoffStyles.lessonTitle} numberOfLines={2}>{lesson?.title}</Text>
+          </Reanimated.View>
+
+          {/* XP Row */}
           <Reanimated.View style={[payoffStyles.xpRow, xpBounceStyle]}>
             <Reanimated.View style={boltAnimStyle}>
               <Ionicons name="flash" size={32} color="#39FF88" />
@@ -1234,67 +1280,84 @@ function LessonCompletionPayoff({
               )}
             </View>
           </Reanimated.View>
+
+          {/* Cue saved pill */}
+          {isFirstClear && (
+            <Reanimated.View style={[payoffStyles.cueSavedRow, cueStyle]}>
+              <Ionicons name="checkmark-circle" size={15} color="#23D160" />
+              <Text style={payoffStyles.cueSavedText}>Cue saved to Playbook</Text>
+            </Reanimated.View>
+          )}
+
+          {/* CTA buttons */}
+          <Reanimated.View style={[payoffStyles.actions, ctaStyle]}>
+            <Pressable onPress={onContinue} onPressIn={ctaPressIn} onPressOut={ctaPressOut}>
+              <Animated.View style={[payoffStyles.primaryCta, Shadow.green, { transform: [{ scale: ctaScale }], opacity: ctaOpacity }]}>
+                <View style={[StyleSheet.absoluteFill, { borderRadius: Radius.md, overflow: 'hidden' }]}>
+                  <LinearGradient colors={['#23D160', '#18A84A']} style={StyleSheet.absoluteFill} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} />
+                </View>
+                <Text style={payoffStyles.primaryCtaText}>Continue Career</Text>
+                <Ionicons name="arrow-forward" size={18} color="#050806" />
+              </Animated.View>
+            </Pressable>
+            <Pressable onPress={() => router.push(secondary.route as any)} onPressIn={ctaPressIn} onPressOut={ctaPressOut}>
+              <Animated.View style={[payoffStyles.secondaryCta, { transform: [{ scale: ctaScale }], opacity: ctaOpacity }]}>
+                <Text style={payoffStyles.secondaryCtaText}>{secondary.label}</Text>
+              </Animated.View>
+            </Pressable>
+          </Reanimated.View>
         </View>
 
-        <View style={payoffStyles.card}>
-          <View style={payoffStyles.cardHeaderRow}>
-            <Text style={payoffStyles.cardLabel}>{currentPathName}</Text>
-            <Text style={payoffStyles.cardValue}>{isBoss ? 'Boss cleared' : 'Next rep loaded'}</Text>
-          </View>
-          <View style={payoffStyles.progressTrack}><Animated.View style={[payoffStyles.progressFill, { width: pathWidth }]} /></View>
-        </View>
-
-        <View style={payoffStyles.card}>
-          <View style={payoffStyles.cardHeaderRow}>
-            <Text style={payoffStyles.cardLabel}>Rank Progress</Text>
-            <Text style={[payoffStyles.cardValue, { color: rankUpgraded ? afterRank.accentColor : afterRank.primaryColor }]}>{rankUpgraded ? 'Rank upgraded' : rankProgressLabel}</Text>
-          </View>
-          <View style={payoffStyles.badgeRow}>
-            <EmblemBadge rank={afterRank} size="small" />
-            <View style={{ flex: 1 }}>
-              <View style={[payoffStyles.rankTrack, { borderColor: afterRank.borderColor }]}><Animated.View style={[payoffStyles.rankFill, { width: badgeWidth, backgroundColor: afterRank.accentColor }]} /></View>
-              <Text style={payoffStyles.helperText}>{isReplay ? 'Replay logged for practice. XP is earned on first clear.' : rankUpgraded ? `${afterRank.name} unlocked. Standard raised.` : rankProgress.nextRank ? `Rank progress moved. Next rank: ${rankProgress.nextRank.name}. ${rankProgress.xpRemaining.toLocaleString()} XP left.` : 'Elite held. Keep stacking clean reps.'}</Text>
+        {/* ── SUPPLEMENTARY CARDS (scrolled below fold) ── */}
+        <View style={payoffStyles.cardsSection}>
+          <View style={payoffStyles.card}>
+            <View style={payoffStyles.cardHeaderRow}>
+              <Text style={payoffStyles.cardLabel}>{currentPathName}</Text>
+              <Text style={payoffStyles.cardValue}>{isBoss ? 'Boss cleared' : 'Next rep loaded'}</Text>
+            </View>
+            <View style={payoffStyles.progressTrack}>
+              <Animated.View style={[payoffStyles.progressFill, { width: pathWidth }]} />
             </View>
           </View>
-        </View>
 
-        <View style={payoffStyles.takeCard}>
-          <View style={payoffStyles.takeHeaderRow}>
-            <Image source={ccsTakeIcon} style={payoffStyles.takeIcon} resizeMode="cover" />
-            <Text style={payoffStyles.takeLabel}>CC'S TAKE</Text>
-          </View>
-          <Text style={payoffStyles.takeText}>{lesson?.cc_take ?? 'You stayed with the cue. Next time the count gets loud, shrink it: target, breath, attack.'}</Text>
-        </View>
-
-        <View style={payoffStyles.actions}>
-          <Pressable onPress={onContinue} onPressIn={ctaPressIn} onPressOut={ctaPressOut}>
-            <Animated.View style={[payoffStyles.primaryCta, Shadow.green, { transform: [{ scale: ctaScale }], opacity: ctaOpacity }]}>
-              <View style={[StyleSheet.absoluteFill, { borderRadius: Radius.md, overflow: 'hidden' }]}>
-                <LinearGradient colors={['#23D160', '#18A84A']} style={StyleSheet.absoluteFill} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} />
+          <View style={payoffStyles.card}>
+            <View style={payoffStyles.cardHeaderRow}>
+              <Text style={payoffStyles.cardLabel}>Rank Progress</Text>
+              <Text style={[payoffStyles.cardValue, { color: rankUpgraded ? afterRank.accentColor : afterRank.primaryColor }]}>
+                {rankUpgraded ? 'Rank upgraded' : rankProgressLabel}
+              </Text>
+            </View>
+            <View style={payoffStyles.badgeRow}>
+              <EmblemBadge rank={afterRank} size="small" />
+              <View style={{ flex: 1 }}>
+                <View style={[payoffStyles.rankTrack, { borderColor: afterRank.borderColor }]}>
+                  <Animated.View style={[payoffStyles.rankFill, { width: badgeWidth, backgroundColor: afterRank.accentColor }]} />
+                </View>
+                <Text style={payoffStyles.helperText}>
+                  {isReplay
+                    ? 'Replay logged for practice. XP is earned on first clear.'
+                    : rankUpgraded
+                    ? `${afterRank.name} unlocked. Standard raised.`
+                    : rankProgress.nextRank
+                    ? `Rank progress moved. Next rank: ${rankProgress.nextRank.name}. ${rankProgress.xpRemaining.toLocaleString()} XP left.`
+                    : 'Elite held. Keep stacking clean reps.'}
+                </Text>
               </View>
-              <Text style={payoffStyles.primaryCtaText}>Continue Career</Text>
-              <Ionicons name="arrow-forward" size={18} color="#050806" />
-            </Animated.View>
-          </Pressable>
-          <Pressable onPress={() => router.push(secondary.route as any)} onPressIn={ctaPressIn} onPressOut={ctaPressOut}>
-            <Animated.View style={[payoffStyles.secondaryCta, { transform: [{ scale: ctaScale }], opacity: ctaOpacity }]}>
-              <Text style={payoffStyles.secondaryCtaText}>{secondary.label}</Text>
-            </Animated.View>
-          </Pressable>
-        </View>
-      </ScrollView>
-    </Animated.View>
-  );
-}
+            </View>
+          </View>
 
-function CoachCapMoment() {
-  return (
-    <View style={payoffStyles.ccHook}>
-      <Image
-        source={require('../../assets/coach-cap/circular-avatar.png')}
-        style={payoffStyles.ccImage}
-        resizeMode="cover"
-      />
+          <View style={payoffStyles.takeCard}>
+            <View style={payoffStyles.takeHeaderRow}>
+              <Image source={ccsTakeIcon} style={payoffStyles.takeIcon} resizeMode="cover" />
+              <Text style={payoffStyles.takeLabel}>CC'S TAKE</Text>
+            </View>
+            <Text style={payoffStyles.takeText}>
+              {lesson?.cc_take ?? 'You stayed with the cue. Next time the count gets loud, shrink it: target, breath, attack.'}
+            </Text>
+          </View>
+        </View>
+
+      </ScrollView>
     </View>
   );
 }
@@ -1402,19 +1465,16 @@ export default function LessonPlayerScreen() {
   useEffect(() => {
     if (!showComplete) return;
     overlayFadeAnim.setValue(0);
-    contentFadeAnim.setValue(0);
+    contentFadeAnim.setValue(1); // payoff controls its own reveals
     xpCountAnim.setValue(0);
     setXpDisplay(0);
     Animated.timing(overlayFadeAnim, { toValue: 1, duration: 350, useNativeDriver: true }).start();
-    setTimeout(() => {
-      Animated.timing(contentFadeAnim, { toValue: 1, duration: 400, useNativeDriver: true }).start();
-    }, 200);
     const xp = finalXPRef.current;
     if (xp > 0) {
       const listenerId = xpCountAnim.addListener(({ value }) => setXpDisplay(Math.round(value)));
       setTimeout(() => {
         Animated.timing(xpCountAnim, { toValue: xp, duration: 800, useNativeDriver: false }).start();
-      }, 400);
+      }, 650); // synced with XP row bounce at t=600ms
       return () => xpCountAnim.removeListener(listenerId);
     }
   }, [showComplete]);
@@ -1630,7 +1690,6 @@ export default function LessonPlayerScreen() {
           <LessonCompletionPayoff
             lesson={lesson}
             xpDisplay={xpDisplay}
-            contentFadeAnim={contentFadeAnim}
             type={showComplete}
             athleteState={athleteState}
             startingXP={startingXPRef.current}
@@ -2451,90 +2510,108 @@ const ratingStyles = StyleSheet.create({
 // ─── Celebration ──────────────────────────────────────────────────────────────
 
 const payoffStyles = StyleSheet.create({
-  wrap: {
-    flex: 1,
-    width: '100%',
+  wrap: { flex: 1, width: '100%' },
+  bgOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(4, 10, 6, 0.84)' },
+
+  // ── Hero zone ────────────────────────────────────────────────────
+  heroZone: {
+    height: 310,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'visible',
   },
-  bgOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(4, 10, 6, 0.78)',
-  },
-  completionGlowImg: {
+  heroGlow: {
     position: 'absolute',
-    bottom: 0,
+    width: 340,
+    height: 340,
+    opacity: 0.5,
+  },
+  bossChip: {
+    position: 'absolute',
+    top: 16,
     alignSelf: 'center',
-    width: 260,
-    height: 260,
-    opacity: 0.55,
   },
-  scrollContent: {
-    paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.xxl,
-    paddingBottom: Spacing.xxxl,
+  bossCleared: {
+    fontSize: 11, letterSpacing: 2.5, fontFamily: 'Inter_700Bold', color: '#F5A623',
+  },
+  burstWrap: {
+    width: 230,
+    height: 230,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pulseRing: {
+    position: 'absolute',
+    width: 230,
+    height: 230,
+  },
+  burstGlow: {
+    position: 'absolute',
+    width: 190,
+    height: 190,
+    opacity: 0.65,
+  },
+  heroBadge: {
+    position: 'absolute',
+    bottom: 14,
+    color: '#23D160',
+    fontFamily: 'Inter_700Bold',
+    fontSize: 10,
+    letterSpacing: 2.2,
+  },
+
+  // ── Content zone ─────────────────────────────────────────────────
+  contentZone: {
+    paddingHorizontal: Spacing.xl,
+    paddingTop: Spacing.md,
     gap: Spacing.md,
   },
-  heroCard: {
-    backgroundColor: '#111612',
-    borderColor: '#242B26',
-    borderWidth: 1,
-    borderRadius: Radius.xl,
-    padding: Spacing.lg,
-    overflow: 'hidden',
-    gap: Spacing.md,
-  },
-  signalLine: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    top: 0,
-    height: 2,
-    backgroundColor: '#39FF88',
-    shadowColor: '#39FF88',
-    shadowOpacity: 0.6,
-    shadowRadius: 12,
-  },
-  heroWatermark: {
-    position: 'absolute',
-    right: -18,
-    bottom: -24,
-    width: 142,
-    height: 142,
-    opacity: 0.08,
-  },
-  heroWordmark: {
-    width: 104,
-    height: 28,
-    marginBottom: -Spacing.xs,
-  },
-  heroTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: Spacing.md },
-  kicker: { color: '#23D160', fontFamily: 'Inter_700Bold', fontSize: 10, letterSpacing: 1.8 },
-  title: { color: '#F7FFF9', fontFamily: 'Inter_700Bold', fontSize: 34, lineHeight: 38, letterSpacing: -0.8, marginTop: 4 },
+  headlineBlock: { gap: 4 },
+  title: { color: '#F7FFF9', fontFamily: 'Inter_700Bold', fontSize: 34, lineHeight: 38, letterSpacing: -0.8 },
   lessonTitle: { color: '#A8B3AA', fontFamily: 'Inter_500Medium', fontSize: 14, lineHeight: 20 },
   xpRow: { flexDirection: 'row', alignItems: 'flex-end', gap: Spacing.sm, marginTop: Spacing.xs },
   xpText: { color: '#39FF88', fontFamily: 'Inter_700Bold', fontSize: 44, lineHeight: 48, letterSpacing: -1 },
   xpLabel: { color: '#23D160', fontFamily: 'Inter_700Bold', fontSize: 14, letterSpacing: 1.8, paddingBottom: 7 },
-  ccHook: {
-    width: 54,
-    height: 54,
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: 'rgba(35,209,96,0.3)',
-    backgroundColor: '#0B100C',
-    alignItems: 'center',
-    justifyContent: 'center',
+  firstClearBadge: {
+    backgroundColor: 'rgba(34, 204, 94, 0.15)', borderColor: 'rgba(34, 204, 94, 0.4)',
+    borderWidth: 1, borderRadius: 99, paddingHorizontal: 8, paddingVertical: 3,
   },
-  ccImage: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 18,
+  firstClearText: { fontSize: 10, color: '#22CC5E', fontFamily: 'Inter_700Bold', letterSpacing: 1.5 },
+  cueSavedRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(35,209,96,0.10)',
+    borderWidth: 1,
+    borderColor: 'rgba(35,209,96,0.28)',
+    borderRadius: Radius.pill,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: 8,
+  },
+  cueSavedText: { color: '#23D160', fontFamily: 'Inter_600SemiBold', fontSize: 13 },
+  actions: { gap: Spacing.sm, marginTop: Spacing.sm },
+  primaryCta: {
+    minHeight: 54, borderRadius: Radius.md, backgroundColor: '#23D160',
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm,
+  },
+  primaryCtaText: { color: '#050806', fontFamily: 'Inter_700Bold', fontSize: 15, letterSpacing: 0.3 },
+  secondaryCta: {
+    minHeight: 48, borderRadius: Radius.md, borderWidth: 1, borderColor: '#242B26',
+    alignItems: 'center', justifyContent: 'center', backgroundColor: '#111612',
+  },
+  secondaryCtaText: { color: '#A8B3AA', fontFamily: 'Inter_700Bold', fontSize: 13, letterSpacing: 0.4 },
+
+  // ── Supplementary cards ──────────────────────────────────────────
+  cardsSection: {
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.xl,
+    paddingBottom: Spacing.xxxl,
+    gap: Spacing.md,
   },
   card: {
-    backgroundColor: '#111612',
-    borderColor: '#242B26',
-    borderWidth: 1,
-    borderRadius: Radius.lg,
-    padding: Spacing.lg,
-    gap: Spacing.md,
+    backgroundColor: '#111612', borderColor: '#242B26', borderWidth: 1,
+    borderRadius: Radius.lg, padding: Spacing.lg, gap: Spacing.md,
   },
   cardHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: Spacing.md },
   cardLabel: { color: '#F7FFF9', fontFamily: 'Inter_700Bold', fontSize: 14, flex: 1 },
@@ -2542,55 +2619,17 @@ const payoffStyles = StyleSheet.create({
   progressTrack: { height: 9, borderRadius: 5, backgroundColor: '#050806', borderWidth: 1, borderColor: '#242B26', overflow: 'hidden' },
   progressFill: { height: '100%', backgroundColor: '#23D160', shadowColor: '#39FF88', shadowOpacity: 0.55, shadowRadius: 9 },
   badgeRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
-  badgeMark: {
-    width: 42,
-    height: 42,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: 'rgba(245,166,35,0.42)',
-    backgroundColor: 'rgba(245,166,35,0.10)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   rankTrack: { height: 8, borderRadius: 4, backgroundColor: '#050806', overflow: 'hidden', borderWidth: 1, borderColor: '#2A2518' },
   rankFill: { height: '100%', backgroundColor: Colors.warning },
   helperText: { color: '#A8B3AA', fontFamily: 'Inter_400Regular', fontSize: 12, lineHeight: 17, marginTop: Spacing.sm },
   takeCard: {
-    backgroundColor: '#0B100C',
-    borderColor: 'rgba(35,209,96,0.24)',
-    borderWidth: 1,
-    borderRadius: Radius.lg,
-    padding: Spacing.lg,
-    gap: Spacing.sm,
+    backgroundColor: '#0B100C', borderColor: 'rgba(35,209,96,0.24)', borderWidth: 1,
+    borderRadius: Radius.lg, padding: Spacing.lg, gap: Spacing.sm,
   },
   takeHeaderRow: { flexDirection: 'row', alignItems: 'center' },
   takeIcon: { width: 40, height: 40, borderRadius: 8, marginRight: 10 },
   takeLabel: { color: '#23D160', fontFamily: 'Inter_700Bold', fontSize: 10, letterSpacing: 1.6 },
   takeText: { color: '#F7FFF9', fontFamily: 'Inter_500Medium', fontSize: 15, lineHeight: 23 },
-  bossCleared: { fontSize: 11, letterSpacing: 2.5, fontFamily: 'Inter_700Bold', color: '#F5A623', alignSelf: 'center', marginBottom: 6 },
-  firstClearBadge: { backgroundColor: 'rgba(34, 204, 94, 0.15)', borderColor: 'rgba(34, 204, 94, 0.4)', borderWidth: 1, borderRadius: 99, paddingHorizontal: 8, paddingVertical: 3 },
-  firstClearText: { fontSize: 10, color: '#22CC5E', fontFamily: 'Inter_700Bold', letterSpacing: 1.5 },
-  actions: { gap: Spacing.sm, marginTop: Spacing.sm },
-  primaryCta: {
-    minHeight: 54,
-    borderRadius: Radius.md,
-    backgroundColor: '#23D160',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: Spacing.sm,
-  },
-  primaryCtaText: { color: '#050806', fontFamily: 'Inter_700Bold', fontSize: 15, letterSpacing: 0.3 },
-  secondaryCta: {
-    minHeight: 48,
-    borderRadius: Radius.md,
-    borderWidth: 1,
-    borderColor: '#242B26',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#111612',
-  },
-  secondaryCtaText: { color: '#A8B3AA', fontFamily: 'Inter_700Bold', fontSize: 13, letterSpacing: 0.4 },
 });
 
 const celebStyles = StyleSheet.create({
