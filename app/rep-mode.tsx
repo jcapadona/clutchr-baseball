@@ -2,6 +2,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router'
 import React, { useMemo, useState } from 'react'
 import { SafeAreaView, View, Text, Pressable, StyleSheet, ScrollView } from 'react-native'
 import { Colors } from '@/constants/theme'
+import { Btn } from '@/components/ui'
 
 type DrillType = 'pitch-iq' | 'field-iq' | 'strike-zone' | 'throw-decision' | 'leverage-ladder'
 type Rep = { title: string; context: string; choices: string[]; correct: number; feedback: string }
@@ -68,7 +69,7 @@ export default function RepModeScreen() {
   if (!reps.length || !rep) {
     return (
       <SafeAreaView style={s.wrap}>
-        <View style={s.center}><Text style={s.title}>Rep Mode unavailable</Text><Text style={s.sub}>This drill type is missing.</Text><Pressable style={s.btn} onPress={() => router.replace('/(tabs)/gamemode')}><Text style={s.btnText}>Back to Game Mode</Text></Pressable></View>
+        <View style={s.center}><Text style={s.title}>Rep Mode unavailable</Text><Text style={s.sub}>This drill type is missing.</Text><Btn label="Back to Game Mode" onPress={() => router.replace('/(tabs)/gamemode')} /></View>
       </SafeAreaView>
     )
   }
@@ -80,7 +81,7 @@ export default function RepModeScreen() {
           <Text style={s.title}>Drill complete</Text>
           <Text style={s.sub}>5 reps finished</Text>
           <Text style={s.sub}>Takeaway: stack clean decisions, one rep at a time.</Text>
-          <Pressable style={s.btn} onPress={() => router.replace('/(tabs)/gamemode')}><Text style={s.btnText}>Back to Game Mode</Text></Pressable>
+          <Btn label="Back to Game Mode" onPress={() => router.replace('/(tabs)/gamemode')} />
         </View>
       </SafeAreaView>
     )
@@ -108,8 +109,8 @@ export default function RepModeScreen() {
           <View style={s.feedback}><Text style={s.feedbackText}>{selectedChoice === rep.correct ? 'Good rep. ' : ''}{rep.feedback}</Text></View>
         )}
 
-        <Pressable style={s.btn} onPress={nextRep}><Text style={s.btnText}>{currentRepIndex === 4 ? 'Finish Drill' : 'Next Rep'}</Text></Pressable>
-        <Pressable style={s.btnAlt} onPress={() => router.replace('/(tabs)/gamemode')}><Text style={s.btnAltText}>Back to Game Mode</Text></Pressable>
+        <Btn label={currentRepIndex === 4 ? 'Finish Drill' : 'Next Rep'} onPress={nextRep} />
+        <Btn label="Back to Game Mode" onPress={() => router.replace('/(tabs)/gamemode')} variant="secondary" />
       </ScrollView>
     </SafeAreaView>
   )
@@ -129,10 +130,6 @@ const s = StyleSheet.create({
   choiceText: { color: Colors.textPrimary },
   feedback: { borderRadius: 10, borderWidth: 1, borderColor: Colors.warning + '66', backgroundColor: Colors.warning + '12', padding: 12 },
   feedbackText: { color: Colors.textSecondary },
-  btn: { marginTop: 10, borderRadius: 10, padding: 12, backgroundColor: Colors.primary, alignItems: 'center' },
-  btnText: { color: '#000', fontWeight: '800' },
-  btnAlt: { borderRadius: 10, padding: 12, backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border, alignItems: 'center' },
-  btnAltText: { color: Colors.textPrimary, fontWeight: '700' },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24, gap: 8 },
   title: { color: Colors.textPrimary, fontSize: 24, fontWeight: '800' },
   sub: { color: Colors.textSecondary, textAlign: 'center' },

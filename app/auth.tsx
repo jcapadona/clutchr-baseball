@@ -1,9 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as WebBrowser from 'expo-web-browser';
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Animated,
   Pressable,
   StyleSheet,
   Text,
@@ -11,7 +12,8 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase } from '@/lib/supabase';
-import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
+import { Colors, Radius, Shadow, Spacing, Typography } from '@/constants/theme';
+import { H } from '@/utils/haptics';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -19,6 +21,24 @@ export default function AuthScreen() {
   const insets = useSafeAreaInsets();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const btnScale = useRef(new Animated.Value(1)).current;
+  const btnOpacity = useRef(new Animated.Value(1)).current;
+
+  function pressIn() {
+    if (loading) return;
+    H.tap();
+    Animated.parallel([
+      Animated.spring(btnScale, { toValue: 0.97, tension: 300, friction: 20, useNativeDriver: true }),
+      Animated.timing(btnOpacity, { toValue: 0.88, duration: 60, useNativeDriver: true }),
+    ]).start();
+  }
+
+  function pressOut() {
+    Animated.parallel([
+      Animated.spring(btnScale, { toValue: 1, tension: 280, friction: 18, useNativeDriver: true }),
+      Animated.timing(btnOpacity, { toValue: 1, duration: 120, useNativeDriver: true }),
+    ]).start();
+  }
 
 const handleGoogleSignIn = async () => {
   try {
@@ -115,22 +135,26 @@ const handleGoogleSignIn = async () => {
         {error && <Text style={styles.errorText}>{error}</Text>}
 
         <Pressable
-          style={({ pressed }) => [
-            styles.googleBtn,
-            pressed && styles.googleBtnPressed,
-            loading && styles.googleBtnDisabled,
-          ]}
           onPress={handleGoogleSignIn}
+          onPressIn={pressIn}
+          onPressOut={pressOut}
           disabled={loading}
+          style={loading ? { opacity: 0.6 } : undefined}
         >
-          {loading ? (
-            <ActivityIndicator color={Colors.background} size="small" />
-          ) : (
-            <>
-              <Ionicons name="logo-google" size={20} color={Colors.background} />
-              <Text style={styles.googleBtnText}>Continue with Google</Text>
-            </>
-          )}
+          <Animated.View style={[
+            styles.googleBtn,
+            Shadow.green,
+            { transform: [{ scale: btnScale }], opacity: btnOpacity },
+          ]}>
+            {loading ? (
+              <ActivityIndicator color={Colors.background} size="small" />
+            ) : (
+              <>
+                <Ionicons name="logo-google" size={20} color={Colors.background} />
+                <Text style={styles.googleBtnText}>Continue with Google</Text>
+              </>
+            )}
+          </Animated.View>
         </Pressable>
 
         <Text style={styles.legal}>
@@ -246,10 +270,6 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary,
     paddingVertical: Spacing.lg,
     borderRadius: Radius.md,
-  },
-  googleBtnPressed: {
-    opacity: 0.85,
-    transform: [{ scale: 0.98 }],
   },
   googleBtnDisabled: {
     opacity: 0.6,

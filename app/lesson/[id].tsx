@@ -19,7 +19,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAthlete } from '@/context/AthleteContext';
 import { supabase } from '@/lib/supabase';
-import { Colors, Radius, Spacing } from '@/constants/theme';
+import { Colors, Radius, Shadow, Spacing } from '@/constants/theme';
 import { stopSpeech } from '@/lib/lessonAudio';
 import { ClutchrHeader } from '@/components/ClutchrHeader';
 import { CompletionInteraction, type CompletionIntent } from '@/components/CompletionInteraction';
@@ -1119,6 +1119,23 @@ function LessonCompletionPayoff({
   const slideAnim = useRef(new Animated.Value(18)).current;
   const pathFill = useRef(new Animated.Value(0)).current;
   const badgeFill = useRef(new Animated.Value(0)).current;
+  const ctaScale = useRef(new Animated.Value(1)).current;
+  const ctaOpacity = useRef(new Animated.Value(1)).current;
+
+  function ctaPressIn() {
+    H.tap();
+    Animated.parallel([
+      Animated.spring(ctaScale, { toValue: 0.97, tension: 300, friction: 20, useNativeDriver: true }),
+      Animated.timing(ctaOpacity, { toValue: 0.88, duration: 60, useNativeDriver: true }),
+    ]).start();
+  }
+
+  function ctaPressOut() {
+    Animated.parallel([
+      Animated.spring(ctaScale, { toValue: 1, tension: 280, friction: 18, useNativeDriver: true }),
+      Animated.timing(ctaOpacity, { toValue: 1, duration: 120, useNativeDriver: true }),
+    ]).start();
+  }
 
   const microcopy = useMicrocopy();
   const capLineRef = useRef<string | null>(null);
@@ -1230,13 +1247,19 @@ function LessonCompletionPayoff({
         </View>
 
         <View style={payoffStyles.actions}>
-          <Pressable style={payoffStyles.primaryCta} onPress={onContinue}>
-            <LinearGradient colors={['#23D160', '#18A84A']} style={StyleSheet.absoluteFill} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} />
-            <Text style={payoffStyles.primaryCtaText}>Continue Career</Text>
-            <Ionicons name="arrow-forward" size={18} color="#050806" />
+          <Pressable onPress={onContinue} onPressIn={ctaPressIn} onPressOut={ctaPressOut}>
+            <Animated.View style={[payoffStyles.primaryCta, Shadow.green, { transform: [{ scale: ctaScale }], opacity: ctaOpacity }]}>
+              <View style={[StyleSheet.absoluteFill, { borderRadius: Radius.md, overflow: 'hidden' }]}>
+                <LinearGradient colors={['#23D160', '#18A84A']} style={StyleSheet.absoluteFill} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} />
+              </View>
+              <Text style={payoffStyles.primaryCtaText}>Continue Career</Text>
+              <Ionicons name="arrow-forward" size={18} color="#050806" />
+            </Animated.View>
           </Pressable>
-          <Pressable style={payoffStyles.secondaryCta} onPress={() => router.push(secondary.route as any)}>
-            <Text style={payoffStyles.secondaryCtaText}>{secondary.label}</Text>
+          <Pressable onPress={() => router.push(secondary.route as any)} onPressIn={ctaPressIn} onPressOut={ctaPressOut}>
+            <Animated.View style={[payoffStyles.secondaryCta, { transform: [{ scale: ctaScale }], opacity: ctaOpacity }]}>
+              <Text style={payoffStyles.secondaryCtaText}>{secondary.label}</Text>
+            </Animated.View>
           </Pressable>
         </View>
       </ScrollView>
@@ -2531,7 +2554,7 @@ const payoffStyles = StyleSheet.create({
   primaryCta: {
     minHeight: 54,
     borderRadius: Radius.md,
-    overflow: 'hidden',
+    backgroundColor: '#23D160',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',

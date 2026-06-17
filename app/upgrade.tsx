@@ -25,7 +25,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
-import * as Haptics from 'expo-haptics';
+import { H } from '@/utils/haptics';
 import React, { useRef, useEffect, useState } from 'react';
 import {
   Animated,
@@ -129,6 +129,23 @@ export default function UpgradeScreen() {
   const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'annual'>('annual');
   const fadeAnim   = useRef(new Animated.Value(0)).current;
   const slideAnim  = useRef(new Animated.Value(20)).current;
+  const ctaScale   = useRef(new Animated.Value(1)).current;
+  const ctaOpacity = useRef(new Animated.Value(1)).current;
+
+  function ctaPressIn() {
+    H.tap();
+    Animated.parallel([
+      Animated.spring(ctaScale, { toValue: 0.97, tension: 300, friction: 20, useNativeDriver: true }),
+      Animated.timing(ctaOpacity, { toValue: 0.88, duration: 60, useNativeDriver: true }),
+    ]).start();
+  }
+
+  function ctaPressOut() {
+    Animated.parallel([
+      Animated.spring(ctaScale, { toValue: 1, tension: 280, friction: 18, useNativeDriver: true }),
+      Animated.timing(ctaOpacity, { toValue: 1, duration: 120, useNativeDriver: true }),
+    ]).start();
+  }
 
   useEffect(() => {
     Animated.parallel([
@@ -149,12 +166,12 @@ export default function UpgradeScreen() {
     : "One subscription. Your full career path. Every day.";
 
   function handleSelectPlan(id: 'monthly' | 'annual') {
-    Haptics.selectionAsync();
+    H.select();
     setSelectedPlan(id);
   }
 
   function handleSubscribe() {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    H.medium();
     // TODO: Wire to RevenueCat / Stripe / App Store IAP
     // For now, show a placeholder
     alert('Subscription coming soon. Thank you for your interest!');
@@ -316,20 +333,19 @@ export default function UpgradeScreen() {
           </View>
 
           {/* ── CTA ── */}
-          <Pressable
-            style={({ pressed }) => [styles.ctaBtn, pressed && { opacity: 0.9, transform: [{ scale: 0.99 }] }]}
-            onPress={handleSubscribe}
-          >
-            <LinearGradient
-              colors={selectedPlan === 'annual' ? [Colors.warning, '#D4890A'] : [Colors.primary, Colors.primaryDim]}
-              style={StyleSheet.absoluteFill}
-              start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-            />
-            <Ionicons name="flash" size={16} color="#000" />
-            <Text style={styles.ctaText}>
-              Start {selectedPlan === 'annual' ? 'Annual' : 'Monthly'} Pro —{' '}
-              {selectedPlan === 'annual' ? '$39.99/yr' : '$7.99/mo'}
-            </Text>
+          <Pressable onPress={handleSubscribe} onPressIn={ctaPressIn} onPressOut={ctaPressOut}>
+            <Animated.View style={[styles.ctaBtn, { transform: [{ scale: ctaScale }], opacity: ctaOpacity }]}>
+              <LinearGradient
+                colors={selectedPlan === 'annual' ? [Colors.warning, '#D4890A'] : [Colors.primary, Colors.primaryDim]}
+                style={StyleSheet.absoluteFill}
+                start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+              />
+              <Ionicons name="flash" size={16} color="#000" />
+              <Text style={styles.ctaText}>
+                Start {selectedPlan === 'annual' ? 'Annual' : 'Monthly'} Pro —{' '}
+                {selectedPlan === 'annual' ? '$39.99/yr' : '$7.99/mo'}
+              </Text>
+            </Animated.View>
           </Pressable>
 
           {/* ── FINE PRINT ── */}

@@ -1,8 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, Stack } from 'expo-router';
 import { supabase } from '@/lib/supabase';
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
+  Animated,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -16,7 +17,8 @@ import {
   buildDefaultState,
   type PositionRole,
 } from '@/context/AthleteContext';
-import { Colors, Radius, Spacing } from '@/constants/theme';
+import { Colors, Radius, Shadow, Spacing } from '@/constants/theme';
+import { H } from '@/utils/haptics';
 import { registerForPushNotifications } from '@/lib/notifications';
 
 // ─── CONFIG ──────────────────────────────────────────────────────────────────
@@ -92,6 +94,24 @@ export default function OnboardingScreen() {
   };
 
   const canContinue = step === 'name' ? firstName.trim().length > 0 : true;
+
+  const ctaScale = useRef(new Animated.Value(1)).current;
+  const ctaOpacity = useRef(new Animated.Value(1)).current;
+
+  function ctaPressIn() {
+    H.tap();
+    Animated.parallel([
+      Animated.spring(ctaScale, { toValue: 0.97, tension: 300, friction: 20, useNativeDriver: true }),
+      Animated.timing(ctaOpacity, { toValue: 0.88, duration: 60, useNativeDriver: true }),
+    ]).start();
+  }
+
+  function ctaPressOut() {
+    Animated.parallel([
+      Animated.spring(ctaScale, { toValue: 1, tension: 280, friction: 18, useNativeDriver: true }),
+      Animated.timing(ctaOpacity, { toValue: 1, duration: 120, useNativeDriver: true }),
+    ]).start();
+  }
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -222,27 +242,29 @@ export default function OnboardingScreen() {
       <View style={[styles.ctaArea, { paddingBottom: insets.bottom + Spacing.md }]}>
         {step === 'complete' ? (
           <Pressable
-            style={({ pressed }) => [styles.cta, saving && styles.ctaDisabled, pressed && styles.ctaPressed]}
-            onPress={handleComplete}
-            disabled={saving}
+            onPress={saving ? undefined : handleComplete}
+            onPressIn={saving ? undefined : ctaPressIn}
+            onPressOut={ctaPressOut}
+            style={saving ? { opacity: 0.5 } : undefined}
           >
-            <Ionicons name="flash" size={20} color={Colors.background} />
-            <Text style={styles.ctaText}>
-              {saving ? 'Building your path...' : 'Enter Clutchr'}
-            </Text>
+            <Animated.View style={[styles.cta, Shadow.green, { transform: [{ scale: ctaScale }], opacity: ctaOpacity }]}>
+              <Ionicons name="flash" size={20} color={Colors.background} />
+              <Text style={styles.ctaText}>
+                {saving ? 'Building your path...' : 'Enter Clutchr'}
+              </Text>
+            </Animated.View>
           </Pressable>
         ) : (
           <Pressable
-            style={({ pressed }) => [
-              styles.cta,
-              !canContinue && styles.ctaDisabled,
-              pressed && styles.ctaPressed,
-            ]}
-            onPress={next}
-            disabled={!canContinue}
+            onPress={!canContinue ? undefined : next}
+            onPressIn={!canContinue ? undefined : ctaPressIn}
+            onPressOut={ctaPressOut}
+            style={!canContinue ? { opacity: 0.5 } : undefined}
           >
-            <Text style={styles.ctaText}>Continue</Text>
-            <Ionicons name="arrow-forward" size={18} color={Colors.background} />
+            <Animated.View style={[styles.cta, Shadow.green, { transform: [{ scale: ctaScale }], opacity: ctaOpacity }]}>
+              <Text style={styles.ctaText}>Continue</Text>
+              <Ionicons name="arrow-forward" size={18} color={Colors.background} />
+            </Animated.View>
           </Pressable>
         )}
         <Pressable onPress={handleSignOut}>
@@ -310,7 +332,6 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary, borderRadius: Radius.md,
     paddingVertical: Spacing.lg, gap: Spacing.sm,
   },
-  ctaPressed: { opacity: 0.85, transform: [{ scale: 0.98 }] },
   ctaDisabled: { backgroundColor: Colors.textTertiary },
   ctaText: { fontSize: 16, fontFamily: 'Inter_600SemiBold', color: Colors.background },
   signOutLink: {
