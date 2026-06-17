@@ -5,6 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 import * as Speech from 'expo-speech';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import Reanimated, { useSharedValue, useAnimatedStyle, withSpring, withDelay } from 'react-native-reanimated';
 import {
   Alert,
   Animated,
@@ -1122,6 +1123,19 @@ function LessonCompletionPayoff({
   const ctaScale = useRef(new Animated.Value(1)).current;
   const ctaOpacity = useRef(new Animated.Value(1)).current;
 
+  const xpBounce = useSharedValue(0.4);
+  const boltScale = useSharedValue(0.3);
+  const boltOpacity = useSharedValue(0);
+
+  const xpBounceStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: xpBounce.value }],
+    opacity: Math.min(1, xpBounce.value * 2.5),
+  }));
+  const boltAnimStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: boltScale.value }],
+    opacity: boltOpacity.value,
+  }));
+
   function ctaPressIn() {
     H.tap();
     Animated.parallel([
@@ -1153,6 +1167,9 @@ function LessonCompletionPayoff({
       Animated.timing(pathFill, { toValue: Math.min(0.92, ((athleteState?.completed_lessons?.length ?? 0) % 5 + 1) / 5), duration: 780, useNativeDriver: false }),
       Animated.timing(badgeFill, { toValue: getRankProgressPercent(startingXP + awardedXP), duration: 900, useNativeDriver: false }),
     ]).start();
+    xpBounce.value = withDelay(500, withSpring(1, { damping: 10, stiffness: 180, mass: 0.7 }));
+    boltScale.value = withDelay(460, withSpring(1, { damping: 8, stiffness: 200, mass: 0.6 }));
+    boltOpacity.value = withDelay(460, withSpring(1, { damping: 14, stiffness: 220 }));
   }, []);
 
   const isBoss = type === 'boss';
@@ -1203,7 +1220,10 @@ function LessonCompletionPayoff({
             <CoachCapMoment />
           </View>
           <Text style={payoffStyles.lessonTitle} numberOfLines={2}>{lesson?.title}</Text>
-          <View style={payoffStyles.xpRow}>
+          <Reanimated.View style={[payoffStyles.xpRow, xpBounceStyle]}>
+            <Reanimated.View style={boltAnimStyle}>
+              <Ionicons name="flash" size={32} color="#39FF88" />
+            </Reanimated.View>
             <Text style={payoffStyles.xpText}>+{xpDisplay}</Text>
             <View style={{ justifyContent: 'flex-end', paddingBottom: 7, gap: 4 }}>
               <Text style={[payoffStyles.xpLabel, { paddingBottom: 0 }]}>{isReplay ? 'REPLAY' : 'EARNED XP'}</Text>
@@ -1213,7 +1233,7 @@ function LessonCompletionPayoff({
                 </View>
               )}
             </View>
-          </View>
+          </Reanimated.View>
         </View>
 
         <View style={payoffStyles.card}>

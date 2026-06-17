@@ -4,6 +4,7 @@ import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
+import Reanimated, { useSharedValue, useAnimatedStyle, withSpring, withSequence, withTiming } from 'react-native-reanimated';
 import {
   Alert,
   Animated,
@@ -1299,6 +1300,37 @@ export default function CareerScreen() {
   const [activeChapter, setActiveChapter] = useState('foundation');
   const [expandedWorldId, setExpandedWorldId] = useState<string | null>(null);
 
+  const xpRef = useRef<number | null>(null);
+  const [xpShown, setXpShown] = useState(athleteState?.total_xp ?? 0);
+  const xpCountRef = useRef(new Animated.Value(0));
+  const boltScale = useSharedValue(1);
+
+  const boltAnimStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: boltScale.value }],
+  }));
+
+  useEffect(() => {
+    const newXP = athleteState?.total_xp ?? 0;
+    if (xpRef.current === null) {
+      xpRef.current = newXP;
+      setXpShown(newXP);
+      return;
+    }
+    if (newXP === xpRef.current) return;
+    const start = xpRef.current;
+    xpRef.current = newXP;
+    xpCountRef.current.setValue(start);
+    const lid = xpCountRef.current.addListener(({ value }) => setXpShown(Math.round(value)));
+    Animated.timing(xpCountRef.current, { toValue: newXP, duration: 1000, useNativeDriver: false }).start(() => {
+      xpCountRef.current.removeListener(lid);
+      setXpShown(newXP);
+    });
+    boltScale.value = withSequence(
+      withTiming(1.8, { duration: 100 }),
+      withSpring(1, { damping: 8, stiffness: 160 }),
+    );
+  }, [athleteState?.total_xp]);
+
   const fetchData = async () => {
     setLoading(true);
     setLoadError(false);
@@ -1361,8 +1393,10 @@ export default function CareerScreen() {
         progress={overallPct / 100}
         rightAction={
           <View style={styles.xpPill}>
-            <Ionicons name="flash" size={12} color={Colors.warning} />
-            <Text style={styles.xpNum}>{athleteState?.total_xp ?? 0}</Text>
+            <Reanimated.View style={boltAnimStyle}>
+              <Ionicons name="flash" size={12} color={Colors.warning} />
+            </Reanimated.View>
+            <Text style={styles.xpNum}>{xpShown}</Text>
             <Text style={styles.xpLabel}>XP</Text>
           </View>
         }
