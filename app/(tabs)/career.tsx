@@ -4,7 +4,6 @@ import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
-import Reanimated, { useSharedValue, useAnimatedStyle, withSpring, withSequence, withTiming } from 'react-native-reanimated';
 import {
   Alert,
   Animated,
@@ -1303,11 +1302,7 @@ export default function CareerScreen() {
   const xpRef = useRef<number | null>(null);
   const [xpShown, setXpShown] = useState(athleteState?.total_xp ?? 0);
   const xpCountRef = useRef(new Animated.Value(0));
-  const boltScale = useSharedValue(1);
-
-  const boltAnimStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: boltScale.value }],
-  }));
+  const boltScaleAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     const newXP = athleteState?.total_xp ?? 0;
@@ -1325,10 +1320,10 @@ export default function CareerScreen() {
       xpCountRef.current.removeListener(lid);
       setXpShown(newXP);
     });
-    boltScale.value = withSequence(
-      withTiming(1.8, { duration: 100 }),
-      withSpring(1, { damping: 8, stiffness: 160 }),
-    );
+    Animated.sequence([
+      Animated.timing(boltScaleAnim, { toValue: 1.8, duration: 100, useNativeDriver: true }),
+      Animated.spring(boltScaleAnim, { toValue: 1, damping: 8, stiffness: 160, useNativeDriver: true }),
+    ]).start();
   }, [athleteState?.total_xp]);
 
   const fetchData = async () => {
@@ -1393,9 +1388,9 @@ export default function CareerScreen() {
         progress={overallPct / 100}
         rightAction={
           <View style={styles.xpPill}>
-            <Reanimated.View style={boltAnimStyle}>
+            <Animated.View style={{ transform: [{ scale: boltScaleAnim }] }}>
               <Ionicons name="flash" size={12} color={Colors.warning} />
-            </Reanimated.View>
+            </Animated.View>
             <Text style={styles.xpNum}>{xpShown}</Text>
             <Text style={styles.xpLabel}>XP</Text>
           </View>

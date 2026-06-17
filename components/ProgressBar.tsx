@@ -1,10 +1,5 @@
-import React, { useEffect } from 'react';
-import { StyleProp, View, ViewStyle } from 'react-native';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-} from 'react-native-reanimated';
+import React, { useEffect, useRef, useState } from 'react';
+import { Animated, StyleProp, View, ViewStyle } from 'react-native';
 import { Colors } from '@/constants/theme';
 
 type Props = {
@@ -23,38 +18,39 @@ export function ProgressBar({
   style,
 }: Props) {
   const safe = Math.max(0, Math.min(1, Number.isFinite(value) ? value : 0));
-  const pct = useSharedValue(0);
-  const trackWidthSV = useSharedValue(0);
+  const r = height / 2;
+
+  const [trackW, setTrackW] = useState(0);
+  const fillAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    pct.value = withSpring(safe, { damping: 22, stiffness: 120, mass: 0.8 });
-  }, [safe]);
-
-  const fillStyle = useAnimatedStyle(() => ({
-    width: pct.value * trackWidthSV.value,
-  }));
-
-  const r = height / 2;
+    if (trackW === 0) return;
+    Animated.spring(fillAnim, {
+      toValue: safe * trackW,
+      damping: 22,
+      stiffness: 120,
+      mass: 0.8,
+      useNativeDriver: false,
+    }).start();
+  }, [safe, trackW]);
 
   return (
     <View
       style={[{ height, backgroundColor: trackColor, borderRadius: r, overflow: 'visible' }, style]}
-      onLayout={(e) => { trackWidthSV.value = e.nativeEvent.layout.width; }}
+      onLayout={(e) => setTrackW(e.nativeEvent.layout.width)}
     >
       <Animated.View
-        style={[
-          {
-            height,
-            borderRadius: r,
-            backgroundColor: color,
-            shadowColor: color,
-            shadowOffset: { width: 0, height: 0 },
-            shadowOpacity: 0.65,
-            shadowRadius: height * 2.5,
-            elevation: 4,
-          },
-          fillStyle,
-        ]}
+        style={{
+          height,
+          borderRadius: r,
+          backgroundColor: color,
+          width: fillAnim,
+          shadowColor: color,
+          shadowOffset: { width: 0, height: 0 },
+          shadowOpacity: 0.65,
+          shadowRadius: height * 2.5,
+          elevation: 4,
+        }}
       />
     </View>
   );

@@ -1,10 +1,5 @@
-import React, { useEffect } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import Animated, {
-  useSharedValue,
-  useAnimatedProps,
-  withSpring,
-} from 'react-native-reanimated';
+import React, { useEffect, useRef } from 'react';
+import { Animated, StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 import { Colors } from '@/constants/theme';
 
@@ -33,19 +28,22 @@ export function ProgressRing({
   const RADIUS = (size - strokeWidth) / 2;
   const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
-  const progress = useSharedValue(0);
+  const progress = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    progress.value = withSpring(safe, { damping: 18, stiffness: 90, mass: 0.9 });
+    Animated.spring(progress, {
+      toValue: safe,
+      damping: 18,
+      stiffness: 90,
+      mass: 0.9,
+      useNativeDriver: false,
+    }).start();
   }, [safe]);
 
-  const fillProps = useAnimatedProps(() => ({
-    strokeDashoffset: CIRCUMFERENCE * (1 - progress.value),
-  }));
-
-  const glowProps = useAnimatedProps(() => ({
-    strokeDashoffset: CIRCUMFERENCE * (1 - progress.value),
-  }));
+  const strokeDashoffset = progress.interpolate({
+    inputRange: [0, 1],
+    outputRange: [CIRCUMFERENCE, 0],
+  });
 
   const cx = size / 2;
   const cy = size / 2;
@@ -62,7 +60,7 @@ export function ProgressRing({
             strokeWidth={strokeWidth}
             fill="none"
           />
-          {/* Glow layer — wider stroke, low opacity */}
+          {/* Glow layer */}
           <AnimatedCircle
             cx={cx} cy={cy} r={RADIUS}
             stroke={color}
@@ -71,7 +69,7 @@ export function ProgressRing({
             fill="none"
             strokeLinecap="round"
             strokeDasharray={`${CIRCUMFERENCE} ${CIRCUMFERENCE}`}
-            animatedProps={glowProps}
+            strokeDashoffset={strokeDashoffset}
           />
           {/* Fill layer */}
           <AnimatedCircle
@@ -81,7 +79,7 @@ export function ProgressRing({
             fill="none"
             strokeLinecap="round"
             strokeDasharray={`${CIRCUMFERENCE} ${CIRCUMFERENCE}`}
-            animatedProps={fillProps}
+            strokeDashoffset={strokeDashoffset}
           />
         </Svg>
         <View style={[StyleSheet.absoluteFillObject, styles.center]}>

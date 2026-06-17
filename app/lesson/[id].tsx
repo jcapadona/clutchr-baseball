@@ -5,7 +5,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 import * as Speech from 'expo-speech';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import Reanimated, { useSharedValue, useAnimatedStyle, withSpring, withDelay } from 'react-native-reanimated';
 import {
   Alert,
   Animated,
@@ -1122,39 +1121,19 @@ function LessonCompletionPayoff({
   const ctaScale   = useRef(new Animated.Value(1)).current;
   const ctaOpacity = useRef(new Animated.Value(1)).current;
 
-  // ── Stagger sequence (Reanimated) ─────────────────────────────
-  const burstScale   = useSharedValue(0.5);
-  const burstOpacity = useSharedValue(0);
-  const headlineY    = useSharedValue(20);
-  const headlineOp   = useSharedValue(0);
-  const xpBounce     = useSharedValue(0.4);
-  const boltScale    = useSharedValue(0.3);
-  const boltOpacity  = useSharedValue(0);
-  const cueSlideY    = useSharedValue(14);
-  const cueOp        = useSharedValue(0);
-  const ctaFadeOp    = useSharedValue(0);
+  // ── Stagger sequence (RN Animated) ───────────────────────────
+  const burstScale   = useRef(new Animated.Value(0.5)).current;
+  const burstOpacity = useRef(new Animated.Value(0)).current;
+  const headlineY    = useRef(new Animated.Value(20)).current;
+  const headlineOp   = useRef(new Animated.Value(0)).current;
+  const xpBounce     = useRef(new Animated.Value(0.4)).current;
+  const boltScale    = useRef(new Animated.Value(0.3)).current;
+  const boltOpacity  = useRef(new Animated.Value(0)).current;
+  const cueSlideY    = useRef(new Animated.Value(14)).current;
+  const cueOp        = useRef(new Animated.Value(0)).current;
+  const ctaFadeOp    = useRef(new Animated.Value(0)).current;
 
-  const burstStyle    = useAnimatedStyle(() => ({
-    transform: [{ scale: burstScale.value }],
-    opacity: burstOpacity.value,
-  }));
-  const headlineStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: headlineY.value }],
-    opacity: headlineOp.value,
-  }));
-  const xpBounceStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: xpBounce.value }],
-    opacity: Math.min(1, xpBounce.value * 2.5),
-  }));
-  const boltAnimStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: boltScale.value }],
-    opacity: boltOpacity.value,
-  }));
-  const cueStyle  = useAnimatedStyle(() => ({
-    transform: [{ translateY: cueSlideY.value }],
-    opacity: cueOp.value,
-  }));
-  const ctaStyle  = useAnimatedStyle(() => ({ opacity: ctaFadeOp.value }));
+  const xpOpacity = xpBounce.interpolate({ inputRange: [0.4, 0.9], outputRange: [0, 1], extrapolate: 'clamp' });
 
   function ctaPressIn() {
     H.tap();
@@ -1194,26 +1173,42 @@ function LessonCompletionPayoff({
       }),
     ]).start();
 
-    // t=0 — burst visual pops in as screen darkens
-    burstScale.value   = withSpring(1, { damping: 7, stiffness: 160, mass: 0.9 });
-    burstOpacity.value = withSpring(1, { damping: 14, stiffness: 200 });
-    setTimeout(() => H.success(), 80); // haptic at burst moment
+    // t=0 — burst pops in as overlay darkens
+    Animated.parallel([
+      Animated.spring(burstScale,   { toValue: 1, damping: 7, stiffness: 160, mass: 0.9, useNativeDriver: true }),
+      Animated.spring(burstOpacity, { toValue: 1, damping: 14, stiffness: 200, useNativeDriver: true }),
+    ]).start();
+    setTimeout(() => H.success(), 80);
 
     // t=350ms — headline slides up
-    headlineY.value  = withDelay(350, withSpring(0, { damping: 20, stiffness: 180 }));
-    headlineOp.value = withDelay(350, withSpring(1, { damping: 18, stiffness: 200 }));
+    setTimeout(() => {
+      Animated.parallel([
+        Animated.spring(headlineY,  { toValue: 0, damping: 20, stiffness: 180, useNativeDriver: true }),
+        Animated.spring(headlineOp, { toValue: 1, damping: 18, stiffness: 200, useNativeDriver: true }),
+      ]).start();
+    }, 350);
 
-    // t=560ms — XP bolt + row bounce in
-    boltScale.value   = withDelay(560, withSpring(1, { damping: 8, stiffness: 200, mass: 0.6 }));
-    boltOpacity.value = withDelay(560, withSpring(1, { damping: 14, stiffness: 220 }));
-    xpBounce.value    = withDelay(600, withSpring(1, { damping: 10, stiffness: 180, mass: 0.7 }));
+    // t=560ms — XP bolt + row bounce
+    setTimeout(() => {
+      Animated.spring(boltScale,   { toValue: 1, damping: 8, stiffness: 200, mass: 0.6, useNativeDriver: true }).start();
+      Animated.spring(boltOpacity, { toValue: 1, damping: 14, stiffness: 220, useNativeDriver: true }).start();
+    }, 560);
+    setTimeout(() => {
+      Animated.spring(xpBounce, { toValue: 1, damping: 10, stiffness: 180, mass: 0.7, useNativeDriver: true }).start();
+    }, 600);
 
-    // t=950ms — cue saved pill slides up
-    cueSlideY.value = withDelay(950, withSpring(0, { damping: 20, stiffness: 180 }));
-    cueOp.value     = withDelay(950, withSpring(1, { damping: 18, stiffness: 200 }));
+    // t=950ms — cue saved pill
+    setTimeout(() => {
+      Animated.parallel([
+        Animated.spring(cueSlideY, { toValue: 0, damping: 20, stiffness: 180, useNativeDriver: true }),
+        Animated.spring(cueOp,     { toValue: 1, damping: 18, stiffness: 200, useNativeDriver: true }),
+      ]).start();
+    }, 950);
 
-    // t=1200ms — CTA buttons fade in
-    ctaFadeOp.value = withDelay(1200, withSpring(1, { damping: 18, stiffness: 200 }));
+    // t=1200ms — CTA fade in
+    setTimeout(() => {
+      Animated.spring(ctaFadeOp, { toValue: 1, damping: 18, stiffness: 200, useNativeDriver: true }).start();
+    }, 1200);
   }, []);
 
   const isBoss = type === 'boss';
@@ -1249,10 +1244,10 @@ function LessonCompletionPayoff({
               <Text style={payoffStyles.bossCleared}>BOSS CLEARED</Text>
             </View>
           )}
-          <Reanimated.View style={[payoffStyles.burstWrap, burstStyle]}>
+          <Animated.View style={[payoffStyles.burstWrap, { transform: [{ scale: burstScale }], opacity: burstOpacity }]}>
             <Image source={pulseRingImg} style={payoffStyles.pulseRing} resizeMode="contain" />
             <Image source={completionGlow} style={payoffStyles.burstGlow} pointerEvents="none" resizeMode="contain" />
-          </Reanimated.View>
+          </Animated.View>
           <Text style={payoffStyles.heroBadge}>{isBoss ? 'CLOSE IT OUT' : 'REP COMPLETE'}</Text>
         </View>
 
@@ -1260,16 +1255,16 @@ function LessonCompletionPayoff({
         <View style={payoffStyles.contentZone}>
 
           {/* Headline */}
-          <Reanimated.View style={[payoffStyles.headlineBlock, headlineStyle]}>
+          <Animated.View style={[payoffStyles.headlineBlock, { transform: [{ translateY: headlineY }], opacity: headlineOp }]}>
             <Text style={payoffStyles.title}>{title}</Text>
             <Text style={payoffStyles.lessonTitle} numberOfLines={2}>{lesson?.title}</Text>
-          </Reanimated.View>
+          </Animated.View>
 
           {/* XP Row */}
-          <Reanimated.View style={[payoffStyles.xpRow, xpBounceStyle]}>
-            <Reanimated.View style={boltAnimStyle}>
+          <Animated.View style={[payoffStyles.xpRow, { transform: [{ scale: xpBounce }], opacity: xpOpacity }]}>
+            <Animated.View style={{ transform: [{ scale: boltScale }], opacity: boltOpacity }}>
               <Ionicons name="flash" size={32} color="#39FF88" />
-            </Reanimated.View>
+            </Animated.View>
             <Text style={payoffStyles.xpText}>+{xpDisplay}</Text>
             <View style={{ justifyContent: 'flex-end', paddingBottom: 7, gap: 4 }}>
               <Text style={[payoffStyles.xpLabel, { paddingBottom: 0 }]}>{isReplay ? 'REPLAY' : 'EARNED XP'}</Text>
@@ -1279,18 +1274,18 @@ function LessonCompletionPayoff({
                 </View>
               )}
             </View>
-          </Reanimated.View>
+          </Animated.View>
 
           {/* Cue saved pill */}
           {isFirstClear && (
-            <Reanimated.View style={[payoffStyles.cueSavedRow, cueStyle]}>
+            <Animated.View style={[payoffStyles.cueSavedRow, { transform: [{ translateY: cueSlideY }], opacity: cueOp }]}>
               <Ionicons name="checkmark-circle" size={15} color="#23D160" />
               <Text style={payoffStyles.cueSavedText}>Cue saved to Playbook</Text>
-            </Reanimated.View>
+            </Animated.View>
           )}
 
           {/* CTA buttons */}
-          <Reanimated.View style={[payoffStyles.actions, ctaStyle]}>
+          <Animated.View style={[payoffStyles.actions, { opacity: ctaFadeOp }]}>
             <Pressable onPress={onContinue} onPressIn={ctaPressIn} onPressOut={ctaPressOut}>
               <Animated.View style={[payoffStyles.primaryCta, Shadow.green, { transform: [{ scale: ctaScale }], opacity: ctaOpacity }]}>
                 <View style={[StyleSheet.absoluteFill, { borderRadius: Radius.md, overflow: 'hidden' }]}>
@@ -1305,7 +1300,7 @@ function LessonCompletionPayoff({
                 <Text style={payoffStyles.secondaryCtaText}>{secondary.label}</Text>
               </Animated.View>
             </Pressable>
-          </Reanimated.View>
+          </Animated.View>
         </View>
 
         {/* ── SUPPLEMENTARY CARDS (scrolled below fold) ── */}
