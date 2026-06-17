@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import { H } from '@/utils/haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 import * as Speech from 'expo-speech';
@@ -81,7 +81,7 @@ function DotRating({ value, onChange, color = Colors.primary }: { value: number;
   return (
     <View style={ratingStyles.dotsRow}>
       {[1,2,3,4,5].map((n) => (
-        <Pressable key={n} onPress={() => { Haptics.selectionAsync(); onChange(n); }} hitSlop={8}
+        <Pressable key={n} onPress={() => { H.select(); onChange(n); }} hitSlop={8}
           style={[ratingStyles.dot, value >= n ? { backgroundColor: color, borderColor: color } : { backgroundColor: 'transparent', borderColor: Colors.border }]}>
           {value >= n && <View style={[ratingStyles.dotFill, { backgroundColor: color }]} />}
         </Pressable>
@@ -99,7 +99,7 @@ function SelfRatingCheckIn({ role, lessonTitle, isBoss, onSubmit }: { role: stri
   const scaleAnim = useRef(new Animated.Value(0.85)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
   useEffect(() => {
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    H.success();
     Animated.parallel([
       Animated.spring(scaleAnim, { toValue: 1, tension: 70, friction: 9, useNativeDriver: true }),
       Animated.timing(fadeAnim, { toValue: 1, duration: 280, useNativeDriver: true }),
@@ -127,7 +127,7 @@ function SelfRatingCheckIn({ role, lessonTitle, isBoss, onSubmit }: { role: stri
           ))}
         </View>
         <Pressable style={[checkInStyles.submitBtn, !allRated && checkInStyles.submitBtnDisabled, isBoss && allRated && checkInStyles.submitBtnBoss]}
-          onPress={() => { if (!allRated) return; Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success); onSubmit(ratings); }} disabled={!allRated}>
+          onPress={() => { if (!allRated) return; H.success(); onSubmit(ratings); }} disabled={!allRated}>
           <Text style={[checkInStyles.submitBtnText, !allRated && { color: Colors.textTertiary }]}>{allRated ? 'See Results →' : 'Rate all three to continue'}</Text>
         </Pressable>
         <Text style={checkInStyles.hint}>Honest ratings help Clutchr surface the right next lesson for you.</Text>
@@ -328,17 +328,17 @@ function ChoiceStep({ step, onAdvance, finalAction, advanceLabel = 'Next Rep →
 
   function handlePick(id: string, quality: 'correct' | 'acceptable' | 'wrong') {
     if (revealed) return;
-    Haptics.selectionAsync();
+    H.select();
     setSelected(id);
     setRevealed(true);
     const passed = quality !== 'wrong';
     setSelectedPassed(passed);
     if (quality === 'correct') {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      H.success();
     } else if (quality === 'acceptable') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      H.medium();
     } else {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      H.error();
     }
   }
 
@@ -523,7 +523,7 @@ function ChecklistStep({ step, onAdvance, finalAction }: { step: any; onAdvance:
               done={done}
               index={i}
               onToggle={() => {
-                Haptics.selectionAsync();
+                H.select();
                 setChecked((p) => {
                   const n = new Set(p);
                   n.has(i) ? n.delete(i) : n.add(i);
@@ -633,7 +633,7 @@ function TimerStep({ step, onAdvance, finalAction }: { step: any; onAdvance: () 
 
   function startTimer() {
     setRunning(true);
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    H.medium();
     // Animate the progress arc
     Animated.timing(progressAnim, { toValue: 1, duration: duration * 1000, useNativeDriver: false }).start();
     Animated.timing(glowAnim, { toValue: 1, duration: 300, useNativeDriver: true }).start();
@@ -643,7 +643,7 @@ function TimerStep({ step, onAdvance, finalAction }: { step: any; onAdvance: () 
           clearInterval(intervalRef.current!);
           setDone(true);
           setRunning(false);
-          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+          H.success();
           return 0;
         }
         return s - 1;
@@ -776,7 +776,7 @@ function NoticeWonderStep({ step, onAdvance, finalAction }: { step: any; onAdvan
   const revealCue = step.reveal_cue ?? step.cue ?? step.takeaway_cue ?? '';
 
   function transition(next: Phase) {
-    Haptics.selectionAsync();
+    H.select();
     Animated.timing(phaseAnim, { toValue: 0, duration: 180, useNativeDriver: true }).start(() => {
       setPhase(next);
       Animated.spring(phaseAnim, { toValue: 1, tension: 80, friction: 12, useNativeDriver: true }).start();
@@ -835,7 +835,7 @@ function NoticeWonderStep({ step, onAdvance, finalAction }: { step: any; onAdvan
                     key={i}
                     style={[nwStyles.chip, picked && nwStyles.chipPicked]}
                     onPress={() => {
-                      Haptics.selectionAsync();
+                      H.select();
                       setNoticePicks((p) => p.includes(item) ? p.filter((x) => x !== item) : [...p, item]);
                     }}
                   >
@@ -898,7 +898,7 @@ function NoticeWonderStep({ step, onAdvance, finalAction }: { step: any; onAdvan
                     key={opt.id}
                     style={[nwStyles.wonderOption, picked && nwStyles.wonderOptionPicked]}
                     onPress={() => {
-                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                      H.medium();
                       setWonderPick(opt.id);
                     }}
                   >
@@ -1315,7 +1315,7 @@ export default function LessonPlayerScreen() {
     setIsMuted(next);
     await AsyncStorage.setItem('lesson_tts_muted', String(next));
     if (next) stopSpeech();
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    H.tap();
   }
 
   useEffect(() => {
@@ -1396,8 +1396,8 @@ export default function LessonPlayerScreen() {
       if (lesson?.is_boss || lesson?.is_checkpoint) {
         setCompletionStage('check_in');
       } else {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        setTimeout(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light), 250);
+        H.success();
+        setTimeout(() => H.tap(), 250);
         setShowComplete('lesson');
       }
       return;
@@ -1406,7 +1406,7 @@ export default function LessonPlayerScreen() {
       setStepIndex((s) => s + 1);
       Animated.timing(stepFade, { toValue: 1, duration: 220, useNativeDriver: true }).start();
     });
-    Haptics.selectionAsync();
+    H.select();
   }, [stepIndex, totalSteps, lesson, athleteState, completeLesson, id, sessionPassed]);
 
   async function handleRatingsSubmit(ratings: Record<string, number>) {
@@ -1419,13 +1419,10 @@ export default function LessonPlayerScreen() {
     });
     await updateAthleteState({ self_ratings: merged });
     if (lesson?.is_boss) {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).then(() => {
-        setTimeout(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy), 200);
-        setTimeout(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium), 350);
-      });
+      H.lessonComplete();
       setShowComplete('boss');
     } else {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      H.success();
       setShowComplete('checkpoint');
     }
   }

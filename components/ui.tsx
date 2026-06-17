@@ -3,6 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Pressable, ScrollView, StyleProp, StyleSheet, Text, TextStyle, View, ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, Radius, Spacing } from '@/constants/theme';
+import { H } from '@/utils/haptics';
 
 type ScreenContainerProps = {
   children: React.ReactNode;
@@ -55,7 +56,7 @@ export function RolePill({ label, style, textStyle }: { label: string; style?: S
 
 export function PrimaryActionButton({ label, onPress }: { label: string; onPress: () => void }) {
   return (
-    <Pressable onPress={onPress} style={({ pressed }) => [styles.cta, pressed && { opacity: 0.9 }]}>
+    <Pressable onPress={() => { H.tap(); onPress(); }} style={({ pressed }) => [styles.cta, pressed && { opacity: 0.9 }]}>
       <LinearGradient colors={[Colors.primary, '#1BCB5A']} style={StyleSheet.absoluteFill} />
       <Text style={styles.ctaText}>{label}</Text>
     </Pressable>
