@@ -1,12 +1,12 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert,
   Animated,
+  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -16,9 +16,9 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAthlete } from '@/context/AthleteContext';
 import { fetchLessons, type LegacyLesson } from '@/lib/supabase';
-import { Colors, Radius, Spacing } from '@/constants/theme';
-import { ClutchrHeader } from '@/components/ClutchrHeader';
-import { ProgressBar } from '@/components/ProgressBar';
+import { Assets } from '@/constants/assets';
+import { Colors, Radius, Shadow, Spacing } from '@/constants/theme';
+import { Btn } from '@/components/ui';
 import { useMicrocopy } from '@/hooks/useMicrocopy';
 import { ErrorState, SkeletonCard } from '@/components/SkeletonLoader';
 
@@ -895,196 +895,172 @@ export async function triggerWorldClearCelebration(worldId: string, _color: stri
   );
 }
 
-// ─── WORLD BANNER ─────────────────────────────────────────────────────────────
+// ─── WORLD NODE ───────────────────────────────────────────────────────────────
 
-function WorldBanner({
+function WorldNode({
   world,
-  done,
-  total,
+  index,
   worldLessons,
-  completed,
-  expanded,
-  onToggle,
+  done,
+  isCurrentWorld,
+  isExpanded,
+  onTap,
 }: {
   world: WorldWithLockState;
-  done: number;
-  total: number;
+  index: number;
   worldLessons: LegacyLesson[];
-  completed: string[];
-  expanded: boolean;
-  onToggle: () => void;
+  done: number;
+  isCurrentWorld: boolean;
+  isExpanded: boolean;
+  onTap: () => void;
 }) {
-  const { color, icon, label, tagline, isPremium, lockState } = world;
-  const isCleared = lockState === 'active' && done > 0 && done >= total;
-  const isExpanded = expanded && lockState === 'active';
-  const totalXP = getWorldTotalXP(worldLessons);
-  const celebrationKey = `world_cleared_${world.id}`;
+  const total = worldLessons.length;
+  const isCompleted = world.lockState === 'active' && total > 0 && done >= total;
+  const isLocked = world.lockState === 'teaser';
 
-  // Stage-based progress: each stage = 8 lessons
-  const currentStage = Math.floor(done / 8) + 1;
-  const lessonsIntoCurrentStage = done % 8;
-  const stageTarget = total > 0 ? Math.min(8, total - (currentStage - 1) * 8) : 8;
-  const stagePct = stageTarget > 0 ? Math.min(1, lessonsIntoCurrentStage / stageTarget) : 0;
-  const stageLabel = `Stage ${currentStage} · ${lessonsIntoCurrentStage}/${stageTarget}`;
-
-  // Resume indicator: first incomplete lesson in this world
-  const nextLesson = lockState === 'active' && done > 0 && !isCleared
-    ? worldLessons.find(l => !completed.includes(l.id)) ?? null
-    : null;
-
+  // Fire world-clear celebration once
+  const celebKey = `world_cleared_${world.id}`;
   useEffect(() => {
-    if (lockState !== 'active' || !isCleared) return;
-    AsyncStorage.getItem(celebrationKey).then(already => {
+    if (world.lockState !== 'active' || !isCompleted) return;
+    AsyncStorage.getItem(celebKey).then(already => {
       if (already) return;
-      AsyncStorage.setItem(celebrationKey, 'true');
-      triggerWorldClearCelebration(world.id, color);
+      AsyncStorage.setItem(celebKey, 'true');
+      triggerWorldClearCelebration(world.id, world.color);
     });
-  }, [isCleared, lockState]);
+  }, [isCompleted]);
 
-  if (lockState === 'teaser') {
-    return (
-      <View style={[cardStyles.card, teaserStyles.card]}>
-        <LinearGradient
-          colors={['#1a1a1a', '#111111']}
-          style={StyleSheet.absoluteFill}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 0, y: 1 }}
-        />
-        <View style={cardStyles.header}>
-          <View style={cardStyles.titleCol}>
-            <View style={cardStyles.nameRow}>
-              <Text style={[cardStyles.worldName, { color: 'rgba(255,255,255,0.35)' }]}>
-                {label.toUpperCase()}
-              </Text>
-            </View>
-            <Text style={[cardStyles.tagline, { color: 'rgba(255,255,255,0.35)' }]}>{tagline}</Text>
-          </View>
-          <View style={[cardStyles.rightCol, { gap: 6 }]}>
-            <Ionicons
-              name="lock-closed"
-              size={24}
-              color={isPremium ? 'rgba(255,214,10,0.35)' : 'rgba(255,255,255,0.25)'}
-            />
-            <View style={[teaserStyles.pill, isPremium && teaserStyles.pillPremium]}>
-              <Text style={[teaserStyles.pillText, isPremium && teaserStyles.pillTextPremium]}>
-                {isPremium ? 'SIGNAL' : 'COMING SOON'}
-              </Text>
-            </View>
-          </View>
-        </View>
-        <View style={teaserStyles.hintRow}>
-          <Text style={teaserStyles.hintText}>
-            {isPremium
-              ? 'Unlock with Clutchr Pro'
-              : 'Complete previous worlds to unlock'}
-          </Text>
-        </View>
-      </View>
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+  useEffect(() => {
+    if (!isCurrentWorld) return;
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, { toValue: 1.22, duration: 1100, useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 0.90, duration: 1100, useNativeDriver: true }),
+      ])
     );
-  }
+    loop.start();
+    return () => loop.stop();
+  }, [isCurrentWorld]);
 
-  // ACTIVE
+  const nodeSize = isCurrentWorld ? 60 : 44;
+
   return (
     <Pressable
-      onPress={onToggle}
-      style={[
-        cardStyles.card,
-        { borderTopColor: color },
-        isExpanded && cardStyles.cardExpanded,
-        isCleared && { shadowColor: color, shadowOpacity: 0.4, shadowRadius: 16, elevation: 6 },
-      ]}
+      style={({ pressed }) => [nodeStyles.row, pressed && { opacity: 0.75 }]}
+      onPress={onTap}
     >
-      {isCleared && (
-        <LinearGradient
-          colors={[color + '25', '#0D0D12']}
-          style={StyleSheet.absoluteFill}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 0, y: 1 }}
-        />
-      )}
-
-      <View style={cardStyles.header}>
-        <View style={cardStyles.titleCol}>
-          <View style={cardStyles.nameRow}>
-            <Text style={[cardStyles.worldName, { color }]}>{label.toUpperCase()}</Text>
-          </View>
-          <Text style={cardStyles.tagline}>{tagline}</Text>
-        </View>
-        <View style={cardStyles.rightCol}>
-          <Ionicons name={icon} size={20} color={color} />
-          <Ionicons
-            name={isExpanded ? 'chevron-up' : 'chevron-down'}
-            size={14}
-            color="rgba(255,255,255,0.35)"
+      {/* ── Node circle column ── */}
+      <View style={nodeStyles.nodeCol}>
+        {isCurrentWorld && (
+          <Animated.View
+            style={[
+              nodeStyles.glowRing,
+              {
+                width: nodeSize + 28,
+                height: nodeSize + 28,
+                borderRadius: (nodeSize + 28) / 2,
+                transform: [{ scale: pulseAnim }],
+              },
+            ]}
           />
+        )}
+        <View
+          style={[
+            nodeStyles.nodeCircle,
+            { width: nodeSize, height: nodeSize, borderRadius: nodeSize / 2 },
+            isCurrentWorld && nodeStyles.nodeActive,
+            isCompleted && nodeStyles.nodeCompleted,
+            isLocked && nodeStyles.nodeLocked,
+            !isCurrentWorld && !isCompleted && !isLocked && {
+              backgroundColor: Colors.surface,
+              borderWidth: 1.5,
+              borderColor: world.color + '70',
+            },
+          ]}
+        >
+          {isCompleted
+            ? <Text style={nodeStyles.checkmark}>✓</Text>
+            : isLocked
+            ? <Ionicons name="lock-closed" size={15} color={Colors.textDisabled} />
+            : <Text style={[nodeStyles.nodeNum, isCurrentWorld && nodeStyles.nodeNumActive]}>
+                {index + 1}
+              </Text>
+          }
         </View>
       </View>
 
-      {!isCleared && total > 0 && (
-        <View style={cardStyles.progressRow}>
-          <ProgressBar
-            value={stagePct}
-            color={color}
-            trackColor="rgba(255,255,255,0.06)"
-            height={3}
-            style={{ flex: 1 }}
-          />
-          <Text style={[cardStyles.progressCount, { color }]}>{stageLabel}</Text>
-        </View>
-      )}
+      {/* ── Label column ── */}
+      <View style={nodeStyles.labelCol}>
+        <Text
+          style={[
+            nodeStyles.worldLabel,
+            isCurrentWorld && nodeStyles.worldLabelActive,
+            isCompleted && { color: Colors.primary },
+            isLocked && { color: Colors.textDisabled },
+          ]}
+          numberOfLines={1}
+        >
+          {world.label}
+        </Text>
+        <Text
+          style={[
+            nodeStyles.lessonCount,
+            {
+              color: isCurrentWorld
+                ? Colors.primary
+                : isCompleted
+                ? Colors.primary
+                : Colors.textTertiary,
+            },
+          ]}
+        >
+          {done} / {total > 0 ? total : '—'}
+        </Text>
+      </View>
 
-      {nextLesson && (
-        <View style={cardStyles.nextRow}>
-          <Ionicons name="play-circle-outline" size={11} color="rgba(255,255,255,0.45)" />
-          <Text style={cardStyles.nextText} numberOfLines={1}>Next: {nextLesson.title}</Text>
-        </View>
-      )}
-
-      {isCleared && (
-        <View style={clearedStyles.badgeRow}>
-          <View style={clearedStyles.badgeLeft}>
-            <View style={[clearedStyles.checkCircle, { backgroundColor: color }]}>
-              <Text style={clearedStyles.checkMark}>✓</Text>
-            </View>
-            <Text style={[clearedStyles.clearedLabel, { color }]}>WORLD CLEARED · EARNED</Text>
-          </View>
-          <View style={[clearedStyles.xpPill, { backgroundColor: color + '20', borderColor: color + '50' }]}>
-            <Text style={[clearedStyles.xpPillText, { color }]}>{totalXP} XP</Text>
-          </View>
-        </View>
+      {/* ── Chevron ── */}
+      {world.lockState === 'active' && (
+        <Ionicons
+          name={isExpanded ? 'chevron-up' : 'chevron-forward'}
+          size={14}
+          color={Colors.textTertiary}
+          style={nodeStyles.chevron}
+        />
       )}
     </Pressable>
   );
 }
 
-// ─── SIGNAL PREMIUM BANNER ────────────────────────────────────────────────────
+// ─── CURRENT MISSION CARD ─────────────────────────────────────────────────────
 
-function SignalBanner() {
+function CurrentMissionCard({
+  nextLesson,
+  insets,
+}: {
+  nextLesson: { lesson: LegacyLesson; world: World };
+  insets: { bottom: number };
+}) {
   return (
-    <View style={signalStyles.banner}>
-      <Ionicons name="trophy-outline" size={20} color="#FFD60A" style={{ marginRight: 10 }} />
-      <View style={{ flex: 1 }}>
-        <Text style={signalStyles.label}>SIGNAL</Text>
-        <Text style={signalStyles.description}>
-          Elite habits. Pro-level content. Coming with Clutchr Pro.
+    <View style={[missionStyles.wrap, { paddingBottom: Math.max(insets.bottom, 16) + 4 }]}>
+      <View style={missionStyles.topRow}>
+        <View style={missionStyles.kickerWrap}>
+          <View style={missionStyles.dot} />
+          <Text style={missionStyles.kicker}>CURRENT MISSION</Text>
+        </View>
+        <Text style={missionStyles.duration}>10 min</Text>
+      </View>
+      <Text style={missionStyles.title} numberOfLines={2}>
+        {nextLesson.lesson.title}
+      </Text>
+      {nextLesson.lesson.subtitle ? (
+        <Text style={missionStyles.tagline} numberOfLines={1}>
+          {nextLesson.lesson.subtitle}
         </Text>
-      </View>
-      <View style={signalStyles.proPill}>
-        <Text style={signalStyles.proText}>PRO</Text>
-      </View>
-    </View>
-  );
-}
-
-// ─── YOUR CRAFT HEADER ────────────────────────────────────────────────────────
-
-function YourCraftHeader({ role, color }: { role: string; color: string }) {
-  return (
-    <View style={craftStyles.wrap}>
-      <Text style={craftStyles.label}>Showing worlds for your role:</Text>
-      <View style={[craftStyles.rolePill, { backgroundColor: color + '20', borderColor: color + '40' }]}>
-        <Text style={[craftStyles.roleText, { color }]}>{role.toUpperCase()}</Text>
-      </View>
+      ) : null}
+      <Btn
+        label="Start Session →"
+        onPress={() => router.push(`/lesson/${nextLesson.lesson.id}`)}
+      />
     </View>
   );
 }
@@ -1364,7 +1340,6 @@ export default function CareerScreen() {
 
   const totalDone = completed.length;
   const totalAll  = lessons.length;
-  const overallPct = totalAll > 0 ? Math.min(100, Math.round((totalDone / totalAll) * 100)) : 0;
 
   const lessonPillarIds = [...new Set(lessons.map(l => l.pillar_id).filter(Boolean))];
 
@@ -1375,18 +1350,48 @@ export default function CareerScreen() {
 
   const activeChapterConfig = CHAPTERS.find(c => c.id === activeChapter)!;
 
+  // First active world with incomplete lessons (drives the subheader "WORLD N" display)
+  const currentWorld = useMemo(() => {
+    const inProgress = filteredWorlds.find(w => {
+      if (w.lockState !== 'active') return false;
+      const wl = lessons.filter(l => l.pillar_id === w.id);
+      return wl.length === 0 || wl.filter(l => completed.includes(l.id)).length < wl.length;
+    });
+    return inProgress ?? filteredWorlds.find(w => w.lockState === 'active') ?? null;
+  }, [filteredWorlds, lessons, completed]);
+
+  const currentWorldLessons = currentWorld
+    ? lessons.filter(l => l.pillar_id === currentWorld.id)
+    : [];
+  const currentWorldDone  = currentWorldLessons.filter(l => completed.includes(l.id)).length;
+  const currentWorldTotal = currentWorldLessons.length;
+
+  // Next lesson across ALL worlds (for Current Mission card)
+  const nextLesson = useMemo(() => {
+    if (!lessons.length) return null;
+    const sorted = [...WORLDS]
+      .filter(w => lessonPillarIds.includes(w.id))
+      .sort((a, b) => a.worldNumber - b.worldNumber);
+    for (const world of sorted) {
+      const wl = lessons
+        .filter(l => l.pillar_id === world.id)
+        .sort((a, b) => a.order_index - b.order_index);
+      const next = wl.find(l => !completed.includes(l.id));
+      if (next) return { lesson: next, world };
+    }
+    return null;
+  }, [lessons, completed, lessonPillarIds]);
+
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
 
-      {/* HEADER */}
-      <ClutchrHeader
-        variant="mainTab"
-        kicker="CAREER"
-        title="Build Your Path"
-        subtitle="One rep at a time."
-        statusPill={`${totalDone} / ${totalAll}`}
-        progress={overallPct / 100}
-        rightAction={
+      {/* ── HEADER ── */}
+      <View style={styles.header}>
+        <View style={styles.headerLeft}>
+          <Image source={Assets.branding.cMark} style={styles.cMark} resizeMode="contain" />
+          <Text style={styles.headerBrand}>CLUTCHR</Text>
+        </View>
+        <View style={styles.headerRight}>
           <View style={styles.xpPill}>
             <Animated.View style={{ transform: [{ scale: boltScaleAnim }] }}>
               <Ionicons name="flash" size={12} color={Colors.warning} />
@@ -1394,27 +1399,34 @@ export default function CareerScreen() {
             <Text style={styles.xpNum}>{xpShown}</Text>
             <Text style={styles.xpLabel}>XP</Text>
           </View>
-        }
-      />
+          <View style={styles.lessonCountPill}>
+            <Text style={styles.lessonCountText}>{totalDone} / {totalAll}</Text>
+          </View>
+        </View>
+      </View>
 
-      {/* CHAPTER TAB BAR */}
+      {/* ── TITLE BLOCK ── */}
+      <View style={styles.titleBlock}>
+        <Text style={styles.careerKicker}>CAREER</Text>
+        <Text style={styles.careerH1}>Build Your Path</Text>
+        <Text style={styles.careerSub}>One rep at a time.</Text>
+      </View>
+
+      {/* ── CHAPTER TABS ── */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        style={chapterTabStyles.container}
-        contentContainerStyle={chapterTabStyles.content}
+        style={styles.tabRow}
+        contentContainerStyle={styles.tabContent}
       >
         {CHAPTERS.map((chapter) => {
           const active = activeChapter === chapter.id;
-          const isSignal = chapter.id === 'signal';
-          const labelColor = isSignal
-            ? '#FFD60A'
-            : active ? chapter.color : 'rgba(255,255,255,0.35)';
+          const labelColor = active ? chapter.color : Colors.textTertiary;
           return (
             <Pressable
               key={chapter.id}
               style={[
-                chapterTabStyles.tab,
+                styles.tab,
                 active && { borderBottomWidth: 2, borderBottomColor: chapter.color },
               ]}
               onPress={() => {
@@ -1422,21 +1434,18 @@ export default function CareerScreen() {
                 setExpandedWorldId(null);
               }}
             >
-              <Ionicons name={chapter.icon} size={14} color={labelColor} />
-              <Text style={[chapterTabStyles.label, { color: labelColor }]}>
-                {isSignal && active ? '✦ ' : ''}{chapter.label}
-              </Text>
+              <Text style={[styles.tabLabel, { color: labelColor }]}>{chapter.label}</Text>
             </Pressable>
           );
         })}
       </ScrollView>
 
-      {/* ACTIVE CHAPTER CONTENT */}
+      {/* ── CONTENT ── */}
       {loadError ? (
         <ErrorState message="Could not load lessons." onRetry={fetchData} />
       ) : loading ? (
         <ScrollView
-          contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 100 }]}
+          contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 200 }]}
           showsVerticalScrollIndicator={false}
           style={styles.scrollView}
           pointerEvents="none"
@@ -1445,58 +1454,102 @@ export default function CareerScreen() {
         </ScrollView>
       ) : (
         <ScrollView
-          contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 100 }]}
+          contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 200 }]}
           showsVerticalScrollIndicator={false}
           style={styles.scrollView}
         >
-          {activeChapter === 'your-craft' && (
-            <YourCraftHeader role={athleteRole} color={activeChapterConfig.color} />
-          )}
-
-          {activeChapter === 'signal' && <SignalBanner />}
-
-          {filteredWorlds.map((world) => {
-            const worldLessons = lessons
-              .filter(l => l.pillar_id === world.id)
-              .sort((a, b) => a.order_index - b.order_index);
-            const worldDone = worldLessons.filter(l => completed.includes(l.id)).length;
-            const isExpanded = expandedWorldId === world.id;
-
-            return (
-              <View key={world.id} style={styles.worldBlock}>
-                <WorldBanner
-                  world={world}
-                  done={worldDone}
-                  total={worldLessons.length}
-                  worldLessons={worldLessons}
-                  completed={completed}
-                  expanded={isExpanded}
-                  onToggle={() => {
-                    if (world.lockState === 'teaser') {
-                      Alert.alert('Keep stacking.', 'This world unlocks as you progress.');
-                      return;
-                    }
-                    setExpandedWorldId(isExpanded ? null : world.id);
-                  }}
-                />
-                {world.lockState === 'active' && isExpanded && (
-                  <WorldMapSection
-                    world={world}
-                    lessons={worldLessons}
-                    completed={completed}
-                  />
-                )}
+          {/* ── WORLD SUBHEADER ── */}
+          <View style={styles.subheaderRow}>
+            <Text style={styles.subheaderTitle}>
+              {activeChapterConfig.label}
+              {currentWorld ? ` • WORLD ${currentWorld.worldNumber}` : ''}
+            </Text>
+            {currentWorldTotal > 0 && (
+              <View style={[styles.chapterCountPill, { borderColor: activeChapterConfig.color + '55' }]}>
+                <Text style={[styles.chapterCountText, { color: activeChapterConfig.color }]}>
+                  {currentWorldDone} / {currentWorldTotal}
+                </Text>
               </View>
-            );
-          })}
+            )}
+          </View>
 
-          {filteredWorlds.length === 0 && (
-            <View style={styles.emptyChapter}>
-              <Text style={styles.emptyChapterText}>No worlds available for your role yet.</Text>
+          {/* ── ROLE PILL ── */}
+          <Pressable style={styles.rolePillRow} onPress={() => {}}>
+            <View style={[
+              styles.rolePill,
+              {
+                borderColor: activeChapterConfig.color + '55',
+                backgroundColor: activeChapterConfig.color + '18',
+              },
+            ]}>
+              <Text style={[styles.rolePillText, { color: activeChapterConfig.color }]}>
+                {athleteRole.toUpperCase()}
+              </Text>
+              <Ionicons name="chevron-down" size={11} color={activeChapterConfig.color} />
             </View>
-          )}
+          </Pressable>
+
+          {/* ── ASCENT ARENA TOWER ── */}
+          <View style={styles.towerWrap}>
+            {/* Arena background */}
+            <Image
+              source={Assets.backgrounds.lessonBackground}
+              style={[StyleSheet.absoluteFillObject, styles.towerBg]}
+              resizeMode="cover"
+            />
+            {/* Vertical connecting line */}
+            <View style={[styles.connectLine, { backgroundColor: activeChapterConfig.color }]} />
+
+            {filteredWorlds.map((world, index) => {
+              const worldLessons = lessons
+                .filter(l => l.pillar_id === world.id)
+                .sort((a, b) => a.order_index - b.order_index);
+              const worldDone = worldLessons.filter(l => completed.includes(l.id)).length;
+              const isExpanded = expandedWorldId === world.id;
+
+              return (
+                <React.Fragment key={world.id}>
+                  <WorldNode
+                    world={world}
+                    index={index}
+                    worldLessons={worldLessons}
+                    done={worldDone}
+                    isCurrentWorld={currentWorld?.id === world.id}
+                    isExpanded={isExpanded}
+                    onTap={() => {
+                      if (world.lockState === 'teaser') {
+                        Alert.alert('Keep stacking.', 'This world unlocks as you progress.');
+                        return;
+                      }
+                      setExpandedWorldId(isExpanded ? null : world.id);
+                    }}
+                  />
+                  {world.lockState === 'active' && isExpanded && (
+                    <WorldMapSection
+                      world={world}
+                      lessons={worldLessons}
+                      completed={completed}
+                    />
+                  )}
+                </React.Fragment>
+              );
+            })}
+
+            {filteredWorlds.length === 0 && (
+              <View style={styles.emptyChapter}>
+                <Text style={styles.emptyChapterText}>No worlds available for your role yet.</Text>
+              </View>
+            )}
+          </View>
+
         </ScrollView>
       )}
+
+      {/* ── CURRENT MISSION (pinned) ── */}
+      {!loading && !loadError && nextLesson && (
+        <CurrentMissionCard nextLesson={nextLesson} insets={insets} />
+      )}
+
     </View>
   );
 }
@@ -1504,229 +1557,328 @@ export default function CareerScreen() {
 // ─── STYLES ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  container:        { flex: 1, backgroundColor: '#080810' },
-  scrollView:       { backgroundColor: '#080810' },
+  container:  { flex: 1, backgroundColor: Colors.background },
+  scrollView: { backgroundColor: Colors.background },
+  scroll:     { paddingTop: Spacing.lg },
 
+  // Header
   header: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: Spacing.xl, paddingTop: Spacing.md, paddingBottom: Spacing.md,
-  },
-  headerLeft:  { gap: 4 },
-  title:       { fontSize: 26, fontFamily: 'Inter_700Bold', color: Colors.textPrimary, letterSpacing: -0.3 },
-  headerRight: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  xpPill: {
-    flexDirection: 'row', alignItems: 'center', gap: 4,
-    backgroundColor: Colors.warningMuted, paddingHorizontal: 10, paddingVertical: 6,
-    borderRadius: Radius.pill, borderWidth: 1, borderColor: 'rgba(245,166,35,0.28)',
-  },
-  xpNum:   { fontSize: 15, fontFamily: 'Inter_700Bold', color: Colors.warning },
-  xpLabel: { fontSize: 9,  fontFamily: 'Inter_700Bold', color: Colors.textTertiary, letterSpacing: 1 },
-
-  progressWrap:  { paddingHorizontal: Spacing.xl, paddingBottom: Spacing.lg, gap: 8 },
-  progressTrack: { height: 3, backgroundColor: Colors.surfaceElevated, borderRadius: 2, overflow: 'hidden' },
-  progressFill:  {
-    height: 3, backgroundColor: Colors.primary, borderRadius: 2,
-    shadowColor: Colors.primary, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.8, shadowRadius: 4,
-  },
-  progressMeta:  { flexDirection: 'row', justifyContent: 'space-between' },
-  progressLabel: { fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.textTertiary },
-  progressPct:   { fontSize: 11, fontFamily: 'Inter_600SemiBold', color: Colors.primary },
-
-  scroll:        { gap: 0, paddingTop: 8 },
-  worldBlock:    { marginBottom: 12 },
-
-  emptyChapter: { paddingTop: 40, alignItems: 'center' },
-  emptyChapterText: {
-    fontSize: 13, fontFamily: 'Inter_400Regular',
-    color: 'rgba(255,255,255,0.3)', textAlign: 'center',
-  },
-});
-
-// ─── CHAPTER TAB BAR STYLES ──────────────────────────────────────────────────
-
-const chapterTabStyles = StyleSheet.create({
-  container: {
-    backgroundColor: '#0D0D0D',
-    borderBottomWidth: 1,
-    borderBottomColor: '#1a1a1a',
-    flexGrow: 0,
-  },
-  content: {
     flexDirection: 'row',
-  },
-  tab: {
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    gap: 3,
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing.xl,
+    paddingTop: Spacing.md,
+    paddingBottom: Spacing.md,
+    backgroundColor: Colors.background,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
   },
-  label: {
+  headerLeft: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
+  cMark:      { width: 22, height: 22 },
+  headerBrand: {
+    fontSize: 14,
+    fontFamily: 'Inter_700Bold',
+    color: Colors.textPrimary,
+    letterSpacing: 2.2,
+  },
+  headerRight:    { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
+  xpPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: Colors.warningMuted,
+    paddingHorizontal: Spacing.sm + 2,
+    paddingVertical: 6,
+    borderRadius: Radius.pill,
+    borderWidth: 1,
+    borderColor: Colors.warningBorder,
+  },
+  xpNum:   { fontSize: 14, fontFamily: 'Inter_700Bold', color: Colors.warning },
+  xpLabel: { fontSize: 9,  fontFamily: 'Inter_700Bold', color: Colors.textTertiary, letterSpacing: 1 },
+  lessonCountPill: {
+    paddingHorizontal: Spacing.sm + 2,
+    paddingVertical: 6,
+    borderRadius: Radius.pill,
+    borderWidth: 1,
+    borderColor: Colors.primaryBorder,
+    backgroundColor: Colors.primaryMuted,
+  },
+  lessonCountText: {
     fontSize: 11,
     fontFamily: 'Inter_700Bold',
-    letterSpacing: 1,
+    color: Colors.primary,
+    letterSpacing: 0.5,
   },
-});
 
-// ─── CARD STYLES ─────────────────────────────────────────────────────────────
-
-const cardStyles = StyleSheet.create({
-  card: {
-    marginHorizontal: 16,
-    borderRadius: 12,
-    backgroundColor: '#0D0D12',
-    borderWidth: 1,
-    borderTopWidth: 3,
-    borderTopColor: '#2a2a2a',
-    borderColor: 'rgba(255,255,255,0.07)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.45,
-    shadowRadius: 12,
-    elevation: 6,
-    overflow: 'hidden',
+  // Title block
+  titleBlock: {
+    paddingHorizontal: Spacing.xl,
+    paddingTop: Spacing.lg,
+    paddingBottom: Spacing.md,
+    backgroundColor: Colors.background,
   },
-  cardExpanded: {
-    borderBottomLeftRadius: 0,
-    borderBottomRightRadius: 0,
-    borderBottomWidth: 0,
-  },
-  header: {
-    flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between',
-    paddingHorizontal: 16, paddingTop: 14, paddingBottom: 12,
-  },
-  titleCol: { flex: 1, gap: 3 },
-  nameRow:   { flexDirection: 'row', alignItems: 'center' },
-  worldName: { fontSize: 16, fontFamily: 'Inter_700Bold', letterSpacing: 1 },
-  tagline:   {
-    fontSize: 11, fontFamily: 'Inter_400Regular',
-    color: 'rgba(255,255,255,0.4)', lineHeight: 16,
-  },
-  rightCol: { alignItems: 'flex-end', gap: 8, paddingLeft: 12, flexShrink: 0 },
-  progressRow: {
-    flexDirection: 'row', alignItems: 'center', gap: 8,
-    paddingHorizontal: 16, paddingBottom: 10,
-  },
-  progressCount: { fontSize: 10, fontFamily: 'Inter_700Bold', minWidth: 80, textAlign: 'right' },
-  nextRow: {
-    flexDirection: 'row', alignItems: 'center', gap: 5,
-    paddingHorizontal: 16, paddingBottom: 12,
-  },
-  nextText: {
-    fontSize: 10, fontFamily: 'Inter_400Regular',
-    color: 'rgba(255,255,255,0.45)', flex: 1,
-  },
-});
-
-// ─── TEASER STYLES ────────────────────────────────────────────────────────────
-
-const teaserStyles = StyleSheet.create({
-  card: {
-    opacity: 0.45,
-    borderTopColor: '#2a2a2a',
-  },
-  pill: {
-    backgroundColor: '#1a1a1a',
-    borderWidth: 1,
-    borderColor: '#2a2a2a',
-    borderRadius: 20,
-    paddingHorizontal: 7,
-    paddingVertical: 3,
-  },
-  pillPremium: {
-    borderColor: 'rgba(255,214,10,0.3)',
-  },
-  pillText: {
+  careerKicker: {
     fontSize: 9,
     fontFamily: 'Inter_700Bold',
-    color: 'rgba(255,255,255,0.25)',
-    letterSpacing: 0.5,
+    color: Colors.primary,
+    letterSpacing: 2.5,
+    marginBottom: 4,
   },
-  pillTextPremium: {
-    color: 'rgba(255,214,10,0.5)',
-  },
-  hintRow: {
-    paddingHorizontal: 16,
-    paddingBottom: 14,
-  },
-  hintText: {
-    fontSize: 10,
-    fontFamily: 'Inter_400Regular',
-    color: 'rgba(255,255,255,0.2)',
-    fontStyle: 'italic',
-  },
-});
-
-// ─── SIGNAL STYLES ────────────────────────────────────────────────────────────
-
-const signalStyles = StyleSheet.create({
-  banner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#1A1500',
-    borderWidth: 1,
-    borderColor: 'rgba(255,214,10,0.2)',
-    borderRadius: 12,
-    padding: 14,
-    marginHorizontal: 16,
-    marginBottom: 12,
-  },
-  label: {
-    fontSize: 11,
+  careerH1: {
+    fontSize: 28,
     fontFamily: 'Inter_700Bold',
-    color: '#FFD60A',
-    letterSpacing: 2,
+    color: Colors.textPrimary,
+    letterSpacing: -0.4,
+    lineHeight: 34,
   },
-  description: {
-    fontSize: 11,
+  careerSub: {
+    fontSize: 13,
     fontFamily: 'Inter_400Regular',
-    color: 'rgba(255,255,255,0.4)',
+    color: Colors.textSecondary,
     marginTop: 2,
   },
-  proPill: {
-    backgroundColor: '#1A1500',
-    borderWidth: 1,
-    borderColor: '#FFD60A',
-    borderRadius: 20,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    marginLeft: 10,
+
+  // Chapter tabs
+  tabRow: {
+    backgroundColor: Colors.background,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+    flexGrow: 0,
   },
-  proText: {
+  tabContent: { flexDirection: 'row' },
+  tab: {
+    alignItems: 'center',
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm + 2,
+  },
+  tabLabel: {
     fontSize: 11,
     fontFamily: 'Inter_700Bold',
-    color: '#FFD60A',
     letterSpacing: 1,
   },
-});
 
-// ─── YOUR CRAFT HEADER STYLES ─────────────────────────────────────────────────
-
-const craftStyles = StyleSheet.create({
-  wrap: {
+  // World subheader
+  subheaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    backgroundColor: '#0D0D12',
-    borderRadius: 10,
-    marginHorizontal: 16,
-    marginBottom: 10,
-    padding: 10,
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing.xl,
+    marginBottom: Spacing.xs,
   },
-  label: {
-    fontSize: 11,
-    fontFamily: 'Inter_400Regular',
-    color: 'rgba(255,255,255,0.4)',
+  subheaderTitle: {
+    fontSize: 10,
+    fontFamily: 'Inter_700Bold',
+    color: Colors.textTertiary,
+    letterSpacing: 2,
   },
-  rolePill: {
-    borderWidth: 1,
-    borderRadius: 20,
-    paddingHorizontal: 8,
+  chapterCountPill: {
+    paddingHorizontal: Spacing.sm,
     paddingVertical: 3,
+    borderRadius: Radius.pill,
+    borderWidth: 1,
   },
-  roleText: {
+  chapterCountText: {
     fontSize: 10,
     fontFamily: 'Inter_700Bold',
     letterSpacing: 0.5,
+  },
+
+  // Role pill
+  rolePillRow: {
+    flexDirection: 'row',
+    paddingHorizontal: Spacing.xl,
+    marginBottom: Spacing.lg,
+  },
+  rolePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: Spacing.sm + 2,
+    paddingVertical: 4,
+    borderRadius: Radius.pill,
+    borderWidth: 1,
+  },
+  rolePillText: {
+    fontSize: 10,
+    fontFamily: 'Inter_700Bold',
+    letterSpacing: 1,
+  },
+
+  // Ascent tower
+  towerWrap: {
+    marginHorizontal: Spacing.lg,
+    borderRadius: Radius.xl,
+    overflow: 'hidden',
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    paddingVertical: Spacing.md,
+    position: 'relative',
+  },
+  towerBg: {
+    opacity: 0.04,
+  },
+  connectLine: {
+    position: 'absolute',
+    left: 35,
+    top: 0,
+    bottom: 0,
+    width: 2,
+    opacity: 0.22,
+  },
+
+  // Empty state
+  emptyChapter: {
+    paddingVertical: Spacing.xxxl,
+    alignItems: 'center',
+  },
+  emptyChapterText: {
+    fontSize: 13,
+    fontFamily: 'Inter_400Regular',
+    color: Colors.textTertiary,
+    textAlign: 'center',
+  },
+});
+
+// ─── WORLD NODE STYLES ────────────────────────────────────────────────────────
+
+const nodeStyles = StyleSheet.create({
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: Spacing.md,
+    paddingRight: Spacing.lg,
+    position: 'relative',
+    zIndex: 1,
+  },
+  nodeCol: {
+    width: 72,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  glowRing: {
+    position: 'absolute',
+    borderWidth: 1.5,
+    borderColor: Colors.primary + '40',
+    backgroundColor: Colors.primary + '08',
+  },
+  nodeCircle: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: Colors.surface,
+  },
+  nodeActive: {
+    backgroundColor: Colors.primaryMuted,
+    borderWidth: 2.5,
+    borderColor: Colors.primary,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.85,
+    shadowRadius: 16,
+    elevation: 10,
+  },
+  nodeCompleted: {
+    backgroundColor: Colors.primary,
+    borderWidth: 0,
+  },
+  nodeLocked: {
+    backgroundColor: Colors.surfaceElevated,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    opacity: 0.4,
+  },
+  checkmark: {
+    fontSize: 18,
+    color: Colors.background,
+    fontFamily: 'Inter_700Bold',
+  },
+  nodeNum: {
+    fontSize: 14,
+    fontFamily: 'Inter_700Bold',
+    color: Colors.textTertiary,
+  },
+  nodeNumActive: {
+    fontSize: 20,
+    color: Colors.textPrimary,
+  },
+  labelCol: {
+    flex: 1,
+    gap: 3,
+  },
+  worldLabel: {
+    fontSize: 15,
+    fontFamily: 'Inter_600SemiBold',
+    color: Colors.textSecondary,
+  },
+  worldLabelActive: {
+    fontSize: 17,
+    fontFamily: 'Inter_700Bold',
+    color: Colors.textPrimary,
+  },
+  lessonCount: {
+    fontSize: 11,
+    fontFamily: 'Inter_600SemiBold',
+    letterSpacing: 0.3,
+  },
+  chevron: {
+    marginRight: Spacing.xs,
+  },
+});
+
+// ─── CURRENT MISSION STYLES ───────────────────────────────────────────────────
+
+const missionStyles = StyleSheet.create({
+  wrap: {
+    backgroundColor: Colors.surface,
+    borderTopWidth: 1,
+    borderTopColor: Colors.primaryBorder,
+    paddingHorizontal: Spacing.xl,
+    paddingTop: Spacing.lg,
+    gap: Spacing.sm,
+    ...Shadow.card,
+  },
+  topRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  kickerWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+  },
+  dot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: Colors.primary,
+  },
+  kicker: {
+    fontSize: 9,
+    fontFamily: 'Inter_700Bold',
+    color: Colors.primary,
+    letterSpacing: 2.2,
+  },
+  duration: {
+    fontSize: 11,
+    fontFamily: 'Inter_600SemiBold',
+    color: Colors.textTertiary,
+  },
+  title: {
+    fontSize: 20,
+    fontFamily: 'Inter_700Bold',
+    color: Colors.textPrimary,
+    lineHeight: 26,
+    letterSpacing: -0.3,
+  },
+  tagline: {
+    fontSize: 13,
+    fontFamily: 'Inter_400Regular',
+    color: Colors.textSecondary,
+    lineHeight: 18,
   },
 });
 
@@ -1881,19 +2033,4 @@ const tlStyles = StyleSheet.create({
   xpText:    { fontSize: 11, fontFamily: 'Inter_600SemiBold', color: '#F5A623' },
   timeText:  { fontSize: 11, fontFamily: 'Inter_400Regular',  color: 'rgba(255,255,255,0.35)' },
   activeStrip: { position: 'absolute', bottom: 0, left: 0, right: 0, height: 2 },
-});
-
-// ─── CLEARED WORLD STYLES ─────────────────────────────────────────────────────
-
-const clearedStyles = StyleSheet.create({
-  badgeRow: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 16, paddingBottom: 12,
-  },
-  badgeLeft:   { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  checkCircle: { width: 22, height: 22, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
-  checkMark:   { fontSize: 13, fontWeight: '800', color: '#fff', lineHeight: 16 },
-  clearedLabel:{ fontSize: 13, fontFamily: 'Inter_700Bold', letterSpacing: 1 },
-  xpPill:      { borderWidth: 1, borderRadius: 20, paddingHorizontal: 10, paddingVertical: 3 },
-  xpPillText:  { fontSize: 11, fontFamily: 'Inter_700Bold' },
 });
