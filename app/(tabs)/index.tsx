@@ -14,12 +14,14 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAthlete } from '@/context/AthleteContext';
 import { fetchLessons } from '@/lib/supabase';
-import { Colors } from '@/constants/theme';
+import { Colors, Radius, Shadow, Spacing } from '@/constants/theme';
+import { Assets } from '@/constants/assets';
 import { pickNextLesson, type RoutingResult } from '@/lib/lessonRouter';
 import { SkeletonBox, SkeletonCard } from '@/components/SkeletonLoader';
 import { EmblemBadge } from '@/components/EmblemBadge';
 import { getCurrentRank, getRankProgress } from '@/lib/progressionRanks';
 import { useMicrocopy } from '@/hooks/useMicrocopy';
+import { Btn } from '@/components/ui';
 
 const MISSIONS_DATE_KEY  = 'missions_date';
 const MISSIONS_PROG_KEY  = 'missions_progress';
@@ -58,12 +60,16 @@ export default function HomeScreen() {
   const anim1 = useRef(new Animated.Value(0)).current;
   const anim2 = useRef(new Animated.Value(0)).current;
   const anim3 = useRef(new Animated.Value(0)).current;
+  const anim4 = useRef(new Animated.Value(0)).current;
+  const anim5 = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     Animated.stagger(70, [
       Animated.spring(anim1, { toValue: 1, tension: 80, friction: 11, useNativeDriver: true }),
       Animated.spring(anim2, { toValue: 1, tension: 80, friction: 11, useNativeDriver: true }),
       Animated.spring(anim3, { toValue: 1, tension: 80, friction: 11, useNativeDriver: true }),
+      Animated.spring(anim4, { toValue: 1, tension: 80, friction: 11, useNativeDriver: true }),
+      Animated.spring(anim5, { toValue: 1, tension: 80, friction: 11, useNativeDriver: true }),
     ]).start();
   }, []);
 
@@ -170,29 +176,19 @@ export default function HomeScreen() {
     })();
   }, [mission2Done]);
 
-  const totalXp  = athleteState?.total_xp ?? 0;
+  const totalXp     = athleteState?.total_xp ?? 0;
   const currentRank = getCurrentRank(totalXp);
   const rankProgress = getRankProgress(totalXp);
-  const streak   = athleteState?.streak_count ?? 0;
+  const streak      = athleteState?.streak_count ?? 0;
 
   if (isLoading || !athleteState) {
     return (
       <View style={s.container}>
-        <View style={[s.topHeader, { paddingTop: insets.top + 14 }]}>
-          <Image
-            source={require('../../assets/branding/main-wordmark.png')}
-            style={s.headerWordmark}
-            resizeMode="contain"
-          />
-          <View style={s.navRight}>
-            <View style={s.statPill}>
-              <Ionicons name="flame" size={12} color="#C58A2A" />
-              <Text style={s.pillStat}>0</Text>
-            </View>
-            <View style={s.statPill}>
-              <Ionicons name="flash" size={12} color="#C58A2A" />
-              <Text style={s.pillStat}>0</Text>
-            </View>
+        <View style={[s.header, { paddingTop: insets.top + 12 }]}>
+          <Image source={Assets.branding.mainWordmark} style={s.headerWordmark} resizeMode="contain" />
+          <View style={s.headerIcons}>
+            <Ionicons name="notifications-outline" size={22} color={Colors.textSecondary} />
+            <Ionicons name="calendar-outline" size={22} color={Colors.textSecondary} />
           </View>
         </View>
         <ScrollView
@@ -212,22 +208,21 @@ export default function HomeScreen() {
     );
   }
 
-  const roleLabel = athleteState.primary_role
+  const roleLabel    = athleteState.primary_role
     ? athleteState.primary_role.charAt(0).toUpperCase() + athleteState.primary_role.slice(1)
     : 'Player';
-  const phaseLabel = formatLabel(athleteState.season_phase) || 'Train';
-  const lesson        = routingResult?.lesson ?? null;
-  const reason        = routingResult?.reason ?? '';
-  const heroSubtitle  = lesson?.subtitle || 'Command, tempo, and mound IQ.';
-  const firstName     = athleteState.first_name?.trim();
-  // Compute greeting once per mount via ref so re-renders don't re-pick
+  const phaseLabel   = formatLabel(athleteState.season_phase) || 'Train';
+  const lesson       = routingResult?.lesson ?? null;
+  const reason       = routingResult?.reason ?? '';
+  const heroSubtitle = lesson?.subtitle || 'Command, tempo, and mound IQ.';
+  const firstName    = athleteState.first_name?.trim();
   if (greetingRef.current === null) {
     greetingRef.current = microcopy.useHomeGreeting({ isGameDay, isReturn });
   }
-  const planTitle     = greetingRef.current;
-  const planSubtitle  = firstName ? `${firstName} · ${phaseLabel} · ${roleLabel}` : `${phaseLabel} · ${roleLabel} · Next rep loaded`;
-  const edgeLine      = reason && reason.length <= 82 ? reason : 'Build command and tempo before the game speeds up.';
-  const repsProgressPercent = `${(mission1Progress / 2) * 100}%`;
+  const planTitle    = greetingRef.current;
+  const planSubtitle = firstName ? `${firstName} · ${phaseLabel} · ${roleLabel}` : `${phaseLabel} · ${roleLabel} · Next rep loaded`;
+  const edgeLine     = reason && reason.length <= 82 ? reason : 'Build command and tempo before the game speeds up.';
+  const repsProgressPercent  = `${(mission1Progress / 2) * 100}%`;
   const resetProgressPercent = `${mission2Progress * 100}%`;
   const earnedMissionXp = (mission1Done ? 30 : 0) + (mission2Done ? 15 : 0);
 
@@ -256,23 +251,20 @@ export default function HomeScreen() {
   return (
     <View style={s.container}>
 
-      {/* ── CLEAN COMMAND HEADER ── */}
-      <View style={[s.topHeader, { paddingTop: insets.top + 14 }]}>
-        <Image
-          source={require('../../assets/branding/main-wordmark.png')}
-          style={s.headerWordmark}
-          resizeMode="contain"
-        />
-        <View style={s.navRight}>
-          <View style={s.statPill}>
-            <Ionicons name="flame" size={12} color="#C58A2A" />
-            <Text style={s.pillStat}>{streak}</Text>
-          </View>
-          <View style={s.statPill}>
-            <Ionicons name="flash" size={12} color="#C58A2A" />
-            <Text style={s.pillStat}>{totalXp}</Text>
-          </View>
+      {/* ── HEADER ── */}
+      <View style={[s.header, { paddingTop: insets.top + 12 }]}>
+        <Image source={Assets.branding.mainWordmark} style={s.headerWordmark} resizeMode="contain" />
+        <View style={s.headerIcons}>
+          <Pressable hitSlop={10} onPress={() => {}}>
+            <Ionicons name="notifications-outline" size={22} color={Colors.textSecondary} />
+          </Pressable>
+          <Pressable hitSlop={10} onPress={() => {}}>
+            <Ionicons name="calendar-outline" size={22} color={Colors.textSecondary} />
+          </Pressable>
         </View>
+      </View>
+      <View style={s.kickerRow}>
+        <Text style={s.kicker}>BASEBALL PERFORMANCE OS</Text>
       </View>
 
       <ScrollView
@@ -280,13 +272,112 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
       >
 
-        <View style={s.planIntro}>
-          <Text style={s.planTitle}>{planTitle}</Text>
-          <Text style={s.planSubtitle}>{planSubtitle}</Text>
-        </View>
-
-        {/* ── NEXT REP HERO ── */}
+        {/* ── 1. UPCOMING GAME CARD ── */}
+        {/* TODO: wire real game schedule */}
         {animCard(anim1,
+          <View style={s.gameCard}>
+            <Text style={s.sectionLabel}>UPCOMING GAME</Text>
+            <View style={s.teamsRow}>
+              {/* Your team */}
+              <View style={s.teamBlock}>
+                <View style={s.teamLogoBox}>
+                  <Text style={s.teamLogoLetter}>R</Text>
+                </View>
+                <Text style={s.teamNameLabel}>YOUR TEAM</Text>
+              </View>
+              {/* Center info */}
+              <View style={s.vsBlock}>
+                <Text style={s.vsText}>VS</Text>
+                <Text style={s.gameDetail}>TODAY • 7:00 PM</Text>
+                <Text style={s.gameDetail}>RIVERSIDE FIELD</Text>
+              </View>
+              {/* Opponent */}
+              <View style={[s.teamBlock, { alignItems: 'flex-end' }]}>
+                <View style={[s.teamLogoBox, s.opponentLogoBox]}>
+                  <Ionicons name="shield-outline" size={20} color={Colors.textTertiary} />
+                </View>
+                <Text style={s.teamNameLabel}>KNIGHTS</Text>
+              </View>
+            </View>
+
+            <Text style={s.firstPitchLabel}>FIRST PITCH IN</Text>
+            <View style={s.countdownRow}>
+              <View style={s.countdownUnit}>
+                <Text style={s.countdownValue}>02</Text>
+                <Text style={s.countdownUnitLabel}>HRS</Text>
+              </View>
+              <Text style={s.countdownColon}>:</Text>
+              <View style={s.countdownUnit}>
+                <Text style={s.countdownValue}>37</Text>
+                <Text style={s.countdownUnitLabel}>MIN</Text>
+              </View>
+              <Text style={s.countdownColon}>:</Text>
+              <View style={s.countdownUnit}>
+                <Text style={s.countdownValue}>45</Text>
+                <Text style={s.countdownUnitLabel}>SEC</Text>
+              </View>
+            </View>
+          </View>
+        )}
+
+        {/* ── 2. THREE-COLUMN WIDGET ROW ── */}
+        {animCard(anim2,
+          <View style={s.widgetRow}>
+            {/* Weather — TODO: weather API */}
+            <View style={s.widget}>
+              <Text style={s.weatherEmoji}>☀️</Text>
+              <Text style={s.widgetMain}>72°</Text>
+              <Text style={s.widgetSub}>Clear</Text>
+            </View>
+            {/* Readiness */}
+            <View style={s.widget}>
+              <Ionicons name="checkmark-circle" size={20} color={Colors.primary} />
+              <Text style={[s.widgetMain, s.widgetGreen]}>GOOD</Text>
+              <Text style={s.widgetSub}>Readiness</Text>
+            </View>
+            {/* Routine */}
+            <View style={s.widget}>
+              <Ionicons name="book-outline" size={20} color={Colors.textTertiary} />
+              <Text style={s.widgetMain}>—%</Text>
+              <Text style={s.widgetSub}>Routine</Text>
+            </View>
+          </View>
+        )}
+
+        {/* ── 3. OPPONENT INTEL ── */}
+        {/* TODO: wire opponent intel input */}
+        {animCard(anim3,
+          <View style={s.intelSection}>
+            <Text style={s.intelHeader}>OPPONENT INTEL</Text>
+            <View style={s.intelCard}>
+              {[
+                { icon: 'people-outline' as const, title: 'Team Tendencies', sub: 'Aggressive early. 75% swing on 1st pitch.' },
+                { icon: 'baseball-outline' as const, title: 'Key Pitcher',    sub: 'RHP · 88–90 MPH · 2-Seam / Slider' },
+                { icon: 'star-outline' as const,    title: 'Your Edge',       sub: 'Stay on fastball up. Drive the gaps.' },
+              ].map((row, i, arr) => (
+                <React.Fragment key={row.title}>
+                  <Pressable
+                    style={({ pressed }) => [s.intelRow, pressed && { opacity: 0.72 }]}
+                    onPress={() => {}}
+                  >
+                    <View style={s.intelIconBox}>
+                      <Ionicons name={row.icon} size={16} color={Colors.primary} />
+                    </View>
+                    <View style={s.intelContent}>
+                      <Text style={s.intelTitle}>{row.title}</Text>
+                      <Text style={s.intelSub}>{row.sub}</Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={15} color={Colors.textTertiary} />
+                  </Pressable>
+                  {i < arr.length - 1 && <View style={s.intelDivider} />}
+                </React.Fragment>
+              ))}
+            </View>
+          </View>
+        )}
+
+        {/* ── 4. CONTINUE CAREER CARD ── */}
+        {animCard(anim4,
           <Pressable
             style={({ pressed }) => [c.card, pressed && { opacity: 0.95, transform: [{ scale: 0.992 }] }]}
             onPress={handleContinueCareer}
@@ -295,11 +386,10 @@ export default function HomeScreen() {
             <View pointerEvents="none" style={c.plateMark} />
             <Image
               pointerEvents="none"
-              source={require('../../assets/branding/c-mark.png')}
+              source={Assets.branding.cMark}
               style={c.heroCMark}
               resizeMode="contain"
             />
-            <View pointerEvents="none" style={c.ctaGlow} />
             <View style={c.nextRepBadge}>
               <View style={c.greenDot} />
               <Text style={c.nextRepText}>NEXT REP</Text>
@@ -334,78 +424,31 @@ export default function HomeScreen() {
               </View>
             </View>
 
-            <Pressable
-              style={({ pressed }) => [c.ctaBtn, pressed && { opacity: 0.9 }]}
-              onPress={handleContinueCareer}
-              disabled={loadingLesson || !lesson}
-            >
-              <Text style={c.ctaBtnText}>Start Next Rep →</Text>
-            </Pressable>
+            {!isGameDay && (
+              <Pressable
+                style={({ pressed }) => [c.ctaBtn, pressed && { opacity: 0.9 }]}
+                onPress={handleContinueCareer}
+                disabled={loadingLesson || !lesson}
+              >
+                <Text style={c.ctaBtnText}>Start Next Rep →</Text>
+              </Pressable>
+            )}
           </Pressable>
         )}
 
-
-        {/* ── TODAY'S PROGRESS ── */}
-        {animCard(anim2,
-          <View style={s.progressWrap}>
-            <View style={s.sectionHeaderRow}>
-              <Text style={s.sectionHeader}>TODAY'S PROGRESS</Text>
-              <Text style={s.progressSummary}>+{earnedMissionXp} XP</Text>
-            </View>
-
-            <View style={s.progressPanel}>
-              <View style={s.progressLineRow}>
-                <View style={s.progressCopy}>
-                  <Text style={s.progressLabel}>Reps complete</Text>
-                  <Text style={s.progressValue}>{mission1Progress}/2</Text>
-                </View>
-                <View style={s.miniTrack}>
-                  <View style={[s.miniFill, { width: repsProgressPercent }]} />
-                </View>
-              </View>
-              <View style={s.progressDivider} />
-              <View style={s.progressLineRow}>
-                <View style={s.progressCopy}>
-                  <Text style={s.progressLabel}>Run 1 reset</Text>
-                  <Text style={s.progressValue}>{mission2Progress}/1</Text>
-                </View>
-                <View style={s.miniTrack}>
-                  <View style={[s.miniFill, { width: resetProgressPercent, backgroundColor: mission2Done ? '#22CC5E' : '#C58A2A' }]} />
-                </View>
-              </View>
-            </View>
+        {/* ── 5. COACH C QUOTE ── */}
+        {animCard(anim5,
+          <View style={s.quoteCard}>
+            <Text style={s.quoteMark}>"</Text>
+            <Text style={s.quoteText}>Trust your work.{'\n'}Win the next pitch.</Text>
+            <Text style={s.quoteAttrib}>— Coach C</Text>
           </View>
         )}
 
-        {/* ── SHORTCUTS ── */}
-        {animCard(anim3,
-          <View style={s.shortcutsRow}>
-            <Pressable
-              style={({ pressed }) => [s.shortcutCard, pressed && { opacity: 0.82 }]}
-              onPress={handleGameModePress}
-            >
-              <View style={s.shortcutTopRow}>
-                <Ionicons name="flash" size={22} color="#F5A623" style={s.shortcutIcon} />
-                <Ionicons name="chevron-forward" size={16} color="rgba(247,255,249,0.42)" />
-              </View>
-              <Text style={s.shortcutTitle}>GAME MODE</Text>
-              <Text style={s.shortcutSub}>Pre · In · Post</Text>
-            </Pressable>
-            <Pressable
-              style={({ pressed }) => [s.shortcutCard, pressed && { opacity: 0.82 }]}
-              onPress={() => router.push('/(tabs)/locker')}
-            >
-              <View style={s.shortcutTopRow}>
-                <Image
-                  source={require('../../assets/branding/simplified-wordmark.png')}
-                  style={s.shortcutWordmark}
-                  resizeMode="contain"
-                />
-                <Ionicons name="chevron-forward" size={16} color="rgba(247,255,249,0.42)" />
-              </View>
-              <Text style={s.shortcutTitle}>LOCKER</Text>
-              <Text style={s.shortcutSub}>Articles · Tools</Text>
-            </Pressable>
+        {/* ── 6. START GAME PREP CTA (game day only) ── */}
+        {isGameDay && (
+          <View style={s.gameCtaWrap}>
+            <Btn label="START GAME PREP" onPress={handleGameModePress} />
           </View>
         )}
 
@@ -415,166 +458,255 @@ export default function HomeScreen() {
   );
 }
 
-// ─── MAIN STYLES ─────────────────────────────────────────────────────────────
+// ─── STYLES ──────────────────────────────────────────────────────────────────
 
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
-  scroll: { paddingTop: 10 },
-  topHeader: {
-    paddingHorizontal: 22,
-    paddingBottom: 12,
+  scroll: { paddingTop: Spacing.sm, gap: Spacing.md },
+
+  // ── Header ──
+  header: {
+    paddingHorizontal: Spacing.lg,
+    paddingBottom: Spacing.sm,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     backgroundColor: Colors.background,
   },
-  headerWordmark: {
-    width: 132,
-    height: 34,
-  },
-  brandText: {
-    color: '#F7FFF9',
-    fontSize: 22,
+  headerWordmark: { width: 120, height: 28 },
+  headerIcons: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
+  kickerRow: { paddingHorizontal: Spacing.lg, paddingBottom: Spacing.md },
+  kicker: {
+    color: Colors.primary,
+    fontSize: 9,
     fontFamily: 'Inter_700Bold',
-    letterSpacing: 4,
+    letterSpacing: 2.4,
   },
-  navRight: {
+
+  // ── Upcoming Game Card ──
+  gameCard: {
+    marginHorizontal: Spacing.lg,
+    backgroundColor: Colors.surfaceGlow,
+    borderWidth: 1,
+    borderColor: Colors.primaryBorder,
+    borderRadius: Radius.xl,
+    padding: Spacing.lg,
+  },
+  sectionLabel: {
+    color: Colors.primary,
+    fontSize: 9,
+    fontFamily: 'Inter_700Bold',
+    letterSpacing: 2.2,
+    marginBottom: Spacing.md,
+  },
+  teamsRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    marginBottom: Spacing.md,
   },
-  statPill: {
-    minHeight: 30,
-    flexDirection: 'row',
+  teamBlock: {
+    flex: 1,
+    alignItems: 'flex-start',
+    gap: Spacing.xs,
+  },
+  teamLogoBox: {
+    width: 44,
+    height: 44,
+    borderRadius: Radius.md,
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
     alignItems: 'center',
-    gap: 5,
-    borderRadius: 999,
-    paddingHorizontal: 10,
-    backgroundColor: 'rgba(255,255,255,0.055)',
+    justifyContent: 'center',
   },
-  pillStat: {
-    color: 'rgba(247,255,249,0.88)',
-    fontSize: 12,
+  opponentLogoBox: {
+    borderColor: Colors.primaryBorder,
+    backgroundColor: Colors.surfaceGlow,
+  },
+  teamLogoLetter: {
+    color: Colors.textPrimary,
+    fontSize: 20,
     fontFamily: 'Inter_700Bold',
   },
-  planIntro: {
-    marginHorizontal: 18,
-    marginBottom: 16,
-  },
-  planTitle: {
-    color: '#F7FFF9',
-    fontSize: 30,
+  teamNameLabel: {
+    color: Colors.textTertiary,
+    fontSize: 9,
     fontFamily: 'Inter_700Bold',
-    letterSpacing: -0.6,
-    lineHeight: 35,
+    letterSpacing: 1.2,
   },
-  planSubtitle: {
-    marginTop: 5,
-    color: 'rgba(247,255,249,0.52)',
-    fontSize: 13,
-    fontFamily: 'Inter_600SemiBold',
-    letterSpacing: 0.2,
-  },
-  progressWrap: {
-    paddingHorizontal: 16,
-    marginBottom: 24,
-  },
-  sectionHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  vsBlock: {
+    flex: 1,
     alignItems: 'center',
+    gap: 3,
+  },
+  vsText: {
+    color: Colors.textPrimary,
+    fontSize: 16,
+    fontFamily: 'Inter_700Bold',
+    letterSpacing: 1,
+  },
+  gameDetail: {
+    color: Colors.textTertiary,
+    fontSize: 8,
+    fontFamily: 'Inter_700Bold',
+    letterSpacing: 0.8,
+    textAlign: 'center',
+  },
+  firstPitchLabel: {
+    color: Colors.primary,
+    fontSize: 9,
+    fontFamily: 'Inter_700Bold',
+    letterSpacing: 2,
+    textAlign: 'center',
+    marginBottom: Spacing.sm,
+  },
+  countdownRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.xs,
+  },
+  countdownUnit: { alignItems: 'center', minWidth: 60 },
+  countdownValue: {
+    color: Colors.primary,
+    fontSize: 42,
+    fontFamily: 'Inter_700Bold',
+    letterSpacing: -1,
+    lineHeight: 48,
+  },
+  countdownUnitLabel: {
+    color: Colors.textTertiary,
+    fontSize: 8,
+    fontFamily: 'Inter_700Bold',
+    letterSpacing: 2,
+  },
+  countdownColon: {
+    color: Colors.primary,
+    fontSize: 36,
+    fontFamily: 'Inter_700Bold',
     marginBottom: 10,
   },
-  sectionHeader: {
-    fontSize: 10,
-    color: 'rgba(255,255,255,0.34)',
-    letterSpacing: 2,
-    fontFamily: 'Inter_700Bold',
+
+  // ── Widget row ──
+  widgetRow: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+    marginHorizontal: Spacing.lg,
   },
-  progressSummary: {
-    color: 'rgba(197,138,42,0.86)',
-    fontSize: 11,
-    fontFamily: 'Inter_700Bold',
-  },
-  progressPanel: {
-    borderRadius: 18,
-    paddingHorizontal: 15,
-    paddingVertical: 13,
-    backgroundColor: '#0D100E',
+  widget: {
+    flex: 1,
+    backgroundColor: Colors.surface,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.065)',
+    borderColor: Colors.border,
+    borderRadius: Radius.lg,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.sm,
+    alignItems: 'center',
+    gap: 4,
   },
-  progressLineRow: {
-    gap: 8,
+  weatherEmoji: { fontSize: 18, lineHeight: 22 },
+  widgetMain: {
+    color: Colors.textPrimary,
+    fontSize: 16,
+    fontFamily: 'Inter_700Bold',
+    letterSpacing: -0.3,
   },
-  progressCopy: {
+  widgetGreen: { color: Colors.primary },
+  widgetSub: {
+    color: Colors.textTertiary,
+    fontSize: 9,
+    fontFamily: 'Inter_700Bold',
+    letterSpacing: 0.8,
+    textAlign: 'center',
+  },
+
+  // ── Opponent Intel ──
+  intelSection: { marginHorizontal: Spacing.lg },
+  intelHeader: {
+    color: Colors.primary,
+    fontSize: 9,
+    fontFamily: 'Inter_700Bold',
+    letterSpacing: 2.2,
+    marginBottom: Spacing.sm,
+  },
+  intelCard: {
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: Radius.lg,
+    overflow: 'hidden',
+  },
+  intelRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.md,
+    gap: Spacing.md,
   },
-  progressLabel: {
-    color: 'rgba(247,255,249,0.68)',
+  intelIconBox: {
+    width: 32,
+    height: 32,
+    borderRadius: Radius.sm,
+    backgroundColor: Colors.primaryGlow,
+    borderWidth: 1,
+    borderColor: Colors.primaryBorder,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  intelContent: { flex: 1 },
+  intelTitle: {
+    color: Colors.textPrimary,
+    fontSize: 14,
+    fontFamily: 'Inter_700Bold',
+  },
+  intelSub: {
+    color: Colors.textTertiary,
+    fontSize: 12,
+    fontFamily: 'Inter_400Regular',
+    marginTop: 2,
+    lineHeight: 16,
+  },
+  intelDivider: {
+    height: 1,
+    backgroundColor: Colors.border,
+    marginLeft: Spacing.lg + 32 + Spacing.md,
+  },
+
+  // ── Coach C Quote ──
+  quoteCard: {
+    marginHorizontal: Spacing.lg,
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: Radius.xl,
+    padding: Spacing.xl,
+  },
+  quoteMark: {
+    color: Colors.primary,
+    fontSize: 44,
+    fontFamily: 'Inter_700Bold',
+    lineHeight: 44,
+    marginBottom: -Spacing.md,
+  },
+  quoteText: {
+    color: Colors.textPrimary,
+    fontSize: 20,
+    fontFamily: 'Inter_700Bold',
+    fontStyle: 'italic',
+    lineHeight: 28,
+    letterSpacing: -0.3,
+  },
+  quoteAttrib: {
+    color: Colors.primary,
     fontSize: 13,
     fontFamily: 'Inter_600SemiBold',
+    marginTop: Spacing.sm,
   },
-  progressValue: {
-    color: '#F7FFF9',
-    fontSize: 12,
-    fontFamily: 'Inter_700Bold',
-  },
-  miniTrack: {
-    height: 5,
-    borderRadius: 999,
-    overflow: 'hidden',
-    backgroundColor: 'rgba(255,255,255,0.07)',
-  },
-  miniFill: {
-    height: '100%',
-    borderRadius: 999,
-    backgroundColor: '#22CC5E',
-  },
-  progressDivider: {
-    height: 1,
-    backgroundColor: 'rgba(255,255,255,0.055)',
-    marginVertical: 12,
-  },
-  shortcutsRow: {
-    flexDirection: 'row',
-    gap: 12,
-    marginHorizontal: 16,
-    marginBottom: 18,
-  },
-  shortcutCard: {
-    flex: 1,
-    minHeight: 116,
-    backgroundColor: '#0D100E',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
-    borderRadius: 20,
-    padding: 16,
-    justifyContent: 'space-between',
-  },
-  shortcutTopRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  shortcutIcon: { marginBottom: 10 },
-  shortcutWordmark: {
-    width: 88,
-    height: 26,
-    marginBottom: 8,
-  },
-  shortcutTitle: {
-    fontSize: 15,
-    fontFamily: 'Inter_700Bold',
-    color: '#F7FFF9',
-    marginBottom: 5,
-  },
-  shortcutSub: {
-    fontSize: 12,
-    color: 'rgba(255,255,255,0.42)',
-    fontFamily: 'Inter_400Regular',
+
+  // ── Game Day CTA ──
+  gameCtaWrap: {
+    marginHorizontal: Spacing.lg,
+    marginTop: Spacing.sm,
   },
 });
 
@@ -584,13 +716,12 @@ const c = StyleSheet.create({
   card: {
     position: 'relative',
     overflow: 'hidden',
-    marginHorizontal: 16,
-    marginBottom: 18,
-    backgroundColor: '#0B150D',
+    marginHorizontal: Spacing.lg,
+    backgroundColor: Colors.surfaceGlow,
     borderWidth: 1,
-    borderColor: 'rgba(35,209,96,0.24)',
-    borderRadius: 26,
-    padding: 22,
+    borderColor: Colors.primaryBorder,
+    borderRadius: Radius.xxl,
+    padding: Spacing.xl,
   },
   plateMark: {
     position: 'absolute',
@@ -599,7 +730,7 @@ const c = StyleSheet.create({
     width: 118,
     height: 118,
     borderWidth: 1,
-    borderColor: 'rgba(247,255,249,0.055)',
+    borderColor: Colors.borderSubtle,
     transform: [{ rotate: '45deg' }],
   },
   heroCMark: {
@@ -608,50 +739,41 @@ const c = StyleSheet.create({
     top: 18,
     width: 112,
     height: 112,
-    opacity: 0.12,
-  },
-  ctaGlow: {
-    position: 'absolute',
-    left: 26,
-    right: 26,
-    bottom: 18,
-    height: 54,
-    borderRadius: 24,
-    backgroundColor: 'rgba(35,209,96,0.12)',
+    opacity: 0.10,
   },
   nextRepBadge: {
     alignSelf: 'flex-start',
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginBottom: 18,
+    gap: Spacing.sm,
+    marginBottom: Spacing.lg,
   },
   greenDot: {
     width: 7,
     height: 7,
-    borderRadius: 3.5,
-    backgroundColor: '#22CC5E',
+    borderRadius: Radius.pill,
+    backgroundColor: Colors.primary,
   },
   nextRepText: {
     fontSize: 10,
-    color: '#22CC5E',
+    color: Colors.primary,
     fontFamily: 'Inter_700Bold',
     letterSpacing: 2.2,
   },
   skeleton: {
-    backgroundColor: 'rgba(255,255,255,0.06)',
-    borderRadius: 6,
+    backgroundColor: Colors.borderSubtle,
+    borderRadius: Radius.sm,
   },
   lessonTitle: {
     fontSize: 28,
-    color: '#F7FFF9',
+    color: Colors.textPrimary,
     fontFamily: 'Inter_700Bold',
     lineHeight: 34,
     letterSpacing: -0.5,
   },
   lessonSubtitle: {
     fontSize: 14,
-    color: 'rgba(247,255,249,0.56)',
+    color: Colors.textSecondary,
     marginTop: 7,
     fontFamily: 'Inter_400Regular',
     lineHeight: 20,
@@ -659,19 +781,20 @@ const c = StyleSheet.create({
   edgeNote: {
     marginTop: 17,
     borderLeftWidth: 2,
-    borderLeftColor: 'rgba(35,209,96,0.52)',
-    paddingLeft: 10,
-    paddingRight: 4,
+    borderLeftColor: Colors.primaryBorder,
+    paddingLeft: Spacing.sm,
+    paddingRight: Spacing.xs,
   },
   edgeLabel: {
-    color: 'rgba(35,209,96,0.9)',
+    color: Colors.primary,
     fontSize: 9,
     fontFamily: 'Inter_700Bold',
     letterSpacing: 1.4,
     marginBottom: 4,
+    opacity: 0.9,
   },
   edgeText: {
-    color: 'rgba(247,255,249,0.70)',
+    color: Colors.textSecondary,
     fontSize: 13,
     fontFamily: 'Inter_400Regular',
     lineHeight: 18,
@@ -680,31 +803,31 @@ const c = StyleSheet.create({
     alignSelf: 'flex-start',
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
-    marginTop: 18,
+    gap: Spacing.xs,
+    marginTop: Spacing.lg,
     opacity: 0.78,
   },
   rankMiniCopy: { gap: 1 },
   rankMiniText: {
-    color: 'rgba(247,255,249,0.68)',
+    color: Colors.textSecondary,
     fontSize: 11,
     fontFamily: 'Inter_700Bold',
   },
   rankMiniSub: {
-    color: 'rgba(247,255,249,0.38)',
+    color: Colors.textTertiary,
     fontSize: 10,
     fontFamily: 'Inter_500Medium',
   },
   ctaBtn: {
-    backgroundColor: '#22CC5E',
-    borderRadius: 16,
-    paddingVertical: 16,
+    backgroundColor: Colors.primary,
+    borderRadius: Radius.lg,
+    paddingVertical: Spacing.lg,
     alignItems: 'center',
-    marginTop: 22,
+    marginTop: Spacing.xl,
   },
   ctaBtnText: {
     fontSize: 15,
-    color: '#050806',
+    color: Colors.background,
     fontFamily: 'Inter_700Bold',
   },
 });
