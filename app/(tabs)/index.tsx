@@ -22,6 +22,7 @@ import { EmblemBadge } from '@/components/EmblemBadge';
 import { getCurrentRank, getRankProgress } from '@/lib/progressionRanks';
 import { useMicrocopy } from '@/hooks/useMicrocopy';
 import { Btn } from '@/components/ui';
+import { ProgressRing } from '@/components/ProgressRing';
 
 const MISSIONS_DATE_KEY  = 'missions_date';
 const MISSIONS_PROG_KEY  = 'missions_progress';
@@ -255,6 +256,12 @@ export default function HomeScreen() {
       <View style={[s.header, { paddingTop: insets.top + 12 }]}>
         <Image source={Assets.branding.mainWordmark} style={s.headerWordmark} resizeMode="contain" />
         <View style={s.headerIcons}>
+          <ProgressRing
+            value={completedTodayCount / 3}
+            size={48}
+            label="TODAY"
+            valueLabel={String(completedTodayCount)}
+          />
           {streak > 0 && (
             <View style={s.streakPill}>
               <Ionicons name="flame" size={13} color={Colors.warning} />
