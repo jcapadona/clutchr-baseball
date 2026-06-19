@@ -255,6 +255,12 @@ export default function HomeScreen() {
       <View style={[s.header, { paddingTop: insets.top + 12 }]}>
         <Image source={Assets.branding.mainWordmark} style={s.headerWordmark} resizeMode="contain" />
         <View style={s.headerIcons}>
+          {streak > 0 && (
+            <View style={s.streakPill}>
+              <Ionicons name="flame" size={13} color={Colors.warning} />
+              <Text style={s.streakText}>{streak}</Text>
+            </View>
+          )}
           <Pressable hitSlop={10} onPress={() => {}}>
             <Ionicons name="notifications-outline" size={22} color={Colors.textSecondary} />
           </Pressable>
@@ -475,6 +481,22 @@ const s = StyleSheet.create({
   },
   headerWordmark: { width: 120, height: 28 },
   headerIcons: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
+  streakPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    backgroundColor: Colors.warningMuted,
+    borderWidth: 1,
+    borderColor: Colors.warningBorder,
+    borderRadius: Radius.pill,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 4,
+  },
+  streakText: {
+    fontSize: 13,
+    fontFamily: 'Inter_700Bold',
+    color: Colors.warning,
+  },
   kickerRow: { paddingHorizontal: Spacing.lg, paddingBottom: Spacing.md },
   kicker: {
     color: Colors.primary,
