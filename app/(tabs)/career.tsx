@@ -1500,7 +1500,11 @@ export default function CareerScreen() {
             {/* Vertical connecting line */}
             <View style={[styles.connectLine, { backgroundColor: activeChapterConfig.color }]} />
 
-            {filteredWorlds.map((world, index) => {
+            {filteredWorlds.length === 0 ? (
+              <View style={styles.emptyChapter}>
+                <Text style={styles.emptyChapterText}>No worlds available for your role yet.</Text>
+              </View>
+            ) : filteredWorlds.map((world, index) => {
               const worldLessons = lessons
                 .filter(l => l.pillar_id === world.id)
                 .sort((a, b) => a.order_index - b.order_index);
@@ -1508,39 +1512,41 @@ export default function CareerScreen() {
               const isExpanded = expandedWorldId === world.id;
 
               return (
-                <React.Fragment key={world.id}>
-                  <WorldNode
-                    world={world}
-                    index={index}
-                    worldLessons={worldLessons}
-                    done={worldDone}
-                    isCurrentWorld={currentWorld?.id === world.id}
-                    isExpanded={isExpanded}
-                    onTap={() => {
-                      if (world.lockState === 'teaser') {
-                        Alert.alert('Keep stacking.', 'This world unlocks as you progress.');
-                        return;
-                      }
-                      setExpandedWorldId(isExpanded ? null : world.id);
-                    }}
-                  />
-                  {world.lockState === 'active' && isExpanded && (
-                    <WorldMapSection
-                      world={world}
-                      lessons={worldLessons}
-                      completed={completed}
-                    />
-                  )}
-                </React.Fragment>
+                <WorldNode
+                  key={world.id}
+                  world={world}
+                  index={index}
+                  worldLessons={worldLessons}
+                  done={worldDone}
+                  isCurrentWorld={currentWorld?.id === world.id}
+                  isExpanded={isExpanded}
+                  onTap={() => {
+                    if (world.lockState === 'teaser') {
+                      Alert.alert('Keep stacking.', 'This world unlocks as you progress.');
+                      return;
+                    }
+                    setExpandedWorldId(isExpanded ? null : world.id);
+                  }}
+                />
               );
             })}
-
-            {filteredWorlds.length === 0 && (
-              <View style={styles.emptyChapter}>
-                <Text style={styles.emptyChapterText}>No worlds available for your role yet.</Text>
-              </View>
-            )}
           </View>
+
+          {/* ── EXPANDED WORLD LESSONS (below tower) ── */}
+          {filteredWorlds.map((world) => {
+            if (world.lockState !== 'active' || expandedWorldId !== world.id) return null;
+            const worldLessons = lessons
+              .filter(l => l.pillar_id === world.id)
+              .sort((a, b) => a.order_index - b.order_index);
+            return (
+              <WorldMapSection
+                key={world.id}
+                world={world}
+                lessons={worldLessons}
+                completed={completed}
+              />
+            );
+          })}
 
         </ScrollView>
       )}
@@ -1558,7 +1564,7 @@ export default function CareerScreen() {
 
 const styles = StyleSheet.create({
   container:  { flex: 1, backgroundColor: Colors.background },
-  scrollView: { backgroundColor: Colors.background },
+  scrollView: { flex: 1, backgroundColor: Colors.background },
   scroll:     { paddingTop: Spacing.lg },
 
   // Header
@@ -1708,7 +1714,6 @@ const styles = StyleSheet.create({
   towerWrap: {
     marginHorizontal: Spacing.lg,
     borderRadius: Radius.xl,
-    overflow: 'hidden',
     backgroundColor: Colors.surface,
     borderWidth: 1,
     borderColor: Colors.border,
