@@ -20,6 +20,7 @@ import type { SeasonPhase } from "@/context/AthleteContext";
 import { SkeletonCard } from "@/components/SkeletonLoader";
 import { ClutchrHeader } from "@/components/ClutchrHeader";
 import { getBestCue } from "@/lib/personalCue";
+import { useToast } from "@/components/Toast";
 
 // ─── TYPES ────────────────────────────────────────────────────────────────────
 
@@ -2144,6 +2145,7 @@ function ToolRunner({
   const [stepIdx, setStepIdx] = useState(0);
   const [done, setDone] = useState(false);
   const { athleteState, updateAthleteState } = useAthlete();
+  const { showToast } = useToast();
   const [timerSec, setTimerSec] = useState<number | null>(null);
   const [timerRunning, setTimerRunning] = useState(false);
   const [timerDone, setTimerDone] = useState(false);
@@ -2208,6 +2210,7 @@ function ToolRunner({
       setDone(true);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       handleToolComplete();
+      showToast('Rep complete', 'success');
       return;
     }
     Animated.timing(fadeAnim, {

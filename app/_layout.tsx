@@ -13,6 +13,7 @@ import { setupNotificationsOnce } from '@/lib/notifications';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AthleteProvider, useAthlete } from '@/context/AthleteContext';
+import { ToastProvider } from '@/components/Toast';
 import { StatusBar } from 'expo-status-bar';
 
 SplashScreen.preventAutoHideAsync();
@@ -80,7 +81,9 @@ export default function RootLayout() {
       <GestureHandlerRootView style={{ flex: 1 }}>
         <AthleteProvider>
           <StatusBar style="light" />
-          <AuthGate />
+          <ToastProvider>
+            <AuthGate />
+          </ToastProvider>
         </AthleteProvider>
       </GestureHandlerRootView>
     </SafeAreaProvider>

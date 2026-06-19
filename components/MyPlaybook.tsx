@@ -15,6 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAthlete } from '@/context/AthleteContext';
 import { Colors, Radius, Spacing } from '@/constants/theme';
 import { ProgressBar } from '@/components/ProgressBar';
+import { useToast } from '@/components/Toast';
 
 // ─── CUE SLOT DEFINITIONS ────────────────────────────────────────────────────
 // Five situations every baseball player faces. Each gets one personal cue.
@@ -351,6 +352,7 @@ export default function MyPlaybookScreen() {
   const [saved, setSaved] = useState(existingPlaybook.built_at !== '');
   const [justSaved, setJustSaved] = useState(false);
   const saveAnim = useRef(new Animated.Value(1)).current;
+  const { showToast } = useToast();
 
   const completedCount = Object.values(cues).filter((v) => v !== '').length;
   const allComplete = completedCount === CUE_SLOTS.length;
@@ -376,6 +378,7 @@ export default function MyPlaybookScreen() {
     setSaved(true);
     setJustSaved(true);
     setActiveSlot(null);
+    showToast('Cue saved to Playbook ✓', 'success');
 
     // Bounce animation
     Animated.sequence([
