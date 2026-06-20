@@ -306,10 +306,12 @@ function getChoiceQuality(choice: any, step: any, index: number): 'correct' | 'a
   if (choice?.is_correct === true || choice?.correct === true || raw === 'success' || raw === 'correct' || raw === 'best') return 'correct';
   if (raw === 'acceptable' || raw === 'partial' || raw === 'ok') return 'acceptable';
   const choiceId = getChoiceId(choice, index);
-  const correctId = step?.correct_choice_id ?? step?.correct_answer_id ?? step?.answer_id;
+  const correctId = step?.correct_choice_id ?? step?.correct_answer_id ?? step?.correct_id ?? step?.correct_answer ?? step?.answer_id ?? step?.answer ?? step?.responses?.correct_id;
   if (correctId !== undefined && correctId !== null && String(correctId) === choiceId) return 'correct';
   const correctIndex = step?.correct_index ?? step?.answer_index;
   if (typeof correctIndex === 'number' && correctIndex === index) return 'correct';
+  const acceptableIds: string[] = Array.isArray(step?.acceptable_ids) ? step.acceptable_ids.map(String) : [];
+  if (acceptableIds.length > 0 && acceptableIds.includes(choiceId)) return 'acceptable';
   return 'wrong';
 }
 
@@ -317,6 +319,34 @@ function choiceFallbackFeedback(quality: 'correct' | 'acceptable' | 'wrong'): st
   if (quality === 'correct') return 'Good read. That choice keeps the rep under control.';
   if (quality === 'acceptable') return 'That can work, but there is a cleaner baseball decision here.';
   return 'Not the move. Reset the situation, simplify the decision, and try again.';
+}
+
+function resolveChoiceFeedback(
+  choice: any,
+  quality: 'correct' | 'acceptable' | 'wrong',
+  step: any,
+  correctFallback: string,
+  wrongFallback: string
+): string {
+  // Per-choice authored feedback is most specific
+  if (choice?.feedback) return String(choice.feedback);
+  // Step-level feedback object keyed by outcome (e.g. step.feedback.correct / .incorrect / .wrong)
+  const fb = step?.feedback;
+  if (fb && typeof fb === 'object' && !Array.isArray(fb)) {
+    if (quality === 'correct') {
+      const text = fb.correct ?? fb.success;
+      if (text) return String(text);
+    } else if (quality === 'acceptable') {
+      const text = fb.acceptable;
+      if (text) return String(text);
+    } else {
+      const text = fb.incorrect ?? fb.wrong ?? fb.error;
+      if (text) return String(text);
+    }
+  }
+  // Generic cap-voice microcopy as last resort
+  if (quality === 'acceptable') return choiceFallbackFeedback('acceptable');
+  return quality === 'correct' ? correctFallback : wrongFallback;
 }
 
 function ChoiceStep({ step, onAdvance, finalAction, advanceLabel = 'Next Rep →' }: { step: any; onAdvance: (passed?: boolean) => void; finalAction?: React.ReactNode; advanceLabel?: string }) {
@@ -388,7 +418,7 @@ function ChoiceStep({ step, onAdvance, finalAction, advanceLabel = 'Next Rep →
             <ChoiceButton
               key={cid}
               label={c.text ?? c.label ?? ''}
-              feedback={c.feedback ?? (quality !== 'wrong' ? correctFbRef.current! : wrongFbRef.current!)}
+              feedback={resolveChoiceFeedback(c, quality, step, correctFbRef.current!, wrongFbRef.current!)}
               quality={quality}
               isSelected={isSel}
               isRevealed={revealed}
@@ -468,10 +498,10 @@ function ChoiceButton({ label, feedback, quality, isSelected, isRevealed, isCorr
         {/* Option letter */}
         <View style={[choiceStyles.optionLetter, {
           backgroundColor: isSelected && isRevealed
-            ? (isCorrect ? Colors.primary : Colors.danger)
+            ? (isCorrect ? Colors.primary : quality === 'acceptable' ? Colors.warning : Colors.danger)
             : Colors.surfaceElevated,
           borderColor: isSelected && isRevealed
-            ? (isCorrect ? Colors.primary : Colors.danger)
+            ? (isCorrect ? Colors.primary : quality === 'acceptable' ? Colors.warning : Colors.danger)
             : Colors.border,
         }]}>
           <Text style={[choiceStyles.optionLetterText, {
