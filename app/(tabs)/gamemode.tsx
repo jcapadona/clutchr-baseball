@@ -1813,6 +1813,7 @@ function formatSeasonPhase(phase: SeasonPhase): string {
 }
 
 function DrillModeSection({ onStartDrill }: { onStartDrill: (drill: RapidRepDrill) => void }) {
+  const { showToast } = useToast();
   return (
     <View style={s.drillSection}>
       <View style={s.drillHeroCard}>
@@ -1848,17 +1849,20 @@ function DrillModeSection({ onStartDrill }: { onStartDrill: (drill: RapidRepDril
         ))}
 
         {RAPID_REP_ROADMAP_CARDS.map((drill) => (
-          <View
+          <Pressable
             key={drill.label}
-            style={[s.drillCard, { borderColor: drill.color + "30" }]}
+            onPress={() => showToast('Coming soon — in development', 'info')}
+            style={[s.drillCard, { borderColor: drill.color + "20", opacity: 0.45 }]}
           >
             <View style={s.drillCardTopRow}>
               <Ionicons name={drill.icon as any} size={17} color={drill.color} />
-              <Text style={s.drillSoonTag}>NEXT</Text>
+              <View style={s.drillSoonPill}>
+                <Text style={s.drillSoonTag}>COMING SOON</Text>
+              </View>
             </View>
             <Text style={[s.drillTitle, { color: drill.color }]}>{drill.label}</Text>
             <Text style={s.drillCardSub}>{drill.sub}</Text>
-          </View>
+          </Pressable>
         ))}
       </View>
     </View>
@@ -3145,11 +3149,19 @@ const s = StyleSheet.create({
     fontFamily: "Inter_700Bold",
     letterSpacing: 0.7,
   },
+  drillSoonPill: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: Colors.surface,
+  },
   drillSoonTag: {
-    fontSize: 8,
+    fontSize: 7,
     fontFamily: "Inter_700Bold",
     color: Colors.textTertiary,
-    letterSpacing: 0.7,
+    letterSpacing: 0.6,
   },
   drillTitle: {
     fontSize: 11,
