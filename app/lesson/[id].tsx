@@ -365,7 +365,7 @@ function ChoiceStep({ step, onAdvance, finalAction, advanceLabel = 'Next Rep →
   if (shuffledRef.current === null) {
     const raw = Array.isArray(step?.choices) ? step.choices : Array.isArray(step?.options) ? step.options : [];
     shuffledRef.current = [...raw]
-      .filter((c: any) => (c?.text ?? c?.label ?? '').trim().length > 0)
+      .filter((c: any) => (c?.content ?? c?.text ?? c?.label ?? '').trim().length > 0)
       .sort(() => Math.random() - 0.5);
   }
   const choices = shuffledRef.current;
@@ -417,7 +417,7 @@ function ChoiceStep({ step, onAdvance, finalAction, advanceLabel = 'Next Rep →
           return (
             <ChoiceButton
               key={cid}
-              label={c.text ?? c.label ?? ''}
+              label={c.content ?? c.text ?? c.label ?? ''}
               feedback={resolveChoiceFeedback(c, quality, step, correctFbRef.current!, wrongFbRef.current!)}
               quality={quality}
               isSelected={isSel}
