@@ -1,0 +1,1390 @@
+-- ─────────────────────────────────────────────────────────────────────────────
+-- CLUTCHR MINI CLINIC — FULL BATCH (rows 6–30)
+-- Source: product/mini_clinic_output.csv
+-- card_type: article | sport_scope: baseball_softball_specific | is_active: true
+-- id: gen_random_uuid() | legacy_resource_id: cc_miniclinic_000N (CSV id column)
+-- body_markdown: internal file:// source citations stripped
+-- Re-runnable: DELETE by legacy_resource_id before each INSERT run
+-- ─────────────────────────────────────────────────────────────────────────────
+
+DELETE FROM content_cards
+WHERE legacy_resource_id IN (
+  'cc_miniclinic_0006',
+  'cc_miniclinic_0007',
+  'cc_miniclinic_0008',
+  'cc_miniclinic_0009',
+  'cc_miniclinic_0010',
+  'cc_miniclinic_0011',
+  'cc_miniclinic_0012',
+  'cc_miniclinic_0013',
+  'cc_miniclinic_0014',
+  'cc_miniclinic_0015',
+  'cc_miniclinic_0016',
+  'cc_miniclinic_0017',
+  'cc_miniclinic_0018',
+  'cc_miniclinic_0019',
+  'cc_miniclinic_0020',
+  'cc_miniclinic_0021',
+  'cc_miniclinic_0022',
+  'cc_miniclinic_0023',
+  'cc_miniclinic_0024',
+  'cc_miniclinic_0025',
+  'cc_miniclinic_0026',
+  'cc_miniclinic_0027',
+  'cc_miniclinic_0028',
+  'cc_miniclinic_0029',
+  'cc_miniclinic_0030'
+);
+
+INSERT INTO content_cards (
+  id,
+  legacy_resource_id,
+  title,
+  summary,
+  body_markdown,
+  card_type,
+  content_category,
+  lesson_family,
+  sport_scope,
+  role_tags,
+  season_tags,
+  state_tags,
+  skill_tags,
+  difficulty_tier,
+  duration_minutes,
+  priority,
+  is_featured,
+  is_active,
+  source,
+  thumbnail_url,
+  audio_url,
+  youtube_url,
+  video_url,
+  attachment_url,
+  visibility
+) VALUES
+
+-- ── 0006: Winning the Free Base War ───────────────────────────────────────────
+(
+  gen_random_uuid(),
+  'cc_miniclinic_0006',
+  'Mini-Clinic: Winning the Free Base War',
+  'Explore how minimizing walks, errors and mental lapses helps you win the free‑base war and control games.',
+  $body6$
+Opening hook: You don't need a 95‑mph arm to play great defense; you just need to stop giving away free bases. Winning the free base war is how under‑talented teams beat opponents who slug.
+
+KEY INSIGHT
+Free bases come from walks, hit batters, errors, passed balls and mental lapses. Championship defenses minimize freebies by executing cutoffs, throwing strikes, communicating and knowing where the baseball needs to go.
+
+WHY THIS MATTERS
+Every free 90 feet puts pressure on your pitcher and inflates pitch counts. Preventing them shrinks innings and allows your offense more opportunities to score. When your defense is stingy, opponents feel like they have to earn every run.
+
+REAL TALK
+Players sometimes treat practice throws casually and then overthrow bases in games. Coaches obsess over out counts but forget to drill situational awareness. Winning programs drill pressure reps until decision making is automatic.
+
+COMMON MISTAKES
+• Underestimating the cost of a walk or misplayed bunt.
+• Failing to prioritize outs over flashy plays and missing the routine one.
+• Ignoring communication, which leads to collisions and missed cuts.
+
+WHAT TO DO
+• Make controlling the free base a team priority. Track walks, errors and mental mistakes in practice and challenge your team to improve.
+• Practice bunt defenses, pickoff plays and run‑downs so everyone knows their job.
+• Pre‑pitch, ask yourself where you're going with the ball before it's hit. Cut down indecision.
+
+TAKEAWAY
+Defense wins when you refuse to give anything away. Limit free bases by valuing outs, communicating and practicing game situations.
+$body6$,
+  'article',
+  'ingame',
+  'game_execution',
+  'baseball_softball_specific',
+  ARRAY['pitcher', 'infielder', 'outfielder', 'catcher'],
+  ARRAY['in_season'],
+  ARRAY['decision_making'],
+  ARRAY['mini_clinic', 'mini_clinic_series', 'team_defense', 'free_base_war', 'priority'],
+  'medium',
+  6.5,
+  75,
+  false,
+  true,
+  'legacy_resource',
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  'pro'
+),
+
+-- ── 0007: Preventing the Big Inning ───────────────────────────────────────────
+(
+  gen_random_uuid(),
+  'cc_miniclinic_0007',
+  'Mini-Clinic: Preventing the Big Inning',
+  'Learn how disciplined defensive priorities keep innings small and prevent the momentum swings that decide games.',
+  $body7$
+Opening hook: One crooked number can decide a game. Preventing the big inning is about getting the sure out, keeping double plays in order and never compounding mistakes.
+
+KEY INSIGHT
+Big innings happen when teams string together freebies—walks, errors and mental breakdowns. The fix is simple: know the situation, make the routine play and never try to do too much. Keep the double play in order and understand when to concede a base to get an out.
+
+WHY THIS MATTERS
+Halting momentum after one mistake prevents a snowball effect. When every defender understands priorities—outs over bases—you force your opponents to string together hits instead of capitalizing on gifts.
+
+REAL TALK
+Players often panic after an error and try to make a hero play on the next ball. That only leads to more mistakes. Coaches must reinforce situational discipline under pressure.
+
+COMMON MISTAKES
+• Rushing throws after bobbles and air‑mailing the next base.
+• Forgetting the number of outs and throwing to the wrong base.
+• Trying to turn a double play when you barely have a force at one.
+
+WHAT TO DO
+• Practice "one‑out" drills where you intentionally make an error and then reset quickly to complete the next play correctly.
+• Emphasize communication between middle infielders and corners so everyone knows who covers the bag.
+• In team defense, rehearse scenarios where the correct play is to eat the ball and live to fight another pitch.
+
+TAKEAWAY
+Big innings aren't about luck; they're about compounding mistakes. Stay calm, get the sure out and keep the game small.
+$body7$,
+  'article',
+  'ingame',
+  'game_execution',
+  'baseball_softball_specific',
+  ARRAY['infielder', 'outfielder', 'pitcher', 'catcher'],
+  ARRAY['in_season'],
+  ARRAY['decision_making'],
+  ARRAY['mini_clinic', 'mini_clinic_series', 'team_defense', 'prevent_big_inning'],
+  'medium',
+  6.5,
+  75,
+  false,
+  true,
+  'legacy_resource',
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  'pro'
+),
+
+-- ── 0008: Creating Opportunities & Priority Plays ─────────────────────────────
+(
+  gen_random_uuid(),
+  'cc_miniclinic_0008',
+  'Mini-Clinic: Creating Opportunities & Priority Plays',
+  'Understand how anticipating situations and knowing priorities allows defenses to steal outs and control the game.',
+  $body8$
+Opening hook: Defense isn't passive. The best teams create opportunities by anticipating plays before they happen and understanding priorities in every situation.
+
+KEY INSIGHT
+Know where the baseball needs to go before it's hit. In bunt or first‑and‑third situations, fielders must anticipate and attack. Cuts and relays require clear priorities: know who's the cutoff, where the lead runner is and whether the double play is still alive.
+
+WHY THIS MATTERS
+Being proactive creates outs that steal momentum. When defenders recognize opportunities to get an extra out—like picking off a runner who rounds too far or cutting a ball early to prevent the trail runner from advancing—you tilt the game in your favor.
+
+REAL TALK
+Too many players react instead of anticipate. They wait until the ball is hit to figure out what to do and then rush a throw. Good teams talk through situations ahead of time.
+
+COMMON MISTAKES
+• Not communicating bunt coverages and leaving bases uncovered.
+• Hesitating on cutoffs and allowing both runners to advance.
+• Forgetting priority on pop ups—who has the right of way.
+
+WHAT TO DO
+• Use practice time to walk through 1st and 3rd plays, bunts and pickoffs.
+• Assign a vocal leader to call out priorities before each pitch.
+• In outfield, rehearse priority rules (center‑fielder calls ball) and ensure infielders echo the call.
+
+TAKEAWAY
+Defense can steal outs if players anticipate and execute priorities. Practice situational plays until reactions become proactive decisions.
+$body8$,
+  'article',
+  'ingame',
+  'game_execution',
+  'baseball_softball_specific',
+  ARRAY['infielder', 'outfielder', 'pitcher', 'catcher'],
+  ARRAY['in_season'],
+  ARRAY['decision_making'],
+  ARRAY['mini_clinic', 'mini_clinic_series', 'team_defense', 'opportunities', 'priorities'],
+  'medium',
+  6.5,
+  75,
+  false,
+  true,
+  'legacy_resource',
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  'pro'
+),
+
+-- ── 0009: Team Defensive Drills & Communication ───────────────────────────────
+(
+  gen_random_uuid(),
+  'cc_miniclinic_0009',
+  'Mini-Clinic: Team Defensive Drills & Communication',
+  'Discover how structured team drills and communication practices build a crisp, pressure‑ready defense.',
+  $body9$
+Opening hook: A crisp defense is built in practice. Team drills that emphasize communication, footwork and game‑speed reps prepare players for the chaos of competition.
+
+KEY INSIGHT
+Defensive drills should mimic game pressure and cover everything from pop‑up communication to bunt defenses. Over‑communicate on every drill so players know where to be and who has priority. Practice slow to play fast: rehearse footwork deliberately, then gradually increase tempo until it feels like game speed.
+
+WHY THIS MATTERS
+The more situations you practice, the fewer surprises occur during games. Communication drills reduce collisions and misplayed balls; fungo series that focus on footwork and finishes teach players to complete plays even when off balance. Simulated team defenses—run‑downs, cuts and relays—build instinct.
+
+REAL TALK
+Teams often skip defensive drills to hit more BP. Then they commit errors that could have been prevented with fifteen minutes of communication work. Defense requires reps just like hitting.
+
+COMMON MISTAKES
+• Treating drills as casual warm‑ups and not communicating.
+• Failing to progress from dry runs to live speed, leaving players unprepared.
+• Doing random drills without explaining their purpose.
+
+WHAT TO DO
+• Start each practice with a communication drill: pop‑ups in the infield/outfield with calls.
+• Incorporate a fungo series that emphasizes footwork on ground balls, forehands and backhands, and finishing throws on the run.
+• End team practice with situational defense—bunts, first‑and‑third, run‑downs—so players leave with a game‑speed feel.
+
+TAKEAWAY
+Practice what wins games. Consistent defensive drills with clear communication build a reliable unit that thrives under pressure.
+$body9$,
+  'article',
+  'practice',
+  'game_execution',
+  'baseball_softball_specific',
+  ARRAY['infielder', 'outfielder', 'pitcher', 'catcher'],
+  ARRAY['in_season'],
+  ARRAY['communication', 'mechanics'],
+  ARRAY['mini_clinic', 'mini_clinic_series', 'team_defense', 'drills', 'communication'],
+  'easy',
+  5.5,
+  75,
+  false,
+  true,
+  'legacy_resource',
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  'pro'
+),
+
+-- ── 0010: Qualities of Winning Coaches – Passion & Integrity ─────────────────
+(
+  gen_random_uuid(),
+  'cc_miniclinic_0010',
+  'Mini-Clinic: Qualities of Winning Coaches – Passion & Integrity',
+  'Explore how passion and integrity in coaches set the tone for a winning program and earn player trust.',
+  $body10$
+Opening hook: Winning programs are led by coaches who live their values. Passion fuels the work, and integrity ensures trust from players and staff.
+
+KEY INSIGHT
+A winning coach is passionate about teaching and demonstrates it daily. Integrity means being honest with players about expectations and accountability—no double standards. These traits set the culture and show athletes how to behave when no one is watching.
+
+WHY THIS MATTERS
+Players mirror their leaders. When they see coaches who love the game and run an honest program, they buy in. Passion gives energy to long practices; integrity builds trust that mistakes will be treated as learning opportunities rather than reasons for punishment.
+
+REAL TALK
+You can't fake passion. Athletes know when coaches are mailing it in or cutting corners. Likewise, if you preach accountability but play favorites, you'll lose the locker room. Consistency and authenticity matter.
+
+COMMON MISTAKES
+• Coaches focusing solely on wins and neglecting relationships.
+• Saying one thing in meetings but acting differently on the field.
+• Letting little things slide until they become big problems.
+
+WHAT TO DO
+• Show up every day with energy. Your tone sets the practice environment.
+• Be transparent about roles and expectations. Hard conversations build trust.
+• Hold yourself accountable to the same standards you demand from players.
+
+TAKEAWAY
+Winning begins with the coach. Lead with passion and integrity to create a culture players want to be part of.
+$body10$,
+  'article',
+  'leadership',
+  'leadership_team',
+  'baseball_softball_specific',
+  ARRAY['coach', 'player'],
+  ARRAY['in_season'],
+  ARRAY['team_culture'],
+  ARRAY['mini_clinic', 'mini_clinic_series', 'leadership', 'passion', 'integrity'],
+  'medium',
+  6.0,
+  75,
+  false,
+  true,
+  'legacy_resource',
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  'pro'
+),
+
+-- ── 0011: Honesty, Accountability & Laughter ──────────────────────────────────
+(
+  gen_random_uuid(),
+  'cc_miniclinic_0011',
+  'Mini-Clinic: Honesty, Accountability & Laughter',
+  'Learn how clear communication, fair standards and a little humor create a resilient team culture.',
+  $body11$
+Opening hook: Championship cultures balance honesty with empathy. Great coaches are straightforward with players while creating an environment where laughter and joy are part of the work.
+
+KEY INSIGHT
+Honesty means telling athletes where they stand and what they need to improve, without sugarcoating or belittling. Accountability means holding everyone to the same standards. Laughter reminds players that baseball is fun and keeps energy high during long seasons.
+
+WHY THIS MATTERS
+When players trust that feedback is honest and fair, they're more receptive to coaching. A culture that allows laughter builds camaraderie and helps athletes handle adversity. Accountability prevents small issues from festering into larger culture problems.
+
+REAL TALK
+Some coaches mistake honesty for negativity. Harsh criticism without solutions demoralizes players. Likewise, ignoring mistakes to avoid hurt feelings creates entitlement. Striking the balance is critical.
+
+COMMON MISTAKES
+• Giving generic praise or criticism without specific actions.
+• Avoiding tough conversations and letting resentment build.
+• Treating accountability as punishment rather than development.
+
+WHAT TO DO
+• Schedule regular one‑on‑one conversations with players to discuss roles and progress.
+• Use humor appropriately to ease tension and build relationships.
+• When correcting mistakes, pair the critique with a clear plan for improvement.
+
+TAKEAWAY
+Honesty, accountability and laughter form the glue of winning teams. They create trust, maintain standards and make the grind enjoyable.
+$body11$,
+  'article',
+  'leadership',
+  'leadership_team',
+  'baseball_softball_specific',
+  ARRAY['coach', 'player'],
+  ARRAY['in_season'],
+  ARRAY['team_culture'],
+  ARRAY['mini_clinic', 'mini_clinic_series', 'leadership', 'honesty', 'accountability', 'culture'],
+  'medium',
+  6.0,
+  75,
+  false,
+  true,
+  'legacy_resource',
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  'pro'
+),
+
+-- ── 0012: Energy, Enthusiasm & Education ──────────────────────────────────────
+(
+  gen_random_uuid(),
+  'cc_miniclinic_0012',
+  'Mini-Clinic: Energy, Enthusiasm & Education',
+  'See how genuine enthusiasm and thoughtful teaching elevate practices and player development.',
+  $body12$
+Opening hook: Energy is contagious. Coaches who bring enthusiasm and a teacher's mindset elevate everyone around them.
+
+KEY INSIGHT
+Energy and enthusiasm aren't about fake hype; they're about genuine excitement for teaching the game. Coaches who educate—explaining the why behind drills—help players understand concepts deeply. A coach's energy level sets the tone for practice intensity and focus.
+
+WHY THIS MATTERS
+Players feed off a coach's vibe. When you're engaged and enthusiastic, they're more likely to lock in and take ownership of their development. Explaining the purpose behind drills builds buy‑in and helps athletes adjust on their own when something goes wrong.
+
+REAL TALK
+Too many practices are run on autopilot. Coaches run through drills without explaining their purpose. Players go through the motions and then freeze in games when context changes.
+
+COMMON MISTAKES
+• Yelling for the sake of intensity rather than educating.
+• Relying solely on motivation clichés instead of teaching skills.
+• Failing to adjust energy based on team needs (e.g., sometimes calm focus is needed).
+
+WHAT TO DO
+• Start practice with a brief explanation of the day's focus and why it matters.
+• Bring authentic enthusiasm—show that you enjoy the process.
+• During drills, pause to connect what players feel to the game situation.
+
+TAKEAWAY
+Your energy and teaching style influence how your team learns. Bring enthusiasm and educate players to maximize growth.
+$body12$,
+  'article',
+  'leadership',
+  'leadership_team',
+  'baseball_softball_specific',
+  ARRAY['coach', 'player'],
+  ARRAY['in_season'],
+  ARRAY['team_culture'],
+  ARRAY['mini_clinic', 'mini_clinic_series', 'leadership', 'energy', 'education'],
+  'medium',
+  6.0,
+  75,
+  false,
+  true,
+  'legacy_resource',
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  'pro'
+),
+
+-- ── 0013: Leadership & Culture ────────────────────────────────────────────────
+(
+  gen_random_uuid(),
+  'cc_miniclinic_0013',
+  'Mini-Clinic: Leadership & Culture',
+  'Understand how clear standards, daily habits and consistent accountability build a winning baseball culture.',
+  $body13$
+Opening hook: Winning cultures don't happen by accident. They are intentionally built through vision, communication and daily habits.
+
+KEY INSIGHT
+Strong leaders set clear standards and communicate them consistently. They establish goals for behavior and performance and hold everyone accountable. Culture is reinforced through routines—showing up early, cleaning up equipment and celebrating team successes over individual stats.
+
+WHY THIS MATTERS
+Players crave clarity. When they know what's expected and see leaders living those expectations, they buy in. A positive culture attracts the right people and repels those unwilling to invest.
+
+REAL TALK
+Culture isn't slogans on the wall; it's how you act when things go wrong. If leaders panic or blame others, the team will too. Building culture requires daily commitment.
+
+COMMON MISTAKES
+• Setting rules but not enforcing them.
+• Letting talented players disregard standards because of their ability.
+• Trying to copy another program's culture instead of creating one unique to your team.
+
+WHAT TO DO
+• Define core values with your staff and players and revisit them often.
+• Lead by example: be early, prepared and supportive.
+• Celebrate behaviors that align with your culture and address those that don't immediately.
+
+TAKEAWAY
+Leaders create culture through clarity and consistency. Intentional habits and accountability turn words into a winning environment.
+$body13$,
+  'article',
+  'leadership',
+  'leadership_team',
+  'baseball_softball_specific',
+  ARRAY['coach', 'player'],
+  ARRAY['in_season'],
+  ARRAY['team_culture', 'leadership'],
+  ARRAY['mini_clinic', 'mini_clinic_series', 'leadership', 'culture', 'habits'],
+  'medium',
+  6.0,
+  75,
+  false,
+  true,
+  'legacy_resource',
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  'pro'
+),
+
+-- ── 0014: Resilience & Continuous Learning ────────────────────────────────────
+(
+  gen_random_uuid(),
+  'cc_miniclinic_0014',
+  'Mini-Clinic: Resilience & Continuous Learning',
+  'Discover why mental toughness and a commitment to ongoing education keep winning programs on top.',
+  $body14$
+Opening hook: Championship teams aren't defined by never failing; they're defined by how they respond. Resiliency and a commitment to continuous learning keep programs on top.
+
+KEY INSIGHT
+Resiliency is the ability to bounce back after adversity. It stems from mental and physical toughness. Continuous learning means seeking new ideas, evaluating performance honestly and adapting. Winning programs never stop growing; they embrace change and view challenges as opportunities.
+
+WHY THIS MATTERS
+Baseball seasons are long and unpredictable. Teams that handle slumps and injuries with composure stay in contention. Coaches and players who continually learn stay ahead of opponents and avoid stagnation.
+
+REAL TALK
+Complacency kills dynasties. When teams win, they often relax and stop improving. Meanwhile, hungry opponents are getting better. Without resilience and learning, setbacks become excuses instead of catalysts.
+
+COMMON MISTAKES
+• Dwelling on mistakes instead of moving forward with adjustments.
+• Ignoring feedback because it challenges the status quo.
+• Training only what you're already good at and avoiding weaknesses.
+
+WHAT TO DO
+• Debrief wins and losses with an eye on lessons learned rather than blame.
+• Encourage players and coaches to attend clinics, read and share ideas.
+• Build mental toughness through challenging practices that force adaptation.
+
+TAKEAWAY
+Resilience and learning fuel sustained success. Embrace adversity as a teacher and never stop evolving.
+$body14$,
+  'article',
+  'growth',
+  'mindset_growth',
+  'baseball_softball_specific',
+  ARRAY['coach', 'player'],
+  ARRAY['in_season'],
+  ARRAY['resilience', 'learning'],
+  ARRAY['mini_clinic', 'mini_clinic_series', 'leadership', 'resilience', 'learning'],
+  'medium',
+  6.0,
+  75,
+  false,
+  true,
+  'legacy_resource',
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  'pro'
+),
+
+-- ── 0015: Pitcher Warm-Up & Soreness Management ───────────────────────────────
+(
+  gen_random_uuid(),
+  'cc_miniclinic_0015',
+  'Mini-Clinic: Pitcher Warm-Up & Soreness Management',
+  'Learn a step‑by‑step warm‑up and soreness protocol to protect your arm and sustain performance.',
+  $body15$
+Opening hook: Your arm is your livelihood. Protect it by warming up correctly and listening to soreness signals before they become injuries.
+
+KEY INSIGHT
+Begin your warm‑up by throwing at 20 feet and advance 20 feet at a time, throwing three to five times at each distance at 50 percent effort until you reach your workout distance. If you're sore more than an hour after throwing or the next day, take a day off and repeat the most recent workout.
+
+WHY THIS MATTERS
+Pitchers who rush warm‑ups or ignore soreness often develop overuse injuries. Following a structured progression allows your arm to adapt gradually and reduces stress on the shoulder and elbow. Rest days prevent minor soreness from turning into major setbacks.
+
+REAL TALK
+Young pitchers often compete with teammates by throwing hard before they're ready. They also ignore lingering soreness to avoid losing their spot. This short‑term mindset jeopardizes long‑term health and performance.
+
+COMMON MISTAKES
+• Skipping warm‑up steps and going straight to long toss.
+• Throwing through pain, thinking it will loosen up.
+• Increasing distance or intensity too quickly after time off.
+
+WHAT TO DO
+• Follow the 20‑foot progression strictly. If soreness appears during warm‑up but goes away within 15 throws, repeat that workout; if soreness persists, stop and rest for two days.
+• If no soreness occurs, advance one step every throwing day. Monitor how your arm feels during and after each session.
+• Use ice and rotator cuff strengthening exercises post‑throwing to aid recovery.
+
+TAKEAWAY
+A disciplined warm‑up and soreness management routine is your best defense against injury. Listen to your arm and progress gradually.
+$body15$,
+  'article',
+  'recovery',
+  'recovery_reset',
+  'baseball_softball_specific',
+  ARRAY['pitcher'],
+  ARRAY['in_season'],
+  ARRAY['recovery', 'durability'],
+  ARRAY['mini_clinic', 'mini_clinic_series', 'pitching', 'warm_up', 'arm_care'],
+  'medium',
+  6.0,
+  75,
+  false,
+  true,
+  'legacy_resource',
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  'pro'
+),
+
+-- ── 0016: Pitcher Baseline & Preseason Progression ────────────────────────────
+(
+  gen_random_uuid(),
+  'cc_miniclinic_0016',
+  'Mini-Clinic: Pitcher Baseline & Preseason Progression',
+  'Follow a structured preseason progression to build arm endurance and reduce injury risk.',
+  $body16$
+Opening hook: Building a strong foundation in the preseason sets your arm up for an entire year of healthy pitching.
+
+KEY INSIGHT
+For baseline conditioning, begin with step 3 of the throwing program and advance one step daily until step 13, following soreness rules. This establishes a throwing base before the season starts. For non‑throwing arm injuries, begin at step 3 and advance daily to step 16 after medical clearance.
+
+WHY THIS MATTERS
+Without a structured build‑up, pitchers go from zero to full intensity too quickly and risk shoulder and elbow stress. A gradual progression builds endurance and prepares the body for the demands of competition.
+
+REAL TALK
+Many players show up to tryouts having thrown only occasionally all winter. They then attempt to pitch at game speed on day one. This is a recipe for injury and lost velocity.
+
+COMMON MISTAKES
+• Jumping multiple steps in the progression because you feel good.
+• Ignoring the program after a few days because it seems repetitive.
+• Returning too quickly after an injury without following the modified progression.
+
+WHAT TO DO
+• Start your preseason throwing at least six weeks before your first game. Follow the step‑by‑step progression even if it feels slow.
+• If you have a non‑throwing arm injury, begin at step 3 after clearance and advance to step 16 by following soreness rules.
+• Track how your arm feels and stay disciplined. The real goal is to be strong in May, not just in February.
+
+TAKEAWAY
+A structured preseason throwing progression protects your arm and builds the foundation for a successful season.
+$body16$,
+  'article',
+  'recovery',
+  'recovery_reset',
+  'baseball_softball_specific',
+  ARRAY['pitcher'],
+  ARRAY['in_season'],
+  ARRAY['durability'],
+  ARRAY['mini_clinic', 'mini_clinic_series', 'pitching', 'preseason', 'progression'],
+  'medium',
+  6.0,
+  75,
+  false,
+  true,
+  'legacy_resource',
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  'pro'
+),
+
+-- ── 0017: Throwing Arm Injury Guidelines ──────────────────────────────────────
+(
+  gen_random_uuid(),
+  'cc_miniclinic_0017',
+  'Mini-Clinic: Throwing Arm Injury Guidelines',
+  'Understand the step‑by‑step guidelines for returning from arm injuries without setbacks.',
+  $body17$
+Opening hook: Coming back from an arm injury requires patience and a plan. Rushing back often leads to re‑injury and longer layoffs.
+
+KEY INSIGHT
+For bruise or bone involvement, begin at step 1 and advance as soreness rules allow. For mild tendon or ligament injuries, begin at step 1 and progress to step 4, throwing every other day; steps 5–8 are thrown every third day. For moderate, severe or post‑operative cases, advance no more than one step every three days with two days of active rest after each session.
+
+WHY THIS MATTERS
+Arm injuries heal at different rates. Adhering to specific timelines gives tissues time to repair while gradually reintroducing stress. Ignoring guidelines can undo months of rehabilitation.
+
+REAL TALK
+Pitchers often push to return sooner than prescribed. Coaches and parents sometimes encourage this. Doing so risks chronic issues that can derail careers.
+
+COMMON MISTAKES
+• Skipping rest days because you feel good on a given day.
+• Advancing multiple steps at once to "catch up."
+• Forgetting to include active rest (warm‑up and long toss) between throwing days.
+
+WHAT TO DO
+• After clearance, follow the specific step schedule for your injury type. Do not compare your timeline to teammates.
+• Use active rest days for warm‑up throws and long toss to maintain blood flow.
+• Communicate with coaches and trainers about any soreness or setbacks.
+
+TAKEAWAY
+Injury guidelines exist to protect your arm. Respect the plan and you'll return stronger and healthier.
+$body17$,
+  'article',
+  'recovery',
+  'recovery_reset',
+  'baseball_softball_specific',
+  ARRAY['pitcher'],
+  ARRAY['in_season'],
+  ARRAY['injury', 'recovery'],
+  ARRAY['mini_clinic', 'mini_clinic_series', 'pitching', 'injury_rehab', 'guidelines'],
+  'medium',
+  6.0,
+  75,
+  false,
+  true,
+  'legacy_resource',
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  'pro'
+),
+
+-- ── 0018: Interval Throwing Program (Phase I–II) ──────────────────────────────
+(
+  gen_random_uuid(),
+  'cc_miniclinic_0018',
+  'Mini-Clinic: Interval Throwing Program (Phase I–II)',
+  'Follow a structured interval throwing plan to safely progress from short toss to the mound.',
+  $body18$
+Opening hook: Building up to pitching again takes more than long toss. The interval throwing program outlines how to progress from short toss to the mound.
+
+KEY INSIGHT
+Phase I begins at 50 percent effort with warm‑up tosses out to 60 feet and series of 15 throws at short distances, followed by long tosses. Phase II returns to the mound with fastballs at 50 percent, gradually increasing to 100 percent. Each step specifies the number of throws, distances and effort levels.
+
+WHY THIS MATTERS
+Gradual progression allows the arm to adapt to increased distance and intensity. Jumping straight to full‑speed bullpen sessions after time off invites injury. The interval program offers a road map for safe, effective build‑up.
+
+REAL TALK
+Players often skip steps because they're eager to face hitters. They also throw too many pitches in early bullpens. Following a structured program prevents overload.
+
+COMMON MISTAKES
+• Treating long toss as a max‑effort competition instead of controlled throws.
+• Increasing velocity before volume (number of throws).
+• Ignoring prescribed rest between phases.
+
+WHAT TO DO
+• Adhere to the distances and throw counts in each step. Don't rush to the mound until you complete Phase I pain free.
+• When starting Phase II, limit bullpens to 20–25 fastballs at 50 percent and gradually increase intensity over multiple sessions.
+• Track your throws and note any discomfort so you can adjust.
+
+TAKEAWAY
+Progressing through Phases I–II systematically prepares you to pitch again. Patience early equals performance later.
+$body18$,
+  'article',
+  'recovery',
+  'recovery_reset',
+  'baseball_softball_specific',
+  ARRAY['pitcher'],
+  ARRAY['in_season'],
+  ARRAY['durability'],
+  ARRAY['mini_clinic', 'mini_clinic_series', 'pitching', 'interval_program', 'phase_I_II'],
+  'medium',
+  6.5,
+  75,
+  false,
+  true,
+  'legacy_resource',
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  'pro'
+),
+
+-- ── 0019: Intensified Pitching Progression ────────────────────────────────────
+(
+  gen_random_uuid(),
+  'cc_miniclinic_0019',
+  'Mini-Clinic: Intensified Pitching Progression',
+  'Learn how to safely ramp up intensity in Phase III of the interval throwing program.',
+  $body19$
+Opening hook: Once your arm has handled short and moderate distances, it's time to add intensity. Phase III of the interval program ramps up velocity and volume to game levels.
+
+KEY INSIGHT
+Phase III steps 9–11 include combinations of fastballs at 75–100 percent effort from 120 feet and from the mound. The program alternates high‑intensity sets with controlled long toss to maintain arm health. Progression should only occur if prior steps were completed without soreness.
+
+WHY THIS MATTERS
+Rushing into full‑speed bullpens strains the shoulder and elbow. The intensified progression adds velocity gradually while maintaining proper mechanics. Alternating effort levels builds stamina and resilience.
+
+REAL TALK
+Pitchers often jump straight from 50 percent flat‑ground throws to 100 percent bullpens. This leap increases injury risk and reduces command. Respecting the progression can feel tedious, but it pays off.
+
+COMMON MISTAKES
+• Skipping the 75 percent phase and going directly to max effort.
+• Throwing too many pitches per session in an attempt to catch up.
+• Neglecting long toss between mound sessions.
+
+WHAT TO DO
+• Follow the prescribed number of fastballs at each intensity. For example, Step 9 calls for sets of 10–15 fastballs at 75–100 percent with long toss in between.
+• Alternate between mound work and long toss to keep the arm loose.
+• If soreness appears, repeat the previous step before advancing.
+
+TAKEAWAY
+The intensified progression bridges the gap from controlled throwing to game‑ready velocity. Stay patient and complete each step thoroughly.
+$body19$,
+  'article',
+  'recovery',
+  'recovery_reset',
+  'baseball_softball_specific',
+  ARRAY['pitcher'],
+  ARRAY['in_season'],
+  ARRAY['durability'],
+  ARRAY['mini_clinic', 'mini_clinic_series', 'pitching', 'phase_III', 'intensity'],
+  'medium',
+  6.5,
+  75,
+  false,
+  true,
+  'legacy_resource',
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  'pro'
+),
+
+-- ── 0020: Strength Program Overview & Philosophy ──────────────────────────────
+(
+  gen_random_uuid(),
+  'cc_miniclinic_0020',
+  'Mini-Clinic: Strength Program Overview & Philosophy',
+  'Adopt the discipline and planning mindset behind a successful strength program.',
+  $body20$
+Opening hook: A great strength program isn't just a collection of exercises; it's a philosophy. It starts with discipline, planning and a belief that hard work leads to winning.
+
+KEY INSIGHT
+The OUAZ Strength & Conditioning program encourages athletes to find a good place to train, plan each weekly mini‑phase in advance, track their maxes and ignore fads on social media. The goal is to prepare the most dangerous athlete possible by sticking to proven guidelines and avoiding half‑truths online.
+
+WHY THIS MATTERS
+A clear philosophy prevents distraction. When players understand why they're doing an exercise and trust the process, they commit fully. Planning mini‑phases and tracking progress help athletes adjust loads correctly and avoid overtraining.
+
+REAL TALK
+Athletes often chase gimmick workouts they see on Instagram rather than sticking to basics. They also fail to plan their weeks and end up skipping important lifts. A disciplined mindset separates serious players.
+
+COMMON MISTAKES
+• Copying influencer workouts without regard for your sport's demands.
+• Failing to record weights and progress, leading to random training.
+• Ignoring warm‑ups and recovery.
+
+WHAT TO DO
+• Choose a training space with proper equipment. If you can't get to a weight room, follow at‑home workouts provided by your strength coach.
+• Plan your week in advance, including lifts and conditioning days.
+• Keep accurate records of your lifts so you can adjust percentages appropriately.
+
+TAKEAWAY
+Strength training starts with a philosophy: plan your work, trust proven guidelines and ignore the noise. Discipline turns workouts into winning performance.
+$body20$,
+  'article',
+  'off-season',
+  'offseason_build',
+  'baseball_softball_specific',
+  ARRAY['pitcher'],
+  ARRAY['in_season'],
+  ARRAY['performance', 'growth'],
+  ARRAY['mini_clinic', 'mini_clinic_series', 'strength', 'conditioning', 'philosophy'],
+  'medium',
+  6.5,
+  75,
+  false,
+  true,
+  'legacy_resource',
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  'pro'
+),
+
+-- ── 0021: Planning and Tracking Your Maxes ────────────────────────────────────
+(
+  gen_random_uuid(),
+  'cc_miniclinic_0021',
+  'Mini-Clinic: Planning and Tracking Your Maxes',
+  'Learn how to use intensity charts and mini‑phase planning to progress your strength safely.',
+  $body21$
+Opening hook: Guessing at weights is a recipe for stagnation. Knowing your maxes and planning mini‑phases ensures continuous strength gains.
+
+KEY INSIGHT
+The program uses an intensity chart to estimate maxes safely without one‑rep testing. Athletes use this chart to determine the percentage of their max for each lift, write it down and adjust as they get stronger. Planning mini‑phases and tracking increases allows for appropriate progression and avoids overtraining.
+
+WHY THIS MATTERS
+Strength gains require progressive overload. Without knowing your numbers, you might lift too light (no stimulus) or too heavy (risking injury). Tracking ensures you're working at the right intensity and seeing improvement over time.
+
+REAL TALK
+Many athletes go to the gym without a plan. They lift whatever feels good and then wonder why they plateau. Others attempt maxes every week and burn out.
+
+COMMON MISTAKES
+• Lifting the same weight week after week without increasing load.
+• Testing maxes too often instead of following percentages.
+• Failing to record rest periods and set structure, leading to inconsistent workouts.
+
+WHAT TO DO
+• Use the intensity chart to estimate your one‑rep max based on a set of repetitions.
+• Write down the percentages you'll lift for each exercise and stick to them.
+• Review your log weekly and adjust loads based on how you feel and progress.
+
+TAKEAWAY
+To build strength, you need a plan. Estimate your maxes, follow percentage‑based progressions and track everything.
+$body21$,
+  'article',
+  'off-season',
+  'offseason_build',
+  'baseball_softball_specific',
+  ARRAY['pitcher'],
+  ARRAY['in_season'],
+  ARRAY['performance'],
+  ARRAY['mini_clinic', 'mini_clinic_series', 'strength', 'max_tracking', 'progression'],
+  'medium',
+  6.0,
+  75,
+  false,
+  true,
+  'legacy_resource',
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  'pro'
+),
+
+-- ── 0022: Intensity, Recovery & Work Quality ──────────────────────────────────
+(
+  gen_random_uuid(),
+  'cc_miniclinic_0022',
+  'Mini-Clinic: Intensity, Recovery & Work Quality',
+  'Understand why balancing intensity and recovery leads to sustainable strength gains.',
+  $body22$
+Opening hook: More isn't always better. The quality of your work and your ability to recover determine gains, not just the hours you put in.
+
+KEY INSIGHT
+Intensity refers to quality over quantity. You need enough work to stimulate adaptation but not so much that you can't recover. Training intensity, frequency and volume must be balanced together. Remember: you get stronger from recovering from lifting, not from lifting itself.
+
+WHY THIS MATTERS
+Without proper recovery, hard training breaks the body down. Athletes who chase volume at the expense of quality stall out or get injured. Balancing intensity and rest produces sustainable growth and performance.
+
+REAL TALK
+Grinders pride themselves on long workouts, but more sets and reps don't guarantee improvement. Conversely, some athletes take too many rest days and never challenge themselves. Striking the right balance is essential.
+
+COMMON MISTAKES
+• Adding extra sets or workouts without adjusting recovery.
+• Going heavy every day because you feel good, leading to overtraining.
+• Neglecting sleep, nutrition and mobility work that support recovery.
+
+WHAT TO DO
+• Plan your weekly schedule with hard days and lighter days. Respect rest days.
+• Focus on perfect reps rather than chasing numbers. Stop a set when quality drops.
+• Incorporate mobility, nutrition and adequate sleep into your training plan.
+
+TAKEAWAY
+Training is a balance. Quality work paired with recovery yields progress; mindless volume leads to stagnation. Make intensity and recovery your priorities.
+$body22$,
+  'article',
+  'off-season',
+  'offseason_build',
+  'baseball_softball_specific',
+  ARRAY['pitcher'],
+  ARRAY['in_season'],
+  ARRAY['recovery', 'performance'],
+  ARRAY['mini_clinic', 'mini_clinic_series', 'strength', 'recovery', 'intensity'],
+  'medium',
+  6.0,
+  75,
+  false,
+  true,
+  'legacy_resource',
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  'pro'
+),
+
+-- ── 0023: SAQ Drills for Pitchers ─────────────────────────────────────────────
+(
+  gen_random_uuid(),
+  'cc_miniclinic_0023',
+  'Mini-Clinic: SAQ Drills for Pitchers',
+  'Incorporate speed, agility and quickness drills to become a more athletic and well‑rounded pitcher.',
+  $body23$
+Opening hook: Pitchers need athleticism, not just arm strength. Speed, agility and quickness drills improve movement quality and make you a better athlete on the mound.
+
+KEY INSIGHT
+The OUAZ program includes a weekly SAQ plan with exercises like A‑skips, lateral starts, bound‑to‑sprint drills, flying 10s and pro‑agility shuttles. These drills train acceleration, deceleration and change of direction, which transfer to pitching delivery and defensive actions.
+
+WHY THIS MATTERS
+Pitchers who move well can repeat their mechanics, field their position and control the running game. SAQ work builds coordination and explosiveness without adding joint stress.
+
+REAL TALK
+Some pitchers avoid running and agility work because they think it doesn't matter. Then they struggle to field bunts or cover first base. Being athletic helps every part of pitching.
+
+COMMON MISTAKES
+• Treating SAQ as conditioning and going through the motions.
+• Doing drills sloppy, which ingrains bad movement patterns.
+• Skipping progressions and jumping to advanced drills.
+
+WHAT TO DO
+• Incorporate SAQ drills 2–3 times per week in the off‑season. Follow the prescribed reps and distances.
+• Focus on form and full recovery between reps; quality matters.
+• Progress from simple skips and accelerations to more complex change‑of‑direction drills as you master the basics.
+
+TAKEAWAY
+Being a pitcher means being an athlete. SAQ drills develop speed and agility that translate to better mechanics and defense.
+$body23$,
+  'article',
+  'off-season',
+  'offseason_build',
+  'baseball_softball_specific',
+  ARRAY['pitcher'],
+  ARRAY['in_season'],
+  ARRAY['athleticism'],
+  ARRAY['mini_clinic', 'mini_clinic_series', 'strength', 'SAQ', 'athleticism'],
+  'medium',
+  6.0,
+  75,
+  false,
+  true,
+  'legacy_resource',
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  'pro'
+),
+
+-- ── 0024: Strength Training Lifts & Supersets ─────────────────────────────────
+(
+  gen_random_uuid(),
+  'cc_miniclinic_0024',
+  'Mini-Clinic: Strength Training Lifts & Supersets',
+  'Discover how to organize compound lifts and supersets for balanced power and efficiency.',
+  $body24$
+Opening hook: Big lifts build power, but how you sequence them matters. Supersetting complementary movements maximizes efficiency and develops balanced strength.
+
+KEY INSIGHT
+The program outlines exercises (front squat, bench press, back squat, split squat, DB incline bench, RDL, hex deadlift) with warm‑up sets, reps, percentages and supersets. Supersets pair exercises (e.g., front squat with core work) to maintain heart rate and save time. Using percentages of your max ensures progressive overload.
+
+WHY THIS MATTERS
+Balanced strength prevents imbalances that lead to injury. Supersets keep workouts efficient while maintaining quality. Percentage‑based programming helps you push just enough each session.
+
+REAL TALK
+Many players randomly string together exercises or chase pump workouts. Without structure, gains plateau and injuries arise.
+
+COMMON MISTAKES
+• Doing too many isolation movements and neglecting compound lifts.
+• Ignoring warm‑up sets and jumping straight to heavy weight.
+• Supersetting exercises that fatigue the same muscle group, compromising form.
+
+WHAT TO DO
+• Prioritize compound lifts that translate to baseball performance. Warm up with lighter sets before work sets.
+• Use supersets to pair lower‑body and upper‑body or core movements.
+• Follow the percentage chart to select weights and adjust as your maxes change.
+
+TAKEAWAY
+Strength training is more than picking up weights. Use smart exercise selection, structured supersets and percentage‑based loads to build durable, explosive power.
+$body24$,
+  'article',
+  'off-season',
+  'offseason_build',
+  'baseball_softball_specific',
+  ARRAY['pitcher'],
+  ARRAY['in_season'],
+  ARRAY['strength'],
+  ARRAY['mini_clinic', 'mini_clinic_series', 'strength', 'lifts', 'supersets'],
+  'intermediate',
+  6.5,
+  75,
+  false,
+  true,
+  'legacy_resource',
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  'pro'
+),
+
+-- ── 0025: Program Warm-Up & Contact Guidance ──────────────────────────────────
+(
+  gen_random_uuid(),
+  'cc_miniclinic_0025',
+  'Mini-Clinic: Program Warm-Up & Contact Guidance',
+  'Understand why warming up and communicating with your strength coach are vital parts of the program.',
+  $body25$
+Opening hook: Every strength session begins before you pick up a weight. Proper warm‑ups and having a support system ready ensure you get the most from your work.
+
+KEY INSIGHT
+The program lists key abbreviations (DB, SA, SL, BB, etc.) and reminds athletes to always warm up before working out. It also provides contact information for the strength coach so athletes can ask questions when exercises feel off or when injuries arise.
+
+WHY THIS MATTERS
+Knowing exercise terminology helps you follow programs correctly. Warming up reduces injury risk and prepares your muscles and nervous system for heavy work. Having a coach's contact ensures you aren't training blindly and can get help when needed.
+
+REAL TALK
+Skipping warm‑ups is tempting when time is tight. Not asking for clarification leads to improper technique. Both choices can lead to injuries that sideline you.
+
+COMMON MISTAKES
+• Jumping straight into heavy lifts without mobilizing joints.
+• Guessing what an exercise means instead of checking the key.
+• Ignoring discomfort or pain because you don't want to bother the coach.
+
+WHAT TO DO
+• Study the program key and familiarize yourself with abbreviations.
+• Begin every session with dynamic warm‑ups, mobility and light sets.
+• Reach out to your strength coach when an exercise causes pain or when you need modification. The program includes contact info for a reason.
+
+TAKEAWAY
+The little details—warming up and asking questions—keep you healthy and maximize your gains. Use your resources and never skip the prep.
+$body25$,
+  'article',
+  'off-season',
+  'offseason_build',
+  'baseball_softball_specific',
+  ARRAY['pitcher'],
+  ARRAY['in_season'],
+  ARRAY['durability', 'learning'],
+  ARRAY['mini_clinic', 'mini_clinic_series', 'strength', 'warm_up', 'communication'],
+  'easy',
+  5.5,
+  75,
+  false,
+  true,
+  'legacy_resource',
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  'pro'
+),
+
+-- ── 0026: Summer Strength Program Overview ────────────────────────────────────
+(
+  gen_random_uuid(),
+  'cc_miniclinic_0026',
+  'Mini-Clinic: Summer Strength Program Overview',
+  'Commit to a balanced summer program that builds strength, speed and personal accountability.',
+  $body26$
+Opening hook: Summer is the time to build strength and power that lasts all season. A structured off‑season program keeps you accountable and focused.
+
+KEY INSIGHT
+The summer program includes heavy days and speed days, combining exercises like cleans, deadlifts, shoulder presses and med ball walkovers with planned percentages and sets. The program stresses that you are responsible for your own excellence, emphasizing self‑discipline.
+
+WHY THIS MATTERS
+Summer workouts lay the foundation for durability and explosiveness. Mixing heavy lifts with speed work develops both strength and fast‑twitch power. The program's mantra—"You and you only are responsible for your own excellence"—reminds players that off‑season habits determine in‑season performance.
+
+REAL TALK
+Without a plan, players either do too much random lifting or skip workouts altogether. They arrive at fall practice out of shape and susceptible to injury. A printed program holds you accountable.
+
+COMMON MISTAKES
+• Treating summer as optional training time.
+• Ignoring speed components and focusing only on heavy lifts.
+• Neglecting recovery between sessions.
+
+WHAT TO DO
+• Follow the prescribed schedule: heavy days with compound lifts and speed days featuring sprints and med ball drills.
+• Track percentages and adjust as you get stronger.
+• Keep yourself accountable—no one else can do the work for you.
+
+TAKEAWAY
+Summer is your opportunity to build the physical base for success. Commit to a balanced program and take ownership of your excellence.
+$body26$,
+  'article',
+  'off-season',
+  'offseason_build',
+  'baseball_softball_specific',
+  ARRAY['player'],
+  ARRAY['in_season'],
+  ARRAY['performance', 'growth'],
+  ARRAY['mini_clinic', 'mini_clinic_series', 'summer_strength', 'accountability'],
+  'medium',
+  6.5,
+  75,
+  false,
+  true,
+  'legacy_resource',
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  'pro'
+),
+
+-- ── 0027: Heavy Lifts & Percentage Training ───────────────────────────────────
+(
+  gen_random_uuid(),
+  'cc_miniclinic_0027',
+  'Mini-Clinic: Heavy Lifts & Percentage Training',
+  'Learn how to use percentage‑based programming to make steady strength gains during heavy days.',
+  $body27$
+Opening hook: Heavy days aren't just about maxing out; they're about following percentages to build strength safely over time.
+
+KEY INSIGHT
+The summer program prescribes specific percentages for warm‑up and work sets (e.g., 65 percent for cleans, 75 percent for deadlifts). Following these percentages ensures you stress your muscles appropriately without overreaching. The program pairs heavy lifts with complementary exercises like DB shoulder presses and upright rows.
+
+WHY THIS MATTERS
+Randomly choosing weights makes progress haphazard. Percentage‑based training allows you to progress systematically and keeps training challenging but manageable. Combining heavy lifts with accessory work builds balanced strength.
+
+REAL TALK
+Many athletes go off feel on heavy days. Some load too light and never push their limits; others ego‑lift and risk injury. Discipline with percentages beats guesswork.
+
+COMMON MISTAKES
+• Skipping warm‑up sets and jumping straight to heavy percentages.
+• Adding extra sets beyond the prescribed work, compromising recovery.
+• Neglecting accessory movements that support main lifts.
+
+WHAT TO DO
+• Use your recorded maxes to calculate percentages for each lift.
+• Warm up properly before heavy sets and stick to the prescribed reps and sets.
+• Pair main lifts with accessory exercises to strengthen supporting muscles.
+
+TAKEAWAY
+Heavy lifting is science, not guesswork. Follow percentages and complement big lifts with accessory work for steady gains.
+$body27$,
+  'article',
+  'off-season',
+  'offseason_build',
+  'baseball_softball_specific',
+  ARRAY['player'],
+  ARRAY['in_season'],
+  ARRAY['strength'],
+  ARRAY['mini_clinic', 'mini_clinic_series', 'summer_strength', 'percentages', 'heavy_lifts'],
+  'medium',
+  6.0,
+  75,
+  false,
+  true,
+  'legacy_resource',
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  'pro'
+),
+
+-- ── 0028: Speed Day & Med Ball Drills ─────────────────────────────────────────
+(
+  gen_random_uuid(),
+  'cc_miniclinic_0028',
+  'Mini-Clinic: Speed Day & Med Ball Drills',
+  'See how integrating speed days and med ball drills develops explosive power for baseball.',
+  $body28$
+Opening hook: Strength without speed is incomplete. Speed days with med ball work develop the explosiveness that translates to game actions.
+
+KEY INSIGHT
+Speed days focus on fast lifts and med ball drills like walkovers and slams. They train power production and teach your body to move weight quickly. Coupling speed days with heavy days balances strength and explosiveness.
+
+WHY THIS MATTERS
+Baseball requires quick bursts—accelerating out of the box, turning a double play, exploding off the mound. Training speed with med balls improves rate of force development and helps transfer strength into athletic movements.
+
+REAL TALK
+Players often skip speed days because they enjoy heavy lifting more. But without speed training, strength doesn't translate to the field.
+
+COMMON MISTAKES
+• Doing speed work too heavy, turning it into another strength session.
+• Rushing rest periods and losing power output.
+• Neglecting proper technique on med ball exercises, reducing effectiveness.
+
+WHAT TO DO
+• Separate heavy and speed days. Use 30–50 percent of your max for explosive lifts.
+• Perform med ball drills with maximal intent but perfect form.
+• Allow full recovery between sets to maintain power production.
+
+TAKEAWAY
+To become explosive, dedicate days to speed and med ball work. Balance your program and turn strength into usable power.
+$body28$,
+  'article',
+  'off-season',
+  'offseason_build',
+  'baseball_softball_specific',
+  ARRAY['player'],
+  ARRAY['in_season'],
+  ARRAY['power'],
+  ARRAY['mini_clinic', 'mini_clinic_series', 'summer_strength', 'speed', 'med_ball'],
+  'medium',
+  6.0,
+  75,
+  false,
+  true,
+  'legacy_resource',
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  'pro'
+),
+
+-- ── 0029: July Program Adjustments ────────────────────────────────────────────
+(
+  gen_random_uuid(),
+  'cc_miniclinic_0029',
+  'Mini-Clinic: July Program Adjustments',
+  'Understand why mid‑summer modifications keep your training effective and maintain focus.',
+  $body29$
+Opening hook: Training isn't static. As summer progresses, your program should evolve to maintain gains and prevent plateaus.
+
+KEY INSIGHT
+The summer packet adjusts exercises and percentages in July, introducing variations like snatch, bench press and front squat while continuing med ball drills. It reminds athletes that excellence is personal responsibility and encourages them to push through mid‑summer fatigue.
+
+WHY THIS MATTERS
+Changing exercises keeps training fresh and challenges muscles in new ways. Adjusting percentages prevents overtraining and allows recovery before fall ball. Mid‑summer is when athletes often lose focus, so programming variety helps maintain engagement.
+
+REAL TALK
+After a few weeks of training, boredom and fatigue set in. Athletes start skipping workouts or going through the motions. Program modifications rekindle intensity.
+
+COMMON MISTAKES
+• Sticking with the exact same lifts and percentages for months.
+• Letting summer vacations and travel derail training consistency.
+• Ignoring new exercises because they feel awkward or less fun.
+
+WHAT TO DO
+• Embrace new lifts like snatch variations and front squats to challenge coordination and power.
+• Adjust your percentages based on how your body feels; it's okay to deload before ramping back up.
+• Stay accountable—mid‑summer is when others drop off, giving you an edge.
+
+TAKEAWAY
+Programs must adapt. Use July adjustments to keep training effective and stay focused on your goal of personal excellence.
+$body29$,
+  'article',
+  'off-season',
+  'offseason_build',
+  'baseball_softball_specific',
+  ARRAY['player'],
+  ARRAY['in_season'],
+  ARRAY['growth'],
+  ARRAY['mini_clinic', 'mini_clinic_series', 'summer_strength', 'adjustments', 'mid_summer'],
+  'medium',
+  6.0,
+  75,
+  false,
+  true,
+  'legacy_resource',
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  'pro'
+),
+
+-- ── 0030: Personal Responsibility & Excellence ────────────────────────────────
+(
+  gen_random_uuid(),
+  'cc_miniclinic_0030',
+  'Mini-Clinic: Personal Responsibility & Excellence',
+  'Discover why self‑discipline and accountability are the foundation of off‑season growth.',
+  $body30$
+Opening hook: No coach can lift the weights for you. Excellence is a choice you make every day in the off‑season.
+
+KEY INSIGHT
+The summer strength packet repeats a simple truth: you and only you are responsible for your own excellence. Programs provide guidance, but effort, consistency and attitude are yours alone.
+
+WHY THIS MATTERS
+Self‑discipline separates players who improve in the off‑season from those who stagnate. Teams built on personal responsibility don't rely on external motivation; they hold themselves and each other accountable.
+
+REAL TALK
+It's easy to blame circumstances—lack of time, facilities or guidance. The reality is that you control your preparation. Off‑season decisions show up on the field.
+
+COMMON MISTAKES
+• Waiting for coaches to organize workouts instead of taking initiative.
+• Making excuses for missed sessions.
+• Comparing your effort to teammates instead of your own potential.
+
+WHAT TO DO
+• Set clear goals for the off‑season and track progress. Hold yourself accountable to those benchmarks.
+• Find training partners who share your commitment and push each other.
+• Embrace the mindset that excellence is earned, not given.
+
+TAKEAWAY
+Programs can guide you, but excellence is your responsibility. Own your preparation and take pride in the work you do when no one is watching.
+$body30$,
+  'article',
+  'off-season',
+  'offseason_build',
+  'baseball_softball_specific',
+  ARRAY['player'],
+  ARRAY['in_season'],
+  ARRAY['accountability'],
+  ARRAY['mini_clinic', 'mini_clinic_series', 'summer_strength', 'personal_responsibility'],
+  'medium',
+  6.0,
+  75,
+  false,
+  true,
+  'legacy_resource',
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  'pro'
+);
