@@ -207,13 +207,23 @@ function SparkStep({ step, onAdvance, finalAction }: { step: any; onAdvance: () 
   }, []);
 
   const headline = step.headline ?? '';
-  const bodyText = step.content ?? step.text ?? step.body ?? step.prompt ?? step.message ?? step.instructions ?? step.action ?? '';
+  const bodyText = step.content ?? step.text ?? step.body ?? step.prompt ?? step.title ?? step.message ?? step.instructions ?? step.action ?? '';
   const content = headline && bodyText && headline !== bodyText ? '' : (headline || bodyText);
   const hasHeadlineAndBody = !!(headline && bodyText && headline !== bodyText);
   const cue = step.cue ?? '';
   const action = (!hasHeadlineAndBody && step.action) ? step.action : '';
-  if (__DEV__ && !content && !hasHeadlineAndBody) {
-    console.warn('[StepFallback] SparkStep has no displayable content', { type: step.type, keys: Object.keys(step) });
+  if (!content && !hasHeadlineAndBody) {
+    if (__DEV__) console.warn('[StepFallback] SparkStep has no displayable content', { type: step.type, keys: Object.keys(step) });
+    return (
+      <View style={stepRouterStyles.fallbackCard}>
+        <Ionicons name="alert-circle" size={18} color={Colors.warning} />
+        <View style={{ flex: 1 }}>
+          <Text style={stepRouterStyles.fallbackTitle}>This rep needs an update.</Text>
+          <Text style={stepRouterStyles.fallbackText}>Step content isn't available yet. Keep moving.</Text>
+        </View>
+        {finalAction ?? <AdvanceButton label="Continue →" onPress={onAdvance} />}
+      </View>
+    );
   }
 
   return (
@@ -324,7 +334,9 @@ function ChoiceStep({ step, onAdvance, finalAction, advanceLabel = 'Next Rep →
   const shuffledRef = useRef<any[] | null>(null);
   if (shuffledRef.current === null) {
     const raw = Array.isArray(step?.choices) ? step.choices : Array.isArray(step?.options) ? step.options : [];
-    shuffledRef.current = [...raw].sort(() => Math.random() - 0.5);
+    shuffledRef.current = [...raw]
+      .filter((c: any) => (c?.text ?? c?.label ?? '').trim().length > 0)
+      .sort(() => Math.random() - 0.5);
   }
   const choices = shuffledRef.current;
 
@@ -363,7 +375,7 @@ function ChoiceStep({ step, onAdvance, finalAction, advanceLabel = 'Next Rep →
 
   return (
     <View style={choiceStyles.container}>
-      <Text style={choiceStyles.prompt}>{step.prompt ?? step.question ?? ''}</Text>
+      <Text style={choiceStyles.prompt}>{step.prompt ?? step.question ?? step.title ?? step.content ?? step.body ?? ''}</Text>
 
       <View style={choiceStyles.list}>
         {choices.map((c: any, i: number) => {
@@ -498,7 +510,7 @@ function ChoiceButton({ label, feedback, quality, isSelected, isRevealed, isCorr
 
 function ChecklistStep({ step, onAdvance, finalAction }: { step: any; onAdvance: () => void; finalAction?: React.ReactNode }) {
   const rawItems = step.instructions ?? step.items ?? step.steps ?? [];
-  const items: string[] = Array.isArray(rawItems) ? rawItems.map(String) : [];
+  const items: string[] = Array.isArray(rawItems) ? rawItems.map(String).filter(s => s.trim().length > 0) : [];
   const [checked, setChecked] = useState<Set<number>>(new Set());
   const allDone = checked.size >= items.length && items.length > 0;
   const progress = items.length > 0 ? checked.size / items.length : 0;
@@ -596,7 +608,7 @@ function VisualizationStep({ step, onAdvance, finalAction }: { step: any; onAdva
     ).start();
   }, []);
 
-  const body = step.content ?? step.text ?? step.visualization ?? step.body ?? '';
+  const body = step.content ?? step.text ?? step.visualization ?? step.body ?? step.prompt ?? step.title ?? '';
   const cue = step.cue ?? step.focal_cue ?? step.example_reframe ?? '';
 
   return (
@@ -726,7 +738,7 @@ function ReflectionStep({ step, onAdvance, finalAction }: { step: any; onAdvance
         />
         <Ionicons name="bulb" size={28} color={Colors.warning} />
       </View>
-      <Text style={reflectStyles.body}>{step.content ?? step.text ?? step.prompt ?? step.reframe_prompt ?? ''}</Text>
+      <Text style={reflectStyles.body}>{step.content ?? step.text ?? step.prompt ?? step.reframe_prompt ?? step.title ?? ''}</Text>
       {step.example_reframe && (
         <View style={reflectStyles.exampleBox}>
           <Text style={reflectStyles.exampleLabel}>REP EXAMPLE</Text>
@@ -750,7 +762,7 @@ function FeedbackStep({ step, onAdvance, finalAction }: { step: any; onAdvance: 
       <Animated.View style={[feedbackStyles.iconWrap, { transform: [{ scale: scaleAnim }] }]}>
         <Ionicons name="checkmark-circle" size={44} color={Colors.primary} />
       </Animated.View>
-      <Text style={feedbackStyles.text}>{step.content ?? step.text ?? step.message ?? ''}</Text>
+      <Text style={feedbackStyles.text}>{step.content ?? step.text ?? step.message ?? step.prompt ?? step.title ?? ''}</Text>
       {finalAction ?? <AdvanceButton label="Continue →" onPress={onAdvance} />}
     </View>
   );
@@ -774,7 +786,7 @@ function NoticeWonderStep({ step, onAdvance, finalAction }: { step: any; onAdvan
     console.warn('[StepFallback] NoticeWonderStep using legacy schema', { reason: isLegacyNotice ? 'no notice_items' : 'no wonder_options', keys: Object.keys(step) });
   }
 
-  const situation = step.situation ?? step.content ?? step.body ?? step.notice ?? step.headline ?? '';
+  const situation = step.situation ?? step.content ?? step.body ?? step.notice ?? step.headline ?? step.title ?? step.prompt ?? '';
   const revealCue = step.reveal_cue ?? step.cue ?? step.takeaway_cue ?? '';
 
   function transition(next: Phase) {
@@ -1083,6 +1095,7 @@ function StepRenderer({
     case 'drag_sequence':
       return <DragSequence step={step} onComplete={() => onAdvance(true)} />;
     default:
+      if (__DEV__) console.warn('[StepRenderer] Unknown step type — falling back to SparkStep:', step?.type, { keys: step ? Object.keys(step) : [] });
       return <SparkStep step={step} onAdvance={adv} finalAction={finalAction} />;
   }
 }
