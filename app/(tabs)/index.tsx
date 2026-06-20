@@ -23,6 +23,7 @@ import { getCurrentRank, getRankProgress } from '@/lib/progressionRanks';
 import { useMicrocopy } from '@/hooks/useMicrocopy';
 import { Btn } from '@/components/ui';
 import { ProgressRing } from '@/components/ProgressRing';
+import { useToast } from '@/components/Toast';
 
 const MISSIONS_DATE_KEY  = 'missions_date';
 const MISSIONS_PROG_KEY  = 'missions_progress';
@@ -54,6 +55,7 @@ export default function HomeScreen() {
   const [isReturn, setIsReturn]             = useState(false);
 
   const microcopy = useMicrocopy();
+  const { showToast } = useToast();
   // TODO: wire isGameDay from AthleteState or schedule data (added during game-mode prompt)
   const isGameDay = false;
   const greetingRef = useRef<string | null>(null);
@@ -268,18 +270,14 @@ export default function HomeScreen() {
               <Text style={s.streakText}>{streak}</Text>
             </View>
           )}
-          <Pressable hitSlop={10} onPress={() => {}}>
+          <Pressable hitSlop={10} onPress={() => showToast('Coming soon — reminders', 'info')}>
             <Ionicons name="notifications-outline" size={22} color={Colors.textSecondary} />
           </Pressable>
-          <Pressable hitSlop={10} onPress={() => {}}>
+          <Pressable hitSlop={10} onPress={() => showToast('Coming soon — schedule', 'info')}>
             <Ionicons name="calendar-outline" size={22} color={Colors.textSecondary} />
           </Pressable>
         </View>
       </View>
-      <View style={s.kickerRow}>
-        <Text style={s.kicker}>BASEBALL PERFORMANCE OS</Text>
-      </View>
-
       <ScrollView
         contentContainerStyle={[s.scroll, { paddingBottom: insets.bottom + 120 }]}
         showsVerticalScrollIndicator={false}
@@ -371,7 +369,7 @@ export default function HomeScreen() {
                 <React.Fragment key={row.title}>
                   <Pressable
                     style={({ pressed }) => [s.intelRow, pressed && { opacity: 0.72 }]}
-                    onPress={() => {}}
+                    onPress={() => showToast('Coming soon — opponent intel', 'info')}
                   >
                     <View style={s.intelIconBox}>
                       <Ionicons name={row.icon} size={16} color={Colors.primary} />
@@ -504,14 +502,6 @@ const s = StyleSheet.create({
     fontFamily: 'Inter_700Bold',
     color: Colors.warning,
   },
-  kickerRow: { paddingHorizontal: Spacing.lg, paddingBottom: Spacing.md },
-  kicker: {
-    color: Colors.primary,
-    fontSize: 9,
-    fontFamily: 'Inter_700Bold',
-    letterSpacing: 2.4,
-  },
-
   // ── Upcoming Game Card ──
   gameCard: {
     marginHorizontal: Spacing.lg,
