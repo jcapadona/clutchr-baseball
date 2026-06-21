@@ -69,10 +69,19 @@ export function useMicrocopy() {
     return pickLine(pool[capVoice], poolKey);
   }
 
+  // Strip trailing punctuation + capitalize so cues like "Breathe." become "Breathe"
+  // before being spliced into mid-sentence templates.
+  function sanitizeCueText(raw: string): string {
+    const clean = raw.trim().replace(/[.!?,;:]+$/, '').trim();
+    if (!clean) return '';
+    return clean.charAt(0).toUpperCase() + clean.slice(1);
+  }
+
   function pickCuePool(pool: CueMicrocopyPool, poolKey: string): string {
-    if (primaryCue) {
+    const cue = primaryCue ? sanitizeCueText(primaryCue) : null;
+    if (cue) {
       const line = pickLine(pool.withCue[capVoice], `${poolKey}_with_cue`);
-      return line.replace('{CUE}', primaryCue);
+      return line.replace('{CUE}', cue);
     }
     return pickLine(pool.noCue[capVoice], `${poolKey}_no_cue`);
   }
