@@ -9,7 +9,6 @@ import {
   Alert,
   Animated,
   Image,
-  ImageBackground,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -55,11 +54,7 @@ const LESSON_BACKGROUNDS = {
   default: require('../../assets/backgrounds/lesson-background-screen.png'),
 };
 
-const completionBg   = require('../../assets/backgrounds/lesson-completion-background.png');
-const completionGlow = require('../../assets/overlays/completion-glow.png');
-const pulseRingImg   = require('../../assets/branding/start-rep-pulse-ring.png');
-const greenGlowImg   = require('../../assets/overlays/green-accent-glow.png');
-const ccsTakeIcon    = require('../../assets/icons/coach-cap-ccs-take.png');
+const ccsTakeIcon = require('../../assets/icons/coach-cap-ccs-take.png');
 
 const STEP_TYPE_ICONS: Record<string, any> = {
   choice: require('../../assets/icons/scenario-pick.png'),
@@ -1167,8 +1162,6 @@ function LessonCompletionPayoff({
   // ── Stagger sequence (RN Animated) ───────────────────────────
   const burstScale   = useRef(new Animated.Value(0.5)).current;
   const burstOpacity = useRef(new Animated.Value(0)).current;
-  const headlineY    = useRef(new Animated.Value(20)).current;
-  const headlineOp   = useRef(new Animated.Value(0)).current;
   const xpBounce     = useRef(new Animated.Value(0.4)).current;
   const boltScale    = useRef(new Animated.Value(0.3)).current;
   const boltOpacity  = useRef(new Animated.Value(0)).current;
@@ -1216,42 +1209,34 @@ function LessonCompletionPayoff({
       }),
     ]).start();
 
-    // t=0 — burst pops in as overlay darkens
+    // t=0 — burst settles in (calmer spring)
     Animated.parallel([
-      Animated.spring(burstScale,   { toValue: 1, damping: 7, stiffness: 160, mass: 0.9, useNativeDriver: true }),
-      Animated.spring(burstOpacity, { toValue: 1, damping: 14, stiffness: 200, useNativeDriver: true }),
+      Animated.spring(burstScale,   { toValue: 1, damping: 14, stiffness: 160, mass: 0.9, useNativeDriver: true }),
+      Animated.spring(burstOpacity, { toValue: 1, damping: 18, stiffness: 200, useNativeDriver: true }),
     ]).start();
     setTimeout(() => H.success(), 80);
 
-    // t=350ms — headline slides up
+    // t=280ms — XP bolt + row
+    setTimeout(() => {
+      Animated.spring(boltScale,   { toValue: 1, damping: 12, stiffness: 200, mass: 0.6, useNativeDriver: true }).start();
+      Animated.spring(boltOpacity, { toValue: 1, damping: 18, stiffness: 220, useNativeDriver: true }).start();
+    }, 280);
+    setTimeout(() => {
+      Animated.spring(xpBounce, { toValue: 1, damping: 14, stiffness: 180, mass: 0.7, useNativeDriver: true }).start();
+    }, 330);
+
+    // t=580ms — cue saved pill
     setTimeout(() => {
       Animated.parallel([
-        Animated.spring(headlineY,  { toValue: 0, damping: 20, stiffness: 180, useNativeDriver: true }),
-        Animated.spring(headlineOp, { toValue: 1, damping: 18, stiffness: 200, useNativeDriver: true }),
+        Animated.spring(cueSlideY, { toValue: 0, damping: 22, stiffness: 180, useNativeDriver: true }),
+        Animated.spring(cueOp,     { toValue: 1, damping: 20, stiffness: 200, useNativeDriver: true }),
       ]).start();
-    }, 350);
+    }, 580);
 
-    // t=560ms — XP bolt + row bounce
+    // t=820ms — CTA fade in
     setTimeout(() => {
-      Animated.spring(boltScale,   { toValue: 1, damping: 8, stiffness: 200, mass: 0.6, useNativeDriver: true }).start();
-      Animated.spring(boltOpacity, { toValue: 1, damping: 14, stiffness: 220, useNativeDriver: true }).start();
-    }, 560);
-    setTimeout(() => {
-      Animated.spring(xpBounce, { toValue: 1, damping: 10, stiffness: 180, mass: 0.7, useNativeDriver: true }).start();
-    }, 600);
-
-    // t=950ms — cue saved pill
-    setTimeout(() => {
-      Animated.parallel([
-        Animated.spring(cueSlideY, { toValue: 0, damping: 20, stiffness: 180, useNativeDriver: true }),
-        Animated.spring(cueOp,     { toValue: 1, damping: 18, stiffness: 200, useNativeDriver: true }),
-      ]).start();
-    }, 950);
-
-    // t=1200ms — CTA fade in
-    setTimeout(() => {
-      Animated.spring(ctaFadeOp, { toValue: 1, damping: 18, stiffness: 200, useNativeDriver: true }).start();
-    }, 1200);
+      Animated.spring(ctaFadeOp, { toValue: 1, damping: 20, stiffness: 200, useNativeDriver: true }).start();
+    }, 820);
   }, []);
 
   const isBoss = type === 'boss';
@@ -1273,35 +1258,23 @@ function LessonCompletionPayoff({
 
   return (
     <View style={payoffStyles.wrap}>
-      <ImageBackground source={completionBg} style={StyleSheet.absoluteFill} resizeMode="cover">
-        <View style={payoffStyles.bgOverlay} />
-      </ImageBackground>
 
       <ScrollView contentContainerStyle={{ flexGrow: 1 }} showsVerticalScrollIndicator={false} bounces={false}>
 
         {/* ── HERO ZONE ── */}
-        <View style={[payoffStyles.heroZone, { paddingTop: insets.top }]}>
-          <Image source={greenGlowImg} style={payoffStyles.heroGlow} pointerEvents="none" resizeMode="contain" />
-          {isBoss && (
-            <View style={payoffStyles.bossChip}>
-              <Text style={payoffStyles.bossCleared}>BOSS CLEARED</Text>
-            </View>
-          )}
+        <View style={[payoffStyles.heroZone, { paddingTop: insets.top + 8 }]}>
           <Animated.View style={[payoffStyles.burstWrap, { transform: [{ scale: burstScale }], opacity: burstOpacity }]}>
-            <Image source={pulseRingImg} style={payoffStyles.pulseRing} resizeMode="contain" />
-            <Image source={completionGlow} style={payoffStyles.burstGlow} pointerEvents="none" resizeMode="contain" />
+            <View style={payoffStyles.glowRingOuter} />
+            <View style={payoffStyles.glowRingInner} />
+            <View style={payoffStyles.glowCenter}>
+              <Ionicons name="checkmark" size={30} color={Colors.background} />
+            </View>
           </Animated.View>
-          <Text style={payoffStyles.heroBadge}>{isBoss ? 'CLOSE IT OUT' : 'REP COMPLETE'}</Text>
+          <Text style={payoffStyles.heroBadge}>{isBoss ? 'BOSS CLEARED' : 'REP COMPLETE'}</Text>
         </View>
 
         {/* ── CONTENT ZONE ── */}
         <View style={payoffStyles.contentZone}>
-
-          {/* Headline */}
-          <Animated.View style={[payoffStyles.headlineBlock, { transform: [{ translateY: headlineY }], opacity: headlineOp }]}>
-            <Text style={payoffStyles.title}>{title}</Text>
-            <Text style={payoffStyles.lessonTitle} numberOfLines={2}>{lesson?.title}</Text>
-          </Animated.View>
 
           {/* XP Row */}
           <Animated.View style={[payoffStyles.xpRow, { transform: [{ scale: xpBounce }], opacity: xpOpacity }]}>
@@ -1348,6 +1321,13 @@ function LessonCompletionPayoff({
 
         {/* ── SUPPLEMENTARY CARDS (scrolled below fold) ── */}
         <View style={payoffStyles.cardsSection}>
+
+          {/* Lesson context */}
+          <View style={payoffStyles.headlineBlock}>
+            <Text style={payoffStyles.title}>{title}</Text>
+            <Text style={payoffStyles.lessonTitle} numberOfLines={2}>{lesson?.title}</Text>
+          </View>
+
           <View style={payoffStyles.card}>
             <View style={payoffStyles.cardHeaderRow}>
               <Text style={payoffStyles.cardLabel}>{currentPathName}</Text>
@@ -2548,54 +2528,63 @@ const ratingStyles = StyleSheet.create({
 // ─── Celebration ──────────────────────────────────────────────────────────────
 
 const payoffStyles = StyleSheet.create({
-  wrap: { flex: 1, width: '100%' },
-  bgOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(4, 10, 6, 0.84)' },
+  wrap: { flex: 1, width: '100%', backgroundColor: Colors.background },
 
   // ── Hero zone ────────────────────────────────────────────────────
   heroZone: {
-    height: 310,
+    height: 280,
     alignItems: 'center',
     justifyContent: 'center',
-    overflow: 'visible',
-  },
-  heroGlow: {
-    position: 'absolute',
-    width: 340,
-    height: 340,
-    opacity: 0.5,
-  },
-  bossChip: {
-    position: 'absolute',
-    top: 16,
-    alignSelf: 'center',
-  },
-  bossCleared: {
-    fontSize: 11, letterSpacing: 2.5, fontFamily: 'Inter_700Bold', color: '#F5A623',
   },
   burstWrap: {
-    width: 230,
-    height: 230,
+    width: 220,
+    height: 220,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  pulseRing: {
+  glowRingOuter: {
     position: 'absolute',
-    width: 230,
-    height: 230,
+    width: 210,
+    height: 210,
+    borderRadius: 105,
+    borderWidth: 1,
+    borderColor: 'rgba(35,209,96,0.25)',
+    shadowColor: '#23D160',
+    shadowOpacity: 0.35,
+    shadowRadius: 32,
+    shadowOffset: { width: 0, height: 0 },
   },
-  burstGlow: {
+  glowRingInner: {
     position: 'absolute',
-    width: 190,
-    height: 190,
-    opacity: 0.65,
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    borderWidth: 1.5,
+    borderColor: 'rgba(35,209,96,0.5)',
+    shadowColor: '#23D160',
+    shadowOpacity: 0.55,
+    shadowRadius: 20,
+    shadowOffset: { width: 0, height: 0 },
+  },
+  glowCenter: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    backgroundColor: '#23D160',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#39FF88',
+    shadowOpacity: 0.85,
+    shadowRadius: 28,
+    shadowOffset: { width: 0, height: 0 },
   },
   heroBadge: {
     position: 'absolute',
-    bottom: 14,
+    bottom: 10,
     color: '#23D160',
     fontFamily: 'Inter_700Bold',
     fontSize: 10,
-    letterSpacing: 2.2,
+    letterSpacing: 2.4,
   },
 
   // ── Content zone ─────────────────────────────────────────────────
