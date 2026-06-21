@@ -1604,7 +1604,7 @@ export default function LessonPlayerScreen() {
 
   return (
     <View style={[screenStyles.container, { paddingTop: insets.top }]}>
-      <ImageBackground source={backgroundSource} style={screenStyles.background} resizeMode="cover" />
+      <View style={screenStyles.background} />
       <View style={screenStyles.backgroundOverlay} />
       {isBoss && <View style={screenStyles.bossAccentBorder} />}
 
