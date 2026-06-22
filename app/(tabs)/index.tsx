@@ -24,6 +24,12 @@ import { useMicrocopy } from '@/hooks/useMicrocopy';
 import { Btn } from '@/components/ui';
 import { ProgressRing } from '@/components/ProgressRing';
 import { useToast } from '@/components/Toast';
+import Svg, { Polyline } from 'react-native-svg';
+import {
+  updateMentalGameScore,
+  MentalGameScoreHistory,
+  MentalGameScoreDay,
+} from '@/lib/mentalGameScore';
 
 const MISSIONS_DATE_KEY  = 'missions_date';
 const MISSIONS_PROG_KEY  = 'missions_progress';
@@ -42,6 +48,41 @@ function formatLabel(value?: string | null) {
     .join('-');
 }
 
+// ─── SCORE SPARKLINE ─────────────────────────────────────────────────────────
+
+function HomeScoreSparkline({ days, positive }: { days: MentalGameScoreDay[]; positive: boolean }) {
+  const W = 100;
+  const H = 32;
+  const last7 = days.slice(-7);
+  if (last7.length < 2) return null;
+
+  const scores = last7.map(d => d.score);
+  const minS = Math.min(...scores) - 2;
+  const maxS = Math.max(...scores) + 2;
+  const range = Math.max(maxS - minS, 5);
+
+  const points = scores
+    .map((s, i) => {
+      const x = (i / (scores.length - 1)) * W;
+      const y = H - ((s - minS) / range) * H;
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    })
+    .join(' ');
+
+  return (
+    <Svg width={W} height={H}>
+      <Polyline
+        points={points}
+        fill="none"
+        stroke={positive ? Colors.primary : Colors.danger}
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
 // ─── SCREEN ──────────────────────────────────────────────────────────────────
 
 const LAST_ACTIVE_KEY = 'last_active_date';
@@ -53,6 +94,7 @@ export default function HomeScreen() {
   const [loadingLesson, setLoadingLesson]   = useState(true);
   const [missions, setMissions]             = useState<MissionsProgress>({ lessonsCompleted: 0, gameModeOpened: false });
   const [isReturn, setIsReturn]             = useState(false);
+  const [mgsHistory, setMgsHistory]         = useState<MentalGameScoreHistory | null>(null);
 
   const microcopy = useMicrocopy();
   const { showToast } = useToast();
@@ -114,6 +156,19 @@ export default function HomeScreen() {
       return next;
     });
   }, [completedTodayCount]);
+
+  // Mental Game Score — recompute when rep count or streak changes
+  useEffect(() => {
+    if (!athleteState) return;
+    const playbookBuilt = !!(athleteState as any)?.playbook?.built_at;
+    updateMentalGameScore({
+      repsCompletedToday: completedTodayCount,
+      cuesSavedToday: playbookBuilt ? 1 : 0,
+      streakActiveToday: (athleteState.streak_count ?? 0) > 0,
+    })
+      .then(setMgsHistory)
+      .catch(() => {});
+  }, [completedTodayCount, athleteState?.streak_count]);
 
   // Routing engine
   useEffect(() => {
@@ -229,6 +284,11 @@ export default function HomeScreen() {
   const resetProgressPercent = `${mission2Progress * 100}%`;
   const earnedMissionXp = (mission1Done ? 30 : 0) + (mission2Done ? 15 : 0);
 
+  const mgsToday      = mgsHistory?.days[mgsHistory.days.length - 1];
+  const mgsScore      = mgsToday?.score ?? 60;
+  const mgsDelta      = mgsToday?.delta ?? 0;
+  const mgsIsPositive = mgsDelta >= 0;
+
   function handleContinueCareer() {
     if (!routingResult?.lesson) return;
     const encodedReason = encodeURIComponent(routingResult.reason ?? '');
@@ -328,6 +388,18 @@ export default function HomeScreen() {
                 <Text style={s.countdownUnitLabel}>SEC</Text>
               </View>
             </View>
+
+            <View style={s.gameCardDivider} />
+            <Pressable
+              style={({ pressed }) => [s.opponentIntelRow, pressed && { opacity: 0.72 }]}
+              onPress={() => showToast('Coming soon — opponent intel', 'info')}
+            >
+              <View style={s.opponentIntelIcon}>
+                <Ionicons name="shield-outline" size={14} color={Colors.primary} />
+              </View>
+              <Text style={s.opponentIntelLabel}>OPPONENT INTEL</Text>
+              <Ionicons name="chevron-forward" size={14} color={Colors.textTertiary} />
+            </Pressable>
           </View>
         )}
 
@@ -355,34 +427,27 @@ export default function HomeScreen() {
           </View>
         )}
 
-        {/* ── 3. OPPONENT INTEL ── */}
-        {/* TODO: wire opponent intel input */}
+        {/* ── 3. MENTAL GAME SCORE ── */}
         {animCard(anim3,
-          <View style={s.intelSection}>
-            <Text style={s.intelHeader}>OPPONENT INTEL</Text>
-            <View style={s.intelCard}>
-              {[
-                { icon: 'people-outline' as const, title: 'Team Tendencies', sub: 'Aggressive early. 75% swing on 1st pitch.' },
-                { icon: 'baseball-outline' as const, title: 'Key Pitcher',    sub: 'RHP · 88–90 MPH · 2-Seam / Slider' },
-                { icon: 'star-outline' as const,    title: 'Your Edge',       sub: 'Stay on fastball up. Drive the gaps.' },
-              ].map((row, i, arr) => (
-                <React.Fragment key={row.title}>
-                  <Pressable
-                    style={({ pressed }) => [s.intelRow, pressed && { opacity: 0.72 }]}
-                    onPress={() => showToast('Coming soon — opponent intel', 'info')}
-                  >
-                    <View style={s.intelIconBox}>
-                      <Ionicons name={row.icon} size={16} color={Colors.primary} />
+          <View style={s.mgsSection}>
+            <View style={s.mgsCard}>
+              <View style={s.mgsTopRow}>
+                <View>
+                  <Text style={s.mgsKicker}>MENTAL GAME SCORE</Text>
+                  <View style={s.mgsScoreRow}>
+                    <Text style={s.mgsScoreNum}>{mgsScore}</Text>
+                    <View style={[s.mgsDeltaPill, mgsIsPositive ? s.mgsDeltaPos : s.mgsDeltaNeg]}>
+                      <Text style={[s.mgsDeltaText, { color: mgsIsPositive ? Colors.primary : Colors.danger }]}>
+                        {mgsIsPositive ? '+' : ''}{mgsDelta.toFixed(1)} today
+                      </Text>
                     </View>
-                    <View style={s.intelContent}>
-                      <Text style={s.intelTitle}>{row.title}</Text>
-                      <Text style={s.intelSub}>{row.sub}</Text>
-                    </View>
-                    <Ionicons name="chevron-forward" size={15} color={Colors.textTertiary} />
-                  </Pressable>
-                  {i < arr.length - 1 && <View style={s.intelDivider} />}
-                </React.Fragment>
-              ))}
+                  </View>
+                </View>
+                {mgsHistory && mgsHistory.days.length >= 2 && (
+                  <HomeScoreSparkline days={mgsHistory.days} positive={mgsIsPositive} />
+                )}
+              </View>
+              <Text style={s.mgsSub}>Computed from reps, cues, and streak</Text>
             </View>
           </View>
         )}
@@ -639,32 +704,22 @@ const s = StyleSheet.create({
     textAlign: 'center',
   },
 
-  // ── Opponent Intel ──
-  intelSection: { marginHorizontal: Spacing.lg },
-  intelHeader: {
-    color: Colors.primary,
-    fontSize: 9,
-    fontFamily: 'Inter_700Bold',
-    letterSpacing: 2.2,
+  // ── Opponent Intel row (inside game card) ──
+  gameCardDivider: {
+    height: 1,
+    backgroundColor: Colors.border,
+    marginTop: Spacing.md,
     marginBottom: Spacing.sm,
   },
-  intelCard: {
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: Radius.lg,
-    overflow: 'hidden',
-  },
-  intelRow: {
+  opponentIntelRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.md,
-    gap: Spacing.md,
+    gap: Spacing.sm,
+    paddingVertical: Spacing.xs,
   },
-  intelIconBox: {
-    width: 32,
-    height: 32,
+  opponentIntelIcon: {
+    width: 24,
+    height: 24,
     borderRadius: Radius.sm,
     backgroundColor: Colors.primaryGlow,
     borderWidth: 1,
@@ -672,23 +727,70 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  intelContent: { flex: 1 },
-  intelTitle: {
-    color: Colors.textPrimary,
-    fontSize: 14,
+  opponentIntelLabel: {
+    flex: 1,
+    color: Colors.textSecondary,
+    fontSize: 10,
     fontFamily: 'Inter_700Bold',
+    letterSpacing: 1.5,
   },
-  intelSub: {
-    color: Colors.textTertiary,
-    fontSize: 12,
-    fontFamily: 'Inter_400Regular',
+
+  // ── Mental Game Score ──
+  mgsSection: { marginHorizontal: Spacing.lg },
+  mgsCard: {
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.primaryBorder,
+    borderRadius: Radius.xl,
+    padding: Spacing.lg,
+    gap: Spacing.sm,
+  },
+  mgsKicker: {
+    color: Colors.primary,
+    fontSize: 9,
+    fontFamily: 'Inter_700Bold',
+    letterSpacing: 2.2,
+    marginBottom: 4,
+  },
+  mgsTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  mgsScoreRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
     marginTop: 2,
-    lineHeight: 16,
   },
-  intelDivider: {
-    height: 1,
-    backgroundColor: Colors.border,
-    marginLeft: Spacing.lg + 32 + Spacing.md,
+  mgsScoreNum: {
+    fontSize: 48,
+    fontFamily: 'Inter_700Bold',
+    color: Colors.textPrimary,
+    lineHeight: 52,
+  },
+  mgsDeltaPill: {
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: Radius.pill,
+    borderWidth: 1,
+  },
+  mgsDeltaPos: {
+    backgroundColor: Colors.primaryMuted,
+    borderColor: Colors.primaryBorder,
+  },
+  mgsDeltaNeg: {
+    backgroundColor: Colors.danger + '12',
+    borderColor: Colors.danger + '30',
+  },
+  mgsDeltaText: {
+    fontSize: 11,
+    fontFamily: 'Inter_600SemiBold',
+  },
+  mgsSub: {
+    fontSize: 11,
+    fontFamily: 'Inter_400Regular',
+    color: Colors.textTertiary,
   },
 
   // ── Coach C Quote ──
