@@ -24,7 +24,7 @@ import { useMicrocopy } from '@/hooks/useMicrocopy';
 import { Btn } from '@/components/ui';
 import { ProgressRing } from '@/components/ProgressRing';
 import { useToast } from '@/components/Toast';
-import Svg, { Polyline } from 'react-native-svg';
+import Svg, { Path, Defs, LinearGradient as SvgLinearGradient, Stop, Circle } from 'react-native-svg';
 import {
   updateMentalGameScore,
   MentalGameScoreHistory,
@@ -51,35 +51,72 @@ function formatLabel(value?: string | null) {
 // ─── SCORE SPARKLINE ─────────────────────────────────────────────────────────
 
 function HomeScoreSparkline({ days, positive }: { days: MentalGameScoreDay[]; positive: boolean }) {
-  const W = 100;
-  const H = 32;
+  const [cardWidth, setCardWidth] = useState(0);
+  const color = positive ? Colors.primary : Colors.danger;
+  const H = 80;
+  const PAD = 8;
   const last7 = days.slice(-7);
-  if (last7.length < 2) return null;
+  const hasData = last7.length >= 2;
 
-  const scores = last7.map(d => d.score);
-  const minS = Math.min(...scores) - 2;
-  const maxS = Math.max(...scores) + 2;
-  const range = Math.max(maxS - minS, 5);
+  function buildPaths(w: number) {
+    const drawH = H - PAD * 2;
+    if (!hasData) {
+      const y = H / 2;
+      return { line: `M 0,${y} L ${w},${y}`, fill: '', dotX: w, dotY: y };
+    }
+    const scores = last7.map(d => d.score);
+    const minS = Math.min(...scores);
+    const maxS = Math.max(...scores);
+    const span = Math.max(maxS - minS, 1);
+    const pts = scores.map((s, i) => ({
+      x: (i / (scores.length - 1)) * w,
+      y: PAD + drawH - ((s - minS) / span) * drawH,
+    }));
+    let d = `M ${pts[0].x.toFixed(1)},${pts[0].y.toFixed(1)}`;
+    for (let i = 1; i < pts.length; i++) {
+      const prev = pts[i - 1];
+      const next = pts[i];
+      const cpx = (next.x - prev.x) / 3;
+      d += ` C ${(prev.x + cpx).toFixed(1)},${prev.y.toFixed(1)} ${(next.x - cpx).toFixed(1)},${next.y.toFixed(1)} ${next.x.toFixed(1)},${next.y.toFixed(1)}`;
+    }
+    const last = pts[pts.length - 1];
+    const fill = `${d} L ${last.x.toFixed(1)},${H} L ${pts[0].x.toFixed(1)},${H} Z`;
+    return { line: d, fill, dotX: last.x, dotY: last.y };
+  }
 
-  const points = scores
-    .map((s, i) => {
-      const x = (i / (scores.length - 1)) * W;
-      const y = H - ((s - minS) / range) * H;
-      return `${x.toFixed(1)},${y.toFixed(1)}`;
-    })
-    .join(' ');
+  const paths = cardWidth > 0 ? buildPaths(cardWidth) : null;
 
   return (
-    <Svg width={W} height={H}>
-      <Polyline
-        points={points}
-        fill="none"
-        stroke={positive ? Colors.primary : Colors.danger}
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Svg>
+    <View
+      style={{ width: '100%', height: H }}
+      onLayout={e => setCardWidth(e.nativeEvent.layout.width)}
+    >
+      {paths && (
+        <Svg width={cardWidth} height={H}>
+          <Defs>
+            <SvgLinearGradient id="mgs_hm_grad" x1="0" y1="0" x2="0" y2="1">
+              <Stop offset={0} stopColor={color} stopOpacity="0.25" />
+              <Stop offset={1} stopColor={color} stopOpacity="0" />
+            </SvgLinearGradient>
+          </Defs>
+          {paths.fill ? <Path d={paths.fill} fill="url(#mgs_hm_grad)" stroke="none" /> : null}
+          <Path
+            d={paths.line}
+            fill="none"
+            stroke={color}
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          {hasData && (
+            <>
+              <Circle cx={paths.dotX} cy={paths.dotY} r={8} fill={color} opacity={0.2} />
+              <Circle cx={paths.dotX} cy={paths.dotY} r={4} fill={color} />
+            </>
+          )}
+        </Svg>
+      )}
+    </View>
   );
 }
 
@@ -443,10 +480,8 @@ export default function HomeScreen() {
                     </View>
                   </View>
                 </View>
-                {mgsHistory && mgsHistory.days.length >= 2 && (
-                  <HomeScoreSparkline days={mgsHistory.days} positive={mgsIsPositive} />
-                )}
               </View>
+              <HomeScoreSparkline days={mgsHistory?.days ?? []} positive={mgsIsPositive} />
               <Text style={s.mgsSub}>Computed from reps, cues, and streak</Text>
             </View>
           </View>
