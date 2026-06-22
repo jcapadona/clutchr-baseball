@@ -1084,29 +1084,27 @@ function WorldMapSection({ world, lessons, completed }: {
 }) {
   const { color, label, tagline } = world;
   const microcopy = useMicrocopy();
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(fadeAnim, { toValue: 1, duration: 220, useNativeDriver: true }).start();
+  }, []);
 
   if (lessons.length === 0) {
     return (
-      <View style={mapStyles.emptyWrap}>
+      <Animated.View style={[mapStyles.emptyWrap, { opacity: fadeAnim }]}>
         <Text style={mapStyles.emptyText}>{microcopy.useEmptyState('noLessonsInWorld')}</Text>
-      </View>
+      </Animated.View>
     );
   }
 
   return (
-    <View style={mapStyles.outerWrap}>
-      <Pressable
-        style={[mapStyles.guideBanner, { backgroundColor: color + '15', borderColor: color + '40' }]}
-        onPress={() => Alert.alert(label, tagline)}
-      >
-        <View style={{ flex: 1 }}>
-          <Text style={[mapStyles.guideBannerTitle, { color }]}>{label.toUpperCase()}</Text>
-          <Text style={mapStyles.guideBannerTagline}>{tagline}</Text>
-        </View>
-        <View style={[mapStyles.guidePill, { backgroundColor: color }]}>
-          <Text style={mapStyles.guidePillText}>GUIDE</Text>
-        </View>
-      </Pressable>
+    <Animated.View style={[mapStyles.outerWrap, { opacity: fadeAnim }]}>
+      {/* World header */}
+      <View style={[mapStyles.worldHeader, { borderLeftColor: color }]}>
+        <Text style={[mapStyles.worldHeaderLabel, { color }]}>{label.toUpperCase()}</Text>
+        <Text style={mapStyles.worldHeaderTagline}>{tagline}</Text>
+      </View>
 
       <View style={mapStyles.timelineContainer}>
         <View style={[mapStyles.spineLine, { backgroundColor: color }]} />
@@ -1142,7 +1140,7 @@ function WorldMapSection({ world, lessons, completed }: {
           );
         })}
       </View>
-    </View>
+    </Animated.View>
   );
 }
 
@@ -1157,14 +1155,14 @@ function TimelineNode({ lesson, idx, isDone, isNext, isLocked, isBoss, color }: 
   useEffect(() => {
     if (!isNext) return;
     const loop = Animated.loop(Animated.sequence([
-      Animated.timing(pulseAnim, { toValue: 1.12, duration: 900, useNativeDriver: true }),
-      Animated.timing(pulseAnim, { toValue: 1,    duration: 900, useNativeDriver: true }),
+      Animated.timing(pulseAnim, { toValue: 1.08, duration: 1200, useNativeDriver: true }),
+      Animated.timing(pulseAnim, { toValue: 1.00, duration: 1200, useNativeDriver: true }),
     ]));
     loop.start();
     return () => loop.stop();
   }, [isNext]);
 
-  const nodeSize = isBoss ? 44 : 36;
+  const nodeSize = isBoss ? 44 : 38;
   const lessonFamily =
     ((lesson as any).lesson_family as string | undefined) ??
     ((lesson as any).node_type as string | undefined) ??
@@ -1178,96 +1176,104 @@ function TimelineNode({ lesson, idx, isDone, isNext, isLocked, isBoss, color }: 
     router.push(`/lesson/${lesson.id}`);
   }
 
-  const cardBorderColor = isNext ? color + '60' : '#1a1a1a';
-
   return (
     <Pressable style={tlStyles.row} onPress={handlePress}>
+      {/* ── Node dot ── */}
       <View style={tlStyles.nodeCol}>
-        {isBoss && !isDone && (
-          <Text style={[tlStyles.crownText, { color }]}>♛</Text>
-        )}
-        {isNext && (
-          <View style={[tlStyles.voltMarker, { backgroundColor: color }]} />
-        )}
-
         <Animated.View
           style={[
             tlStyles.nodeCircle,
             { width: nodeSize, height: nodeSize, borderRadius: nodeSize / 2 },
-            isDone && { backgroundColor: color },
+            isDone && { backgroundColor: color, borderWidth: 0 },
             !isDone && isNext && {
               backgroundColor: '#0D0D12',
               borderWidth: 2.5,
               borderColor: color,
               shadowColor: color,
-              shadowOpacity: 0.9,
+              shadowOpacity: 0.8,
               shadowRadius: 10,
               elevation: 8,
             },
             !isDone && isLocked && {
-              backgroundColor: '#111122',
-              borderWidth: 1.5,
-              borderColor: '#2a2a3a',
+              backgroundColor: '#0E0E14',
+              borderWidth: 1,
+              borderColor: '#1e1e2a',
             },
             !isDone && !isNext && !isLocked && isBoss && {
               backgroundColor: '#0D0D12',
-              borderWidth: 2.5,
-              borderColor: color,
+              borderWidth: 2,
+              borderColor: color + '80',
             },
             !isDone && !isNext && !isLocked && !isBoss && {
-              backgroundColor: '#111122',
+              backgroundColor: '#0E0E14',
               borderWidth: 1.5,
-              borderColor: '#2a2a3a',
+              borderColor: '#1e1e2a',
             },
             isNext && { transform: [{ scale: pulseAnim }] },
           ]}
         >
-          {isDone    ? <Text style={tlStyles.checkmark}>✓</Text>
-          : isNext   ? <Text style={tlStyles.playIcon}>▶</Text>
-          : isLocked ? <Text style={tlStyles.lockIcon}>🔒</Text>
+          {isDone    ? <Ionicons name="checkmark" size={isBoss ? 20 : 17} color="#fff" />
+          : isNext   ? <Ionicons name="play" size={14} color="#fff" style={{ marginLeft: 2 }} />
+          : isLocked ? <Ionicons name="lock-closed" size={13} color="rgba(255,255,255,0.2)" />
           :            <Text style={tlStyles.nodeNumText}>{idx + 1}</Text>}
         </Animated.View>
-
-        {isBoss && !isDone && (
-          <Text style={[tlStyles.bossBattleLabel, { color }]}>BOSS REP</Text>
-        )}
       </View>
 
-      <View style={[tlStyles.card, { borderColor: cardBorderColor }]}>
+      {/* ── Card ── */}
+      <View style={[
+        tlStyles.card,
+        !isDone && !isNext && !isLocked && { borderColor: '#1e1e28' },
+        isNext && {
+          borderColor: color + '45',
+          borderLeftWidth: 3,
+          borderLeftColor: color,
+          backgroundColor: color + '0C',
+        },
+        isDone && { borderColor: '#181820', backgroundColor: '#0C0C10' },
+        isLocked && { borderColor: '#131318' },
+      ]}>
+        {/* Family pill + done badge */}
         <View style={tlStyles.cardTopRow}>
           <View style={[
             tlStyles.familyPill,
-            { backgroundColor: isLocked ? 'rgba(255,255,255,0.05)' : color + '20' },
+            { backgroundColor: isLocked ? 'rgba(255,255,255,0.04)' : color + '22' },
           ]}>
             <Text style={[
               tlStyles.familyPillText,
-              { color: isLocked ? 'rgba(255,255,255,0.25)' : color },
+              { color: isLocked ? 'rgba(255,255,255,0.2)' : color },
             ]}>
-              {lessonFamily.toUpperCase()}
+              {lessonFamily.toUpperCase()}{isBoss ? ' · FINAL' : ''}
             </Text>
           </View>
+          {isDone && (
+            <View style={tlStyles.doneBadge}>
+              <Text style={tlStyles.doneBadgeText}>DONE</Text>
+            </View>
+          )}
         </View>
 
+        {/* Title */}
         <Text
-          style={[tlStyles.cardTitle, isLocked && tlStyles.cardTitleLocked]}
+          style={[
+            tlStyles.cardTitle,
+            isDone && tlStyles.cardTitleDone,
+            isLocked && tlStyles.cardTitleLocked,
+          ]}
           numberOfLines={2}
         >
           {lesson.title}
         </Text>
 
-        {isLocked && (
+        {/* Footer row */}
+        {isLocked ? (
           <Text style={tlStyles.lockedHint}>Complete previous lesson to unlock</Text>
-        )}
-
-        {!isLocked && (
+        ) : isDone ? (
+          <Text style={[tlStyles.xpEarnedText, { color: color + 'AA' }]}>{lesson.xp_reward} XP earned</Text>
+        ) : (
           <View style={tlStyles.cardBottomRow}>
             <Text style={tlStyles.xpText}>{lesson.xp_reward} XP · first clear</Text>
             <Text style={tlStyles.timeText}>~5 min</Text>
           </View>
-        )}
-
-        {isNext && (
-          <View style={[tlStyles.activeStrip, { backgroundColor: color }]} />
         )}
       </View>
     </Pressable>
@@ -1925,38 +1931,24 @@ const mapStyles = StyleSheet.create({
     paddingBottom: 20,
     overflow: 'hidden',
   },
-  guideBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  worldHeader: {
     marginHorizontal: 16,
-    marginTop: 12,
-    marginBottom: 8,
-    padding: 12,
-    borderRadius: 10,
-    borderWidth: 1,
+    marginTop: 14,
+    marginBottom: 4,
+    paddingLeft: 10,
+    borderLeftWidth: 3,
   },
-  guideBannerTitle: {
-    fontSize: 13,
-    fontFamily: 'Inter_700Bold',
-    letterSpacing: 0.5,
-  },
-  guideBannerTagline: {
+  worldHeaderLabel: {
     fontSize: 11,
+    fontFamily: 'Inter_700Bold',
+    letterSpacing: 1.2,
+    marginBottom: 2,
+  },
+  worldHeaderTagline: {
+    fontSize: 12,
     fontFamily: 'Inter_400Regular',
-    color: 'rgba(255,255,255,0.45)',
-    marginTop: 2,
-  },
-  guidePill: {
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-    borderRadius: 20,
-    marginLeft: 12,
-    flexShrink: 0,
-  },
-  guidePillText: {
-    fontSize: 11,
-    fontFamily: 'Inter_700Bold',
-    color: '#000',
+    color: 'rgba(255,255,255,0.4)',
+    lineHeight: 16,
   },
   timelineContainer: {
     paddingTop: 8,
@@ -2005,7 +1997,7 @@ const tlStyles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 10,
     paddingRight: 16,
   },
   nodeCol: {
@@ -2017,48 +2009,58 @@ const tlStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  checkmark:     { fontSize: 16, color: '#fff', fontWeight: '700' },
-  playIcon:      { fontSize: 14, color: '#fff', marginLeft: 2 },
-  lockIcon:      { fontSize: 12 },
-  nodeNumText:   { fontSize: 13, fontFamily: 'Inter_700Bold', color: 'rgba(255,255,255,0.4)' },
-  crownText:     { fontSize: 14, marginBottom: 2 },
-  voltMarker: {
-    width: 10,
-    height: 10,
-    borderRadius: 2,
-    transform: [{ rotate: '45deg' }],
-    marginBottom: 6,
-  },
-  bossBattleLabel: {
-    fontSize: 9,
-    fontFamily: 'Inter_700Bold',
-    letterSpacing: 1,
-    marginTop: 3,
-    textAlign: 'center',
-  },
+  nodeNumText: { fontSize: 13, fontFamily: 'Inter_700Bold', color: 'rgba(255,255,255,0.35)' },
   card: {
     flex: 1,
     backgroundColor: '#111118',
     borderRadius: 10,
     borderWidth: 1,
-    padding: 12,
-    overflow: 'hidden',
+    padding: 14,
   },
-  cardTopRow:      { flexDirection: 'row' },
-  familyPill:      { paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
-  familyPillText:  { fontSize: 9, fontFamily: 'Inter_700Bold', letterSpacing: 0.5 },
+  cardTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 2,
+  },
+  familyPill:     { paddingHorizontal: 7, paddingVertical: 3, borderRadius: 5 },
+  familyPillText: { fontSize: 10, fontFamily: 'Inter_700Bold', letterSpacing: 0.5 },
+  doneBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+  },
+  doneBadgeText: {
+    fontSize: 9,
+    fontFamily: 'Inter_700Bold',
+    color: 'rgba(255,255,255,0.3)',
+    letterSpacing: 0.8,
+  },
   cardTitle: {
-    fontSize: 14, fontFamily: 'Inter_700Bold', color: '#fff', marginTop: 4, lineHeight: 18,
+    fontSize: 16,
+    fontFamily: 'Inter_700Bold',
+    color: '#fff',
+    marginTop: 4,
+    lineHeight: 21,
+    letterSpacing: -0.2,
   },
-  cardTitleLocked: { color: 'rgba(255,255,255,0.3)' },
+  cardTitleDone:   { color: 'rgba(255,255,255,0.45)' },
+  cardTitleLocked: { color: 'rgba(255,255,255,0.25)' },
   lockedHint: {
-    fontSize: 10, fontFamily: 'Inter_400Regular',
-    color: 'rgba(255,255,255,0.2)', fontStyle: 'italic', marginTop: 3,
+    fontSize: 11,
+    fontFamily: 'Inter_400Regular',
+    color: 'rgba(255,255,255,0.18)',
+    fontStyle: 'italic',
+    marginTop: 5,
   },
   cardBottomRow: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 8,
   },
-  xpText:    { fontSize: 11, fontFamily: 'Inter_600SemiBold', color: '#F5A623' },
-  timeText:  { fontSize: 11, fontFamily: 'Inter_400Regular',  color: 'rgba(255,255,255,0.35)' },
-  activeStrip: { position: 'absolute', bottom: 0, left: 0, right: 0, height: 2 },
+  xpText:      { fontSize: 12, fontFamily: 'Inter_600SemiBold', color: '#F5A623' },
+  timeText:    { fontSize: 11, fontFamily: 'Inter_400Regular', color: 'rgba(255,255,255,0.3)' },
+  xpEarnedText: { fontSize: 11, fontFamily: 'Inter_600SemiBold', marginTop: 6 },
 });
