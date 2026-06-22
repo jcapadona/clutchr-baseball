@@ -934,8 +934,8 @@ function WorldNode({
     if (!isCurrentWorld) return;
     const loop = Animated.loop(
       Animated.sequence([
-        Animated.timing(pulseAnim, { toValue: 1.22, duration: 1100, useNativeDriver: true }),
-        Animated.timing(pulseAnim, { toValue: 0.90, duration: 1100, useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 1.09, duration: 1600, useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 1.00, duration: 1600, useNativeDriver: true }),
       ])
     );
     loop.start();
@@ -959,6 +959,8 @@ function WorldNode({
                 width: nodeSize + 28,
                 height: nodeSize + 28,
                 borderRadius: (nodeSize + 28) / 2,
+                borderColor: world.color + '50',
+                backgroundColor: world.color + '12',
                 transform: [{ scale: pulseAnim }],
               },
             ]}
@@ -978,14 +980,22 @@ function WorldNode({
             },
           ]}
         >
-          {isCompleted
-            ? <Text style={nodeStyles.checkmark}>✓</Text>
-            : isLocked
-            ? <Ionicons name="lock-closed" size={15} color={Colors.textDisabled} />
-            : <Text style={[nodeStyles.nodeNum, isCurrentWorld && nodeStyles.nodeNumActive]}>
+          {isCompleted ? (
+            <Text style={nodeStyles.checkmark}>✓</Text>
+          ) : isLocked ? (
+            <Ionicons name={world.icon} size={14} color={Colors.textDisabled} style={{ opacity: 0.35 }} />
+          ) : (
+            <>
+              <Ionicons
+                name={world.icon}
+                size={isCurrentWorld ? 20 : 16}
+                color={isCurrentWorld ? world.color : world.color + 'B0'}
+              />
+              <Text style={[nodeStyles.nodeNumSmall, { color: isCurrentWorld ? world.color : Colors.textTertiary }]}>
                 {index + 1}
               </Text>
-          }
+            </>
+          )}
         </View>
       </View>
 
@@ -1493,10 +1503,11 @@ export default function CareerScreen() {
           <View style={styles.towerWrap}>
             {/* Arena background */}
             <Image
-              source={Assets.backgrounds.lessonBackground}
+              source={Assets.backgrounds.careerTowerArena}
               style={[StyleSheet.absoluteFillObject, styles.towerBg]}
               resizeMode="cover"
             />
+            <View style={[StyleSheet.absoluteFillObject, styles.towerOverlay]} />
             {/* Vertical connecting line */}
             <View style={[styles.connectLine, { backgroundColor: activeChapterConfig.color }]} />
 
@@ -1719,17 +1730,25 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
     paddingVertical: Spacing.md,
     position: 'relative',
+    overflow: 'hidden',
   },
   towerBg: {
-    opacity: 0.04,
+    opacity: 0.18,
+  },
+  towerOverlay: {
+    backgroundColor: 'rgba(0,0,0,0.62)',
   },
   connectLine: {
     position: 'absolute',
     left: 35,
     top: 0,
     bottom: 0,
-    width: 2,
-    opacity: 0.22,
+    width: 3,
+    opacity: 0.40,
+    shadowColor: '#fff',
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 2,
   },
 
   // Empty state
@@ -1765,8 +1784,6 @@ const nodeStyles = StyleSheet.create({
   glowRing: {
     position: 'absolute',
     borderWidth: 1.5,
-    borderColor: Colors.primary + '40',
-    backgroundColor: Colors.primary + '08',
   },
   nodeCircle: {
     alignItems: 'center',
@@ -1808,6 +1825,12 @@ const nodeStyles = StyleSheet.create({
   nodeNumActive: {
     fontSize: 20,
     color: Colors.textPrimary,
+  },
+  nodeNumSmall: {
+    fontSize: 8,
+    fontFamily: 'Inter_700Bold',
+    marginTop: 2,
+    letterSpacing: 0.5,
   },
   labelCol: {
     flex: 1,

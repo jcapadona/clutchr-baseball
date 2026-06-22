@@ -32,6 +32,7 @@ const backgrounds = {
   pressureRep:         require('../assets/backgrounds/pressure-rep-background.png'),
   quickReset:          require('../assets/backgrounds/quick-reset-screen.png'),
   scenarioPick:        require('../assets/backgrounds/scenario-pick-screen.png'),
+  careerTowerArena:    require('../assets/backgrounds/career-tower-arena.png'),
 };
 
 // ─── BADGES ───────────────────────────────────────────────────────────────────
