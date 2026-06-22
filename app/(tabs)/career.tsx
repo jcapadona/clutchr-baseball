@@ -1059,7 +1059,7 @@ function CurrentMissionCard({
         </View>
         <Text style={missionStyles.duration}>10 min</Text>
       </View>
-      <Text style={missionStyles.title} numberOfLines={2}>
+      <Text style={missionStyles.title} numberOfLines={1}>
         {nextLesson.lesson.title}
       </Text>
       {nextLesson.lesson.subtitle ? (
@@ -1870,8 +1870,8 @@ const missionStyles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: Colors.primaryBorder,
     paddingHorizontal: Spacing.xl,
-    paddingTop: Spacing.lg,
-    gap: Spacing.sm,
+    paddingTop: 10,
+    gap: 4,
     ...Shadow.card,
   },
   topRow: {
@@ -1902,17 +1902,17 @@ const missionStyles = StyleSheet.create({
     color: Colors.textTertiary,
   },
   title: {
-    fontSize: 20,
+    fontSize: 17,
     fontFamily: 'Inter_700Bold',
     color: Colors.textPrimary,
-    lineHeight: 26,
+    lineHeight: 22,
     letterSpacing: -0.3,
   },
   tagline: {
-    fontSize: 13,
+    fontSize: 12,
     fontFamily: 'Inter_400Regular',
     color: Colors.textSecondary,
-    lineHeight: 18,
+    lineHeight: 16,
   },
 });
 
