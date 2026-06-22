@@ -207,6 +207,31 @@ export default function HomeScreen() {
       .catch(() => {});
   }, [completedTodayCount, athleteState?.streak_count]);
 
+  // DEV ONLY: seed 7 days of sample history so the sparkline curve is visible during development
+  useEffect(() => {
+    if (!__DEV__ || !mgsHistory || mgsHistory.days.length >= 3) return;
+    const today = new Date();
+    const seedScores = [58, 59, 60, 59, 61, 62, 63];
+    setMgsHistory(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        days: seedScores.map((score, i) => {
+          const d = new Date(today);
+          d.setDate(d.getDate() - (6 - i));
+          return {
+            date: d.toISOString().slice(0, 10),
+            score,
+            delta: i === 0 ? 0 : score - seedScores[i - 1],
+            reps_completed: 1,
+            cues_saved: 0,
+            streak_active: true,
+          };
+        }),
+      };
+    });
+  }, [mgsHistory?.days.length]);
+
   // Routing engine
   useEffect(() => {
     if (!athleteState) return;
