@@ -16,6 +16,9 @@ import {
   useAthlete,
   buildDefaultState,
   type PositionRole,
+  type LevelBand,
+  type SeasonPhase,
+  type Struggle,
 } from '@/context/AthleteContext';
 import { Colors, Radius, Shadow, Spacing } from '@/constants/theme';
 import { H } from '@/utils/haptics';
@@ -30,8 +33,32 @@ const POSITIONS = [
   { value: 'outfielder' as PositionRole, label: 'Outfielder', icon: 'expand', desc: 'Grass and gaps' },
 ];
 
-type Step = 'name' | 'role' | 'complete';
-const STEPS: Step[] = ['name', 'role', 'complete'];
+type Step = 'name' | 'role' | 'level' | 'season' | 'struggle' | 'complete';
+const STEPS: Step[] = ['name', 'role', 'level', 'season', 'struggle', 'complete'];
+
+const LEVELS: { value: LevelBand; label: string; desc: string }[] = [
+  { value: 'youth',       label: 'Youth',       desc: '12U–14U' },
+  { value: 'high_school', label: 'High School', desc: 'Freshman–Senior' },
+  { value: 'college',     label: 'College',     desc: 'JUCO–D1' },
+  { value: 'pro',         label: 'Adult',       desc: 'Semi-pro & up' },
+];
+const SEASONS: { value: SeasonPhase; label: string; desc: string }[] = [
+  { value: 'preseason',       label: 'Preseason', desc: 'Building up' },
+  { value: 'in_season',       label: 'In Season', desc: 'Games are live' },
+  { value: 'offseason_build', label: 'Offseason', desc: 'Get better' },
+];
+const STRUGGLES: { value: Struggle; label: string }[] = [
+  { value: 'confidence',        label: 'Confidence' },
+  { value: 'pregame_nerves',    label: 'Pressure & Nerves' },
+  { value: 'staying_locked_in', label: 'Focus' },
+  { value: 'better_routine',    label: 'Consistency' },
+  { value: 'bouncing_back',     label: 'Bouncing Back' },
+  { value: 'throwing_strikes',  label: 'Throwing Strikes' },
+  { value: 'fielding_cleanly',  label: 'Fielding Cleanly' },
+  { value: 'reading_hitters',   label: 'Reading Hitters' },
+  { value: 'plate_approach',    label: 'Plate Approach' },
+  { value: 'throwing_safely',   label: 'Throwing Safely' },
+];
 
 // ─── SCREEN ──────────────────────────────────────────────────────────────────
 
@@ -43,6 +70,9 @@ export default function OnboardingScreen() {
   const [firstName, setFirstName] = useState('');
   const [role, setRole] = useState<PositionRole>('infielder');
   const [isTwoWay, setIsTwoWay] = useState(false);
+  const [level, setLevel] = useState<LevelBand>('high_school');
+  const [seasonPhase, setSeasonPhase] = useState<SeasonPhase>('in_season');
+  const [struggle, setStruggle] = useState<Struggle | null>(null);
   const [saving, setSaving] = useState(false);
 
   const stepIndex = STEPS.indexOf(step);
@@ -60,6 +90,7 @@ export default function OnboardingScreen() {
 
   const handleComplete = async () => {
     if (saving) return;
+    // TODO: fire onboarding_completed
     setSaving(true);
     try {
       const name = firstName.trim() ||
@@ -71,16 +102,16 @@ export default function OnboardingScreen() {
         first_name: name,
         primary_role: role,
         is_two_way: isTwoWay,
-        level_band: 'high_school',
-        season_phase: 'in_season',
-        biggest_struggle: ['staying_locked_in'],
+        level_band: level,
+        season_phase: seasonPhase,
+        biggest_struggle: struggle ? [struggle] : [],
         self_ratings: { confidence: 3, focus: 3, composure: 3, recovery_discipline: 3, reset_skill: 3 },
         routine_consistency: 3,
         updated_at: new Date().toISOString(),
       });
       registerForPushNotifications().catch(() => {});
       await new Promise(resolve => setTimeout(resolve, 300));
-      router.replace('/(tabs)');
+      router.replace('/lesson/onboarding-first-rep');
     } catch (e) {
       console.error('Onboarding save failed:', e);
     } finally {
@@ -93,7 +124,10 @@ export default function OnboardingScreen() {
     router.replace('/auth');
   };
 
-  const canContinue = step === 'name' ? firstName.trim().length > 0 : true;
+  const canContinue =
+    step === 'name' ? firstName.trim().length > 0 :
+    step === 'struggle' ? true : // optional
+    true;
 
   const ctaScale = useRef(new Animated.Value(1)).current;
   const ctaOpacity = useRef(new Animated.Value(1)).current;
@@ -222,20 +256,115 @@ export default function OnboardingScreen() {
           </View>
         )}
 
-        {/* COMPLETE */}
-        {step === 'complete' && (
-          <View style={[styles.stepWrap, { alignItems: 'center' }]}>
-            <View style={styles.logoMark}>
-              <Text style={styles.logoChevron}>{'<<'}</Text>
+        {/* LEVEL */}
+        {step === 'level' && (
+          <View style={styles.stepWrap}>
+            <Text style={styles.stepTag}>LEVEL</Text>
+            <Text style={styles.stepTitle}>What level do you play?</Text>
+            <Text style={styles.stepSub}>This sets your difficulty and language.</Text>
+            <View style={styles.roleGrid}>
+              {LEVELS.map((l) => (
+                <Pressable
+                  key={l.value}
+                  style={[styles.roleCard, level === l.value && styles.roleCardActive]}
+                  onPress={() => setLevel(l.value)}
+                >
+                  <Text style={[styles.roleLabel, level === l.value && styles.roleLabelActive]}>
+                    {l.label}
+                  </Text>
+                  <Text style={styles.roleDesc}>{l.desc}</Text>
+                  {level === l.value && (
+                    <Ionicons
+                      name="checkmark-circle"
+                      size={16}
+                      color={Colors.primary}
+                      style={styles.roleCheck}
+                    />
+                  )}
+                </Pressable>
+              ))}
             </View>
-            <Text style={styles.stepTitle}>
-              You're in, {firstName || 'Athlete'}.
-            </Text>
-            <Text style={styles.stepSub}>
-              {POSITIONS.find(p => p.value === role)?.label ?? role} — your path is built. Time to rep it.
-            </Text>
           </View>
         )}
+
+        {/* SEASON */}
+        {step === 'season' && (
+          <View style={styles.stepWrap}>
+            <Text style={styles.stepTag}>SEASON</Text>
+            <Text style={styles.stepTitle}>Where are you right now?</Text>
+            <Text style={styles.stepSub}>Your reps match your season.</Text>
+            <View style={styles.roleGrid}>
+              {SEASONS.map((s) => (
+                <Pressable
+                  key={s.value}
+                  style={[styles.roleCard, seasonPhase === s.value && styles.roleCardActive]}
+                  onPress={() => setSeasonPhase(s.value)}
+                >
+                  <Text style={[styles.roleLabel, seasonPhase === s.value && styles.roleLabelActive]}>
+                    {s.label}
+                  </Text>
+                  <Text style={styles.roleDesc}>{s.desc}</Text>
+                  {seasonPhase === s.value && (
+                    <Ionicons
+                      name="checkmark-circle"
+                      size={16}
+                      color={Colors.primary}
+                      style={styles.roleCheck}
+                    />
+                  )}
+                </Pressable>
+              ))}
+            </View>
+          </View>
+        )}
+
+        {/* STRUGGLE */}
+        {step === 'struggle' && (
+          <View style={styles.stepWrap}>
+            <Text style={styles.stepTag}>FOCUS</Text>
+            <Text style={styles.stepTitle}>What do you want to lock in first?</Text>
+            <Text style={styles.stepSub}>Pick one. You can change this anytime.</Text>
+            <View style={styles.pillWrap}>
+              {STRUGGLES.map((s) => {
+                const active = struggle === s.value;
+                return (
+                  <Pressable
+                    key={s.value}
+                    style={[styles.pill, active && styles.pillActive]}
+                    onPress={() => setStruggle(active ? null : s.value)}
+                  >
+                    <Text style={[styles.pillText, active && styles.pillTextActive]}>
+                      {s.label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+            <Pressable onPress={next}>
+              <Text style={styles.skipLink}>Skip for now</Text>
+            </Pressable>
+          </View>
+        )}
+
+        {/* COMPLETE */}
+        {step === 'complete' && (() => {
+          const levelLabel = LEVELS.find(l => l.value === level)?.label ?? level;
+          const roleLabel = POSITIONS.find(p => p.value === role)?.label ?? role;
+          const seasonLabel = SEASONS.find(s => s.value === seasonPhase)?.label ?? seasonPhase;
+          return (
+            <View style={[styles.stepWrap, { alignItems: 'center' }]}>
+              <View style={styles.logoMark}>
+                <Text style={styles.logoChevron}>{'<<'}</Text>
+              </View>
+              <Text style={styles.stepTitle}>
+                You're set, {firstName || 'Athlete'}.
+              </Text>
+              <Text style={styles.stepSub}>
+                {levelLabel} {roleLabel}, {seasonLabel.toLowerCase()} — your first rep is ready.
+              </Text>
+            </View>
+          );
+        })()}
       </ScrollView>
 
       {/* CTA */}
@@ -250,7 +379,7 @@ export default function OnboardingScreen() {
             <Animated.View style={[styles.cta, Shadow.green, { transform: [{ scale: ctaScale }], opacity: ctaOpacity }]}>
               <Ionicons name="flash" size={20} color={Colors.background} />
               <Text style={styles.ctaText}>
-                {saving ? 'Building your path...' : 'Enter Clutchr'}
+                {saving ? 'Building your path...' : 'Start First Rep'}
               </Text>
             </Animated.View>
           </Pressable>
@@ -339,5 +468,39 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.35)',
     textAlign: 'center',
     marginTop: 16,
+  },
+  pillWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  pill: {
+    backgroundColor: Colors.surface,
+    borderWidth: 1.5,
+    borderColor: Colors.border,
+    borderRadius: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    marginRight: 8,
+    marginBottom: 8,
+  },
+  pillActive: {
+    backgroundColor: Colors.primaryMuted,
+    borderColor: Colors.primary,
+  },
+  pillText: {
+    color: 'rgba(255,255,255,0.5)',
+    fontSize: 13,
+    fontFamily: 'Inter_400Regular',
+  },
+  pillTextActive: {
+    color: Colors.primary,
+    fontFamily: 'Inter_700Bold',
+  },
+  skipLink: {
+    fontSize: 13,
+    fontFamily: 'Inter_400Regular',
+    color: Colors.textTertiary,
+    textAlign: 'center',
+    marginTop: Spacing.sm,
   },
 });
