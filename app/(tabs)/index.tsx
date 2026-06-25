@@ -411,7 +411,7 @@ export default function HomeScreen() {
   const mgsIsPositive = mgsDelta >= 0;
 
   // Hero pill computed subtitles
-  const heroHeight      = screenHeight * 0.56;
+  const heroHeight      = screenHeight * 0.50;
   const edgeSubtitle    = ((athleteState as any)?.playbook?.focus ?? '').slice(0, 20) || 'Stay locked';
   const nextRepSubtitle = (routingResult?.lesson?.title ?? '').slice(0, 20) || 'Load next rep';
 
@@ -613,14 +613,9 @@ export default function HomeScreen() {
                 <View style={[c.skeleton, { width: '60%', height: 16, marginTop: 8 }]} />
               </>
             ) : (
-              <>
-                <Text style={c.lessonTitle} numberOfLines={2}>
-                  {lesson?.title ?? 'Control the Controllables'}
-                </Text>
-                <Text style={c.lessonSubtitle} numberOfLines={2}>
-                  {heroSubtitle}
-                </Text>
-              </>
+              <Text style={c.lessonTitle} numberOfLines={2}>
+                {lesson?.title ?? 'Control the Controllables'}
+              </Text>
             )}
 
             <View style={c.edgeNote}>
@@ -651,7 +646,6 @@ export default function HomeScreen() {
         {/* ── 3. COACH C QUOTE ── */}
         {animCard(anim3,
           <View style={s.quoteCard}>
-            <Text style={s.quoteMark}>"</Text>
             <Text style={s.quoteText}>Trust your work.{'\n'}Win the next pitch.</Text>
             <Text style={s.quoteAttrib}>— Coach C</Text>
           </View>
@@ -728,7 +722,7 @@ const hp = StyleSheet.create({
 
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
-  scroll: { paddingTop: 0, gap: Spacing.md },
+  scroll: { paddingTop: 0, gap: Spacing.sm },
 
   // ── Hero area ──
   heroArea: {
@@ -828,7 +822,8 @@ const s = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
     borderRadius: Radius.xl,
-    padding: Spacing.xl,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
   },
   quoteMark: {
     color: Colors.primary,
@@ -839,10 +834,10 @@ const s = StyleSheet.create({
   },
   quoteText: {
     color: Colors.textPrimary,
-    fontSize: 20,
+    fontSize: 16,
     fontFamily: 'Inter_700Bold',
     fontStyle: 'italic',
-    lineHeight: 28,
+    lineHeight: 22,
     letterSpacing: -0.3,
   },
   quoteAttrib: {
@@ -870,7 +865,7 @@ const c = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.primaryBorder,
     borderRadius: Radius.xxl,
-    padding: Spacing.xl,
+    padding: Spacing.md,
   },
   plateMark: {
     position: 'absolute',
@@ -895,7 +890,7 @@ const c = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.xs,
   },
   greenDot: {
     width: 7,
@@ -914,10 +909,10 @@ const c = StyleSheet.create({
     borderRadius: Radius.sm,
   },
   lessonTitle: {
-    fontSize: 28,
+    fontSize: 22,
     color: Colors.textPrimary,
     fontFamily: 'Inter_700Bold',
-    lineHeight: 34,
+    lineHeight: 28,
     letterSpacing: -0.5,
   },
   lessonSubtitle: {
@@ -928,7 +923,7 @@ const c = StyleSheet.create({
     lineHeight: 20,
   },
   edgeNote: {
-    marginTop: 17,
+    marginTop: Spacing.sm,
     borderLeftWidth: 2,
     borderLeftColor: Colors.primaryBorder,
     paddingLeft: Spacing.sm,
@@ -953,7 +948,7 @@ const c = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.xs,
-    marginTop: Spacing.lg,
+    marginTop: Spacing.xs,
     opacity: 0.78,
   },
   rankMiniCopy: { gap: 1 },
@@ -970,9 +965,9 @@ const c = StyleSheet.create({
   ctaBtn: {
     backgroundColor: Colors.primary,
     borderRadius: Radius.lg,
-    paddingVertical: Spacing.lg,
+    paddingVertical: Spacing.sm,
     alignItems: 'center',
-    marginTop: Spacing.xl,
+    marginTop: Spacing.sm,
   },
   ctaBtnText: {
     fontSize: 15,
