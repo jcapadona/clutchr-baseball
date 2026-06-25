@@ -15,6 +15,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AthleteProvider, useAthlete } from '@/context/AthleteContext';
 import { ToastProvider } from '@/components/Toast';
 import { StatusBar } from 'expo-status-bar';
+import Purchases, { LOG_LEVEL } from 'react-native-purchases';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -55,6 +56,11 @@ export default function RootLayout() {
     Inter_600SemiBold,
     Inter_700Bold,
   });
+
+  useEffect(() => {
+    Purchases.setLogLevel(LOG_LEVEL.DEBUG);
+    Purchases.configure({ apiKey: 'test_ddZyQeWyVKzbcoURTIWPTSAUzjc' });
+  }, []);
 
   useEffect(() => {
     if (fontsLoaded || fontError) {

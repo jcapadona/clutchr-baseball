@@ -26,6 +26,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 import { H } from '@/utils/haptics';
+import Purchases, { PURCHASES_ERROR_CODE } from 'react-native-purchases';
 import React, { useRef, useEffect, useState } from 'react';
 import {
   Animated,
@@ -95,7 +96,7 @@ const PLANS = [
   {
     id: 'monthly',
     label: 'Monthly',
-    price: '$7.99',
+    price: '$9.99',
     period: '/month',
     note: 'Cancel anytime',
     highlight: false,
@@ -103,7 +104,7 @@ const PLANS = [
   {
     id: 'annual',
     label: 'Annual',
-    price: '$39.99',
+    price: '$59.99',
     period: '/year',
     note: 'Best value — $3.33/mo',
     highlight: true,
@@ -127,6 +128,9 @@ export default function UpgradeScreen() {
   const { athleteState } = useAthlete();
   const { source } = useLocalSearchParams<{ source?: string }>();
   const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'annual'>('annual');
+  const [offerings, setOfferings] = useState<any>(null);
+  const [purchaseLoading, setPurchaseLoading] = useState(false);
+  const [purchaseError, setPurchaseError] = useState<string | null>(null);
   const fadeAnim   = useRef(new Animated.Value(0)).current;
   const slideAnim  = useRef(new Animated.Value(20)).current;
   const ctaScale   = useRef(new Animated.Value(1)).current;
@@ -146,6 +150,18 @@ export default function UpgradeScreen() {
       Animated.timing(ctaOpacity, { toValue: 1, duration: 120, useNativeDriver: true }),
     ]).start();
   }
+
+  useEffect(() => {
+    async function loadOfferings() {
+      try {
+        const o = await Purchases.getOfferings();
+        if (o.current) setOfferings(o.current);
+      } catch (e) {
+        console.warn('RC offerings failed:', e);
+      }
+    }
+    loadOfferings();
+  }, []);
 
   useEffect(() => {
     Animated.parallel([
@@ -170,16 +186,67 @@ export default function UpgradeScreen() {
     setSelectedPlan(id);
   }
 
-  function handleSubscribe() {
+  async function handlePurchaseMonthly() {
+    if (!offerings) return;
+    const pkg = offerings.availablePackages.find(
+      (p: any) => p.identifier === 'monthly' || p.packageType === 'MONTHLY'
+    );
+    if (!pkg) return;
     H.medium();
-    // TODO: Wire to RevenueCat / Stripe / App Store IAP
-    // For now, show a placeholder
-    alert('Subscription coming soon. Thank you for your interest!');
+    setPurchaseLoading(true);
+    setPurchaseError(null);
+    try {
+      const { customerInfo } = await Purchases.purchasePackage(pkg);
+      if (customerInfo.entitlements.active['pro']) {
+        router.replace('/(tabs)');
+      }
+    } catch (e: any) {
+      if (e.code !== PURCHASES_ERROR_CODE.PURCHASE_CANCELLED_ERROR) {
+        setPurchaseError('Purchase failed. Please try again.');
+      }
+    } finally {
+      setPurchaseLoading(false);
+    }
   }
 
-  function handleRestore() {
-    // TODO: Wire to RevenueCat restorePurchases()
-    alert('Restore purchases coming soon.');
+  async function handlePurchaseYearly() {
+    if (!offerings) return;
+    const pkg = offerings.availablePackages.find(
+      (p: any) => p.identifier === 'yearly' || p.packageType === 'ANNUAL'
+    );
+    if (!pkg) return;
+    H.medium();
+    setPurchaseLoading(true);
+    setPurchaseError(null);
+    try {
+      const { customerInfo } = await Purchases.purchasePackage(pkg);
+      if (customerInfo.entitlements.active['pro']) {
+        router.replace('/(tabs)');
+      }
+    } catch (e: any) {
+      if (e.code !== PURCHASES_ERROR_CODE.PURCHASE_CANCELLED_ERROR) {
+        setPurchaseError('Purchase failed. Please try again.');
+      }
+    } finally {
+      setPurchaseLoading(false);
+    }
+  }
+
+  async function handleRestore() {
+    setPurchaseLoading(true);
+    setPurchaseError(null);
+    try {
+      const customerInfo = await Purchases.restorePurchases();
+      if (customerInfo.entitlements.active['pro']) {
+        router.replace('/(tabs)');
+      } else {
+        setPurchaseError('No active subscription found.');
+      }
+    } catch (e) {
+      setPurchaseError('Restore failed. Try again.');
+    } finally {
+      setPurchaseLoading(false);
+    }
   }
 
   return (
@@ -333,8 +400,13 @@ export default function UpgradeScreen() {
           </View>
 
           {/* ── CTA ── */}
-          <Pressable onPress={handleSubscribe} onPressIn={ctaPressIn} onPressOut={ctaPressOut}>
-            <Animated.View style={[styles.ctaBtn, { transform: [{ scale: ctaScale }], opacity: ctaOpacity }]}>
+          <Pressable
+            onPress={selectedPlan === 'annual' ? handlePurchaseYearly : handlePurchaseMonthly}
+            onPressIn={ctaPressIn}
+            onPressOut={ctaPressOut}
+            disabled={purchaseLoading}
+          >
+            <Animated.View style={[styles.ctaBtn, { transform: [{ scale: ctaScale }], opacity: purchaseLoading ? 0.6 : ctaOpacity }]}>
               <LinearGradient
                 colors={selectedPlan === 'annual' ? [Colors.warning, '#D4890A'] : [Colors.primary, Colors.primaryDim]}
                 style={StyleSheet.absoluteFill}
@@ -342,15 +414,22 @@ export default function UpgradeScreen() {
               />
               <Ionicons name="flash" size={16} color="#000" />
               <Text style={styles.ctaText}>
-                Start {selectedPlan === 'annual' ? 'Annual' : 'Monthly'} Pro —{' '}
-                {selectedPlan === 'annual' ? '$39.99/yr' : '$7.99/mo'}
+                {purchaseLoading
+                  ? 'Processing…'
+                  : `Start ${selectedPlan === 'annual' ? 'Annual' : 'Monthly'} Pro — ${selectedPlan === 'annual' ? '$59.99/yr' : '$9.99/mo'}`
+                }
               </Text>
             </Animated.View>
           </Pressable>
 
+          {/* ── PURCHASE ERROR ── */}
+          {purchaseError && (
+            <Text style={styles.purchaseError}>{purchaseError}</Text>
+          )}
+
           {/* ── FINE PRINT ── */}
           <View style={styles.finePrint}>
-            <Pressable onPress={handleRestore}>
+            <Pressable onPress={handleRestore} disabled={purchaseLoading}>
               <Text style={styles.restoreText}>Restore purchases</Text>
             </Pressable>
             <Text style={styles.finePrintText}>
@@ -521,6 +600,12 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3, shadowRadius: 12,
   },
   ctaText: { fontSize: 16, fontFamily: 'Inter_700Bold', color: '#000' },
+
+  // Purchase error
+  purchaseError: {
+    fontSize: 13, fontFamily: 'Inter_400Regular',
+    color: '#FF4D4D', textAlign: 'center',
+  },
 
   // Fine print
   finePrint: { gap: 8, alignItems: 'center', paddingBottom: Spacing.lg },
