@@ -1,14 +1,18 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
+import * as Haptics from 'expo-haptics';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Animated,
   Image,
+  ImageBackground,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -120,12 +124,67 @@ function HomeScoreSparkline({ days, positive }: { days: MentalGameScoreDay[]; po
   );
 }
 
+// ─── HOME PILL ────────────────────────────────────────────────────────────────
+
+interface HomePillProps {
+  title: string;
+  subtitle?: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  side: 'left' | 'right';
+  topPct: number;
+  heroHeight: number;
+  onPress: () => void;
+  isActive?: boolean;
+}
+
+function HomePill({ title, subtitle, icon, side, topPct, heroHeight, onPress, isActive }: HomePillProps) {
+  const scale = useRef(new Animated.Value(1)).current;
+
+  function handlePressIn() {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    Animated.spring(scale, { toValue: 0.96, useNativeDriver: true, tension: 200, friction: 10 }).start();
+  }
+
+  function handlePressOut() {
+    Animated.spring(scale, { toValue: 1, useNativeDriver: true, tension: 200, friction: 10 }).start();
+  }
+
+  return (
+    <Animated.View
+      style={[
+        hp.container,
+        side === 'left' ? { left: '3%' } : { right: '3%' },
+        { top: topPct * heroHeight },
+        isActive ? { shadowOpacity: 0.5 } : null,
+        { transform: [{ scale }] },
+      ]}
+    >
+      <Pressable
+        style={[hp.inner, isActive && hp.innerActive]}
+        onPress={onPress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+      >
+        <View style={hp.iconBox}>
+          <Ionicons name={icon} size={16} color={Colors.primary} />
+        </View>
+        <View style={hp.textBlock}>
+          <Text style={hp.title} numberOfLines={1}>{title}</Text>
+          {subtitle ? <Text style={hp.subtitle} numberOfLines={1}>{subtitle}</Text> : null}
+        </View>
+        <Ionicons name="chevron-forward" size={14} color={Colors.primary} />
+      </Pressable>
+    </Animated.View>
+  );
+}
+
 // ─── SCREEN ──────────────────────────────────────────────────────────────────
 
 const LAST_ACTIVE_KEY = 'last_active_date';
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
+  const { height: screenHeight } = useWindowDimensions();
   const { athleteState, isLoading, completedTodayCount, updateAthleteState } = useAthlete();
   const [routingResult, setRoutingResult]   = useState<RoutingResult | null>(null);
   const [loadingLesson, setLoadingLesson]   = useState(true);
@@ -351,6 +410,11 @@ export default function HomeScreen() {
   const mgsDelta      = mgsToday?.delta ?? 0;
   const mgsIsPositive = mgsDelta >= 0;
 
+  // Hero pill computed subtitles
+  const heroHeight      = screenHeight * 0.56;
+  const edgeSubtitle    = ((athleteState as any)?.playbook?.focus ?? '').slice(0, 20) || 'Stay locked';
+  const nextRepSubtitle = (routingResult?.lesson?.title ?? '').slice(0, 20) || 'Load next rep';
+
   function handleContinueCareer() {
     if (!routingResult?.lesson) return;
     const encodedReason = encodeURIComponent(routingResult.reason ?? '');
@@ -376,6 +440,18 @@ export default function HomeScreen() {
   return (
     <View style={s.container}>
 
+      {/* ── FULL-SCREEN BACKGROUND ── */}
+      <ImageBackground
+        source={Assets.backgrounds.homeStadiumWalk}
+        style={StyleSheet.absoluteFill}
+        resizeMode="cover"
+      />
+      <LinearGradient
+        colors={['rgba(0,0,0,0.20)', 'rgba(0,0,0,0.10)', 'rgba(0,0,0,0.75)', '#050806']}
+        locations={[0, 0.35, 0.70, 1.0]}
+        style={StyleSheet.absoluteFill}
+      />
+
       {/* ── HEADER ── */}
       <View style={[s.header, { paddingTop: insets.top + 12 }]}>
         <Image source={Assets.branding.mainWordmark} style={s.headerWordmark} resizeMode="contain" />
@@ -400,120 +476,120 @@ export default function HomeScreen() {
           </Pressable>
         </View>
       </View>
+
       <ScrollView
         contentContainerStyle={[s.scroll, { paddingBottom: insets.bottom + 120 }]}
         showsVerticalScrollIndicator={false}
+        scrollEnabled={false}
       >
 
-        {/* ── 1. UPCOMING GAME CARD ── */}
-        {/* TODO: wire real game schedule */}
-        {animCard(anim1,
-          <View style={s.gameCard}>
-            <Text style={s.sectionLabel}>UPCOMING GAME</Text>
-            <View style={s.teamsRow}>
-              {/* Your team */}
-              <View style={s.teamBlock}>
-                <View style={s.teamLogoBox}>
-                  <Text style={s.teamLogoLetter}>R</Text>
-                </View>
-                <Text style={s.teamNameLabel}>YOUR TEAM</Text>
-              </View>
-              {/* Center info */}
-              <View style={s.vsBlock}>
-                <Text style={s.vsText}>VS</Text>
-                <Text style={s.gameDetail}>TODAY • 7:00 PM</Text>
-                <Text style={s.gameDetail}>RIVERSIDE FIELD</Text>
-              </View>
-              {/* Opponent */}
-              <View style={[s.teamBlock, { alignItems: 'flex-end' }]}>
-                <View style={[s.teamLogoBox, s.opponentLogoBox]}>
-                  <Ionicons name="shield-outline" size={20} color={Colors.textTertiary} />
-                </View>
-                <Text style={s.teamNameLabel}>KNIGHTS</Text>
-              </View>
-            </View>
+        {/* ── 1. HERO AREA WITH PILLS ── */}
+        <Animated.View style={[s.heroArea, { height: heroHeight, opacity: anim1 }]}>
 
-            <Text style={s.firstPitchLabel}>FIRST PITCH IN</Text>
-            <View style={s.countdownRow}>
-              <View style={s.countdownUnit}>
-                <Text style={s.countdownValue}>02</Text>
-                <Text style={s.countdownUnitLabel}>HRS</Text>
-              </View>
-              <Text style={s.countdownColon}>:</Text>
-              <View style={s.countdownUnit}>
-                <Text style={s.countdownValue}>37</Text>
-                <Text style={s.countdownUnitLabel}>MIN</Text>
-              </View>
-              <Text style={s.countdownColon}>:</Text>
-              <View style={s.countdownUnit}>
-                <Text style={s.countdownValue}>45</Text>
-                <Text style={s.countdownUnitLabel}>SEC</Text>
-              </View>
-            </View>
+          {/* Left pills */}
+          <HomePill
+            title="Upcoming Game"
+            subtitle="TODAY · 7:00 PM"
+            icon="calendar-outline"
+            side="left"
+            topPct={0.06}
+            heroHeight={heroHeight}
+            onPress={() => showToast('Coming soon — schedule', 'info')}
+          />
+          <HomePill
+            title="Weather"
+            subtitle="72° · Clear"
+            icon="sunny-outline"
+            side="left"
+            topPct={0.22}
+            heroHeight={heroHeight}
+            onPress={() => {}}
+          />
+          <HomePill
+            title="Readiness"
+            subtitle={`MGS · ${mgsScore}`}
+            icon="checkmark-circle-outline"
+            side="left"
+            topPct={0.38}
+            heroHeight={heroHeight}
+            onPress={() => showToast('Coming soon — readiness check', 'info')}
+          />
+          <HomePill
+            title="Opponent Intel"
+            subtitle="Aggressive early."
+            icon="locate-outline"
+            side="left"
+            topPct={0.54}
+            heroHeight={heroHeight}
+            onPress={() => showToast('Coming soon — opponent intel', 'info')}
+          />
+          <HomePill
+            title="Key Pitcher"
+            subtitle="RHP · 88–90 MPH"
+            icon="baseball-outline"
+            side="left"
+            topPct={0.70}
+            heroHeight={heroHeight}
+            onPress={() => showToast('Coming soon — opponent intel', 'info')}
+          />
 
-            <View style={s.gameCardDivider} />
-            <Pressable
-              style={({ pressed }) => [s.opponentIntelRow, pressed && { opacity: 0.72 }]}
-              onPress={() => showToast('Coming soon — opponent intel', 'info')}
-            >
-              <View style={s.opponentIntelIcon}>
-                <Ionicons name="shield-outline" size={14} color={Colors.primary} />
-              </View>
-              <Text style={s.opponentIntelLabel}>OPPONENT INTEL</Text>
-              <Ionicons name="chevron-forward" size={14} color={Colors.textTertiary} />
-            </Pressable>
-          </View>
-        )}
+          {/* Right pills */}
+          <HomePill
+            title="Locker"
+            subtitle="Open Locker"
+            icon="book-outline"
+            side="right"
+            topPct={0.06}
+            heroHeight={heroHeight}
+            onPress={() => router.push('/(tabs)/locker')}
+          />
+          <HomePill
+            title="Weight Room"
+            subtitle="Strength · Power"
+            icon="barbell-outline"
+            side="right"
+            topPct={0.22}
+            heroHeight={heroHeight}
+            onPress={() => showToast('Coming soon — strength tools', 'info')}
+          />
+          <HomePill
+            title="Film Room"
+            subtitle="Game Prep"
+            icon="film-outline"
+            side="right"
+            topPct={0.38}
+            heroHeight={heroHeight}
+            onPress={handleGameModePress}
+          />
+          <HomePill
+            title="Your Edge"
+            subtitle={edgeSubtitle}
+            icon="star-outline"
+            side="right"
+            topPct={0.54}
+            heroHeight={heroHeight}
+            onPress={() => {
+              if ((athleteState as any)?.playbook?.built_at) {
+                router.push('/(tabs)/locker');
+              } else {
+                showToast('Build your playbook in a lesson', 'info');
+              }
+            }}
+          />
+          <HomePill
+            title="Start Next Rep"
+            subtitle={nextRepSubtitle}
+            icon="play-circle-outline"
+            side="right"
+            topPct={0.70}
+            heroHeight={heroHeight}
+            onPress={handleContinueCareer}
+            isActive
+          />
+        </Animated.View>
 
-        {/* ── 2. THREE-COLUMN WIDGET ROW ── */}
+        {/* ── 2. CONTINUE CAREER CARD ── */}
         {animCard(anim2,
-          <View style={s.widgetRow}>
-            {/* Weather — TODO: weather API */}
-            <View style={s.widget}>
-              <Text style={s.weatherEmoji}>☀️</Text>
-              <Text style={s.widgetMain}>72°</Text>
-              <Text style={s.widgetSub}>Clear</Text>
-            </View>
-            {/* Readiness */}
-            <View style={s.widget}>
-              <Ionicons name="checkmark-circle" size={20} color={Colors.primary} />
-              <Text style={[s.widgetMain, s.widgetGreen]}>GOOD</Text>
-              <Text style={s.widgetSub}>Readiness</Text>
-            </View>
-            {/* Routine */}
-            <View style={s.widget}>
-              <Ionicons name="book-outline" size={20} color={Colors.textTertiary} />
-              <Text style={s.widgetMain}>—%</Text>
-              <Text style={s.widgetSub}>Routine</Text>
-            </View>
-          </View>
-        )}
-
-        {/* ── 3. MENTAL GAME SCORE ── */}
-        {animCard(anim3,
-          <View style={s.mgsSection}>
-            <View style={s.mgsCard}>
-              <View style={s.mgsTopRow}>
-                <View>
-                  <Text style={s.mgsKicker}>MENTAL GAME SCORE</Text>
-                  <View style={s.mgsScoreRow}>
-                    <Text style={s.mgsScoreNum}>{mgsScore}</Text>
-                    <View style={[s.mgsDeltaPill, mgsIsPositive ? s.mgsDeltaPos : s.mgsDeltaNeg]}>
-                      <Text style={[s.mgsDeltaText, { color: mgsIsPositive ? Colors.primary : Colors.danger }]}>
-                        {mgsIsPositive ? '+' : ''}{mgsDelta.toFixed(1)} today
-                      </Text>
-                    </View>
-                  </View>
-                </View>
-              </View>
-              <HomeScoreSparkline days={mgsHistory?.days ?? []} positive={mgsIsPositive} />
-              <Text style={s.mgsSub}>Computed from reps, cues, and streak</Text>
-            </View>
-          </View>
-        )}
-
-        {/* ── 4. CONTINUE CAREER CARD ── */}
-        {animCard(anim4,
           <Pressable
             style={({ pressed }) => [c.card, pressed && { opacity: 0.95, transform: [{ scale: 0.992 }] }]}
             onPress={handleContinueCareer}
@@ -572,8 +648,8 @@ export default function HomeScreen() {
           </Pressable>
         )}
 
-        {/* ── 5. COACH C QUOTE ── */}
-        {animCard(anim5,
+        {/* ── 3. COACH C QUOTE ── */}
+        {animCard(anim3,
           <View style={s.quoteCard}>
             <Text style={s.quoteMark}>"</Text>
             <Text style={s.quoteText}>Trust your work.{'\n'}Win the next pitch.</Text>
@@ -581,7 +657,7 @@ export default function HomeScreen() {
           </View>
         )}
 
-        {/* ── 6. START GAME PREP CTA (game day only) ── */}
+        {/* ── 5. START GAME PREP CTA (game day only) ── */}
         {isGameDay && (
           <View style={s.gameCtaWrap}>
             <Btn label="START GAME PREP" onPress={handleGameModePress} />
@@ -594,11 +670,70 @@ export default function HomeScreen() {
   );
 }
 
-// ─── STYLES ──────────────────────────────────────────────────────────────────
+// ─── HOME PILL STYLES ─────────────────────────────────────────────────────────
+
+const hp = StyleSheet.create({
+  container: {
+    position: 'absolute',
+    width: '44%',
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.20,
+    shadowRadius: 14,
+    elevation: 5,
+  },
+  inner: {
+    backgroundColor: 'rgba(8,12,10,0.88)',
+    borderRadius: 16,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.14)',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  innerActive: {
+    borderColor: Colors.primary,
+  },
+  iconBox: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: Colors.primary + '18',
+    borderColor: Colors.primary + '60',
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  textBlock: {
+    flex: 1,
+    minWidth: 0,
+  },
+  title: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontFamily: 'Inter_700Bold',
+  },
+  subtitle: {
+    color: Colors.textSecondary,
+    fontSize: 11,
+    fontFamily: 'Inter_400Regular',
+    marginTop: 1,
+  },
+});
+
+// ─── SCREEN STYLES ────────────────────────────────────────────────────────────
 
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
-  scroll: { paddingTop: Spacing.sm, gap: Spacing.md },
+  scroll: { paddingTop: 0, gap: Spacing.md },
+
+  // ── Hero area ──
+  heroArea: {
+    position: 'relative',
+  },
 
   // ── Header ──
   header: {
@@ -607,7 +742,7 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: Colors.background,
+    backgroundColor: 'transparent',
   },
   headerWordmark: { width: 120, height: 28 },
   headerIcons: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
@@ -626,173 +761,6 @@ const s = StyleSheet.create({
     fontSize: 13,
     fontFamily: 'Inter_700Bold',
     color: Colors.warning,
-  },
-  // ── Upcoming Game Card ──
-  gameCard: {
-    marginHorizontal: Spacing.lg,
-    backgroundColor: Colors.surfaceGlow,
-    borderWidth: 1,
-    borderColor: Colors.primaryBorder,
-    borderRadius: Radius.xl,
-    padding: Spacing.lg,
-  },
-  sectionLabel: {
-    color: Colors.primary,
-    fontSize: 9,
-    fontFamily: 'Inter_700Bold',
-    letterSpacing: 2.2,
-    marginBottom: Spacing.md,
-  },
-  teamsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: Spacing.md,
-  },
-  teamBlock: {
-    flex: 1,
-    alignItems: 'flex-start',
-    gap: Spacing.xs,
-  },
-  teamLogoBox: {
-    width: 44,
-    height: 44,
-    borderRadius: Radius.md,
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  opponentLogoBox: {
-    borderColor: Colors.primaryBorder,
-    backgroundColor: Colors.surfaceGlow,
-  },
-  teamLogoLetter: {
-    color: Colors.textPrimary,
-    fontSize: 20,
-    fontFamily: 'Inter_700Bold',
-  },
-  teamNameLabel: {
-    color: Colors.textTertiary,
-    fontSize: 9,
-    fontFamily: 'Inter_700Bold',
-    letterSpacing: 1.2,
-  },
-  vsBlock: {
-    flex: 1,
-    alignItems: 'center',
-    gap: 3,
-  },
-  vsText: {
-    color: Colors.textPrimary,
-    fontSize: 16,
-    fontFamily: 'Inter_700Bold',
-    letterSpacing: 1,
-  },
-  gameDetail: {
-    color: Colors.textTertiary,
-    fontSize: 8,
-    fontFamily: 'Inter_700Bold',
-    letterSpacing: 0.8,
-    textAlign: 'center',
-  },
-  firstPitchLabel: {
-    color: Colors.primary,
-    fontSize: 9,
-    fontFamily: 'Inter_700Bold',
-    letterSpacing: 2,
-    textAlign: 'center',
-    marginBottom: Spacing.sm,
-  },
-  countdownRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: Spacing.xs,
-  },
-  countdownUnit: { alignItems: 'center', minWidth: 60 },
-  countdownValue: {
-    color: Colors.primary,
-    fontSize: 42,
-    fontFamily: 'Inter_700Bold',
-    letterSpacing: -1,
-    lineHeight: 48,
-  },
-  countdownUnitLabel: {
-    color: Colors.textTertiary,
-    fontSize: 8,
-    fontFamily: 'Inter_700Bold',
-    letterSpacing: 2,
-  },
-  countdownColon: {
-    color: Colors.primary,
-    fontSize: 36,
-    fontFamily: 'Inter_700Bold',
-    marginBottom: 10,
-  },
-
-  // ── Widget row ──
-  widgetRow: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
-    marginHorizontal: Spacing.lg,
-  },
-  widget: {
-    flex: 1,
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: Radius.lg,
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.sm,
-    alignItems: 'center',
-    gap: 4,
-  },
-  weatherEmoji: { fontSize: 18, lineHeight: 22 },
-  widgetMain: {
-    color: Colors.textPrimary,
-    fontSize: 16,
-    fontFamily: 'Inter_700Bold',
-    letterSpacing: -0.3,
-  },
-  widgetGreen: { color: Colors.primary },
-  widgetSub: {
-    color: Colors.textTertiary,
-    fontSize: 9,
-    fontFamily: 'Inter_700Bold',
-    letterSpacing: 0.8,
-    textAlign: 'center',
-  },
-
-  // ── Opponent Intel row (inside game card) ──
-  gameCardDivider: {
-    height: 1,
-    backgroundColor: Colors.border,
-    marginTop: Spacing.md,
-    marginBottom: Spacing.sm,
-  },
-  opponentIntelRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-    paddingVertical: Spacing.xs,
-  },
-  opponentIntelIcon: {
-    width: 24,
-    height: 24,
-    borderRadius: Radius.sm,
-    backgroundColor: Colors.primaryGlow,
-    borderWidth: 1,
-    borderColor: Colors.primaryBorder,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  opponentIntelLabel: {
-    flex: 1,
-    color: Colors.textSecondary,
-    fontSize: 10,
-    fontFamily: 'Inter_700Bold',
-    letterSpacing: 1.5,
   },
 
   // ── Mental Game Score ──
