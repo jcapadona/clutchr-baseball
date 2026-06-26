@@ -14,7 +14,10 @@
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.clutchr.baseball"
+      "bundleIdentifier": "com.clutchr.baseball",
+      "infoPlistEntries": {
+        "NSLocationWhenInUseUsageDescription": "Clutchr uses your location to show local weather conditions."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -26,7 +29,8 @@
     "plugins": [
       "expo-router",
       "expo-font",
-      "expo-web-browser"
+      "expo-web-browser",
+      "expo-location"
     ],
     "experiments": {
       "typedRoutes": true

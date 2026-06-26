@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import * as Location from 'expo-location';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import React, { useEffect, useRef, useState } from 'react';
@@ -191,6 +192,8 @@ export default function HomeScreen() {
   const [missions, setMissions]             = useState<MissionsProgress>({ lessonsCompleted: 0, gameModeOpened: false });
   const [isReturn, setIsReturn]             = useState(false);
   const [mgsHistory, setMgsHistory]         = useState<MentalGameScoreHistory | null>(null);
+  const [weatherTemp, setWeatherTemp]       = useState<number | null>(null);
+  const [weatherLabel, setWeatherLabel]     = useState<string | null>(null);
 
   const microcopy = useMicrocopy();
   const { showToast } = useToast();
@@ -212,6 +215,35 @@ export default function HomeScreen() {
       Animated.spring(anim4, { toValue: 1, tension: 80, friction: 11, useNativeDriver: true }),
       Animated.spring(anim5, { toValue: 1, tension: 80, friction: 11, useNativeDriver: true }),
     ]).start();
+  }, []);
+
+  // Weather — live location + Open-Meteo
+  useEffect(() => {
+    (async () => {
+      try {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted') { setWeatherLabel('Unavailable'); return; }
+        const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Lowest });
+        const { latitude: lat, longitude: lon } = loc.coords;
+        const res = await fetch(
+          `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&temperature_unit=fahrenheit`
+        );
+        const data = await res.json();
+        const temp = Math.round(data.current_weather.temperature);
+        const code = data.current_weather.weathercode as number;
+        let label = 'Clear';
+        if (code >= 1 && code <= 3)   label = 'Partly Cloudy';
+        else if (code >= 45 && code <= 48) label = 'Foggy';
+        else if (code >= 51 && code <= 67) label = 'Rainy';
+        else if (code >= 71 && code <= 77) label = 'Snowy';
+        else if (code >= 80 && code <= 82) label = 'Showers';
+        else if (code === 95)              label = 'Stormy';
+        setWeatherTemp(temp);
+        setWeatherLabel(label);
+      } catch {
+        setWeatherLabel('Unavailable');
+      }
+    })();
   }, []);
 
   // Track return status and stamp last_active_date
@@ -498,7 +530,7 @@ export default function HomeScreen() {
           />
           <HomePill
             title="Weather"
-            subtitle="72° · Clear"
+            subtitle={weatherTemp !== null && weatherLabel !== null ? `${weatherTemp}° · ${weatherLabel}` : weatherLabel === 'Unavailable' ? 'Unavailable' : 'Checking...'}
             icon="sunny-outline"
             side="left"
             topPct={0.22}
