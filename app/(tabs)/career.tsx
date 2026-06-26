@@ -24,7 +24,7 @@ import { ErrorState, SkeletonCard } from '@/components/SkeletonLoader';
 
 // ─── DEV FLAGS ────────────────────────────────────────────────────────────────
 // Set to false before App Store submission.
-const DEV_UNLOCK_ALL = true;
+const DEV_UNLOCK_ALL = false;
 
 // ─── WORLD CONFIG ─────────────────────────────────────────────────────────────
 
