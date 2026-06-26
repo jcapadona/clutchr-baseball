@@ -9,6 +9,7 @@ import {
   Animated,
   Image,
   ImageBackground,
+  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -179,6 +180,103 @@ function HomePill({ title, subtitle, icon, side, topPct, heroHeight, onPress, is
   );
 }
 
+// ─── WEATHER MODAL ───────────────────────────────────────────────────────────
+
+interface WeatherModalProps {
+  visible: boolean;
+  onClose: () => void;
+  temp: number | null;
+  label: string | null;
+}
+
+function weatherIcon(label: string | null): keyof typeof Ionicons.glyphMap {
+  if (!label || label === 'Unavailable' || label === 'Clear') return 'sunny-outline';
+  if (label === 'Partly Cloudy') return 'partly-sunny-outline';
+  if (label === 'Foggy') return 'cloud-outline';
+  if (label === 'Rainy' || label === 'Showers') return 'rainy-outline';
+  if (label === 'Snowy') return 'snow-outline';
+  if (label === 'Stormy') return 'thunderstorm-outline';
+  return 'sunny-outline';
+}
+
+function WeatherModal({ visible, onClose, temp, label }: WeatherModalProps) {
+  return (
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+      <Pressable style={wm.overlay} onPress={onClose}>
+        <Pressable style={wm.sheet} onPress={e => e.stopPropagation()}>
+          <View style={wm.handle} />
+          <Ionicons name={weatherIcon(label)} size={64} color={Colors.primary} style={wm.icon} />
+          <Text style={wm.temp}>{temp !== null ? `${temp}°` : '—'}</Text>
+          <Text style={wm.condition}>{label ?? 'Unavailable'}</Text>
+          <Text style={wm.note}>Game day conditions at your location</Text>
+          <Pressable style={({ pressed }) => [wm.closeBtn, pressed && { opacity: 0.85 }]} onPress={onClose}>
+            <Text style={wm.closeBtnText}>Got It</Text>
+          </Pressable>
+        </Pressable>
+      </Pressable>
+    </Modal>
+  );
+}
+
+const wm = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'flex-end',
+  },
+  sheet: {
+    backgroundColor: '#111612',
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    padding: 32,
+    borderTopWidth: 1.5,
+    borderColor: Colors.primary + '40',
+    alignItems: 'center',
+  },
+  handle: {
+    width: 40,
+    height: 4,
+    backgroundColor: Colors.textTertiary,
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginBottom: 24,
+  },
+  icon: {
+    marginBottom: 12,
+  },
+  temp: {
+    fontSize: 72,
+    fontFamily: 'Inter_700Bold',
+    color: Colors.textPrimary,
+    lineHeight: 80,
+  },
+  condition: {
+    fontSize: 20,
+    color: Colors.textSecondary,
+    fontFamily: 'Inter_600SemiBold',
+    marginTop: 8,
+  },
+  note: {
+    fontSize: 13,
+    color: Colors.textTertiary,
+    fontFamily: 'Inter_400Regular',
+    marginTop: 16,
+    marginBottom: 32,
+  },
+  closeBtn: {
+    backgroundColor: Colors.primary,
+    borderRadius: Radius.lg,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: 48,
+    alignItems: 'center',
+  },
+  closeBtnText: {
+    fontSize: 15,
+    color: Colors.background,
+    fontFamily: 'Inter_700Bold',
+  },
+});
+
 // ─── SCREEN ──────────────────────────────────────────────────────────────────
 
 const LAST_ACTIVE_KEY = 'last_active_date';
@@ -194,6 +292,7 @@ export default function HomeScreen() {
   const [mgsHistory, setMgsHistory]         = useState<MentalGameScoreHistory | null>(null);
   const [weatherTemp, setWeatherTemp]       = useState<number | null>(null);
   const [weatherLabel, setWeatherLabel]     = useState<string | null>(null);
+  const [showWeatherModal, setShowWeatherModal] = useState(false);
 
   const microcopy = useMicrocopy();
   const { showToast } = useToast();
@@ -222,13 +321,16 @@ export default function HomeScreen() {
     (async () => {
       try {
         const { status } = await Location.requestForegroundPermissionsAsync();
+        console.log('[Weather] permission status:', status);
         if (status !== 'granted') { setWeatherLabel('Unavailable'); return; }
         const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Lowest });
+        console.log('[Weather] coords:', loc.coords.latitude, loc.coords.longitude);
         const { latitude: lat, longitude: lon } = loc.coords;
         const res = await fetch(
           `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&temperature_unit=fahrenheit`
         );
         const data = await res.json();
+        console.log('[Weather] raw response:', JSON.stringify(data));
         const temp = Math.round(data.current_weather.temperature);
         const code = data.current_weather.weathercode as number;
         let label = 'Clear';
@@ -240,7 +342,8 @@ export default function HomeScreen() {
         else if (code === 95)              label = 'Stormy';
         setWeatherTemp(temp);
         setWeatherLabel(label);
-      } catch {
+      } catch (err) {
+        console.log('[Weather] error:', err);
         setWeatherLabel('Unavailable');
       }
     })();
@@ -535,7 +638,7 @@ export default function HomeScreen() {
             side="left"
             topPct={0.22}
             heroHeight={heroHeight}
-            onPress={() => {}}
+            onPress={() => setShowWeatherModal(true)}
           />
           <HomePill
             title="Readiness"
@@ -691,6 +794,13 @@ export default function HomeScreen() {
         )}
 
       </ScrollView>
+
+      <WeatherModal
+        visible={showWeatherModal}
+        onClose={() => setShowWeatherModal(false)}
+        temp={weatherTemp}
+        label={weatherLabel}
+      />
 
     </View>
   );
