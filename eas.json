@@ -14,7 +14,9 @@
     "production": {
       "autoIncrement": true,
       "env": {
-        "NPM_CONFIG_LEGACY_PEER_DEPS": "true"
+        "NPM_CONFIG_LEGACY_PEER_DEPS": "true",
+        "EXPO_PUBLIC_SUPABASE_URL": "https://cwkjpizajqsmtnlsokll.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN3a2pwaXphanFzbXRubHNva2xsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyOTI5MzYsImV4cCI6MjA4OTg2ODkzNn0.ZgApE2x9M-datyoeHezopunkOCRpu2uW8WqVKZg7F3Q"
       }
     }
   },
