@@ -17,6 +17,9 @@
       "bundleIdentifier": "com.clutchr.baseball",
       "infoPlistEntries": {
         "NSLocationWhenInUseUsageDescription": "Clutchr uses your location to show local weather conditions."
+      },
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {

@@ -56,9 +56,10 @@ export default function RootLayout() {
     Inter_600SemiBold,
     Inter_700Bold,
   });
+  if (fontError) console.warn('Font loading error:', fontError);
 
   useEffect(() => {
-    Purchases.setLogLevel(LOG_LEVEL.DEBUG);
+    if (__DEV__) Purchases.setLogLevel(LOG_LEVEL.DEBUG);
     Purchases.configure({ apiKey: 'test_ddZyQeWyVKzbcoURTIWPTSAUzjc' });
   }, []);
 
