@@ -70,7 +70,7 @@ export default function RootLayout() {
   }, [fontsLoaded, fontError]);
 
   useEffect(() => {
-    setupNotificationsOnce();
+    setupNotificationsOnce().catch((err) => console.warn('setupNotificationsOnce error:', err));
 
     const sub = Notifications.addNotificationResponseReceivedListener((response) => {
       const screen = response.notification.request.content.data?.screen;
