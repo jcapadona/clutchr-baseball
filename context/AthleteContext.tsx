@@ -225,7 +225,7 @@ export function AthleteProvider({ children }: { children: React.ReactNode }) {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       sessionRef.current = session;
-    });
+    }).catch((err) => console.warn('getSession error:', err));
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => { setSession(session); sessionRef.current = session; }
     );
