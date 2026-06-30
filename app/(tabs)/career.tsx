@@ -1364,7 +1364,7 @@ export default function CareerScreen() {
     chapterWorlds, lessonPillarIds, activeChapter, athleteRole, isTwoWay, seasonPhase, healthState
   );
 
-  const activeChapterConfig = CHAPTERS.find(c => c.id === activeChapter)!;
+  const activeChapterConfig = CHAPTERS.find(c => c.id === activeChapter) ?? CHAPTERS[0];
 
   // First active world with incomplete lessons (drives the subheader "WORLD N" display)
   const currentWorld = useMemo(() => {
