@@ -39,9 +39,14 @@ export async function registerForPushNotifications(): Promise<string | null> {
     });
   }
 
-  const token = (await Notifications.getExpoPushTokenAsync()).data;
-  await AsyncStorage.setItem(PUSH_TOKEN_KEY, token);
-  return token;
+  try {
+    const token = (await Notifications.getExpoPushTokenAsync()).data;
+    await AsyncStorage.setItem(PUSH_TOKEN_KEY, token);
+    return token;
+  } catch (err) {
+    console.warn('getExpoPushTokenAsync failed:', err);
+    return null;
+  }
 }
 
 export async function scheduleStreakReminder(streakCount: number) {
