@@ -34,6 +34,12 @@ const backgrounds = {
   scenarioPick:        require('../assets/backgrounds/scenario-pick-screen.png'),
   careerTowerArena:    require('../assets/backgrounds/career-tower-arena.png'),
   homeStadiumWalk:     require('../assets/backgrounds/home-stadium-walk.png'),
+  // ─── CHAPTER/EVOLUTION BACKGROUNDS ───────────────────
+  // foundationBg:    require('../assets/backgrounds/foundation-bg.png'),
+  // yourCraftBg:     require('../assets/backgrounds/your-craft-bg.png'),
+  // competeBg:       require('../assets/backgrounds/compete-bg.png'),
+  // theGrindBg:      require('../assets/backgrounds/the-grind-bg.png'),
+  signalBg:        require('../assets/backgrounds/signal-bg.png'),
 };
 
 // ─── BADGES ───────────────────────────────────────────────────────────────────

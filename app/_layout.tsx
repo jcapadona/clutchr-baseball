@@ -60,7 +60,7 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (__DEV__) Purchases.setLogLevel(LOG_LEVEL.DEBUG);
-    Purchases.configure({ apiKey: 'test_ddZyQeWyVKzbcoURTIWPTSAUzjc' });
+    Purchases.configure({ apiKey: process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY ?? '' });
   }, []);
 
   useEffect(() => {
