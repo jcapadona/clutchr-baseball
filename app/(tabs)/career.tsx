@@ -1365,13 +1365,18 @@ function SignalWorldMap({
 
 // ─── SCREEN ──────────────────────────────────────────────────────────────────
 
+// Persists active chapter across navigation (lesson completion, exits) so the
+// user always returns to the chapter they were in rather than resetting to Foundation.
+let _savedChapter = 'foundation';
+
 export default function CareerScreen() {
   const insets = useSafeAreaInsets();
   const { athleteState } = useAthlete();
   const [lessons, setLessons] = useState<LegacyLesson[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
-  const [activeChapter, setActiveChapter] = useState('foundation');
+  const [activeChapter, _setActiveChapter] = useState(_savedChapter);
+  const setActiveChapter = (ch: string) => { _savedChapter = ch; _setActiveChapter(ch); };
   const [expandedWorldId, setExpandedWorldId] = useState<string | null>(null);
 
   const xpRef = useRef<number | null>(null);

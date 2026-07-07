@@ -150,12 +150,17 @@ const TYPE_CONFIG: Record<string, { icon: string; color: string; bg: string }> =
 
 // ─── SCREEN ───────────────────────────────────────────────────────────────────
 
+// Persists active group across navigation so returning from an article
+// always restores whichever tab the user was on.
+let _savedLockerGroup: LockerGroup = 'dugout';
+
 export default function LockerScreen() {
   const insets = useSafeAreaInsets();
   const [cards, setCards] = useState<ContentCard[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
-  const [activeGroup, setActiveGroup] = useState<LockerGroup>('dugout');
+  const [activeGroup, _setActiveGroup] = useState<LockerGroup>(_savedLockerGroup);
+  const setActiveGroup = (g: LockerGroup) => { _savedLockerGroup = g; _setActiveGroup(g); };
   const [search, setSearch] = useState('');
 
   const fetchData = async () => {
@@ -301,7 +306,7 @@ export default function LockerScreen() {
                 contentContainerStyle={styles.featuredRow}
               >
                 {featured.map((card) => (
-                  <FeaturedCard key={card.id} card={card} onOpen={() => router.push(`/content/${card.id}`)} />
+                  <FeaturedCard key={card.id} card={card} onOpen={() => router.push(`/content/${card.id}?from=locker`)} />
                 ))}
               </ScrollView>
             </View>
@@ -315,7 +320,7 @@ export default function LockerScreen() {
               </View>
               <View style={styles.cardList}>
                 {rest.map((card) => (
-                  <ListCard key={card.id} card={card} onOpen={() => router.push(`/content/${card.id}`)} />
+                  <ListCard key={card.id} card={card} onOpen={() => router.push(`/content/${card.id}?from=locker`)} />
                 ))}
               </View>
             </View>

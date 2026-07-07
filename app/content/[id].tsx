@@ -28,8 +28,12 @@ const TYPE_CONFIG: Record<string, { icon: string; color: string; label: string }
 // ─── SCREEN ──────────────────────────────────────────────────────────────────
 
 export default function ContentCardScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, from } = useLocalSearchParams<{ id: string; from?: string }>();
   const insets = useSafeAreaInsets();
+  const handleBack = () => {
+    if (from === 'locker') router.replace('/(tabs)/locker');
+    else router.back();
+  };
   const [card, setCard] = useState<ContentCard | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -65,7 +69,7 @@ export default function ContentCardScreen() {
     return (
       <View style={[styles.center, { paddingTop: insets.top }]}>
         <Text style={styles.errorText}>{error ?? 'Not found'}</Text>
-        <Pressable onPress={() => router.back()} style={styles.backBtn}>
+        <Pressable onPress={handleBack} style={styles.backBtn}>
           <Text style={styles.backBtnText}>← Go back</Text>
         </Pressable>
       </View>
@@ -79,7 +83,7 @@ export default function ContentCardScreen() {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       {/* Header */}
       <View style={styles.header}>
-        <Pressable onPress={() => router.back()} hitSlop={12} style={styles.closeBtn}>
+        <Pressable onPress={handleBack} hitSlop={12} style={styles.closeBtn}>
           <Ionicons name="arrow-back" size={20} color={Colors.textSecondary} />
         </Pressable>
         <View style={[

@@ -2544,6 +2544,8 @@ export default function GameModeScreen() {
   const [view, setView] = useState<"runner" | "print" | null>(null);
   const [lastDebrief, setLastDebrief] = useState<DebriefSummary | null>(null);
   const [activeDrill, setActiveDrill] = useState<RapidRepDrill | null>(null);
+  const scrollRef = useRef<ScrollView>(null);
+  const savedScrollY = useRef(0);
 
   const role = (athleteState?.primary_role ?? "infielder") as RoleKey;
   const phase = (athleteState?.season_phase ?? "in_season") as SeasonPhase;
@@ -2575,8 +2577,10 @@ export default function GameModeScreen() {
   }
 
   function closeTool() {
+    const y = savedScrollY.current;
     setActiveTool(null);
     setView(null);
+    setTimeout(() => scrollRef.current?.scrollTo({ y, animated: false }), 0);
   }
 
   function openDrill(drill: RapidRepDrill) {
@@ -2585,10 +2589,13 @@ export default function GameModeScreen() {
   }
 
   function closeDrill() {
+    const y = savedScrollY.current;
     setActiveDrill(null);
+    setTimeout(() => scrollRef.current?.scrollTo({ y, animated: false }), 0);
   }
 
   function selectBucket(nextBucket: TimingBucket) {
+    savedScrollY.current = 0;
     setBucket(nextBucket);
     setSelectedIntent(DEFAULT_INTENT_BY_BUCKET[nextBucket]);
     closeTool();
@@ -2725,6 +2732,9 @@ export default function GameModeScreen() {
       </View>
 
       <ScrollView
+        ref={scrollRef}
+        onScroll={(e) => { savedScrollY.current = e.nativeEvent.contentOffset.y; }}
+        scrollEventThrottle={16}
         contentContainerStyle={[
           s.scroll,
           { paddingBottom: insets.bottom + 100 },
