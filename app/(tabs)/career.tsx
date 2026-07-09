@@ -1180,6 +1180,7 @@ function TimelineNode({ lesson, idx, isDone, isNext, isLocked, isBoss, color }: 
   function handlePress() {
     if (isLocked) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      Alert.alert('Not yet.', 'Complete the previous lesson to unlock this one.');
       return;
     }
     router.push(`/lesson/${lesson.id}`);
