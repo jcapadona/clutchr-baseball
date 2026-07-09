@@ -15,6 +15,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AthleteProvider, useAthlete } from '@/context/AthleteContext';
 import { ToastProvider } from '@/components/Toast';
 import { StatusBar } from 'expo-status-bar';
+import Constants from 'expo-constants';
 import Purchases, { LOG_LEVEL } from 'react-native-purchases';
 
 SplashScreen.preventAutoHideAsync();
@@ -60,7 +61,11 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (__DEV__) Purchases.setLogLevel(LOG_LEVEL.DEBUG);
-    Purchases.configure({ apiKey: process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY ?? '' });
+    const isExpoGo = Constants.appOwnership === 'expo';
+    const apiKey = isExpoGo
+      ? (process.env.EXPO_PUBLIC_REVENUECAT_TEST_KEY ?? '')
+      : (process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY ?? '');
+    Purchases.configure({ apiKey });
   }, []);
 
   useEffect(() => {
