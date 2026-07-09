@@ -16,6 +16,7 @@ import { useAthlete } from '@/context/AthleteContext';
 import { Colors, Radius, Spacing } from '@/constants/theme';
 import { ProgressBar } from '@/components/ProgressBar';
 import { useToast } from '@/components/Toast';
+import { useProStatus } from '@/hooks/useProStatus';
 
 // ─── CUE SLOT DEFINITIONS ────────────────────────────────────────────────────
 // Five situations every baseball player faces. Each gets one personal cue.
@@ -330,11 +331,39 @@ function PlaybookComplete({
   );
 }
 
+// ─── LOCKED SLOT PLACEHOLDER ─────────────────────────────────────────────────
+
+function LockedSlotPlaceholder({ slot }: { slot: CueSlot }) {
+  const label = SLOT_LABELS[slot.id];
+  const icon = SLOT_ICONS[slot.id];
+  return (
+    <Pressable
+      style={[slotStyles.card, lockedSlotStyles.card]}
+      onPress={() => router.push('/upgrade?source=playbook')}
+    >
+      <View style={slotStyles.header}>
+        <View style={[slotStyles.iconWrap, lockedSlotStyles.iconWrap]}>
+          <Ionicons name={icon as any} size={16} color={Colors.textTertiary} />
+        </View>
+        <View style={slotStyles.headerText}>
+          <Text style={[slotStyles.situationLabel, lockedSlotStyles.text]}>{label.noun.toUpperCase()}</Text>
+          <Text style={[slotStyles.situationText, lockedSlotStyles.text]}>{slot.situation}</Text>
+        </View>
+        <View style={lockedSlotStyles.badge}>
+          <Ionicons name="lock-closed" size={11} color={Colors.textTertiary} />
+          <Text style={lockedSlotStyles.badgeText}>PRO</Text>
+        </View>
+      </View>
+    </Pressable>
+  );
+}
+
 // ─── MAIN SCREEN ─────────────────────────────────────────────────────────────
 
 export default function MyPlaybookScreen() {
   const insets = useSafeAreaInsets();
   const { athleteState, updateAthleteState } = useAthlete();
+  const { isPro, isLoading: proLoading } = useProStatus();
 
   // Load existing playbook from athlete state
   const existingPlaybook: PlayerPlaybook = (athleteState as any)?.playbook ?? EMPTY_PLAYBOOK;
@@ -355,7 +384,11 @@ export default function MyPlaybookScreen() {
   const { showToast } = useToast();
 
   const completedCount = Object.values(cues).filter((v) => v !== '').length;
-  const allComplete = completedCount === CUE_SLOTS.length;
+  // While proLoading, treat as pro so no locked state flashes for pro users.
+  const visibleSlotCount = isPro || proLoading ? CUE_SLOTS.length : 3;
+  const visibleCompletedCount = CUE_SLOTS.slice(0, visibleSlotCount)
+    .filter((s) => cues[s.id] !== '').length;
+  const allComplete = visibleCompletedCount === visibleSlotCount;
 
   function handleChange(slotId: string, value: string) {
     setCues((prev) => ({ ...prev, [slotId]: value }));
@@ -430,9 +463,9 @@ export default function MyPlaybookScreen() {
 
         {/* Progress strip */}
         <View style={styles.progressStrip}>
-          <ProgressBar value={completedCount / CUE_SLOTS.length} height={4} />
+          <ProgressBar value={visibleCompletedCount / visibleSlotCount} height={4} />
           <Text style={styles.progressLabel}>
-            {completedCount} of {CUE_SLOTS.length} cues built
+            {visibleCompletedCount} of {visibleSlotCount} cues built
           </Text>
         </View>
 
@@ -454,17 +487,22 @@ export default function MyPlaybookScreen() {
 
         {/* Slot builders */}
         <View style={styles.slots}>
-          {CUE_SLOTS.map((slot) => (
-            <SlotBuilder
-              key={slot.id}
-              slot={slot}
-              value={cues[slot.id] ?? ''}
-              onChange={(v) => handleChange(slot.id, v)}
-              isActive={activeSlot === slot.id}
-              isComplete={cues[slot.id] !== ''}
-              onActivate={() => handleActivate(slot.id)}
-            />
-          ))}
+          {CUE_SLOTS.map((slot, index) => {
+            if (index >= 3 && !isPro && !proLoading) {
+              return <LockedSlotPlaceholder key={slot.id} slot={slot} />;
+            }
+            return (
+              <SlotBuilder
+                key={slot.id}
+                slot={slot}
+                value={cues[slot.id] ?? ''}
+                onChange={(v) => handleChange(slot.id, v)}
+                isActive={activeSlot === slot.id}
+                isComplete={cues[slot.id] !== ''}
+                onActivate={() => handleActivate(slot.id)}
+              />
+            );
+          })}
         </View>
 
         {/* Save button */}
@@ -484,14 +522,14 @@ export default function MyPlaybookScreen() {
                   ? 'Playbook saved. Every rep speaks your language.'
                   : allComplete
                   ? 'Save My Playbook'
-                  : `Save ${completedCount} of ${CUE_SLOTS.length} cues`}
+                  : `Save ${visibleCompletedCount} of ${visibleSlotCount} cues`}
               </Text>
             </Pressable>
           </Animated.View>
         )}
 
         {/* Skip note */}
-        {completedCount < CUE_SLOTS.length && completedCount > 0 && (
+        {visibleCompletedCount < visibleSlotCount && visibleCompletedCount > 0 && (
           <Text style={styles.skipNote}>
             You can save a partial playbook and finish the rest later. Tap any slot to add or update your cue.
           </Text>
@@ -614,6 +652,19 @@ const chipStyles = StyleSheet.create({
   chipSelected: { borderColor: Colors.primary, backgroundColor: Colors.primaryMuted },
   chipText: { fontSize: 13, fontFamily: 'Inter_500Medium', color: Colors.textSecondary },
   chipTextSelected: { color: Colors.primary, fontFamily: 'Inter_600SemiBold' },
+});
+
+const lockedSlotStyles = StyleSheet.create({
+  card: { opacity: 0.5 },
+  iconWrap: { backgroundColor: Colors.surface },
+  text: { color: Colors.textTertiary },
+  badge: {
+    flexDirection: 'row', alignItems: 'center', gap: 3,
+    backgroundColor: Colors.surface, borderRadius: Radius.pill,
+    paddingHorizontal: Spacing.sm, paddingVertical: 3,
+    borderWidth: 1, borderColor: Colors.border,
+  },
+  badgeText: { fontSize: 8, fontFamily: 'Inter_700Bold', color: Colors.textTertiary, letterSpacing: 1 },
 });
 
 const completeStyles = StyleSheet.create({
