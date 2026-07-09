@@ -1611,7 +1611,7 @@ export default function CareerScreen() {
           </View>
 
           {/* ── ROLE PILL ── */}
-          <Pressable style={styles.rolePillRow} onPress={() => {}}>
+          <View style={styles.rolePillRow}>
             <View style={[
               styles.rolePill,
               {
@@ -1622,9 +1622,8 @@ export default function CareerScreen() {
               <Text style={[styles.rolePillText, { color: activeChapterConfig.color }]}>
                 {athleteRole.toUpperCase()}
               </Text>
-              <Ionicons name="chevron-down" size={11} color={activeChapterConfig.color} />
             </View>
-          </Pressable>
+          </View>
 
           {/* ── ASCENT ARENA TOWER ── */}
           <View style={styles.towerWrap}>
