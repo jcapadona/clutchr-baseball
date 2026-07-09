@@ -36,6 +36,7 @@ export interface ContentCard {
   duration_minutes: number | null;
   priority: number;
   is_featured: boolean;
+  is_premium: boolean;
   thumbnail_url: string | null;
   audio_url: string | null;
   youtube_url: string | null;

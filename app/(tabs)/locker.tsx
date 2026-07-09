@@ -16,6 +16,7 @@ import { fetchContentCards, type ContentCard } from '@/lib/supabase';
 import { Colors, Radius, Spacing } from '@/constants/theme';
 import { ErrorState, SkeletonCard } from '@/components/SkeletonLoader';
 import { ClutchrHeader } from '@/components/ClutchrHeader';
+import { useProStatus } from '@/hooks/useProStatus';
 
 // ─── LOCKER GROUPS ──────────────────────────────────────────────────────────
 
@@ -156,6 +157,7 @@ let _savedLockerGroup: LockerGroup = 'dugout';
 
 export default function LockerScreen() {
   const insets = useSafeAreaInsets();
+  const { isPro, isLoading: proLoading } = useProStatus();
   const [cards, setCards] = useState<ContentCard[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
@@ -184,9 +186,10 @@ export default function LockerScreen() {
 
   const searchedCards = useMemo(() => {
     const query = search.trim().toLowerCase();
-    if (!query) return cards;
-    return cards.filter((card) => cardSearchText(card).includes(query));
-  }, [cards, search]);
+    const visible = isPro ? cards : cards.filter((card) => !card.is_premium);
+    if (!query) return visible;
+    return visible.filter((card) => cardSearchText(card).includes(query));
+  }, [cards, search, isPro]);
 
   const cardsByGroup = useMemo(() => {
     return GROUP_ORDER.reduce((acc, group) => {
@@ -262,7 +265,7 @@ export default function LockerScreen() {
       {/* ── CONTENT ── */}
       {loadError ? (
         <ErrorState message="Could not load locker tools." onRetry={fetchData} />
-      ) : loading ? (
+      ) : loading || proLoading ? (
         <View style={[styles.loader, { paddingHorizontal: 16, paddingTop: 12 }]}>
           {[0, 1, 2, 3, 4].map(i => <SkeletonCard key={i} />)}
         </View>
