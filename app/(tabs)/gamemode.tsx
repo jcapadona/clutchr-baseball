@@ -1,6 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
+import { router } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import {
   Animated,
@@ -21,6 +22,7 @@ import { SkeletonCard } from "@/components/SkeletonLoader";
 import { ClutchrHeader } from "@/components/ClutchrHeader";
 import { getBestCue } from "@/lib/personalCue";
 import { useToast } from "@/components/Toast";
+import { useProStatus } from "@/hooks/useProStatus";
 
 // ─── TYPES ────────────────────────────────────────────────────────────────────
 
@@ -106,6 +108,8 @@ interface GameTool {
     | "error"
     | "postgame_tough"
   >;
+  // Omit or set true for pro-only; set false for free-tier tools.
+  isPremium?: boolean;
 }
 
 // ─── ALL TOOLS ────────────────────────────────────────────────────────────────
@@ -327,6 +331,7 @@ const GAME_TOOLS: GameTool[] = [
     roles: "all",
     mode: "interactive",
     duration: "3 min",
+    isPremium: false,
     whenToUse: "Before warmups. In the dugout or locker room before the game.",
     steps: [
       {
@@ -1177,6 +1182,7 @@ const GAME_TOOLS: GameTool[] = [
     roles: "all",
     mode: "print_card",
     duration: "30 sec",
+    isPremium: false,
     whenToUse: "After a long at-bat inning when focus can drift.",
     steps: [
       {
@@ -1743,11 +1749,13 @@ function getTools(
   bucket: TimingBucket,
   role: RoleKey,
   intent: IntentKey | null = null,
+  isPro: boolean = false,
 ): GameTool[] {
   return GAME_TOOLS.filter((t) => {
     if (normalizeGameModeBucket(t.bucket) !== bucket) return false;
     if (!toolMatchesRole(t, role)) return false;
     if (intent && intent !== "all" && getToolIntent(t) !== intent) return false;
+    if ((t.isPremium ?? true) && !isPro) return false;
     return true;
   });
 }
@@ -1756,6 +1764,7 @@ function getNextRepTools(
   bucket: TimingBucket,
   intent: IntentKey,
   role: RoleKey,
+  isPro: boolean = false,
 ): GameTool[] {
   const rolePriority: Partial<
     Record<TimingBucket, Partial<Record<IntentKey, string[]>>>
@@ -1789,7 +1798,7 @@ function getNextRepTools(
           : ["recovery_check", "postgame_position_recovery"],
     },
   };
-  const candidates = getTools(bucket, role, intent);
+  const candidates = getTools(bucket, role, intent, isPro);
   const priority = rolePriority[bucket]?.[intent] ?? [];
   return [...candidates]
     .sort((a, b) => {
@@ -2535,6 +2544,7 @@ function ToolCard({
 export default function GameModeScreen() {
   const insets = useSafeAreaInsets();
   const { athleteState, isLoading } = useAthlete();
+  const { isPro, isLoading: proLoading } = useProStatus();
   const [bucket, setBucket] = useState<TimingBucket>("pre");
   const [selectedIntent, setSelectedIntent] = useState<IntentKey>(
     DEFAULT_INTENT_BY_BUCKET.pre,
@@ -2552,12 +2562,15 @@ export default function GameModeScreen() {
   const firstName = athleteState?.first_name ?? "Athlete";
   const meta = BUCKET_META[bucket];
   const intentChips = INTENT_CHIPS_BY_BUCKET[bucket];
-  const nextRepTools = getNextRepTools(bucket, selectedIntent, role);
+  const nextRepTools = getNextRepTools(bucket, selectedIntent, role, isPro);
   const nextRepIds = new Set(nextRepTools.map((tool) => tool.id));
-  const moreTools = getTools(bucket, role, selectedIntent).filter(
+  const moreTools = getTools(bucket, role, selectedIntent, isPro).filter(
     (tool) => !nextRepIds.has(tool.id),
   );
   const hasFilteredTools = nextRepTools.length > 0 || moreTools.length > 0;
+  // True when the bucket is empty solely because of pro gating (not missing content).
+  const hasGatedTools = !isPro && !hasFilteredTools &&
+    getTools(bucket, role, selectedIntent, true).length > 0;
 
   useEffect(() => {
     AsyncStorage.getItem(DEBRIEF_STORAGE_KEY)
@@ -2829,7 +2842,7 @@ export default function GameModeScreen() {
           <View style={s.dividerLine} />
         </View>
 
-        {isLoading
+        {isLoading || proLoading
           ? [0, 1].map((i) => <SkeletonCard key={i} />)
           : nextRepTools.length > 0
             ? nextRepTools.map((tool) => (
@@ -2848,8 +2861,24 @@ export default function GameModeScreen() {
           <View style={s.dividerLine} />
         </View>
 
-        {isLoading ? (
+        {isLoading || proLoading ? (
           [0, 1, 2].map((i) => <SkeletonCard key={i} />)
+        ) : hasGatedTools ? (
+          <View style={s.empty}>
+            <Ionicons
+              name="lock-closed-outline"
+              size={40}
+              color={Colors.textTertiary}
+            />
+            <Text style={s.emptyTitle}>Full Game Mode is Pro.</Text>
+            <Text style={s.emptySub}>Unlock every pregame, reset, and recovery tool.</Text>
+            <Pressable
+              style={s.emptyBtn}
+              onPress={() => router.push("/upgrade?source=game_mode")}
+            >
+              <Text style={s.emptyBtnText}>Unlock Full Game Mode</Text>
+            </Pressable>
+          </View>
         ) : !hasFilteredTools ? (
           <View style={s.empty}>
             <Ionicons
