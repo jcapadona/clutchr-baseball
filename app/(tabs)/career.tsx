@@ -21,6 +21,7 @@ import { Assets } from '@/constants/assets';
 import { Colors, Radius, Shadow, Spacing } from '@/constants/theme';
 import { Btn } from '@/components/ui';
 import { useMicrocopy } from '@/hooks/useMicrocopy';
+import { useProStatus } from '@/hooks/useProStatus';
 import { ErrorState, SkeletonCard } from '@/components/SkeletonLoader';
 
 // ─── DEV FLAGS ────────────────────────────────────────────────────────────────
@@ -851,6 +852,7 @@ function getWorldsForChapter(
   isTwoWay: boolean,
   seasonPhase: string | null,
   healthState: string | null,
+  isPro: boolean,
 ): WorldWithLockState[] {
   const result: WorldWithLockState[] = [];
 
@@ -871,8 +873,14 @@ function getWorldsForChapter(
       if (!stateMatch) continue;
     }
 
+    // Premium worlds are teaser for free users regardless of lesson availability.
     // DEV_UNLOCK_ALL removes the progression gate on individual lesson nodes
     // (see WorldMapSection), but worlds with zero lessons stay as teasers regardless.
+    if (world.isPremium && !isPro) {
+      result.push({ ...world, lockState: 'teaser' });
+      continue;
+    }
+
     result.push({ ...world, lockState: hasLessons ? 'active' : 'teaser' });
   }
 
@@ -1375,6 +1383,7 @@ export default function CareerScreen() {
   const [lessons, setLessons] = useState<LegacyLesson[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
+  const { isPro, isLoading: proLoading } = useProStatus();
   const [activeChapter, _setActiveChapter] = useState(_savedChapter);
   const setActiveChapter = (ch: string) => { _savedChapter = ch; _setActiveChapter(ch); };
   const [expandedWorldId, setExpandedWorldId] = useState<string | null>(null);
@@ -1449,7 +1458,7 @@ export default function CareerScreen() {
 
   const chapterWorlds = WORLDS.filter(w => w.chapter === activeChapter);
   const filteredWorlds = getWorldsForChapter(
-    chapterWorlds, lessonPillarIds, activeChapter, athleteRole, isTwoWay, seasonPhase, healthState
+    chapterWorlds, lessonPillarIds, activeChapter, athleteRole, isTwoWay, seasonPhase, healthState, isPro
   );
 
   const activeChapterConfig = CHAPTERS.find(c => c.id === activeChapter) ?? CHAPTERS[0];
@@ -1474,7 +1483,7 @@ export default function CareerScreen() {
   const nextLesson = useMemo(() => {
     if (!lessons.length) return null;
     const sorted = [...WORLDS]
-      .filter(w => lessonPillarIds.includes(w.id))
+      .filter(w => lessonPillarIds.includes(w.id) && (isPro || !w.isPremium))
       .sort((a, b) => a.worldNumber - b.worldNumber);
     for (const world of sorted) {
       const wl = lessons
@@ -1484,7 +1493,7 @@ export default function CareerScreen() {
       if (next) return { lesson: next, world };
     }
     return null;
-  }, [lessons, completed, lessonPillarIds]);
+  }, [lessons, completed, lessonPillarIds, isPro]);
 
   function handleSignalNodePress(world: WorldWithLockState) {
     if (world.lockState === 'teaser') {
@@ -1563,7 +1572,7 @@ export default function CareerScreen() {
       {/* ── CONTENT ── */}
       {loadError ? (
         <ErrorState message="Could not load lessons." onRetry={fetchData} />
-      ) : loading ? (
+      ) : loading || proLoading ? (
         <ScrollView
           contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 200 }]}
           showsVerticalScrollIndicator={false}
@@ -1650,7 +1659,11 @@ export default function CareerScreen() {
                   isExpanded={isExpanded}
                   onTap={() => {
                     if (world.lockState === 'teaser') {
-                      Alert.alert('Keep stacking.', 'This world unlocks as you progress.');
+                      if (world.isPremium && !isPro) {
+                        router.push('/upgrade?source=career');
+                      } else {
+                        Alert.alert('Keep stacking.', 'This world unlocks as you progress.');
+                      }
                       return;
                     }
                     setExpandedWorldId(isExpanded ? null : world.id);
