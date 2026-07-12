@@ -1697,6 +1697,7 @@ export default function CareerScreen() {
         <CurrentMissionCard nextLesson={nextLesson} insets={insets} />
       )}
 
+
     </View>
   );
 }
