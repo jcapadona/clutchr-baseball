@@ -10,6 +10,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Alert } from 'react-native';
 import { scheduleStreakReminder } from '@/lib/notifications';
 import React, {
   createContext,
@@ -220,6 +221,9 @@ export function AthleteProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   // Ref so callbacks with [] deps can always access the latest session without re-creating
   const sessionRef = useRef<Session | null>(null);
+  // Set to true before an intentional signOut() call so onAuthStateChange
+  // can distinguish user-initiated sign-out from involuntary token expiry.
+  const intentionalSignOut = useRef(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -227,7 +231,14 @@ export function AthleteProvider({ children }: { children: React.ReactNode }) {
       sessionRef.current = session;
     }).catch((err) => console.warn('getSession error:', err));
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => { setSession(session); sessionRef.current = session; }
+      (event, session) => {
+        if (event === 'SIGNED_OUT' && !intentionalSignOut.current) {
+          Alert.alert('Session expired', 'Please sign in again.');
+        }
+        intentionalSignOut.current = false;
+        setSession(session);
+        sessionRef.current = session;
+      }
     );
     return () => subscription.unsubscribe();
   }, []);
@@ -338,6 +349,7 @@ export function AthleteProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signOut = useCallback(async () => {
+    intentionalSignOut.current = true;
     await supabase.auth.signOut();
     await AsyncStorage.removeItem(ATHLETE_KEY);
     setAthleteState(null);
