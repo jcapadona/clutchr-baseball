@@ -16,7 +16,7 @@ import { fetchContentCards, type ContentCard } from '@/lib/supabase';
 import { Colors, Radius, Spacing } from '@/constants/theme';
 import { ErrorState, SkeletonCard } from '@/components/SkeletonLoader';
 import { ClutchrHeader } from '@/components/ClutchrHeader';
-import { useProStatus } from '@/hooks/useProStatus';
+import { useProContext } from '@/context/ProContext';
 
 // ─── LOCKER GROUPS ──────────────────────────────────────────────────────────
 
@@ -157,7 +157,7 @@ let _savedLockerGroup: LockerGroup = 'dugout';
 
 export default function LockerScreen() {
   const insets = useSafeAreaInsets();
-  const { isPro, isLoading: proLoading } = useProStatus();
+  const { isPro, isProLoading: proLoading } = useProContext();
   const [cards, setCards] = useState<ContentCard[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);

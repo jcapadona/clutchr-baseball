@@ -13,6 +13,7 @@ import { setupNotificationsOnce } from '@/lib/notifications';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AthleteProvider, useAthlete } from '@/context/AthleteContext';
+import { ProProvider } from '@/context/ProContext';
 import { ToastProvider } from '@/components/Toast';
 import { StatusBar } from 'expo-status-bar';
 import Constants from 'expo-constants';
@@ -92,10 +93,12 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <AthleteProvider>
-          <StatusBar style="light" />
-          <ToastProvider>
-            <AuthGate />
-          </ToastProvider>
+          <ProProvider>
+            <StatusBar style="light" />
+            <ToastProvider>
+              <AuthGate />
+            </ToastProvider>
+          </ProProvider>
         </AthleteProvider>
       </GestureHandlerRootView>
     </SafeAreaProvider>

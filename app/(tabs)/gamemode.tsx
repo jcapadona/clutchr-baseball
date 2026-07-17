@@ -22,7 +22,7 @@ import { SkeletonCard } from "@/components/SkeletonLoader";
 import { ClutchrHeader } from "@/components/ClutchrHeader";
 import { getBestCue } from "@/lib/personalCue";
 import { useToast } from "@/components/Toast";
-import { useProStatus } from "@/hooks/useProStatus";
+import { useProContext } from "@/context/ProContext";
 
 // ─── TYPES ────────────────────────────────────────────────────────────────────
 
@@ -2544,7 +2544,7 @@ function ToolCard({
 export default function GameModeScreen() {
   const insets = useSafeAreaInsets();
   const { athleteState, isLoading } = useAthlete();
-  const { isPro, isLoading: proLoading } = useProStatus();
+  const { isPro, isProLoading: proLoading } = useProContext();
   const [bucket, setBucket] = useState<TimingBucket>("pre");
   const [selectedIntent, setSelectedIntent] = useState<IntentKey>(
     DEFAULT_INTENT_BY_BUCKET.pre,

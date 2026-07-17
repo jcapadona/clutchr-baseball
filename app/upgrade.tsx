@@ -39,6 +39,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAthlete } from '@/context/AthleteContext';
+import { useProContext } from '@/context/ProContext';
 import { Colors, Radius, Spacing } from '@/constants/theme';
 
 // ─── FREE vs PRO COMPARISON ───────────────────────────────────────────────────
@@ -126,6 +127,7 @@ const COMPARISON_LINES = [
 export default function UpgradeScreen() {
   const insets = useSafeAreaInsets();
   const { athleteState } = useAthlete();
+  const { refreshPro } = useProContext();
   const { source } = useLocalSearchParams<{ source?: string }>();
   const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'annual'>('annual');
   const [offerings, setOfferings] = useState<any>(null);
@@ -196,10 +198,9 @@ export default function UpgradeScreen() {
     setPurchaseLoading(true);
     setPurchaseError(null);
     try {
-      const { customerInfo } = await Purchases.purchasePackage(pkg);
-      if (customerInfo.entitlements.active['pro']) {
-        router.replace('/(tabs)');
-      }
+      await Purchases.purchasePackage(pkg);
+      await refreshPro();
+      router.replace('/(tabs)');
     } catch (e: any) {
       if (e.code !== PURCHASES_ERROR_CODE.PURCHASE_CANCELLED_ERROR) {
         setPurchaseError('Purchase failed. Please try again.');
@@ -219,10 +220,9 @@ export default function UpgradeScreen() {
     setPurchaseLoading(true);
     setPurchaseError(null);
     try {
-      const { customerInfo } = await Purchases.purchasePackage(pkg);
-      if (customerInfo.entitlements.active['pro']) {
-        router.replace('/(tabs)');
-      }
+      await Purchases.purchasePackage(pkg);
+      await refreshPro();
+      router.replace('/(tabs)');
     } catch (e: any) {
       if (e.code !== PURCHASES_ERROR_CODE.PURCHASE_CANCELLED_ERROR) {
         setPurchaseError('Purchase failed. Please try again.');

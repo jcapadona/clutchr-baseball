@@ -16,7 +16,7 @@ import { useAthlete } from '@/context/AthleteContext';
 import { Colors, Radius, Spacing } from '@/constants/theme';
 import { ProgressBar } from '@/components/ProgressBar';
 import { useToast } from '@/components/Toast';
-import { useProStatus } from '@/hooks/useProStatus';
+import { useProContext } from '@/context/ProContext';
 
 // ─── CUE SLOT DEFINITIONS ────────────────────────────────────────────────────
 // Five situations every baseball player faces. Each gets one personal cue.
@@ -363,7 +363,7 @@ function LockedSlotPlaceholder({ slot }: { slot: CueSlot }) {
 export default function MyPlaybookScreen() {
   const insets = useSafeAreaInsets();
   const { athleteState, updateAthleteState } = useAthlete();
-  const { isPro, isLoading: proLoading } = useProStatus();
+  const { isPro, isProLoading: proLoading } = useProContext();
 
   // Load existing playbook from athlete state
   const existingPlaybook: PlayerPlaybook = (athleteState as any)?.playbook ?? EMPTY_PLAYBOOK;

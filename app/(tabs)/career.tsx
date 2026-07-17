@@ -21,7 +21,7 @@ import { Assets } from '@/constants/assets';
 import { Colors, Radius, Shadow, Spacing } from '@/constants/theme';
 import { Btn } from '@/components/ui';
 import { useMicrocopy } from '@/hooks/useMicrocopy';
-import { useProStatus } from '@/hooks/useProStatus';
+import { useProContext } from '@/context/ProContext';
 import { ErrorState, SkeletonCard } from '@/components/SkeletonLoader';
 
 // ─── DEV FLAGS ────────────────────────────────────────────────────────────────
@@ -1384,7 +1384,7 @@ export default function CareerScreen() {
   const [lessons, setLessons] = useState<LegacyLesson[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
-  const { isPro, isLoading: proLoading } = useProStatus();
+  const { isPro, isProLoading: proLoading } = useProContext();
   const [activeChapter, _setActiveChapter] = useState(_savedChapter);
   const setActiveChapter = (ch: string) => { _savedChapter = ch; _setActiveChapter(ch); };
   const [expandedWorldId, setExpandedWorldId] = useState<string | null>(null);
