@@ -22,6 +22,7 @@ import React, {
 } from 'react';
 import { supabase } from '@/lib/supabase';
 import type { Session } from '@supabase/supabase-js';
+import Purchases from 'react-native-purchases';
 
 // ─── TYPES ───────────────────────────────────────────────────────────────────
 
@@ -238,6 +239,12 @@ export function AthleteProvider({ children }: { children: React.ReactNode }) {
         intentionalSignOut.current = false;
         setSession(session);
         sessionRef.current = session;
+
+        if (session?.user?.id) {
+          Purchases.logIn(session.user.id).catch(() => {});
+        } else if (event === 'SIGNED_OUT') {
+          Purchases.logOut().catch(() => {});
+        }
       }
     );
     return () => subscription.unsubscribe();
