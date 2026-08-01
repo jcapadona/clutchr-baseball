@@ -21,6 +21,18 @@ import Purchases, { LOG_LEVEL } from 'react-native-purchases';
 
 SplashScreen.preventAutoHideAsync();
 
+// ─── REVENUECAT — module-scope configure ─────────────────────────────────────
+// Must run before any component effect fires. React fires child effects before
+// parent effects, so a useEffect here would be too late — ProProvider's
+// getCustomerInfo() and AthleteContext's logIn() would call into an
+// unconfigured SDK. Module evaluation happens before rendering starts.
+if (__DEV__) Purchases.setLogLevel(LOG_LEVEL.DEBUG);
+Purchases.configure({
+  apiKey: Constants.appOwnership === 'expo'
+    ? (process.env.EXPO_PUBLIC_REVENUECAT_TEST_KEY ?? '')
+    : (process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY ?? ''),
+});
+
 // ─── AUTH GATE ───────────────────────────────────────────────────────────────
 // Redirects unauthenticated users to /auth
 // Redirects users who haven't onboarded to /onboarding
@@ -59,15 +71,6 @@ export default function RootLayout() {
     Inter_700Bold,
   });
   if (fontError) console.warn('Font loading error:', fontError);
-
-  useEffect(() => {
-    if (__DEV__) Purchases.setLogLevel(LOG_LEVEL.DEBUG);
-    const isExpoGo = Constants.appOwnership === 'expo';
-    const apiKey = isExpoGo
-      ? (process.env.EXPO_PUBLIC_REVENUECAT_TEST_KEY ?? '')
-      : (process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY ?? '');
-    Purchases.configure({ apiKey });
-  }, []);
 
   useEffect(() => {
     if (fontsLoaded || fontError) {
