@@ -18,6 +18,7 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Purchases from 'react-native-purchases';
 import { useAthlete } from '@/context/AthleteContext';
 import { fetchLessons } from '@/lib/supabase';
 import { Colors, Radius, Shadow, Spacing } from '@/constants/theme';
@@ -284,7 +285,18 @@ const LAST_ACTIVE_KEY = 'last_active_date';
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { height: screenHeight } = useWindowDimensions();
-  const { athleteState, isLoading, completedTodayCount, updateAthleteState } = useAthlete();
+  const { athleteState, isLoading, completedTodayCount, updateAthleteState, session } = useAthlete();
+
+  // ── TEMP DEBUG — BUG-012/013 identity diagnostic — REMOVE BEFORE COMMIT ──
+  const [rcUserId, setRcUserId] = useState<string>('…');
+  const [rcIsPro,  setRcIsPro]  = useState<string>('…');
+  useEffect(() => {
+    Purchases.getAppUserID().then(id => setRcUserId(id)).catch(() => setRcUserId('ERR'));
+    Purchases.getCustomerInfo()
+      .then(info => setRcIsPro(info.entitlements.active['pro'] ? 'YES ✓' : 'NO ✗'))
+      .catch(() => setRcIsPro('ERR'));
+  }, []);
+  // ── END TEMP DEBUG ────────────────────────────────────────────────────────
   const [routingResult, setRoutingResult]   = useState<RoutingResult | null>(null);
   const [loadingLesson, setLoadingLesson]   = useState(true);
   const [missions, setMissions]             = useState<MissionsProgress>({ lessonsCompleted: 0, gameModeOpened: false });
@@ -574,6 +586,16 @@ export default function HomeScreen() {
 
   return (
     <View style={s.container}>
+
+      {/* ── TEMP DEBUG — BUG-012/013 RC identity diagnostic — REMOVE BEFORE COMMIT ── */}
+      <View style={{ position: 'absolute', top: insets.top + 4, left: 8, right: 8, zIndex: 9999, backgroundColor: 'rgba(0,0,0,0.82)', borderRadius: 6, padding: 8, borderWidth: 1, borderColor: '#ff0' }}>
+        <Text style={{ color: '#ff0', fontSize: 9, fontFamily: 'Inter_700Bold', marginBottom: 4 }}>⚠ TEMP DEBUG — REMOVE BEFORE COMMIT</Text>
+        <Text style={{ color: '#fff', fontSize: 10, fontFamily: 'Inter_400Regular' }}>SB uid:   {session?.user?.id ?? 'none'}</Text>
+        <Text style={{ color: '#fff', fontSize: 10, fontFamily: 'Inter_400Regular' }}>SB email: {session?.user?.email ?? 'none'}</Text>
+        <Text style={{ color: '#fff', fontSize: 10, fontFamily: 'Inter_400Regular' }}>RC uid:   {rcUserId}</Text>
+        <Text style={{ color: rcIsPro.startsWith('YES') ? '#22CC5E' : '#ff4444', fontSize: 10, fontFamily: 'Inter_700Bold' }}>RC pro:   {rcIsPro}</Text>
+      </View>
+      {/* ── END TEMP DEBUG ── */}
 
       {/* ── FULL-SCREEN BACKGROUND ── */}
       <ImageBackground
