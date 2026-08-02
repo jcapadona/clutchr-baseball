@@ -289,13 +289,25 @@ export default function HomeScreen() {
 
   // ── TEMP DEBUG — BUG-012/013 identity diagnostic — REMOVE BEFORE COMMIT ──
   const [rcUserId, setRcUserId] = useState<string>('…');
-  const [rcIsPro,  setRcIsPro]  = useState<string>('…');
-  useEffect(() => {
+  const [rcEntKeys, setRcEntKeys] = useState<string>('…');
+  const [rcEntFull, setRcEntFull] = useState<string>('…');
+
+  async function fetchRcDebug() {
+    setRcUserId('…'); setRcEntKeys('…'); setRcEntFull('…');
     Purchases.getAppUserID().then(id => setRcUserId(id)).catch(() => setRcUserId('ERR'));
-    Purchases.getCustomerInfo()
-      .then(info => setRcIsPro(info.entitlements.active['pro'] ? 'YES ✓' : 'NO ✗'))
-      .catch(() => setRcIsPro('ERR'));
-  }, []);
+    try {
+      await Purchases.invalidateCustomerInfoCache();
+      const info = await Purchases.getCustomerInfo();
+      const active = info.entitlements.active;
+      const keys = Object.keys(active);
+      setRcEntKeys(keys.length ? keys.join(', ') : '(none)');
+      setRcEntFull(JSON.stringify(active));
+    } catch (e: any) {
+      setRcEntKeys('ERR'); setRcEntFull(String(e?.message ?? e));
+    }
+  }
+
+  useEffect(() => { fetchRcDebug(); }, []);
   // ── END TEMP DEBUG ────────────────────────────────────────────────────────
   const [routingResult, setRoutingResult]   = useState<RoutingResult | null>(null);
   const [loadingLesson, setLoadingLesson]   = useState(true);
@@ -588,12 +600,19 @@ export default function HomeScreen() {
     <View style={s.container}>
 
       {/* ── TEMP DEBUG — BUG-012/013 RC identity diagnostic — REMOVE BEFORE COMMIT ── */}
-      <View style={{ position: 'absolute', top: insets.top + 4, left: 8, right: 8, zIndex: 9999, backgroundColor: 'rgba(0,0,0,0.82)', borderRadius: 6, padding: 8, borderWidth: 1, borderColor: '#ff0' }}>
-        <Text style={{ color: '#ff0', fontSize: 9, fontFamily: 'Inter_700Bold', marginBottom: 4 }}>⚠ TEMP DEBUG — REMOVE BEFORE COMMIT</Text>
-        <Text style={{ color: '#fff', fontSize: 10, fontFamily: 'Inter_400Regular' }}>SB uid:   {session?.user?.id ?? 'none'}</Text>
-        <Text style={{ color: '#fff', fontSize: 10, fontFamily: 'Inter_400Regular' }}>SB email: {session?.user?.email ?? 'none'}</Text>
-        <Text style={{ color: '#fff', fontSize: 10, fontFamily: 'Inter_400Regular' }}>RC uid:   {rcUserId}</Text>
-        <Text style={{ color: rcIsPro.startsWith('YES') ? '#22CC5E' : '#ff4444', fontSize: 10, fontFamily: 'Inter_700Bold' }}>RC pro:   {rcIsPro}</Text>
+      <View style={{ position: 'absolute', top: insets.top + 4, left: 8, right: 8, zIndex: 9999, backgroundColor: 'rgba(0,0,0,0.88)', borderRadius: 6, padding: 8, borderWidth: 1, borderColor: '#ff0' }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+          <Text style={{ color: '#ff0', fontSize: 9, fontFamily: 'Inter_700Bold' }}>⚠ TEMP DEBUG — REMOVE BEFORE COMMIT</Text>
+          <Pressable onPress={fetchRcDebug} hitSlop={8} style={{ backgroundColor: '#222', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 4, borderWidth: 1, borderColor: '#ff0' }}>
+            <Text style={{ color: '#ff0', fontSize: 9, fontFamily: 'Inter_700Bold' }}>REFRESH</Text>
+          </Pressable>
+        </View>
+        <Text style={{ color: '#aaa', fontSize: 10, fontFamily: 'Inter_400Regular' }}>SB uid:   <Text style={{ color: '#fff' }}>{session?.user?.id ?? 'none'}</Text></Text>
+        <Text style={{ color: '#aaa', fontSize: 10, fontFamily: 'Inter_400Regular' }}>SB email: <Text style={{ color: '#fff' }}>{session?.user?.email ?? 'none'}</Text></Text>
+        <Text style={{ color: '#aaa', fontSize: 10, fontFamily: 'Inter_400Regular' }}>RC uid:   <Text style={{ color: '#fff' }}>{rcUserId}</Text></Text>
+        <Text style={{ color: '#aaa', fontSize: 10, fontFamily: 'Inter_400Regular', marginTop: 4 }}>RC ent keys: <Text style={{ color: rcEntKeys === '(none)' || rcEntKeys === 'ERR' ? '#ff4444' : '#22CC5E', fontFamily: 'Inter_700Bold' }}>{rcEntKeys}</Text></Text>
+        <Text style={{ color: '#aaa', fontSize: 9, fontFamily: 'Inter_400Regular', marginTop: 2 }}>RC ent full:</Text>
+        <Text style={{ color: '#ccc', fontSize: 8, fontFamily: 'Inter_400Regular' }} selectable>{rcEntFull}</Text>
       </View>
       {/* ── END TEMP DEBUG ── */}
 
