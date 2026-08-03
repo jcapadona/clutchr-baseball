@@ -1,6 +1,8 @@
 import Purchases, { CustomerInfo } from 'react-native-purchases';
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 
+export const PRO_ENTITLEMENT_ID = 'Clutchr Pro';
+
 interface ProContextType {
   isPro: boolean;
   isProLoading: boolean;
@@ -14,7 +16,7 @@ export function ProProvider({ children }: { children: React.ReactNode }) {
   const [isProLoading, setIsProLoading] = useState(true);
 
   const updateFromInfo = useCallback((info: CustomerInfo) => {
-    setIsPro(!!info.entitlements.active['pro']);
+    setIsPro(!!info.entitlements.active[PRO_ENTITLEMENT_ID]);
   }, []);
 
   const refreshPro = useCallback(async () => {

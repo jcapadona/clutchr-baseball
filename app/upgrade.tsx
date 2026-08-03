@@ -39,7 +39,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAthlete } from '@/context/AthleteContext';
-import { useProContext } from '@/context/ProContext';
+import { useProContext, PRO_ENTITLEMENT_ID } from '@/context/ProContext';
 import { Colors, Radius, Spacing } from '@/constants/theme';
 
 // ─── FREE vs PRO COMPARISON ───────────────────────────────────────────────────
@@ -237,7 +237,7 @@ export default function UpgradeScreen() {
     setPurchaseError(null);
     try {
       const customerInfo = await Purchases.restorePurchases();
-      if (customerInfo.entitlements.active['pro']) {
+      if (customerInfo.entitlements.active[PRO_ENTITLEMENT_ID]) {
         router.replace('/(tabs)');
       } else {
         setPurchaseError('No active subscription found.');
