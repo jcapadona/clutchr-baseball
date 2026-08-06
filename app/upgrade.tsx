@@ -280,7 +280,8 @@ export default function UpgradeScreen() {
       </View>
 
       <ScrollView
-        contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 40 }]}
+        style={{ flex: 1 }}
+        contentContainerStyle={[styles.scroll, { paddingBottom: Spacing.xl }]}
         showsVerticalScrollIndicator={false}
       >
         <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
@@ -410,34 +411,6 @@ export default function UpgradeScreen() {
             </View>
           </View>
 
-          {/* ── CTA ── */}
-          <Pressable
-            onPress={selectedPlan === 'annual' ? handlePurchaseYearly : handlePurchaseMonthly}
-            onPressIn={ctaPressIn}
-            onPressOut={ctaPressOut}
-            disabled={purchaseLoading}
-          >
-            <Animated.View style={[styles.ctaBtn, { transform: [{ scale: ctaScale }], opacity: purchaseLoading ? 0.6 : ctaOpacity }]}>
-              <LinearGradient
-                colors={selectedPlan === 'annual' ? [Colors.warning, '#D4890A'] : [Colors.primary, Colors.primaryDim]}
-                style={StyleSheet.absoluteFill}
-                start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-              />
-              <Ionicons name="flash" size={16} color="#000" />
-              <Text style={styles.ctaText}>
-                {purchaseLoading
-                  ? 'Processing…'
-                  : `Start ${selectedPlan === 'annual' ? 'Annual' : 'Monthly'} Pro — ${selectedPlan === 'annual' ? `${annualPriceStr}/yr` : `${monthlyPriceStr}/mo`}`
-                }
-              </Text>
-            </Animated.View>
-          </Pressable>
-
-          {/* ── PURCHASE ERROR ── */}
-          {purchaseError && (
-            <Text style={styles.purchaseError}>{purchaseError}</Text>
-          )}
-
           {/* ── FINE PRINT ── */}
           <View style={styles.finePrint}>
             <Pressable onPress={handleRestore} disabled={purchaseLoading}>
@@ -468,6 +441,34 @@ export default function UpgradeScreen() {
 
         </Animated.View>
       </ScrollView>
+
+      {/* ── STICKY CTA FOOTER ── */}
+      <Animated.View style={[styles.stickyFooter, { paddingBottom: insets.bottom + Spacing.md }, { opacity: fadeAnim }]}>
+        <Pressable
+          onPress={selectedPlan === 'annual' ? handlePurchaseYearly : handlePurchaseMonthly}
+          onPressIn={ctaPressIn}
+          onPressOut={ctaPressOut}
+          disabled={purchaseLoading}
+        >
+          <Animated.View style={[styles.ctaBtn, { transform: [{ scale: ctaScale }], opacity: purchaseLoading ? 0.6 : ctaOpacity }]}>
+            <LinearGradient
+              colors={selectedPlan === 'annual' ? [Colors.warning, '#D4890A'] : [Colors.primary, Colors.primaryDim]}
+              style={StyleSheet.absoluteFill}
+              start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+            />
+            <Ionicons name="flash" size={16} color="#000" />
+            <Text style={styles.ctaText}>
+              {purchaseLoading
+                ? 'Processing…'
+                : `Start ${selectedPlan === 'annual' ? 'Annual' : 'Monthly'} Pro — ${selectedPlan === 'annual' ? `${annualPriceStr}/yr` : `${monthlyPriceStr}/mo`}`
+              }
+            </Text>
+          </Animated.View>
+        </Pressable>
+        {purchaseError && (
+          <Text style={styles.purchaseError}>{purchaseError}</Text>
+        )}
+      </Animated.View>
     </View>
   );
 }
@@ -600,6 +601,16 @@ const styles = StyleSheet.create({
   planPeriod: { fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.textTertiary },
   planNote: { fontSize: 10, fontFamily: 'Inter_400Regular', color: Colors.textTertiary },
   planCheckWrap: { position: 'absolute', bottom: 8, right: 8 },
+
+  // Sticky footer
+  stickyFooter: {
+    paddingHorizontal: Spacing.xl,
+    paddingTop: Spacing.md,
+    gap: Spacing.sm,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Colors.border,
+    backgroundColor: Colors.background,
+  },
 
   // CTA
   ctaBtn: {
