@@ -97,19 +97,14 @@ const PLANS = [
   {
     id: 'monthly',
     label: 'Monthly',
-    price: '$9.99',
     period: '/month',
-    note: 'Cancel anytime',
     highlight: false,
   },
   {
     id: 'annual',
     label: 'Annual',
-    price: '$59.99',
     period: '/year',
-    note: 'Best value — $3.33/mo',
     highlight: true,
-    savings: 'Save 58%',
   },
 ];
 
@@ -117,9 +112,9 @@ const PLANS = [
 // These comparison lines are from the source docs — real-world framing
 
 const COMPARISON_LINES = [
-  { icon: 'person',    text: 'One pitching lesson with a coach: $75–150' },
-  { icon: 'baseball',  text: 'A new bat or glove: $80–300'               },
-  { icon: 'flash',     text: 'Clutchr Pro for a full year: $39.99'       },
+  { icon: 'person',   text: 'One pitching lesson with a coach: $75–150' },
+  { icon: 'baseball', text: 'A new bat or glove: $80–300'               },
+  { icon: 'flash',    text: 'Clutchr Pro for a full year'               },
 ];
 
 // ─── MAIN SCREEN ─────────────────────────────────────────────────────────────
@@ -182,6 +177,22 @@ export default function UpgradeScreen() {
   const subhead = source === 'lesson_gate'
     ? `You've completed 5 lessons, ${athleteState?.first_name ?? 'athlete'}. The full career path is waiting.`
     : "One subscription. Your full career path. Every day.";
+
+  // ── Live prices derived from RC offerings ────────────────────────────────
+  const annualPkg      = offerings?.availablePackages?.find(
+    (p: any) => p.identifier === 'yearly'  || p.packageType === 'ANNUAL'
+  );
+  const monthlyPkg     = offerings?.availablePackages?.find(
+    (p: any) => p.identifier === 'monthly' || p.packageType === 'MONTHLY'
+  );
+  const annualPriceStr  = (annualPkg?.product.priceString  as string | undefined) ?? '$59.99';
+  const monthlyPriceStr = (monthlyPkg?.product.priceString as string | undefined) ?? '$9.99';
+  const annualPriceNum  = (annualPkg?.product.price        as number | undefined) ?? 59.99;
+  const monthlyPriceNum = (monthlyPkg?.product.price       as number | undefined) ?? 9.99;
+  const currencySymbol  = annualPriceStr.replace(/[\d.,\s]/g, '')[0] ?? '$';
+  const monthlyEquivStr = `Best value — ${currencySymbol}${(annualPriceNum / 12).toFixed(2)}/mo`;
+  const savingsPct      = Math.round((1 - annualPriceNum / (monthlyPriceNum * 12)) * 100);
+  const savingsBadge    = `Save ${savingsPct}%`;
 
   function handleSelectPlan(id: 'monthly' | 'annual') {
     H.select();
@@ -305,13 +316,8 @@ export default function UpgradeScreen() {
                   />
                 </View>
                 <Text style={[styles.comparisonText, i === 2 && styles.comparisonTextHighlight]}>
-                  {line.text}
+                  {i === 2 ? `${line.text}: ${annualPriceStr}` : line.text}
                 </Text>
-                {i === 2 && (
-                  <View style={styles.bestValueBadge}>
-                    <Text style={styles.bestValueText}>THAT'S YOU</Text>
-                  </View>
-                )}
               </View>
             ))}
           </View>
@@ -364,38 +370,43 @@ export default function UpgradeScreen() {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>CHOOSE YOUR PLAN</Text>
             <View style={styles.plansRow}>
-              {PLANS.map((plan) => (
-                <Pressable
-                  key={plan.id}
-                  style={[
-                    styles.planCard,
-                    selectedPlan === plan.id && styles.planCardSelected,
-                    plan.highlight && selectedPlan === plan.id && styles.planCardHighlight,
-                  ]}
-                  onPress={() => handleSelectPlan(plan.id as any)}
-                >
-                  {plan.savings && (
-                    <View style={styles.savingsBadge}>
-                      <Text style={styles.savingsText}>{plan.savings}</Text>
-                    </View>
-                  )}
-                  <Text style={[styles.planLabel, selectedPlan === plan.id && { color: Colors.textPrimary }]}>
-                    {plan.label}
-                  </Text>
-                  <View style={styles.planPriceRow}>
-                    <Text style={[styles.planPrice, selectedPlan === plan.id && plan.highlight && { color: Colors.warning }]}>
-                      {plan.price}
+              {PLANS.map((plan) => {
+                const priceStr = plan.id === 'annual' ? annualPriceStr  : monthlyPriceStr;
+                const noteStr  = plan.id === 'annual' ? monthlyEquivStr : 'Cancel anytime';
+                const badge    = plan.id === 'annual' ? savingsBadge    : undefined;
+                return (
+                  <Pressable
+                    key={plan.id}
+                    style={[
+                      styles.planCard,
+                      selectedPlan === plan.id && styles.planCardSelected,
+                      plan.highlight && selectedPlan === plan.id && styles.planCardHighlight,
+                    ]}
+                    onPress={() => handleSelectPlan(plan.id as any)}
+                  >
+                    {badge && (
+                      <View style={styles.savingsBadge}>
+                        <Text style={styles.savingsText}>{badge}</Text>
+                      </View>
+                    )}
+                    <Text style={[styles.planLabel, selectedPlan === plan.id && { color: Colors.textPrimary }]}>
+                      {plan.label}
                     </Text>
-                    <Text style={styles.planPeriod}>{plan.period}</Text>
-                  </View>
-                  <Text style={styles.planNote}>{plan.note}</Text>
-                  {selectedPlan === plan.id && (
-                    <View style={styles.planCheckWrap}>
-                      <Ionicons name="checkmark-circle" size={18} color={plan.highlight ? Colors.warning : Colors.primary} />
+                    <View style={styles.planPriceRow}>
+                      <Text style={[styles.planPrice, selectedPlan === plan.id && plan.highlight && { color: Colors.warning }]}>
+                        {priceStr}
+                      </Text>
+                      <Text style={styles.planPeriod}>{plan.period}</Text>
                     </View>
-                  )}
-                </Pressable>
-              ))}
+                    <Text style={styles.planNote}>{noteStr}</Text>
+                    {selectedPlan === plan.id && (
+                      <View style={styles.planCheckWrap}>
+                        <Ionicons name="checkmark-circle" size={18} color={plan.highlight ? Colors.warning : Colors.primary} />
+                      </View>
+                    )}
+                  </Pressable>
+                );
+              })}
             </View>
           </View>
 
@@ -416,7 +427,7 @@ export default function UpgradeScreen() {
               <Text style={styles.ctaText}>
                 {purchaseLoading
                   ? 'Processing…'
-                  : `Start ${selectedPlan === 'annual' ? 'Annual' : 'Monthly'} Pro — ${selectedPlan === 'annual' ? '$59.99/yr' : '$9.99/mo'}`
+                  : `Start ${selectedPlan === 'annual' ? 'Annual' : 'Monthly'} Pro — ${selectedPlan === 'annual' ? `${annualPriceStr}/yr` : `${monthlyPriceStr}/mo`}`
                 }
               </Text>
             </Animated.View>
