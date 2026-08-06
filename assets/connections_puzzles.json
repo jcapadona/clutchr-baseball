@@ -1,0 +1,114 @@
+[
+  {"id":"conn_001","index":1,"items":["Fastball","Curveball","Slider","Changeup","Shortstop","First Base","Third Base","Second Base","Steal","Pickoff","Lead Off","Tag Up","Big Chest","Next Pitch","Flush It","So What"],
+   "groups":[
+     {"key":"yellow","label":"Pitch Types","items":["Fastball","Curveball","Slider","Changeup"]},
+     {"key":"green","label":"Infield Spots","items":["Shortstop","First Base","Third Base","Second Base"]},
+     {"key":"blue","label":"Baserunning Moves","items":["Steal","Pickoff","Lead Off","Tag Up"]},
+     {"key":"purple","label":"Reset Cues","items":["Big Chest","Next Pitch","Flush It","So What"]}
+   ]},
+  {"id":"conn_002","index":2,"items":["Line Drive","Ground Ball","Fly Ball","Pop Up","Full Count","0-2 Count","3-1 Count","First Pitch","Choke Up","Bunt","Check Swing","Bat Speed","Stay Back","Load Up","Drive Through","See It Deep"],
+   "groups":[
+     {"key":"yellow","label":"Swing Results","items":["Line Drive","Ground Ball","Fly Ball","Pop Up"]},
+     {"key":"green","label":"Count Situations","items":["Full Count","0-2 Count","3-1 Count","First Pitch"]},
+     {"key":"blue","label":"Bat Handling","items":["Choke Up","Bunt","Check Swing","Bat Speed"]},
+     {"key":"purple","label":"Approach Cues","items":["Stay Back","Load Up","Drive Through","See It Deep"]}
+   ]},
+  {"id":"conn_003","index":3,"items":["Four-Seam","Two-Seam","Circle Change","Knuckle Curve","Down and Away","Up and In","Middle-Middle","Paint the Corner","Pickoff Move","Quick Pitch","Set Position","Windup","Poker Face","Slow Walk","Deep Breath","Own the Mound"],
+   "groups":[
+     {"key":"yellow","label":"Pitch Grips","items":["Four-Seam","Two-Seam","Circle Change","Knuckle Curve"]},
+     {"key":"green","label":"Locations","items":["Down and Away","Up and In","Middle-Middle","Paint the Corner"]},
+     {"key":"blue","label":"Pitcher Moves","items":["Pickoff Move","Quick Pitch","Set Position","Windup"]},
+     {"key":"purple","label":"Mound Presence","items":["Poker Face","Slow Walk","Deep Breath","Own the Mound"]}
+   ]},
+  {"id":"conn_004","index":4,"items":["Double Play","Force Out","Tag Out","Read the Hop","Diving Catch","Wall Read","Crow Hop","Cutoff Throw","Calling It","Backing Up","I Got It","Talk It Through","See the Ball","Soft Hands","Quiet Feet","Trust the Read"],
+   "groups":[
+     {"key":"yellow","label":"Infield Plays","items":["Double Play","Force Out","Tag Out","Read the Hop"]},
+     {"key":"green","label":"Outfield Plays","items":["Diving Catch","Wall Read","Crow Hop","Cutoff Throw"]},
+     {"key":"blue","label":"Communication","items":["Calling It","Backing Up","I Got It","Talk It Through"]},
+     {"key":"purple","label":"Defensive Mindset","items":["See the Ball","Soft Hands","Quiet Feet","Trust the Read"]}
+   ]},
+  {"id":"conn_005","index":5,"items":["Captain","Vet Leader","Quiet Leader","Vocal Leader","Accountability","Consistency","Trust","Effort","Set the Tone","Lead by Example","Hold the Line","Bring Energy","Own It","Next Man Up","Team First","Stack Days"],
+   "groups":[
+     {"key":"yellow","label":"Leadership Roles","items":["Captain","Vet Leader","Quiet Leader","Vocal Leader"]},
+     {"key":"green","label":"Team Values","items":["Accountability","Consistency","Trust","Effort"]},
+     {"key":"blue","label":"Culture Builders","items":["Set the Tone","Lead by Example","Hold the Line","Bring Energy"]},
+     {"key":"purple","label":"Coach Cap Sayings","items":["Own It","Next Man Up","Team First","Stack Days"]}
+   ]},
+  {"id":"conn_006","index":6,"items":["Error","Strikeout","Walk","Hit by Pitch","Deep Breath","Cue Word","Restart Routine","Flush It","Tilt","Panic","Overthink","Freeze Up","So What, Next Pitch","Program Beats Panic","Steady After Wins","Confidence Is Prepared"],
+   "groups":[
+     {"key":"yellow","label":"Bad Outcomes","items":["Error","Strikeout","Walk","Hit by Pitch"]},
+     {"key":"green","label":"Reset Tools","items":["Deep Breath","Cue Word","Restart Routine","Flush It"]},
+     {"key":"blue","label":"Mindset Traps","items":["Tilt","Panic","Overthink","Freeze Up"]},
+     {"key":"purple","label":"Bounce-Back Lines","items":["So What, Next Pitch","Program Beats Panic","Steady After Wins","Confidence Is Prepared"]}
+   ]},
+  {"id":"conn_007","index":7,"items":["Dynamic Stretch","Long Toss","Batting Practice","Bullpen Session","Visualization","Breathing","Cue Card","Playlist","Same Every Time","Locked In","Ready Mode","Switch On","Prepare. Compete. Reset.","Big Chest","Trust the Work","Win the Next Pitch"],
+   "groups":[
+     {"key":"yellow","label":"Warmup Steps","items":["Dynamic Stretch","Long Toss","Batting Practice","Bullpen Session"]},
+     {"key":"green","label":"Focus Tools","items":["Visualization","Breathing","Cue Card","Playlist"]},
+     {"key":"blue","label":"Routine Language","items":["Same Every Time","Locked In","Ready Mode","Switch On"]},
+     {"key":"purple","label":"Coach Cap Sayings","items":["Prepare. Compete. Reset.","Big Chest","Trust the Work","Win the Next Pitch"]}
+   ]},
+  {"id":"conn_008","index":8,"items":["Cover 2","Cover 3","Man Press","Zone Blitz","Slant","Post","Curl","Out Route","Nickel Package","Slot Receiver","Edge Rusher","Free Safety","Two Minute Drill","Play Action","Hurry Up","Check Down"],
+   "groups":[
+     {"key":"yellow","label":"Coverages","items":["Cover 2","Cover 3","Man Press","Zone Blitz"]},
+     {"key":"green","label":"Route Concepts","items":["Slant","Post","Curl","Out Route"]},
+     {"key":"blue","label":"Personnel","items":["Nickel Package","Slot Receiver","Edge Rusher","Free Safety"]},
+     {"key":"purple","label":"Situational Calls","items":["Two Minute Drill","Play Action","Hurry Up","Check Down"]}
+   ]},
+  {"id":"conn_009","index":9,"items":["Man to Man","Zone Defense","Full Court Press","Switch Everything","Pull-Up Jumper","Catch and Shoot","Floater","Step Back","Inbound Play","Foul to Extend","Timeout Call","Clock Management","Sixth Man","Floor General","Rim Protector","Glue Guy"],
+   "groups":[
+     {"key":"yellow","label":"Defenses","items":["Man to Man","Zone Defense","Full Court Press","Switch Everything"]},
+     {"key":"green","label":"Shot Types","items":["Pull-Up Jumper","Catch and Shoot","Floater","Step Back"]},
+     {"key":"blue","label":"Late-Game Actions","items":["Inbound Play","Foul to Extend","Timeout Call","Clock Management"]},
+     {"key":"purple","label":"Roles","items":["Sixth Man","Floor General","Rim Protector","Glue Guy"]}
+   ]},
+  {"id":"conn_010","index":10,"items":["Striker","Center Back","Winger","Sweeper Keeper","Corner Kick","Free Kick","Throw In","Penalty Kick","High Press","Overlap Run","Build Out Back","Counter Attack","Extra Time","Stoppage Time","Down a Man","Clean Sheet"],
+   "groups":[
+     {"key":"yellow","label":"Positions","items":["Striker","Center Back","Winger","Sweeper Keeper"]},
+     {"key":"green","label":"Set Pieces","items":["Corner Kick","Free Kick","Throw In","Penalty Kick"]},
+     {"key":"blue","label":"Tactics","items":["High Press","Overlap Run","Build Out Back","Counter Attack"]},
+     {"key":"purple","label":"Match States","items":["Extra Time","Stoppage Time","Down a Man","Clean Sheet"]}
+   ]},
+  {"id":"conn_011","index":11,"items":["Heavy Squat","Bench Press","Deadlift","Power Clean","Ice Bath","Foam Roll","Sleep Cycle","Arm Care","Percentage Training","Progressive Overload","Deload Week","Max Out","Built Different","Summer Grind","Silent Work","Show Up Anyway"],
+   "groups":[
+     {"key":"yellow","label":"Lift Types","items":["Heavy Squat","Bench Press","Deadlift","Power Clean"]},
+     {"key":"green","label":"Recovery","items":["Ice Bath","Foam Roll","Sleep Cycle","Arm Care"]},
+     {"key":"blue","label":"Program Words","items":["Percentage Training","Progressive Overload","Deload Week","Max Out"]},
+     {"key":"purple","label":"Off-Season Identity","items":["Built Different","Summer Grind","Silent Work","Show Up Anyway"]}
+   ]},
+  {"id":"conn_012","index":12,"items":["Hit and Run","Sacrifice Bunt","Squeeze Play","Pinch Hit","First to Third","Secondary Lead","Tag Up Read","Read the Ball Off the Bat","Sign Stealing Watch","Missed Sign","Pickoff Play","Bunt Cover","Set-Up Pitch","Chase Pitch","Waste Pitch","Out Pitch"],
+   "groups":[
+     {"key":"yellow","label":"Situational Plays","items":["Hit and Run","Sacrifice Bunt","Squeeze Play","Pinch Hit"]},
+     {"key":"green","label":"Baserunning IQ","items":["First to Third","Secondary Lead","Tag Up Read","Read the Ball Off the Bat"]},
+     {"key":"blue","label":"Signal Words","items":["Sign Stealing Watch","Missed Sign","Pickoff Play","Bunt Cover"]},
+     {"key":"purple","label":"Pitch Sequencing","items":["Set-Up Pitch","Chase Pitch","Waste Pitch","Out Pitch"]}
+   ]},
+  {"id":"conn_013","index":13,"items":["Loose Shoulders","Quick Answers","Good Eye Contact","Relaxed Jaw","Slow Feet","Overthinking","Avoiding Eye Contact","Tight Grip","Positive Self-Talk","Past Success Recall","Body Language Reset","Controlled Breathing","I Belong Here","Ready for This","Built for Pressure","Trust My Work"],
+   "groups":[
+     {"key":"yellow","label":"Confidence Signs","items":["Loose Shoulders","Quick Answers","Good Eye Contact","Relaxed Jaw"]},
+     {"key":"green","label":"Doubt Signs","items":["Slow Feet","Overthinking","Avoiding Eye Contact","Tight Grip"]},
+     {"key":"blue","label":"Confidence Builders","items":["Positive Self-Talk","Past Success Recall","Body Language Reset","Controlled Breathing"]},
+     {"key":"purple","label":"Identity Statements","items":["I Belong Here","Ready for This","Built for Pressure","Trust My Work"]}
+   ]},
+  {"id":"conn_014","index":14,"items":["Chest Protector","Shin Guards","Catcher's Mitt","Mask","Framing","Blocking","Calling the Game","Controlling Tempo","Pitch Calling","Mound Visit","Setting Targets","Reading Swings","Command the Field","Set the Pace","Trust Your Pitcher","Own the Plate"],
+   "groups":[
+     {"key":"yellow","label":"Catcher Gear","items":["Chest Protector","Shin Guards","Catcher's Mitt","Mask"]},
+     {"key":"green","label":"Catcher Duties","items":["Framing","Blocking","Calling the Game","Controlling Tempo"]},
+     {"key":"blue","label":"Game Management","items":["Pitch Calling","Mound Visit","Setting Targets","Reading Swings"]},
+     {"key":"purple","label":"Leadership Cues","items":["Command the Field","Set the Pace","Trust Your Pitcher","Own the Plate"]}
+   ]},
+  {"id":"conn_015","index":15,"items":["Warm-Up Throws","Sixty Time","Exit Velocity","Pop Time","First-Step Quickness","Arm Action","Bat Speed","Body Control","Prospect Camp","Verbal Commit","Travel Circuit","Highlight Reel","Showcase Ready","Eyes On You","Make It Count","Stand Out"],
+   "groups":[
+     {"key":"yellow","label":"Showcase Basics","items":["Warm-Up Throws","Sixty Time","Exit Velocity","Pop Time"]},
+     {"key":"green","label":"What Scouts Watch","items":["First-Step Quickness","Arm Action","Bat Speed","Body Control"]},
+     {"key":"blue","label":"Recruiting Terms","items":["Prospect Camp","Verbal Commit","Travel Circuit","Highlight Reel"]},
+     {"key":"purple","label":"Presence Words","items":["Showcase Ready","Eyes On You","Make It Count","Stand Out"]}
+   ]},
+  {"id":"conn_016","index":16,"items":["Inside Jokes","Bus Rides","Team Dinners","Secret Handshake","Pick Up a Teammate","Cover for Errors","Celebrate Others","Check In","Next Man Up","We Not Me","Stay Ready","Stack the Line","Team Chemistry","Energy Is Currency","Trust the Dugout","One Heartbeat"],
+   "groups":[
+     {"key":"yellow","label":"Chemistry Builders","items":["Inside Jokes","Bus Rides","Team Dinners","Secret Handshake"]},
+     {"key":"green","label":"Support Actions","items":["Pick Up a Teammate","Cover for Errors","Celebrate Others","Check In"]},
+     {"key":"blue","label":"Team Language","items":["Next Man Up","We Not Me","Stay Ready","Stack the Line"]},
+     {"key":"purple","label":"Culture Phrases","items":["Team Chemistry","Energy Is Currency","Trust the Dugout","One Heartbeat"]}
+   ]}
+]
