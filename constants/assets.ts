@@ -34,6 +34,7 @@ const backgrounds = {
   scenarioPick:        require('../assets/backgrounds/scenario-pick-screen.png'),
   careerTowerArena:    require('../assets/backgrounds/career-tower-arena.png'),
   homeStadiumWalk:     require('../assets/backgrounds/home-stadium-walk.png'),
+  heroNight:           require('../assets/backgrounds/hero_night.png'),
   // ─── CHAPTER/EVOLUTION BACKGROUNDS ───────────────────
   // foundationBg:    require('../assets/backgrounds/foundation-bg.png'),
   // yourCraftBg:     require('../assets/backgrounds/your-craft-bg.png'),

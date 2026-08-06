@@ -731,12 +731,18 @@ export default function HomeScreen() {
             onPress={handleContinueCareer}
             disabled={loadingLesson || !lesson}
           >
-            <View pointerEvents="none" style={c.plateMark} />
             <Image
               pointerEvents="none"
-              source={Assets.branding.cMark}
-              style={c.heroCMark}
-              resizeMode="contain"
+              source={Assets.backgrounds.heroNight}
+              style={StyleSheet.absoluteFill}
+              resizeMode="cover"
+            />
+            <LinearGradient
+              pointerEvents="none"
+              colors={['rgba(0,0,0,0.12)', 'rgba(0,0,0,0.80)']}
+              style={StyleSheet.absoluteFill}
+              start={{ x: 0.5, y: 0 }}
+              end={{ x: 0.5, y: 1 }}
             />
             <View style={c.nextRepBadge}>
               <View style={c.greenDot} />
@@ -1004,29 +1010,11 @@ const c = StyleSheet.create({
     position: 'relative',
     overflow: 'hidden',
     marginHorizontal: Spacing.lg,
-    backgroundColor: Colors.surfaceGlow,
+    backgroundColor: '#0D1410',
     borderWidth: 1,
     borderColor: Colors.primaryBorder,
     borderRadius: Radius.xxl,
     padding: Spacing.md,
-  },
-  plateMark: {
-    position: 'absolute',
-    right: -14,
-    top: 18,
-    width: 118,
-    height: 118,
-    borderWidth: 1,
-    borderColor: Colors.borderSubtle,
-    transform: [{ rotate: '45deg' }],
-  },
-  heroCMark: {
-    position: 'absolute',
-    right: 12,
-    top: 18,
-    width: 112,
-    height: 112,
-    opacity: 0.10,
   },
   nextRepBadge: {
     alignSelf: 'flex-start',
