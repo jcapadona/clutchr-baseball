@@ -125,20 +125,17 @@ function HomeScoreSparkline({ days, positive }: { days: MentalGameScoreDay[]; po
   );
 }
 
-// ─── HOME PILL ────────────────────────────────────────────────────────────────
+// ─── GRID CARD ───────────────────────────────────────────────────────────────
 
-interface HomePillProps {
+interface GridCardProps {
   title: string;
   subtitle?: string;
   icon: keyof typeof Ionicons.glyphMap;
-  side: 'left' | 'right';
-  topPct: number;
-  heroHeight: number;
   onPress: () => void;
-  isActive?: boolean;
+  size: 'large' | 'medium' | 'small';
 }
 
-function HomePill({ title, subtitle, icon, side, topPct, heroHeight, onPress, isActive }: HomePillProps) {
+function GridCard({ title, subtitle, icon, onPress, size }: GridCardProps) {
   const scale = useRef(new Animated.Value(1)).current;
 
   function handlePressIn() {
@@ -150,30 +147,31 @@ function HomePill({ title, subtitle, icon, side, topPct, heroHeight, onPress, is
     Animated.spring(scale, { toValue: 1, useNativeDriver: true, tension: 200, friction: 10 }).start();
   }
 
+  const isLarge = size === 'large';
+  const isSmall = size === 'small';
+
   return (
-    <Animated.View
-      style={[
-        hp.container,
-        side === 'left' ? { left: '3%' } : { right: '3%' },
-        { top: topPct * heroHeight },
-        isActive ? { shadowOpacity: 0.5 } : null,
-        { transform: [{ scale }] },
-      ]}
-    >
+    <Animated.View style={[gc.wrapper, { transform: [{ scale }] }]}>
       <Pressable
-        style={[hp.inner, isActive && hp.innerActive]}
+        style={[gc.card, isLarge && gc.cardLarge, isSmall && gc.cardSmall]}
         onPress={onPress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
       >
-        <View style={hp.iconBox}>
-          <Ionicons name={icon} size={16} color={Colors.primary} />
+        <View style={[gc.iconBox, isSmall && gc.iconBoxSmall]}>
+          <Ionicons name={icon} size={isSmall ? 13 : 15} color={Colors.primary} />
         </View>
-        <View style={hp.textBlock}>
-          <Text style={hp.title} numberOfLines={1}>{title}</Text>
-          {subtitle ? <Text style={hp.subtitle} numberOfLines={1}>{subtitle}</Text> : null}
-        </View>
-        <Ionicons name="chevron-forward" size={14} color={Colors.primary} />
+        <Text style={[gc.title, isSmall && gc.titleSmall]} numberOfLines={1}>{title}</Text>
+        {subtitle ? (
+          <Text style={[gc.subtitle, isSmall && gc.subtitleSmall]} numberOfLines={isSmall ? 1 : 2}>
+            {subtitle}
+          </Text>
+        ) : null}
+        {!isSmall && (
+          <View style={gc.chevronRow}>
+            <Ionicons name="chevron-forward" size={11} color={Colors.primary} />
+          </View>
+        )}
       </Pressable>
     </Animated.View>
   );
@@ -546,9 +544,7 @@ export default function HomeScreen() {
   const mgsIsPositive = mgsDelta >= 0;
 
   // Hero pill computed subtitles
-  const heroHeight      = screenHeight * 0.50;
-  const edgeSubtitle    = ((athleteState as any)?.playbook?.focus ?? '').slice(0, 20) || 'Stay locked';
-  const nextRepSubtitle = (routingResult?.lesson?.title ?? '').slice(0, 20) || 'Load next rep';
+  const edgeSubtitle = ((athleteState as any)?.playbook?.focus ?? '').slice(0, 20) || 'Stay locked';
 
   function handleContinueCareer() {
     if (!routingResult?.lesson) return;
@@ -667,109 +663,92 @@ export default function HomeScreen() {
           </Pressable>
         )}
 
-        {/* ── 2. HERO AREA WITH PILLS ── */}
-        <Animated.View style={[s.heroArea, { height: heroHeight, opacity: anim1 }]}>
+        {/* ── 2. COMMAND CENTER GRID ── */}
+        <Animated.View style={{ opacity: anim1 }}>
+          <View style={g.section}>
+            <Text style={g.label}>COMMAND CENTER</Text>
 
-          {/* Left pills */}
-          <HomePill
-            title="Upcoming Game"
-            subtitle="TODAY · 7:00 PM"
-            icon="calendar-outline"
-            side="left"
-            topPct={0.06}
-            heroHeight={heroHeight}
-            onPress={() => showToast('Coming soon — schedule', 'info')}
-          />
-          <HomePill
-            title="Weather"
-            subtitle={weatherTemp !== null && weatherLabel !== null ? `${weatherTemp}° · ${weatherLabel}` : weatherLabel === 'Unavailable' ? 'Unavailable' : 'Checking...'}
-            icon="sunny-outline"
-            side="left"
-            topPct={0.22}
-            heroHeight={heroHeight}
-            onPress={() => setShowWeatherModal(true)}
-          />
-          <HomePill
-            title="Readiness"
-            subtitle={`MGS · ${mgsScore}`}
-            icon="checkmark-circle-outline"
-            side="left"
-            topPct={0.38}
-            heroHeight={heroHeight}
-            onPress={() => showToast('Coming soon — readiness check', 'info')}
-          />
-          <HomePill
-            title="Opponent Intel"
-            subtitle="Aggressive early."
-            icon="locate-outline"
-            side="left"
-            topPct={0.54}
-            heroHeight={heroHeight}
-            onPress={() => showToast('Coming soon — opponent intel', 'info')}
-          />
-          <HomePill
-            title="Key Pitcher"
-            subtitle="RHP · 88–90 MPH"
-            icon="baseball-outline"
-            side="left"
-            topPct={0.70}
-            heroHeight={heroHeight}
-            onPress={() => showToast('Coming soon — opponent intel', 'info')}
-          />
+            {/* Row 1 — 2 wide */}
+            <View style={g.row}>
+              <GridCard
+                size="large"
+                title="Upcoming Game"
+                subtitle="TODAY · 7:00 PM"
+                icon="calendar-outline"
+                onPress={() => showToast('Coming soon — schedule', 'info')}
+              />
+              <GridCard
+                size="large"
+                title="Opponent Intel"
+                subtitle="Aggressive early."
+                icon="locate-outline"
+                onPress={() => showToast('Coming soon — opponent intel', 'info')}
+              />
+            </View>
 
-          {/* Right pills */}
-          <HomePill
-            title="Locker"
-            subtitle="Open Locker"
-            icon="book-outline"
-            side="right"
-            topPct={0.06}
-            heroHeight={heroHeight}
-            onPress={() => router.push('/(tabs)/locker')}
-          />
-          <HomePill
-            title="Weight Room"
-            subtitle="Strength · Power"
-            icon="barbell-outline"
-            side="right"
-            topPct={0.22}
-            heroHeight={heroHeight}
-            onPress={() => showToast('Coming soon — strength tools', 'info')}
-          />
-          <HomePill
-            title="Film Room"
-            subtitle="Game Prep"
-            icon="film-outline"
-            side="right"
-            topPct={0.38}
-            heroHeight={heroHeight}
-            onPress={handleGameModePress}
-          />
-          <HomePill
-            title="Your Edge"
-            subtitle={edgeSubtitle}
-            icon="star-outline"
-            side="right"
-            topPct={0.54}
-            heroHeight={heroHeight}
-            onPress={() => {
-              if ((athleteState as any)?.playbook?.built_at) {
-                router.push('/(tabs)/locker');
-              } else {
-                showToast('Build your playbook in a lesson', 'info');
-              }
-            }}
-          />
-          <HomePill
-            title="Start Next Rep"
-            subtitle={nextRepSubtitle}
-            icon="play-circle-outline"
-            side="right"
-            topPct={0.70}
-            heroHeight={heroHeight}
-            onPress={handleContinueCareer}
-            isActive
-          />
+            {/* Row 2 — 3 medium */}
+            <View style={g.row}>
+              <GridCard
+                size="medium"
+                title="Locker"
+                subtitle="Open Locker"
+                icon="book-outline"
+                onPress={() => router.push('/(tabs)/locker')}
+              />
+              <GridCard
+                size="medium"
+                title="Film Room"
+                subtitle="Game Prep"
+                icon="film-outline"
+                onPress={handleGameModePress}
+              />
+              <GridCard
+                size="medium"
+                title="Your Edge"
+                subtitle={edgeSubtitle}
+                icon="star-outline"
+                onPress={() => {
+                  if ((athleteState as any)?.playbook?.built_at) {
+                    router.push('/(tabs)/locker');
+                  } else {
+                    showToast('Build your playbook in a lesson', 'info');
+                  }
+                }}
+              />
+            </View>
+
+            {/* Row 3 — 4 small */}
+            <View style={g.row}>
+              <GridCard
+                size="small"
+                title="Readiness"
+                subtitle={`MGS · ${mgsScore}`}
+                icon="checkmark-circle-outline"
+                onPress={() => showToast('Coming soon — readiness check', 'info')}
+              />
+              <GridCard
+                size="small"
+                title="Weather"
+                subtitle={weatherTemp !== null && weatherLabel !== null ? `${weatherTemp}° · ${weatherLabel}` : weatherLabel === 'Unavailable' ? 'Unavailable' : 'Checking...'}
+                icon="sunny-outline"
+                onPress={() => setShowWeatherModal(true)}
+              />
+              <GridCard
+                size="small"
+                title="Weight Room"
+                subtitle="Strength · Power"
+                icon="barbell-outline"
+                onPress={() => showToast('Coming soon — strength tools', 'info')}
+              />
+              <GridCard
+                size="small"
+                title="Key Pitcher"
+                subtitle="RHP · 88–90 MPH"
+                icon="baseball-outline"
+                onPress={() => showToast('Coming soon — opponent intel', 'info')}
+              />
+            </View>
+          </View>
         </Animated.View>
 
         {/* ── 3. COACH C QUOTE ── */}
@@ -800,57 +779,74 @@ export default function HomeScreen() {
   );
 }
 
-// ─── HOME PILL STYLES ─────────────────────────────────────────────────────────
+// ─── GRID CARD STYLES ────────────────────────────────────────────────────────
 
-const hp = StyleSheet.create({
-  container: {
-    position: 'absolute',
-    width: '44%',
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.20,
-    shadowRadius: 14,
-    elevation: 5,
+const gc = StyleSheet.create({
+  wrapper: {
+    flex: 1,
   },
-  inner: {
-    backgroundColor: 'rgba(8,12,10,0.88)',
-    borderRadius: 16,
-    borderWidth: 1.5,
-    borderColor: 'rgba(255,255,255,0.14)',
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  innerActive: {
-    borderColor: Colors.primary,
-  },
-  iconBox: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: Colors.primary + '18',
-    borderColor: Colors.primary + '60',
+  card: {
+    backgroundColor: Colors.surface,
     borderWidth: 1,
+    borderColor: 'rgba(245,245,245,0.10)',
+    borderRadius: Radius.lg,
+    padding: Spacing.sm,
+    height: 100,
+    justifyContent: 'space-between',
+  },
+  cardLarge: { height: 130 },
+  cardSmall:  { height: 78  },
+  iconBox: {
+    width: 28,
+    height: 28,
+    borderRadius: Radius.md,
+    backgroundColor: Colors.primary + '14',
+    borderWidth: 1,
+    borderColor: Colors.primary + '35',
     alignItems: 'center',
     justifyContent: 'center',
-    flexShrink: 0,
   },
-  textBlock: {
-    flex: 1,
-    minWidth: 0,
+  iconBoxSmall: {
+    width: 24,
+    height: 24,
+    borderRadius: Radius.sm,
   },
   title: {
-    color: '#FFFFFF',
-    fontSize: 13,
+    color: Colors.textPrimary,
+    fontSize: 12,
     fontFamily: 'Inter_700Bold',
+    marginTop: Spacing.xs,
   },
+  titleSmall: { fontSize: 11, marginTop: 2 },
   subtitle: {
     color: Colors.textSecondary,
     fontSize: 11,
     fontFamily: 'Inter_400Regular',
-    marginTop: 1,
+    lineHeight: 15,
+    flex: 1,
+  },
+  subtitleSmall: { fontSize: 10, lineHeight: 13 },
+  chevronRow: { alignItems: 'flex-end' },
+});
+
+// ─── GRID SECTION STYLES ─────────────────────────────────────────────────────
+
+const g = StyleSheet.create({
+  section: {
+    marginHorizontal: Spacing.lg,
+    gap: Spacing.sm,
+  },
+  label: {
+    color: Colors.textTertiary,
+    fontSize: 10,
+    fontFamily: 'Inter_700Bold',
+    letterSpacing: 2.5,
+    textAlign: 'center',
+    marginBottom: 2,
+  },
+  row: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
   },
 });
 
@@ -859,11 +855,6 @@ const hp = StyleSheet.create({
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
   scroll: { paddingTop: 0, gap: Spacing.sm },
-
-  // ── Hero area ──
-  heroArea: {
-    position: 'relative',
-  },
 
   // ── Header ──
   header: {
