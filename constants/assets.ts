@@ -35,11 +35,14 @@ const backgrounds = {
   careerTowerArena:    require('../assets/backgrounds/career-tower-arena.png'),
   homeStadiumWalk:     require('../assets/backgrounds/home-stadium-walk.png'),
   heroNight:           require('../assets/backgrounds/hero_night.png'),
+  // ─── COMMAND CENTER CARD BACKGROUNDS ──────────────────
+  opponentIntel:   require('../assets/backgrounds/opponent-intel.png'),
+  lockerRoom:      require('../assets/backgrounds/readiness-routines.png'),
+  yourCraft:       require('../assets/backgrounds/your-craft-bg.png'),
+  theGrind:        require('../assets/backgrounds/the-grind-bg.png'),
+  compete:         require('../assets/backgrounds/compete-bg.png'),
   // ─── CHAPTER/EVOLUTION BACKGROUNDS ───────────────────
   // foundationBg:    require('../assets/backgrounds/foundation-bg.png'),
-  // yourCraftBg:     require('../assets/backgrounds/your-craft-bg.png'),
-  // competeBg:       require('../assets/backgrounds/compete-bg.png'),
-  // theGrindBg:      require('../assets/backgrounds/the-grind-bg.png'),
   signalBg:        require('../assets/backgrounds/signal-bg.png'),
 };
 

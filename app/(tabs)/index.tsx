@@ -133,9 +133,10 @@ interface GridCardProps {
   icon: keyof typeof Ionicons.glyphMap;
   onPress: () => void;
   size: 'large' | 'medium' | 'small';
+  backgroundImage?: ReturnType<typeof require>;
 }
 
-function GridCard({ title, subtitle, icon, onPress, size }: GridCardProps) {
+function GridCard({ title, subtitle, icon, onPress, size, backgroundImage }: GridCardProps) {
   const scale = useRef(new Animated.Value(1)).current;
 
   function handlePressIn() {
@@ -153,11 +154,28 @@ function GridCard({ title, subtitle, icon, onPress, size }: GridCardProps) {
   return (
     <Animated.View style={[gc.wrapper, { transform: [{ scale }] }]}>
       <Pressable
-        style={[gc.card, isLarge && gc.cardLarge, isSmall && gc.cardSmall]}
+        style={[gc.card, isLarge && gc.cardLarge, isSmall && gc.cardSmall, backgroundImage && gc.cardPhoto]}
         onPress={onPress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
       >
+        {backgroundImage && (
+          <>
+            <Image
+              pointerEvents="none"
+              source={backgroundImage}
+              style={StyleSheet.absoluteFill}
+              resizeMode="cover"
+            />
+            <LinearGradient
+              pointerEvents="none"
+              colors={['rgba(0,0,0,0.08)', 'rgba(0,0,0,0.72)']}
+              style={StyleSheet.absoluteFill}
+              start={{ x: 0.5, y: 0 }}
+              end={{ x: 0.5, y: 1 }}
+            />
+          </>
+        )}
         <View style={[gc.iconBox, isSmall && gc.iconBoxSmall]}>
           <Ionicons name={icon} size={isSmall ? 13 : 15} color={Colors.primary} />
         </View>
@@ -675,6 +693,7 @@ export default function HomeScreen() {
                 title="Upcoming Game"
                 subtitle="TODAY · 7:00 PM"
                 icon="calendar-outline"
+                backgroundImage={Assets.backgrounds.compete}
                 onPress={() => showToast('Coming soon — schedule', 'info')}
               />
               <GridCard
@@ -682,6 +701,7 @@ export default function HomeScreen() {
                 title="Opponent Intel"
                 subtitle="Aggressive early."
                 icon="locate-outline"
+                backgroundImage={Assets.backgrounds.opponentIntel}
                 onPress={() => showToast('Coming soon — opponent intel', 'info')}
               />
             </View>
@@ -693,6 +713,7 @@ export default function HomeScreen() {
                 title="Locker"
                 subtitle="Open Locker"
                 icon="book-outline"
+                backgroundImage={Assets.backgrounds.lockerRoom}
                 onPress={() => router.push('/(tabs)/locker')}
               />
               <GridCard
@@ -700,6 +721,7 @@ export default function HomeScreen() {
                 title="Film Room"
                 subtitle="Game Prep"
                 icon="film-outline"
+                backgroundImage={Assets.backgrounds.yourCraft}
                 onPress={handleGameModePress}
               />
               <GridCard
@@ -738,6 +760,7 @@ export default function HomeScreen() {
                 title="Weight Room"
                 subtitle="Strength · Power"
                 icon="barbell-outline"
+                backgroundImage={Assets.backgrounds.theGrind}
                 onPress={() => showToast('Coming soon — strength tools', 'info')}
               />
               <GridCard
@@ -793,9 +816,15 @@ const gc = StyleSheet.create({
     padding: Spacing.sm,
     height: 100,
     justifyContent: 'space-between',
+    overflow: 'hidden',
   },
   cardLarge: { height: 130 },
   cardSmall:  { height: 78  },
+  cardPhoto: {
+    borderTopWidth: 2,
+    borderColor: Colors.primaryBorder,
+    borderTopColor: Colors.primary + 'AA',
+  },
   iconBox: {
     width: 28,
     height: 28,
