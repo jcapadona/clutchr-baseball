@@ -132,11 +132,11 @@ interface GridCardProps {
   subtitle?: string;
   icon: keyof typeof Ionicons.glyphMap;
   onPress: () => void;
-  size: 'large' | 'medium' | 'small';
   backgroundImage?: ReturnType<typeof require>;
+  imageAspectRatio?: number;
 }
 
-function GridCard({ title, subtitle, icon, onPress, size, backgroundImage }: GridCardProps) {
+function GridCard({ title, subtitle, icon, onPress, backgroundImage, imageAspectRatio = 863 / 1822 }: GridCardProps) {
   const scale = useRef(new Animated.Value(1)).current;
 
   function handlePressIn() {
@@ -148,13 +148,10 @@ function GridCard({ title, subtitle, icon, onPress, size, backgroundImage }: Gri
     Animated.spring(scale, { toValue: 1, useNativeDriver: true, tension: 200, friction: 10 }).start();
   }
 
-  const isLarge = size === 'large';
-  const isSmall = size === 'small';
-
   return (
     <Animated.View style={[gc.wrapper, { transform: [{ scale }] }]}>
       <Pressable
-        style={[gc.card, isLarge && gc.cardLarge, isSmall && gc.cardSmall, backgroundImage && gc.cardPhoto]}
+        style={[gc.card, backgroundImage && gc.cardPhoto]}
         onPress={onPress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
@@ -164,7 +161,7 @@ function GridCard({ title, subtitle, icon, onPress, size, backgroundImage }: Gri
             <Image
               pointerEvents="none"
               source={backgroundImage}
-              style={StyleSheet.absoluteFill}
+              style={{ position: 'absolute', top: 0, left: 0, right: 0, aspectRatio: imageAspectRatio }}
               resizeMode="cover"
             />
             <LinearGradient
@@ -176,20 +173,16 @@ function GridCard({ title, subtitle, icon, onPress, size, backgroundImage }: Gri
             />
           </>
         )}
-        <View style={[gc.iconBox, isSmall && gc.iconBoxSmall]}>
-          <Ionicons name={icon} size={isSmall ? 13 : 15} color={Colors.primary} />
+        <View style={gc.iconBox}>
+          <Ionicons name={icon} size={15} color={Colors.primary} />
         </View>
-        <Text style={[gc.title, isSmall && gc.titleSmall]} numberOfLines={1}>{title}</Text>
+        <Text style={gc.title} numberOfLines={1}>{title}</Text>
         {subtitle ? (
-          <Text style={[gc.subtitle, isSmall && gc.subtitleSmall]} numberOfLines={isSmall ? 1 : 2}>
-            {subtitle}
-          </Text>
+          <Text style={gc.subtitle} numberOfLines={2}>{subtitle}</Text>
         ) : null}
-        {!isSmall && (
-          <View style={gc.chevronRow}>
-            <Ionicons name="chevron-forward" size={11} color={Colors.primary} />
-          </View>
-        )}
+        <View style={gc.chevronRow}>
+          <Ionicons name="chevron-forward" size={11} color={Colors.primary} />
+        </View>
       </Pressable>
     </Animated.View>
   );
@@ -686,18 +679,17 @@ export default function HomeScreen() {
           <View style={g.section}>
             <Text style={g.label}>COMMAND CENTER</Text>
 
-            {/* Row 1 — 2 wide */}
+            {/* Row 1 — Upcoming Game + Opponent Intel */}
             <View style={g.row}>
               <GridCard
-                size="large"
                 title="Upcoming Game"
                 subtitle="TODAY · 7:00 PM"
                 icon="calendar-outline"
                 backgroundImage={Assets.backgrounds.compete}
+                imageAspectRatio={941 / 1672}
                 onPress={() => showToast('Coming soon — schedule', 'info')}
               />
               <GridCard
-                size="large"
                 title="Opponent Intel"
                 subtitle="Aggressive early."
                 icon="locate-outline"
@@ -706,10 +698,9 @@ export default function HomeScreen() {
               />
             </View>
 
-            {/* Row 2 — 3 medium */}
+            {/* Row 2 — Locker + Film Room */}
             <View style={g.row}>
               <GridCard
-                size="medium"
                 title="Locker"
                 subtitle="Open Locker"
                 icon="book-outline"
@@ -717,15 +708,24 @@ export default function HomeScreen() {
                 onPress={() => router.push('/(tabs)/locker')}
               />
               <GridCard
-                size="medium"
                 title="Film Room"
                 subtitle="Game Prep"
                 icon="film-outline"
                 backgroundImage={Assets.backgrounds.yourCraft}
                 onPress={handleGameModePress}
               />
+            </View>
+
+            {/* Row 3 — Weight Room + Your Edge */}
+            <View style={g.row}>
               <GridCard
-                size="medium"
+                title="Weight Room"
+                subtitle="Strength · Power"
+                icon="barbell-outline"
+                backgroundImage={Assets.backgrounds.theGrind}
+                onPress={() => showToast('Coming soon — strength tools', 'info')}
+              />
+              <GridCard
                 title="Your Edge"
                 subtitle={edgeSubtitle}
                 icon="star-outline"
@@ -739,36 +739,19 @@ export default function HomeScreen() {
               />
             </View>
 
-            {/* Row 3 — 4 small */}
+            {/* Row 4 — Readiness + Weather */}
             <View style={g.row}>
               <GridCard
-                size="small"
                 title="Readiness"
                 subtitle={`MGS · ${mgsScore}`}
                 icon="checkmark-circle-outline"
                 onPress={() => showToast('Coming soon — readiness check', 'info')}
               />
               <GridCard
-                size="small"
                 title="Weather"
                 subtitle={weatherTemp !== null && weatherLabel !== null ? `${weatherTemp}° · ${weatherLabel}` : weatherLabel === 'Unavailable' ? 'Unavailable' : 'Checking...'}
                 icon="sunny-outline"
                 onPress={() => setShowWeatherModal(true)}
-              />
-              <GridCard
-                size="small"
-                title="Weight Room"
-                subtitle="Strength · Power"
-                icon="barbell-outline"
-                backgroundImage={Assets.backgrounds.theGrind}
-                onPress={() => showToast('Coming soon — strength tools', 'info')}
-              />
-              <GridCard
-                size="small"
-                title="Key Pitcher"
-                subtitle="RHP · 88–90 MPH"
-                icon="baseball-outline"
-                onPress={() => showToast('Coming soon — opponent intel', 'info')}
               />
             </View>
           </View>
@@ -814,12 +797,10 @@ const gc = StyleSheet.create({
     borderColor: 'rgba(245,245,245,0.10)',
     borderRadius: Radius.lg,
     padding: Spacing.sm,
-    height: 100,
+    height: 130,
     justifyContent: 'space-between',
     overflow: 'hidden',
   },
-  cardLarge: { height: 130 },
-  cardSmall:  { height: 78  },
   cardPhoto: {
     borderTopWidth: 2,
     borderColor: Colors.primaryBorder,
@@ -835,18 +816,12 @@ const gc = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  iconBoxSmall: {
-    width: 24,
-    height: 24,
-    borderRadius: Radius.sm,
-  },
   title: {
     color: Colors.textPrimary,
     fontSize: 12,
     fontFamily: 'Inter_700Bold',
     marginTop: Spacing.xs,
   },
-  titleSmall: { fontSize: 11, marginTop: 2 },
   subtitle: {
     color: Colors.textSecondary,
     fontSize: 11,
@@ -854,7 +829,6 @@ const gc = StyleSheet.create({
     lineHeight: 15,
     flex: 1,
   },
-  subtitleSmall: { fontSize: 10, lineHeight: 13 },
   chevronRow: { alignItems: 'flex-end' },
 });
 
