@@ -603,13 +603,13 @@ export default function HomeScreen() {
       <ScrollView
         contentContainerStyle={[s.scroll, { paddingBottom: insets.bottom + 120 }]}
         showsVerticalScrollIndicator={false}
-        scrollEnabled={false}
+        scrollEnabled
       >
 
         {/* ── 1. CONTINUE CAREER CARD ── */}
         {animCard(anim2,
           <Pressable
-            style={({ pressed }) => [c.card, { minHeight: screenHeight * 0.38 }, pressed && { opacity: 0.95, transform: [{ scale: 0.992 }] }]}
+            style={({ pressed }) => [c.card, { height: screenHeight * 0.38 }, pressed && { opacity: 0.95, transform: [{ scale: 0.992 }] }]}
             onPress={handleContinueCareer}
             disabled={loadingLesson || !lesson}
           >
