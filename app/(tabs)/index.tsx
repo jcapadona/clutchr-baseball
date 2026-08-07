@@ -8,7 +8,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import {
   Animated,
   Image,
-  ImageBackground,
   Modal,
   Pressable,
   ScrollView,
@@ -576,18 +575,6 @@ export default function HomeScreen() {
   return (
     <View style={s.container}>
 
-      {/* ── FULL-SCREEN BACKGROUND ── */}
-      <ImageBackground
-        source={Assets.backgrounds.homeStadiumWalk}
-        style={StyleSheet.absoluteFill}
-        resizeMode="cover"
-      />
-      <LinearGradient
-        colors={['rgba(0,0,0,0.20)', 'rgba(0,0,0,0.10)', 'rgba(0,0,0,0.75)', '#050806']}
-        locations={[0, 0.35, 0.70, 1.0]}
-        style={StyleSheet.absoluteFill}
-      />
-
       {/* ── HEADER ── */}
       <View style={[s.header, { paddingTop: insets.top + 12 }]}>
         <Image source={Assets.branding.mainWordmark} style={s.headerWordmark} resizeMode="contain" />
@@ -619,7 +606,68 @@ export default function HomeScreen() {
         scrollEnabled={false}
       >
 
-        {/* ── 1. HERO AREA WITH PILLS ── */}
+        {/* ── 1. CONTINUE CAREER CARD ── */}
+        {animCard(anim2,
+          <Pressable
+            style={({ pressed }) => [c.card, { minHeight: screenHeight * 0.38 }, pressed && { opacity: 0.95, transform: [{ scale: 0.992 }] }]}
+            onPress={handleContinueCareer}
+            disabled={loadingLesson || !lesson}
+          >
+            <Image
+              pointerEvents="none"
+              source={Assets.backgrounds.heroNight}
+              style={{ position: 'absolute', top: 0, bottom: 0, right: 0, aspectRatio: 1672 / 941 }}
+              resizeMode="cover"
+            />
+            <LinearGradient
+              pointerEvents="none"
+              colors={['rgba(0,0,0,0.12)', 'rgba(0,0,0,0.80)']}
+              style={StyleSheet.absoluteFill}
+              start={{ x: 0.5, y: 0 }}
+              end={{ x: 0.5, y: 1 }}
+            />
+            <View style={c.nextRepBadge}>
+              <View style={c.greenDot} />
+              <Text style={c.nextRepText}>NEXT REP</Text>
+            </View>
+
+            {loadingLesson ? (
+              <>
+                <View style={[c.skeleton, { width: '85%', height: 28, marginTop: 18 }]} />
+                <View style={[c.skeleton, { width: '60%', height: 16, marginTop: 8 }]} />
+              </>
+            ) : (
+              <Text style={c.lessonTitle} numberOfLines={2}>
+                {lesson?.title ?? 'Control the Controllables'}
+              </Text>
+            )}
+
+            <View style={c.edgeNote}>
+              <Text style={c.edgeLabel}>TODAY'S EDGE</Text>
+              <Text style={c.edgeText} numberOfLines={2}>{edgeLine}</Text>
+            </View>
+
+            <View style={c.rankMini}>
+              <EmblemBadge rank={currentRank} size="small" />
+              <View style={c.rankMiniCopy}>
+                <Text style={c.rankMiniText}>{currentRank.name}</Text>
+                <Text style={c.rankMiniSub}>{rankProgress.nextRank ? `Next rank: ${rankProgress.nextRank.name}` : 'Elite standard held'}</Text>
+              </View>
+            </View>
+
+            {!isGameDay && (
+              <Pressable
+                style={({ pressed }) => [c.ctaBtn, pressed && { opacity: 0.9 }]}
+                onPress={handleContinueCareer}
+                disabled={loadingLesson || !lesson}
+              >
+                <Text style={c.ctaBtnText}>Start Next Rep →</Text>
+              </Pressable>
+            )}
+          </Pressable>
+        )}
+
+        {/* ── 2. HERO AREA WITH PILLS ── */}
         <Animated.View style={[s.heroArea, { height: heroHeight, opacity: anim1 }]}>
 
           {/* Left pills */}
@@ -723,67 +771,6 @@ export default function HomeScreen() {
             isActive
           />
         </Animated.View>
-
-        {/* ── 2. CONTINUE CAREER CARD ── */}
-        {animCard(anim2,
-          <Pressable
-            style={({ pressed }) => [c.card, pressed && { opacity: 0.95, transform: [{ scale: 0.992 }] }]}
-            onPress={handleContinueCareer}
-            disabled={loadingLesson || !lesson}
-          >
-            <Image
-              pointerEvents="none"
-              source={Assets.backgrounds.heroNight}
-              style={{ position: 'absolute', top: 0, bottom: 0, right: 0, aspectRatio: 1672 / 941 }}
-              resizeMode="cover"
-            />
-            <LinearGradient
-              pointerEvents="none"
-              colors={['rgba(0,0,0,0.12)', 'rgba(0,0,0,0.80)']}
-              style={StyleSheet.absoluteFill}
-              start={{ x: 0.5, y: 0 }}
-              end={{ x: 0.5, y: 1 }}
-            />
-            <View style={c.nextRepBadge}>
-              <View style={c.greenDot} />
-              <Text style={c.nextRepText}>NEXT REP</Text>
-            </View>
-
-            {loadingLesson ? (
-              <>
-                <View style={[c.skeleton, { width: '85%', height: 28, marginTop: 18 }]} />
-                <View style={[c.skeleton, { width: '60%', height: 16, marginTop: 8 }]} />
-              </>
-            ) : (
-              <Text style={c.lessonTitle} numberOfLines={2}>
-                {lesson?.title ?? 'Control the Controllables'}
-              </Text>
-            )}
-
-            <View style={c.edgeNote}>
-              <Text style={c.edgeLabel}>TODAY'S EDGE</Text>
-              <Text style={c.edgeText} numberOfLines={2}>{edgeLine}</Text>
-            </View>
-
-            <View style={c.rankMini}>
-              <EmblemBadge rank={currentRank} size="small" />
-              <View style={c.rankMiniCopy}>
-                <Text style={c.rankMiniText}>{currentRank.name}</Text>
-                <Text style={c.rankMiniSub}>{rankProgress.nextRank ? `Next rank: ${rankProgress.nextRank.name}` : 'Elite standard held'}</Text>
-              </View>
-            </View>
-
-            {!isGameDay && (
-              <Pressable
-                style={({ pressed }) => [c.ctaBtn, pressed && { opacity: 0.9 }]}
-                onPress={handleContinueCareer}
-                disabled={loadingLesson || !lesson}
-              >
-                <Text style={c.ctaBtnText}>Start Next Rep →</Text>
-              </Pressable>
-            )}
-          </Pressable>
-        )}
 
         {/* ── 3. COACH C QUOTE ── */}
         {animCard(anim3,
