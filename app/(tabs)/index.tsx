@@ -133,10 +133,9 @@ interface GridCardProps {
   icon: keyof typeof Ionicons.glyphMap;
   onPress: () => void;
   backgroundImage?: ReturnType<typeof require>;
-  imageAspectRatio?: number;
 }
 
-function GridCard({ title, subtitle, icon, onPress, backgroundImage, imageAspectRatio = 863 / 1822 }: GridCardProps) {
+function GridCard({ title, subtitle, icon, onPress, backgroundImage }: GridCardProps) {
   const scale = useRef(new Animated.Value(1)).current;
 
   function handlePressIn() {
@@ -161,7 +160,7 @@ function GridCard({ title, subtitle, icon, onPress, backgroundImage, imageAspect
             <Image
               pointerEvents="none"
               source={backgroundImage}
-              style={{ position: 'absolute', top: 0, left: 0, right: 0, aspectRatio: imageAspectRatio }}
+              style={StyleSheet.absoluteFill}
               resizeMode="cover"
             />
             <LinearGradient
@@ -686,7 +685,6 @@ export default function HomeScreen() {
                 subtitle="TODAY · 7:00 PM"
                 icon="calendar-outline"
                 backgroundImage={Assets.backgrounds.compete}
-                imageAspectRatio={941 / 1672}
                 onPress={() => showToast('Coming soon — schedule', 'info')}
               />
               <GridCard
