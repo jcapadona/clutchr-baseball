@@ -161,7 +161,7 @@ function GridCard({ title, subtitle, icon, onPress, backgroundImage }: GridCardP
               pointerEvents="none"
               source={backgroundImage}
               style={StyleSheet.absoluteFill}
-              resizeMode="contain"
+              resizeMode="cover"
             />
             <LinearGradient
               pointerEvents="none"
@@ -614,15 +614,15 @@ export default function HomeScreen() {
         {/* ── 1. CONTINUE CAREER CARD ── */}
         {animCard(anim2,
           <Pressable
-            style={({ pressed }) => [c.card, { height: screenHeight * 0.38 }, pressed && { opacity: 0.95, transform: [{ scale: 0.992 }] }]}
+            style={({ pressed }) => [c.card, { height: 240 }, pressed && { opacity: 0.95, transform: [{ scale: 0.992 }] }]}
             onPress={handleContinueCareer}
             disabled={loadingLesson || !lesson}
           >
             <Image
               pointerEvents="none"
               source={Assets.backgrounds.heroNight}
-              style={StyleSheet.absoluteFill}
-              resizeMode="contain"
+              style={{ position: 'absolute', top: 0, bottom: 0, right: 0, aspectRatio: 1672 / 941 }}
+              resizeMode="cover"
             />
             <LinearGradient
               pointerEvents="none"
