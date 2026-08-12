@@ -161,7 +161,7 @@ function GridCard({ title, subtitle, icon, onPress, backgroundImage }: GridCardP
               pointerEvents="none"
               source={backgroundImage}
               style={StyleSheet.absoluteFill}
-              resizeMode="cover"
+              resizeMode="contain"
             />
             <LinearGradient
               pointerEvents="none"
@@ -301,7 +301,6 @@ export default function HomeScreen() {
   const [weatherTemp, setWeatherTemp]       = useState<number | null>(null);
   const [weatherLabel, setWeatherLabel]     = useState<string | null>(null);
   const [showWeatherModal, setShowWeatherModal] = useState(false);
-
   const microcopy = useMicrocopy();
   const { showToast } = useToast();
   // TODO: wire isGameDay from AthleteState or schedule data (added during game-mode prompt)
