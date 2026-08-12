@@ -622,7 +622,7 @@ export default function HomeScreen() {
             <Image
               pointerEvents="none"
               source={Assets.backgrounds.heroNight}
-              style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, alignSelf: 'center', aspectRatio: 1672 / 941 }}
+              style={StyleSheet.absoluteFill}
               resizeMode="contain"
             />
             <LinearGradient
