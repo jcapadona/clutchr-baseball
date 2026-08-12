@@ -161,7 +161,7 @@ function GridCard({ title, subtitle, icon, onPress, backgroundImage }: GridCardP
               pointerEvents="none"
               source={backgroundImage}
               style={StyleSheet.absoluteFill}
-              resizeMode="cover"
+              resizeMode="contain"
             />
             <LinearGradient
               pointerEvents="none"
@@ -621,8 +621,8 @@ export default function HomeScreen() {
             <Image
               pointerEvents="none"
               source={Assets.backgrounds.heroNight}
-              style={{ position: 'absolute', top: 0, bottom: 0, right: 0, aspectRatio: 1672 / 941 }}
-              resizeMode="cover"
+              style={StyleSheet.absoluteFill}
+              resizeMode="contain"
             />
             <LinearGradient
               pointerEvents="none"
