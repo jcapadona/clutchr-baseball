@@ -14,7 +14,7 @@
     },
     "ios": {
       "supportsTablet": false,
-  "bundleIdentifier": "com.yourcompany.clutchrbaseball.dev"
+  "bundleIdentifier": "com.clutchr.baseball.dev",
       "infoPlistEntries": {
         "NSLocationWhenInUseUsageDescription": "Clutchr uses your location to show local weather conditions."
       },
