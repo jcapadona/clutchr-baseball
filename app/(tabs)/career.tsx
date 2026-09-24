@@ -1627,13 +1627,6 @@ export default function CareerScreen() {
 
           {/* ── ASCENT ARENA TOWER ── */}
           <View style={styles.towerWrap}>
-            {/* Arena background */}
-            <Image
-              source={Assets.backgrounds.careerTowerArena}
-              style={[StyleSheet.absoluteFillObject, styles.towerBg]}
-              resizeMode="cover"
-            />
-            <View style={[StyleSheet.absoluteFillObject, styles.towerOverlay]} />
             {/* Vertical connecting line */}
             <View style={[styles.connectLine, { backgroundColor: activeChapterConfig.color }]} />
 
@@ -1705,7 +1698,7 @@ export default function CareerScreen() {
 // ─── STYLES ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  container:  { flex: 1, backgroundColor: Colors.background },
+  container:  { flex: 1, backgroundColor: Colors.background, paddingBottom: 220 },
   scrollView: { flex: 1, backgroundColor: Colors.background },
   scroll:     { paddingTop: Spacing.lg },
 
@@ -1862,12 +1855,6 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.md,
     position: 'relative',
     overflow: 'hidden',
-  },
-  towerBg: {
-    opacity: 0.18,
-  },
-  towerOverlay: {
-    backgroundColor: 'rgba(0,0,0,0.62)',
   },
   connectLine: {
     position: 'absolute',
