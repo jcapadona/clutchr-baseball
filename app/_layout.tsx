@@ -1,4 +1,10 @@
 import {
+  BarlowCondensed_600SemiBold,
+  BarlowCondensed_700Bold,
+  BarlowCondensed_800ExtraBold,
+  BarlowCondensed_800ExtraBold_Italic,
+} from '@expo-google-fonts/barlow-condensed';
+import {
   Inter_400Regular,
   Inter_500Medium,
   Inter_600SemiBold,
@@ -69,6 +75,10 @@ export default function RootLayout() {
     Inter_500Medium,
     Inter_600SemiBold,
     Inter_700Bold,
+    BarlowCondensed_600SemiBold,
+    BarlowCondensed_700Bold,
+    BarlowCondensed_800ExtraBold,
+    BarlowCondensed_800ExtraBold_Italic,
   });
   if (fontError) console.warn('Font loading error:', fontError);
 
