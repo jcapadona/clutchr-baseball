@@ -14,6 +14,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAthlete } from '@/context/AthleteContext';
 import { Colors, Radius, Spacing } from '@/constants/theme';
+import { TopHighlight } from '@/constants/visualExtensions';
 import { ProgressBar } from '@/components/ProgressBar';
 import { useToast } from '@/components/Toast';
 import { useProContext } from '@/context/ProContext';
@@ -693,7 +694,7 @@ const completeStyles = StyleSheet.create({
   infoBox: {
     flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.sm,
     backgroundColor: Colors.primaryMuted, borderRadius: Radius.md,
-    padding: Spacing.md, borderWidth: 1, borderColor: Colors.primaryBorder,
+    padding: Spacing.md, borderWidth: 1, borderColor: Colors.border, borderTopColor: TopHighlight,
   },
   infoText: { flex: 1, fontSize: 12, fontFamily: 'Inter_400Regular', color: Colors.textSecondary, lineHeight: 18 },
 });

@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useRef } from 'react';
+import { Colors } from '@/constants/theme';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
 // ─── SHIMMER ─────────────────────────────────────────────────────────────────
@@ -126,7 +127,7 @@ const skStyles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#22CC5E',
+    borderColor: Colors.border,
   },
   retryText: {
     color: '#22CC5E',

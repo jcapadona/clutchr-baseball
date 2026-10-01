@@ -856,7 +856,7 @@ const s = StyleSheet.create({
   take: { flexDirection: 'row', gap: Spacing.md, alignItems: 'center', padding: Spacing.lg },
   takeAvatar: {
     width: 44, height: 44, borderRadius: 22,
-    borderWidth: 1.5, borderColor: Colors.primaryBorder,
+    borderWidth: 1.5, borderColor: Colors.border,
     alignItems: 'center', justifyContent: 'center',
   },
   takeLabel: {

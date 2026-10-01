@@ -17,6 +17,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAthlete } from "@/context/AthleteContext";
 import { Colors, Radius, Spacing } from "@/constants/theme";
+import { TopHighlight } from "@/constants/visualExtensions";
 import type { SeasonPhase } from "@/context/AthleteContext";
 import { SkeletonCard } from "@/components/SkeletonLoader";
 import { ClutchrHeader } from "@/components/ClutchrHeader";
@@ -3017,7 +3018,7 @@ const s = StyleSheet.create({
     marginTop: Spacing.xs,
     borderRadius: Radius.pill,
     borderWidth: 1,
-    borderColor: Colors.primaryBorder,
+    borderColor: Colors.border,
     backgroundColor: Colors.primaryMuted,
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.sm,
@@ -3029,7 +3030,8 @@ const s = StyleSheet.create({
     letterSpacing: 0.7,
   },
   bannerSlim: {
-    borderColor: "#22CC5E55",
+    borderColor: Colors.border,
+    borderTopColor: TopHighlight,
     backgroundColor: "#0F1612",
     padding: Spacing.md,
     borderRadius: Radius.md,
@@ -3039,7 +3041,8 @@ const s = StyleSheet.create({
     backgroundColor: "#101510",
     borderRadius: Radius.lg,
     borderWidth: 1,
-    borderColor: Colors.primary + "35",
+    borderColor: Colors.border,
+    borderTopColor: TopHighlight,
     padding: Spacing.md,
     gap: Spacing.xs,
   },
@@ -3086,7 +3089,7 @@ const s = StyleSheet.create({
     fontFamily: "Inter_700Bold",
     color: Colors.primary,
     backgroundColor: Colors.primaryMuted,
-    borderColor: Colors.primaryBorder,
+    borderColor: Colors.border,
     borderWidth: 1,
     borderRadius: Radius.pill,
     paddingHorizontal: Spacing.sm,
@@ -3147,7 +3150,8 @@ const s = StyleSheet.create({
     backgroundColor: Colors.surfaceGlow,
     borderRadius: Radius.lg,
     borderWidth: 1,
-    borderColor: Colors.primaryBorder,
+    borderColor: Colors.border,
+    borderTopColor: TopHighlight,
     padding: Spacing.md,
     gap: 5,
   },
@@ -3492,7 +3496,7 @@ const cStyles = StyleSheet.create({
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderWidth: 1,
-    borderColor: Colors.primaryBorder,
+    borderColor: Colors.border,
   },
   badgeText: { fontSize: 8, fontFamily: "Inter_700Bold", letterSpacing: 0.5 },
   tagline: {

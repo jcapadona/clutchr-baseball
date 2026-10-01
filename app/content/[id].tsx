@@ -188,7 +188,7 @@ const styles = StyleSheet.create({
   title: { fontSize: 22, fontFamily: 'Inter_700Bold', color: Colors.textPrimary, lineHeight: 28 },
   summary: { fontSize: 15, fontFamily: 'Inter_400Regular', color: Colors.textSecondary, lineHeight: 22 },
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, flexWrap: 'wrap', marginTop: 2 },
-  metaTag: { backgroundColor: Colors.primaryMuted, borderRadius: Radius.pill, paddingHorizontal: Spacing.sm, paddingVertical: 3, borderWidth: 1, borderColor: Colors.primaryBorder },
+  metaTag: { backgroundColor: Colors.primaryMuted, borderRadius: Radius.pill, paddingHorizontal: Spacing.sm, paddingVertical: 3, borderWidth: 1, borderColor: Colors.border },
   metaTagText: { fontSize: 10, fontFamily: 'Inter_700Bold', color: Colors.primary, letterSpacing: 0.5 },
   metaDetail: { fontSize: 12, fontFamily: 'Inter_400Regular', color: Colors.textTertiary },
 

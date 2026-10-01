@@ -309,7 +309,7 @@ const styles = StyleSheet.create({
     borderRadius: Radius.pill,
     backgroundColor: Colors.primaryMuted,
     borderWidth: 1,
-    borderColor: Colors.primaryBorder,
+    borderColor: Colors.border,
     marginTop: Spacing.xs,
   },
   retryText: { fontSize: 12, fontFamily: 'Inter_600SemiBold', color: Colors.primary },

@@ -165,7 +165,7 @@ export default function ConfidenceSlider({ data, responses, feedback, onComplete
   return (
     <View style={styles.container}>
       {/* Metric badge */}
-      <View style={[styles.metricBadge, { borderColor: Colors.primaryBorder, backgroundColor: Colors.primaryMuted }]}>
+      <View style={[styles.metricBadge, { borderColor: Colors.border, backgroundColor: Colors.primaryMuted }]}>
         <Text style={styles.metricIcon}>{metric.icon}</Text>
         <Text style={styles.metricLabel}>{metric.label}</Text>
       </View>

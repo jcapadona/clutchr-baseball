@@ -839,7 +839,7 @@ const printStyles = StyleSheet.create({
   stepRow: { flexDirection: 'row', gap: Spacing.sm, alignItems: 'flex-start' },
   stepNum: {
     width: 22, height: 22, borderRadius: 11,
-    backgroundColor: Colors.primaryMuted, borderWidth: 1, borderColor: Colors.primaryBorder,
+    backgroundColor: Colors.primaryMuted, borderWidth: 1, borderColor: Colors.border,
     alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1,
   },
   stepNumText: { fontSize: 11, fontFamily: 'Inter_700Bold', color: Colors.primary },

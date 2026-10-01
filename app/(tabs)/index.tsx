@@ -20,6 +20,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAthlete } from '@/context/AthleteContext';
 import { fetchLessons } from '@/lib/supabase';
 import { Colors, Radius, Shadow, Spacing } from '@/constants/theme';
+import { TopHighlight } from '@/constants/visualExtensions';
 import { Assets } from '@/constants/assets';
 import { pickNextLesson, type RoutingResult } from '@/lib/lessonRouter';
 import { SkeletonBox, SkeletonCard } from '@/components/SkeletonLoader';
@@ -237,7 +238,8 @@ const wm = StyleSheet.create({
     borderTopRightRadius: 28,
     padding: 32,
     borderTopWidth: 1.5,
-    borderColor: Colors.primary + '40',
+    borderColor: Colors.border,
+    borderTopColor: TopHighlight,
     alignItems: 'center',
   },
   handle: {
@@ -799,9 +801,7 @@ const gc = StyleSheet.create({
     overflow: 'hidden',
   },
   cardPhoto: {
-    borderTopWidth: 2,
-    borderColor: Colors.primaryBorder,
-    borderTopColor: Colors.primary + 'AA',
+    borderTopColor: TopHighlight,
   },
   iconBox: {
     width: 28,
@@ -809,7 +809,7 @@ const gc = StyleSheet.create({
     borderRadius: Radius.md,
     backgroundColor: Colors.primary + '14',
     borderWidth: 1,
-    borderColor: Colors.primary + '35',
+    borderColor: Colors.border,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -889,7 +889,8 @@ const s = StyleSheet.create({
   mgsCard: {
     backgroundColor: Colors.surface,
     borderWidth: 1,
-    borderColor: Colors.primaryBorder,
+    borderColor: Colors.border,
+    borderTopColor: TopHighlight,
     borderRadius: Radius.xl,
     padding: Spacing.lg,
     gap: Spacing.sm,
@@ -926,7 +927,7 @@ const s = StyleSheet.create({
   },
   mgsDeltaPos: {
     backgroundColor: Colors.primaryMuted,
-    borderColor: Colors.primaryBorder,
+    borderColor: Colors.border,
   },
   mgsDeltaNeg: {
     backgroundColor: Colors.danger + '12',

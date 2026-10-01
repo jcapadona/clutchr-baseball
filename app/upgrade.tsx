@@ -41,6 +41,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAthlete } from '@/context/AthleteContext';
 import { useProContext, PRO_ENTITLEMENT_ID } from '@/context/ProContext';
 import { Colors, Radius, Spacing } from '@/constants/theme';
+import { TopHighlight } from '@/constants/visualExtensions';
 
 // ─── FREE vs PRO COMPARISON ───────────────────────────────────────────────────
 
@@ -501,7 +502,7 @@ const styles = StyleSheet.create({
   heroWrap: {
     alignItems: 'center', gap: Spacing.md,
     paddingVertical: Spacing.xl, borderRadius: Radius.xl,
-    borderWidth: 1, borderColor: Colors.primaryBorder,
+    borderWidth: 1, borderColor: Colors.border, borderTopColor: TopHighlight,
     overflow: 'hidden', paddingHorizontal: Spacing.lg,
   },
   heroIconWrap: {
@@ -537,7 +538,7 @@ const styles = StyleSheet.create({
   bestValueBadge: {
     backgroundColor: Colors.primaryMuted, borderRadius: Radius.pill,
     paddingHorizontal: 7, paddingVertical: 3,
-    borderWidth: 1, borderColor: Colors.primaryBorder,
+    borderWidth: 1, borderColor: Colors.border,
   },
   bestValueText: { fontSize: 8, fontFamily: 'Inter_700Bold', color: Colors.primary, letterSpacing: 0.8 },
 

@@ -19,6 +19,7 @@ import { useAthlete } from '@/context/AthleteContext';
 import { fetchLessons, type LegacyLesson } from '@/lib/supabase';
 import { Assets } from '@/constants/assets';
 import { Colors, Radius, Shadow, Spacing } from '@/constants/theme';
+import { TopHighlight } from '@/constants/visualExtensions';
 import { Btn } from '@/components/ui';
 import { useMicrocopy } from '@/hooks/useMicrocopy';
 import { useProContext } from '@/context/ProContext';
@@ -1741,7 +1742,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: Radius.pill,
     borderWidth: 1,
-    borderColor: Colors.primaryBorder,
+    borderColor: Colors.border,
     backgroundColor: Colors.primaryMuted,
   },
   lessonCountText: {
@@ -1980,7 +1981,7 @@ const missionStyles = StyleSheet.create({
   wrap: {
     backgroundColor: Colors.surface,
     borderTopWidth: 1,
-    borderTopColor: Colors.primaryBorder,
+    borderTopColor: TopHighlight,
     paddingHorizontal: Spacing.xl,
     paddingTop: 10,
     gap: 4,

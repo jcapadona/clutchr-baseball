@@ -535,7 +535,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     backgroundColor: Colors.primaryMuted, borderRadius: Radius.pill,
     paddingHorizontal: Spacing.md, paddingVertical: 4,
-    borderWidth: 1, borderColor: Colors.primaryBorder,
+    borderWidth: 1, borderColor: Colors.border,
   },
   perspectiveText: { fontSize: 10, fontFamily: 'Inter_700Bold', color: Colors.primary, letterSpacing: 0.8 },
 
@@ -582,7 +582,7 @@ const styles = StyleSheet.create({
   pitchTypeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm, justifyContent: 'center' },
   pitchTypeBtn: {
     paddingHorizontal: Spacing.lg, paddingVertical: Spacing.md,
-    borderRadius: Radius.md, borderWidth: 1, borderColor: Colors.primaryBorder,
+    borderRadius: Radius.md, borderWidth: 1, borderColor: Colors.border,
     backgroundColor: Colors.surface,
   },
   pitchTypeBtnText: { fontSize: 14, fontFamily: 'Inter_600SemiBold', color: Colors.primary },

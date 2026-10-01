@@ -19,6 +19,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAthlete } from '@/context/AthleteContext';
 import { supabase } from '@/lib/supabase';
 import { Colors, Radius, Shadow, Spacing } from '@/constants/theme';
+import { TopHighlight } from '@/constants/visualExtensions';
 import { stopSpeech } from '@/lib/lessonAudio';
 import { ClutchrHeader } from '@/components/ClutchrHeader';
 import { CompletionInteraction, type CompletionIntent } from '@/components/CompletionInteraction';
@@ -1767,7 +1768,8 @@ const cueStyles = StyleSheet.create({
   wrap: {
     borderRadius: Radius.lg,
     borderWidth: 1,
-    borderColor: Colors.primaryBorder,
+    borderColor: Colors.border,
+    borderTopColor: TopHighlight,
     overflow: 'hidden',
     flexDirection: 'row',
     // Glow shadow
@@ -1799,7 +1801,7 @@ const cueStyles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderWidth: 1,
-    borderColor: Colors.primaryBorder,
+    borderColor: Colors.border,
   },
   labelText: {
     fontSize: 9,
@@ -1962,7 +1964,7 @@ const vizStyles = StyleSheet.create({
     borderRadius: 45,
     backgroundColor: Colors.primaryMuted,
     borderWidth: 1.5,
-    borderColor: Colors.primaryBorder,
+    borderColor: Colors.border,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
@@ -2175,7 +2177,7 @@ const nwStyles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', gap: 5,
     backgroundColor: Colors.primaryMuted, borderRadius: Radius.pill,
     paddingHorizontal: 10, paddingVertical: 4,
-    borderWidth: 1, borderColor: Colors.primaryBorder,
+    borderWidth: 1, borderColor: Colors.border,
   },
   phaseBadgeText: { fontSize: 10, fontFamily: 'Inter_700Bold', letterSpacing: 1.2 },
   phaseStep: { fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.textTertiary },
@@ -2278,7 +2280,8 @@ const nwStyles = StyleSheet.create({
     backgroundColor: Colors.surface,
     borderRadius: Radius.lg,
     borderWidth: 1,
-    borderColor: Colors.primaryBorder,
+    borderColor: Colors.border,
+    borderTopColor: TopHighlight,
     overflow: 'hidden',
   },
   revealText: { fontSize: 16, fontFamily: 'Inter_500Medium', color: Colors.textPrimary, lineHeight: 25 },
@@ -2292,7 +2295,7 @@ const nwStyles = StyleSheet.create({
     paddingHorizontal: Spacing.sm,
     paddingVertical: 3,
     borderWidth: 1,
-    borderColor: Colors.primaryBorder,
+    borderColor: Colors.border,
   },
   recapChipText: { fontSize: 11, fontFamily: 'Inter_600SemiBold', color: Colors.primary },
 
@@ -2419,7 +2422,7 @@ const screenStyles = StyleSheet.create({
   roleBadge: {
     backgroundColor: Colors.primaryMuted, borderRadius: Radius.pill,
     paddingHorizontal: Spacing.sm, paddingVertical: 3,
-    borderWidth: 1, borderColor: Colors.primaryBorder,
+    borderWidth: 1, borderColor: Colors.border,
   },
   roleBadgeText: { fontSize: 9, fontFamily: 'Inter_700Bold', color: Colors.primary, letterSpacing: 0.8 },
   interactiveBadge: {
@@ -2469,14 +2472,14 @@ const screenStyles = StyleSheet.create({
 // ─── Completion ────────────────────────────────────────────────────────────────
 const completionStyles = StyleSheet.create({
   overlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.92)', alignItems: 'center', justifyContent: 'center', padding: Spacing.xl, zIndex: 100 },
-  card: { backgroundColor: Colors.surface, borderRadius: Radius.xl, borderWidth: 1, borderColor: Colors.primaryBorder, padding: Spacing.xxxl, alignItems: 'center', gap: Spacing.lg, width: '100%' },
+  card: { backgroundColor: Colors.surface, borderRadius: Radius.xl, borderWidth: 1, borderColor: Colors.border, borderTopColor: TopHighlight, padding: Spacing.xxxl, alignItems: 'center', gap: Spacing.lg, width: '100%' },
   xpBurst: { width: 88, height: 88, borderRadius: 44, backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center' },
   xpBurstPartial: { backgroundColor: Colors.warning },
   xpNum: { fontSize: 20, fontFamily: 'Inter_700Bold', color: Colors.background, lineHeight: 22 },
   xpLabel: { fontSize: 11, fontFamily: 'Inter_700Bold', color: Colors.background, letterSpacing: 1, lineHeight: 14 },
   title: { fontSize: 26, fontFamily: 'Inter_700Bold', color: Colors.textPrimary, textAlign: 'center' },
   feedback: { fontSize: 15, fontFamily: 'Inter_400Regular', color: Colors.textSecondary, textAlign: 'center', lineHeight: 22 },
-  retryBtn: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, backgroundColor: Colors.primaryMuted, borderRadius: Radius.lg, paddingVertical: Spacing.md, paddingHorizontal: Spacing.xl, borderWidth: 1, borderColor: Colors.primaryBorder },
+  retryBtn: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, backgroundColor: Colors.primaryMuted, borderRadius: Radius.lg, paddingVertical: Spacing.md, paddingHorizontal: Spacing.xl, borderWidth: 1, borderColor: Colors.border },
   retryBtnText: { fontSize: 14, fontFamily: 'Inter_600SemiBold', color: Colors.primary },
   nextBtn: { borderRadius: Radius.lg, paddingVertical: Spacing.lg, paddingHorizontal: Spacing.xxl, marginTop: Spacing.sm, width: '100%', alignItems: 'center', overflow: 'hidden', backgroundColor: Colors.primary },
   nextBtnText: { fontSize: 16, fontFamily: 'Inter_700Bold', color: '#000' },

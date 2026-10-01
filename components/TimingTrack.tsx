@@ -277,7 +277,7 @@ const styles = StyleSheet.create({
     gap: 5,
     alignSelf: 'flex-start',
     borderWidth: 1,
-    borderColor: Colors.primaryBorder,
+    borderColor: Colors.border,
     backgroundColor: Colors.primaryMuted,
     borderRadius: Radius.pill,
     paddingHorizontal: 8,
@@ -394,7 +394,7 @@ const styles = StyleSheet.create({
     borderRadius: Radius.pill,
     backgroundColor: Colors.primaryMuted,
     borderWidth: 1,
-    borderColor: Colors.primaryBorder,
+    borderColor: Colors.border,
   },
   retryText: { fontSize: 12, fontFamily: 'Inter_600SemiBold', color: Colors.primary },
 });

@@ -229,7 +229,7 @@ const styles = StyleSheet.create({
     maxWidth: 126,
     borderRadius: Radius.pill,
     borderWidth: 1,
-    borderColor: Colors.primaryBorder,
+    borderColor: Colors.border,
     backgroundColor: Colors.primaryMuted,
     paddingHorizontal: Spacing.sm,
     paddingVertical: 4,
@@ -299,7 +299,7 @@ const brandMarkStyles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: HEADER_SURFACE,
     borderWidth: 1,
-    borderColor: Colors.primaryBorder,
+    borderColor: Colors.border,
   },
   markImage: {
     width: 17,
