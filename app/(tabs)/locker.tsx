@@ -13,9 +13,12 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { fetchContentCards, type ContentCard } from '@/lib/supabase';
+import { Assets } from '@/constants/assets';
 import { Colors, Radius, Spacing } from '@/constants/theme';
 import { ErrorState, SkeletonCard } from '@/components/SkeletonLoader';
 import { ClutchrHeader } from '@/components/ClutchrHeader';
+import { ScreenHeader } from '@/components/ClutchrUI';
+import { useAthlete } from '@/context/AthleteContext';
 import { useProContext } from '@/context/ProContext';
 
 // ─── LOCKER GROUPS ──────────────────────────────────────────────────────────
@@ -157,6 +160,7 @@ let _savedLockerGroup: LockerGroup = 'dugout';
 
 export default function LockerScreen() {
   const insets = useSafeAreaInsets();
+  const { athleteState } = useAthlete();
   const { isPro, isProLoading: proLoading } = useProContext();
   const [cards, setCards] = useState<ContentCard[]>([]);
   const [loading, setLoading] = useState(true);
@@ -208,16 +212,12 @@ export default function LockerScreen() {
     <View style={[styles.container, { paddingTop: insets.top }]}>
 
       {/* ── HEADER ── */}
-      <Image
-        source={require('../../assets/branding/simplified-wordmark.png')}
-        style={styles.lockerHeaderWordmark}
-        resizeMode="contain"
-      />
-      <ClutchrHeader
-        variant="mainTab"
-        kicker="RESOURCES"
-        title="Locker"
-        subtitle="Dugout tools. Bullpen cues. Grind support."
+      <ScreenHeader
+        logo={Assets.branding.mainWordmark}
+        titleLead="THE"
+        titleRest="LOCKER"
+        xp={athleteState?.total_xp ?? 0}
+        streak={athleteState?.streak_count ?? 0}
       />
 
       {/* ── SEARCH ── */}
@@ -423,45 +423,6 @@ function ListCard({ card, onOpen }: { card: ContentCard; onOpen: () => void }) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
 
-  lockerHeaderWordmark: {
-    width: 116,
-    height: 30,
-    marginLeft: Spacing.xl,
-    marginBottom: -4,
-  },
-
-  // Header
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: Spacing.xl,
-    paddingTop: Spacing.lg,
-    paddingBottom: Spacing.md,
-  },
-  eyebrow: {
-    fontSize: 9,
-    fontFamily: 'Inter_700Bold',
-    color: Colors.primary,
-    letterSpacing: 2,
-    marginBottom: 3,
-  },
-  title: {
-    fontSize: 26,
-    fontFamily: 'Inter_700Bold',
-    color: Colors.textPrimary,
-    letterSpacing: -0.3,
-  },
-  headerIcon: {
-    width: 42,
-    height: 42,
-    borderRadius: Radius.md,
-    backgroundColor: Colors.primaryMuted,
-    borderWidth: 1,
-    borderColor: Colors.primaryBorder,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
 
   // Search
   introBrandMark: {

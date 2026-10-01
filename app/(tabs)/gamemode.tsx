@@ -16,11 +16,13 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAthlete } from "@/context/AthleteContext";
+import { Assets } from "@/constants/assets";
 import { Colors, Radius, Spacing } from "@/constants/theme";
 import { TopHighlight } from "@/constants/visualExtensions";
 import type { SeasonPhase } from "@/context/AthleteContext";
 import { SkeletonCard } from "@/components/SkeletonLoader";
 import { ClutchrHeader } from "@/components/ClutchrHeader";
+import { ScreenHeader } from "@/components/ClutchrUI";
 import { getBestCue } from "@/lib/personalCue";
 import { useToast } from "@/components/Toast";
 import { useProContext } from "@/context/ProContext";
@@ -2696,17 +2698,12 @@ export default function GameModeScreen() {
   // ── List view ──
   return (
     <View style={[s.container, { paddingTop: insets.top }]}>
-      <Image
-        source={require('../../assets/branding/main-wordmark.png')}
-        style={s.gameHeaderWordmark}
-        resizeMode="contain"
-      />
-      <ClutchrHeader
-        variant="mainTab"
-        kicker="GAME MODE"
-        title="GAME MODE"
-        subtitle="Game-day tools for the next rep."
-        statusPill={`${firstName} • ${role.charAt(0).toUpperCase() + role.slice(1)} • ${formatSeasonPhase(phase)}`}
+      <ScreenHeader
+        logo={Assets.branding.mainWordmark}
+        titleLead="GAME"
+        titleRest="MODE"
+        xp={athleteState?.total_xp ?? 0}
+        streak={athleteState?.streak_count ?? 0}
       />
 
       <View style={s.bucketRow}>
@@ -2920,28 +2917,6 @@ export default function GameModeScreen() {
 
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
-  header: {
-    paddingHorizontal: Spacing.xl,
-    paddingVertical: Spacing.xl,
-    gap: 4,
-  },
-  title: {
-    fontSize: 20,
-    fontFamily: "Inter_700Bold",
-    color: Colors.textPrimary,
-    letterSpacing: 1,
-  },
-  subtitle: {
-    fontSize: 12,
-    fontFamily: "Inter_400Regular",
-    color: Colors.textSecondary,
-  },
-  gameHeaderWordmark: {
-    width: 136,
-    height: 34,
-    marginLeft: Spacing.xl,
-    marginBottom: -4,
-  },
   bucketRow: {
     flexDirection: "row",
     backgroundColor: "#0D0D0D",

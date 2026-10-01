@@ -28,6 +28,7 @@ import { EmblemBadge } from '@/components/EmblemBadge';
 import { getCurrentRank, getRankProgress } from '@/lib/progressionRanks';
 import { useMicrocopy } from '@/hooks/useMicrocopy';
 import { Btn } from '@/components/ui';
+import { ScreenHeader } from '@/components/ClutchrUI';
 import { ProgressRing } from '@/components/ProgressRing';
 import { useToast } from '@/components/Toast';
 import Svg, { Path, Defs, LinearGradient as SvgLinearGradient, Stop, Circle } from 'react-native-svg';
@@ -507,12 +508,8 @@ export default function HomeScreen() {
   if (isLoading || !athleteState) {
     return (
       <View style={s.container}>
-        <View style={[s.header, { paddingTop: insets.top + 12 }]}>
-          <Image source={Assets.branding.mainWordmark} style={s.headerWordmark} resizeMode="contain" />
-          <View style={s.headerIcons}>
-            <Ionicons name="notifications-outline" size={22} color={Colors.textSecondary} />
-            <Ionicons name="calendar-outline" size={22} color={Colors.textSecondary} />
-          </View>
+        <View style={{ paddingTop: insets.top }}>
+          <ScreenHeader logo={Assets.branding.mainWordmark} />
         </View>
         <ScrollView
           contentContainerStyle={[s.scroll, { paddingBottom: insets.bottom + 140 }]}
@@ -583,28 +580,28 @@ export default function HomeScreen() {
     <View style={s.container}>
 
       {/* ── HEADER ── */}
-      <View style={[s.header, { paddingTop: insets.top + 12 }]}>
-        <Image source={Assets.branding.mainWordmark} style={s.headerWordmark} resizeMode="contain" />
-        <View style={s.headerIcons}>
-          <ProgressRing
-            value={completedTodayCount / 3}
-            size={48}
-            label="TODAY"
-            valueLabel={String(completedTodayCount)}
-          />
-          {streak > 0 && (
-            <View style={s.streakPill}>
-              <Ionicons name="flame" size={13} color={Colors.warning} />
-              <Text style={s.streakText}>{streak}</Text>
-            </View>
-          )}
-          <Pressable hitSlop={10} onPress={() => showToast('Coming soon — reminders', 'info')}>
-            <Ionicons name="notifications-outline" size={22} color={Colors.textSecondary} />
-          </Pressable>
-          <Pressable hitSlop={10} onPress={() => showToast('Coming soon — schedule', 'info')}>
-            <Ionicons name="calendar-outline" size={22} color={Colors.textSecondary} />
-          </Pressable>
-        </View>
+      <View style={{ paddingTop: insets.top }}>
+        <ScreenHeader
+          logo={Assets.branding.mainWordmark}
+          xp={totalXp}
+          streak={streak}
+          right={
+            <>
+              <ProgressRing
+                value={completedTodayCount / 3}
+                size={48}
+                label="TODAY"
+                valueLabel={String(completedTodayCount)}
+              />
+              <Pressable hitSlop={10} onPress={() => showToast('Coming soon — reminders', 'info')}>
+                <Ionicons name="notifications-outline" size={22} color={Colors.textSecondary} />
+              </Pressable>
+              <Pressable hitSlop={10} onPress={() => showToast('Coming soon — schedule', 'info')}>
+                <Ionicons name="calendar-outline" size={22} color={Colors.textSecondary} />
+              </Pressable>
+            </>
+          }
+        />
       </View>
 
       <ScrollView
@@ -856,33 +853,6 @@ const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
   scroll: { paddingTop: 0, gap: Spacing.sm },
 
-  // ── Header ──
-  header: {
-    paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.sm,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: 'transparent',
-  },
-  headerWordmark: { width: 120, height: 28 },
-  headerIcons: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
-  streakPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 3,
-    backgroundColor: Colors.warningMuted,
-    borderWidth: 1,
-    borderColor: Colors.warningBorder,
-    borderRadius: Radius.pill,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 4,
-  },
-  streakText: {
-    fontSize: 13,
-    fontFamily: 'Inter_700Bold',
-    color: Colors.warning,
-  },
 
   // ── Mental Game Score ──
   mgsSection: { marginHorizontal: Spacing.lg },

@@ -21,6 +21,7 @@ import { Assets } from '@/constants/assets';
 import { Colors, Radius, Shadow, Spacing } from '@/constants/theme';
 import { TopHighlight } from '@/constants/visualExtensions';
 import { Btn } from '@/components/ui';
+import { ScreenHeader } from '@/components/ClutchrUI';
 import { useMicrocopy } from '@/hooks/useMicrocopy';
 import { useProContext } from '@/context/ProContext';
 import { ErrorState, SkeletonCard } from '@/components/SkeletonLoader';
@@ -1517,31 +1518,18 @@ export default function CareerScreen() {
     <View style={[styles.container, { paddingTop: insets.top }]}>
 
       {/* ── HEADER ── */}
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <Image source={Assets.branding.cMark} style={styles.cMark} resizeMode="contain" />
-          <Text style={styles.headerBrand}>CLUTCHR</Text>
-        </View>
-        <View style={styles.headerRight}>
-          <View style={styles.xpPill}>
-            <Animated.View style={{ transform: [{ scale: boltScaleAnim }] }}>
-              <Ionicons name="flash" size={12} color={Colors.warning} />
-            </Animated.View>
-            <Text style={styles.xpNum}>{xpShown}</Text>
-            <Text style={styles.xpLabel}>XP</Text>
-          </View>
+      <ScreenHeader
+        logo={Assets.branding.mainWordmark}
+        titleLead="BUILD"
+        titleRest="YOUR PATH"
+        xp={xpShown}
+        streak={athleteState?.streak_count ?? 0}
+        right={
           <View style={styles.lessonCountPill}>
             <Text style={styles.lessonCountText}>{totalDone} / {totalAll}</Text>
           </View>
-        </View>
-      </View>
-
-      {/* ── TITLE BLOCK ── */}
-      <View style={styles.titleBlock}>
-        <Text style={styles.careerKicker}>CAREER</Text>
-        <Text style={styles.careerH1}>Build Your Path</Text>
-        <Text style={styles.careerSub}>One rep at a time.</Text>
-      </View>
+        }
+      />
 
       {/* ── CHAPTER TABS ── */}
       <ScrollView
@@ -1703,40 +1691,6 @@ const styles = StyleSheet.create({
   scrollView: { flex: 1, backgroundColor: Colors.background },
   scroll:     { paddingTop: Spacing.lg },
 
-  // Header
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: Spacing.xl,
-    paddingTop: Spacing.md,
-    paddingBottom: Spacing.md,
-    backgroundColor: Colors.background,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-  },
-  headerLeft: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
-  cMark:      { width: 22, height: 22 },
-  headerBrand: {
-    fontSize: 14,
-    fontFamily: 'Inter_700Bold',
-    color: Colors.textPrimary,
-    letterSpacing: 2.2,
-  },
-  headerRight:    { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
-  xpPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: Colors.warningMuted,
-    paddingHorizontal: Spacing.sm + 2,
-    paddingVertical: 6,
-    borderRadius: Radius.pill,
-    borderWidth: 1,
-    borderColor: Colors.warningBorder,
-  },
-  xpNum:   { fontSize: 14, fontFamily: 'Inter_700Bold', color: Colors.warning },
-  xpLabel: { fontSize: 9,  fontFamily: 'Inter_700Bold', color: Colors.textTertiary, letterSpacing: 1 },
   lessonCountPill: {
     paddingHorizontal: Spacing.sm + 2,
     paddingVertical: 6,
@@ -1752,33 +1706,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
 
-  // Title block
-  titleBlock: {
-    paddingHorizontal: Spacing.xl,
-    paddingTop: Spacing.lg,
-    paddingBottom: Spacing.md,
-    backgroundColor: Colors.background,
-  },
-  careerKicker: {
-    fontSize: 9,
-    fontFamily: 'Inter_700Bold',
-    color: Colors.primary,
-    letterSpacing: 2.5,
-    marginBottom: 4,
-  },
-  careerH1: {
-    fontSize: 28,
-    fontFamily: 'Inter_700Bold',
-    color: Colors.textPrimary,
-    letterSpacing: -0.4,
-    lineHeight: 34,
-  },
-  careerSub: {
-    fontSize: 13,
-    fontFamily: 'Inter_400Regular',
-    color: Colors.textSecondary,
-    marginTop: 2,
-  },
 
   // Chapter tabs
   tabRow: {

@@ -19,9 +19,11 @@ import { registerForPushNotifications, scheduleStreakReminder } from '@/lib/noti
 import Svg, { Path, Defs, LinearGradient as SvgLinearGradient, Stop, Circle } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAthlete } from '@/context/AthleteContext';
+import { Assets } from '@/constants/assets';
 import { Colors, Radius, Spacing } from '@/constants/theme';
 import { RolePill } from '@/components/ui';
 import { ClutchrHeader } from '@/components/ClutchrHeader';
+import { ScreenHeader } from '@/components/ClutchrUI';
 import { EmblemBadge } from '@/components/EmblemBadge';
 import { ProgressBar } from '@/components/ProgressBar';
 import { getRankProgress } from '@/lib/progressionRanks';
@@ -340,17 +342,12 @@ export default function ProfileScreen() {
 
       {/* Header */}
       <Pressable onPress={handleDevTap}>
-        <Image
-          source={require('../../assets/branding/simplified-wordmark.png')}
-          style={styles.profileHeaderWordmark}
-          resizeMode="contain"
-        />
-        <ClutchrHeader
-          variant="mainTab"
-          kicker="PROFILE"
-          title="Your Player OS"
-          subtitle="Role, routines, progress."
-          statusPill={rank.shortLabel}
+        <ScreenHeader
+          logo={Assets.branding.mainWordmark}
+          titleLead="PLAYER"
+          titleRest="OS"
+          xp={xp}
+          streak={athleteState.streak_count ?? 0}
         />
       </Pressable>
 
@@ -513,12 +510,6 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
   scroll: { paddingHorizontal: Spacing.xl, gap: Spacing.xl },
-  profileHeaderWordmark: {
-    width: 116,
-    height: 30,
-    marginLeft: Spacing.xl,
-    marginBottom: -4,
-  },
 
   // Identity card
   identityCard: {
