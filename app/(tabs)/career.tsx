@@ -987,7 +987,7 @@ function WorldNode({
             !isCurrentWorld && !isCompleted && !isLocked && {
               backgroundColor: Colors.surface,
               borderWidth: 1.5,
-              borderColor: world.color + '70',
+              borderColor: Colors.border,
             },
           ]}
         >
@@ -1000,7 +1000,7 @@ function WorldNode({
               <Ionicons
                 name={world.icon}
                 size={isCurrentWorld ? 20 : 16}
-                color={isCurrentWorld ? world.color : world.color + 'B0'}
+                color={isCurrentWorld ? world.color : Colors.textTertiary}
               />
               <Text style={[nodeStyles.nodeNumSmall, { color: isCurrentWorld ? world.color : Colors.textTertiary }]}>
                 {index + 1}
@@ -1016,7 +1016,7 @@ function WorldNode({
           style={[
             nodeStyles.worldLabel,
             isCurrentWorld && nodeStyles.worldLabelActive,
-            isCompleted && { color: Colors.primary },
+            isCompleted && { color: Colors.textSecondary },
             isLocked && { color: Colors.textDisabled },
           ]}
           numberOfLines={1}
@@ -1027,11 +1027,7 @@ function WorldNode({
           style={[
             nodeStyles.lessonCount,
             {
-              color: isCurrentWorld
-                ? Colors.primary
-                : isCompleted
-                ? Colors.primary
-                : Colors.textTertiary,
+              color: isCurrentWorld ? Colors.primary : Colors.textTertiary,
             },
           ]}
         >
@@ -1112,13 +1108,13 @@ function WorldMapSection({ world, lessons, completed }: {
   return (
     <Animated.View style={[mapStyles.outerWrap, { opacity: fadeAnim }]}>
       {/* World header */}
-      <View style={[mapStyles.worldHeader, { borderLeftColor: color }]}>
-        <Text style={[mapStyles.worldHeaderLabel, { color }]}>{label.toUpperCase()}</Text>
+      <View style={[mapStyles.worldHeader, { borderLeftColor: Colors.border }]}>
+        <Text style={[mapStyles.worldHeaderLabel, { color: Colors.textSecondary }]}>{label.toUpperCase()}</Text>
         <Text style={mapStyles.worldHeaderTagline}>{tagline}</Text>
       </View>
 
       <View style={mapStyles.timelineContainer}>
-        <View style={[mapStyles.spineLine, { backgroundColor: color }]} />
+        <View style={[mapStyles.spineLine, { backgroundColor: Colors.border }]} />
 
         {lessons.map((lesson, i) => {
           const isDone = completed.includes(lesson.id);
@@ -1132,8 +1128,8 @@ function WorldMapSection({ world, lessons, completed }: {
             <React.Fragment key={lesson.id}>
               {(isCheckpoint || isBoss) && (
                 <View style={mapStyles.dividerWrap}>
-                  <View style={[mapStyles.dividerLine, { backgroundColor: color }]} />
-                  <Text style={[mapStyles.dividerLabel, { color }]}>
+                  <View style={[mapStyles.dividerLine, { backgroundColor: Colors.border }]} />
+                  <Text style={[mapStyles.dividerLabel, { color: Colors.textTertiary }]}>
                     {isBoss ? 'BOSS BATTLE' : 'CHECKPOINT'}
                   </Text>
                 </View>
@@ -1196,7 +1192,7 @@ function TimelineNode({ lesson, idx, isDone, isNext, isLocked, isBoss, color }: 
           style={[
             tlStyles.nodeCircle,
             { width: nodeSize, height: nodeSize, borderRadius: nodeSize / 2 },
-            isDone && { backgroundColor: color, borderWidth: 0 },
+            isDone && { backgroundColor: Colors.textDisabled, borderWidth: 0 },
             !isDone && isNext && {
               backgroundColor: '#0D0D12',
               borderWidth: 2.5,
@@ -1248,11 +1244,11 @@ function TimelineNode({ lesson, idx, isDone, isNext, isLocked, isBoss, color }: 
         <View style={tlStyles.cardTopRow}>
           <View style={[
             tlStyles.familyPill,
-            { backgroundColor: isLocked ? 'rgba(255,255,255,0.04)' : color + '22' },
+            { backgroundColor: isLocked || isDone ? 'rgba(255,255,255,0.04)' : color + '22' },
           ]}>
             <Text style={[
               tlStyles.familyPillText,
-              { color: isLocked ? 'rgba(255,255,255,0.2)' : color },
+              { color: isLocked || isDone ? 'rgba(255,255,255,0.2)' : color },
             ]}>
               {lessonFamily.toUpperCase()}{isBoss ? ' · FINAL' : ''}
             </Text>
@@ -1280,7 +1276,7 @@ function TimelineNode({ lesson, idx, isDone, isNext, isLocked, isBoss, color }: 
         {isLocked ? (
           <Text style={tlStyles.lockedHint}>Complete previous lesson to unlock</Text>
         ) : isDone ? (
-          <Text style={[tlStyles.xpEarnedText, { color: color + 'AA' }]}>{lesson.xp_reward} XP earned</Text>
+          <Text style={[tlStyles.xpEarnedText, { color: Colors.textTertiary }]}>{lesson.xp_reward} XP earned</Text>
         ) : (
           <View style={tlStyles.cardBottomRow}>
             <Text style={tlStyles.xpText}>{lesson.xp_reward} XP · first clear</Text>
@@ -1540,13 +1536,13 @@ export default function CareerScreen() {
       >
         {CHAPTERS.map((chapter) => {
           const active = activeChapter === chapter.id;
-          const labelColor = active ? chapter.color : Colors.textTertiary;
+          const labelColor = active ? Colors.textPrimary : Colors.textTertiary;
           return (
             <Pressable
               key={chapter.id}
               style={[
                 styles.tab,
-                active && { borderBottomWidth: 2, borderBottomColor: chapter.color },
+                active && { borderBottomWidth: 2, borderBottomColor: Colors.textPrimary },
               ]}
               onPress={() => {
                 setActiveChapter(chapter.id);
@@ -1564,7 +1560,7 @@ export default function CareerScreen() {
         <ErrorState message="Could not load lessons." onRetry={fetchData} />
       ) : loading || proLoading ? (
         <ScrollView
-          contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 200 }]}
+          contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 100 }]}
           showsVerticalScrollIndicator={false}
           style={styles.scrollView}
           pointerEvents="none"
@@ -1580,7 +1576,7 @@ export default function CareerScreen() {
         />
       ) : (
         <ScrollView
-          contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 200 }]}
+          contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 100 }]}
           showsVerticalScrollIndicator={false}
           style={styles.scrollView}
         >
@@ -1591,8 +1587,8 @@ export default function CareerScreen() {
               {currentWorld ? ` • WORLD ${currentWorld.worldNumber}` : ''}
             </Text>
             {currentWorldTotal > 0 && (
-              <View style={[styles.chapterCountPill, { borderColor: activeChapterConfig.color + '55' }]}>
-                <Text style={[styles.chapterCountText, { color: activeChapterConfig.color }]}>
+              <View style={[styles.chapterCountPill, { borderColor: Colors.border }]}>
+                <Text style={[styles.chapterCountText, { color: Colors.textTertiary }]}>
                   {currentWorldDone} / {currentWorldTotal}
                 </Text>
               </View>
@@ -1604,11 +1600,11 @@ export default function CareerScreen() {
             <View style={[
               styles.rolePill,
               {
-                borderColor: activeChapterConfig.color + '55',
-                backgroundColor: activeChapterConfig.color + '18',
+                borderColor: Colors.border,
+                backgroundColor: Colors.surface,
               },
             ]}>
-              <Text style={[styles.rolePillText, { color: activeChapterConfig.color }]}>
+              <Text style={[styles.rolePillText, { color: Colors.textTertiary }]}>
                 {athleteRole.toUpperCase()}
               </Text>
             </View>
@@ -1617,7 +1613,7 @@ export default function CareerScreen() {
           {/* ── ASCENT ARENA TOWER ── */}
           <View style={styles.towerWrap}>
             {/* Vertical connecting line */}
-            <View style={[styles.connectLine, { backgroundColor: activeChapterConfig.color }]} />
+            <View style={styles.connectLine} />
 
             {filteredWorlds.length === 0 ? (
               <View style={styles.emptyChapter}>
@@ -1684,10 +1680,14 @@ export default function CareerScreen() {
   );
 }
 
+// ─── LAYOUT CONSTANTS ─────────────────────────────────────────────────────────
+const NODE_COL_W   = 88;
+const SPINE_LINE_W = 3;
+
 // ─── STYLES ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  container:  { flex: 1, backgroundColor: Colors.background, paddingBottom: 220 },
+  container:  { flex: 1, backgroundColor: Colors.background },
   scrollView: { flex: 1, backgroundColor: Colors.background },
   scroll:     { paddingTop: Spacing.lg },
 
@@ -1697,12 +1697,12 @@ const styles = StyleSheet.create({
     borderRadius: Radius.pill,
     borderWidth: 1,
     borderColor: Colors.border,
-    backgroundColor: Colors.primaryMuted,
+    backgroundColor: Colors.surface,
   },
   lessonCountText: {
     fontSize: 11,
     fontFamily: 'Inter_700Bold',
-    color: Colors.primary,
+    color: Colors.textTertiary,
     letterSpacing: 0.5,
   },
 
@@ -1786,10 +1786,11 @@ const styles = StyleSheet.create({
   },
   connectLine: {
     position: 'absolute',
-    left: 35,
+    left: (NODE_COL_W - SPINE_LINE_W) / 2,
     top: 0,
     bottom: 0,
-    width: 3,
+    width: SPINE_LINE_W,
+    backgroundColor: Colors.border,
     opacity: 0.40,
     shadowColor: '#fff',
     shadowOpacity: 0.15,
@@ -1822,7 +1823,7 @@ const nodeStyles = StyleSheet.create({
     zIndex: 1,
   },
   nodeCol: {
-    width: 72,
+    width: NODE_COL_W,
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
@@ -1849,7 +1850,7 @@ const nodeStyles = StyleSheet.create({
     elevation: 10,
   },
   nodeCompleted: {
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.textDisabled,
     borderWidth: 0,
   },
   nodeLocked: {
@@ -1860,7 +1861,7 @@ const nodeStyles = StyleSheet.create({
   },
   checkmark: {
     fontSize: 18,
-    color: Colors.background,
+    color: Colors.textPrimary,
     fontFamily: 'Inter_700Bold',
   },
   nodeNum: {
@@ -1928,12 +1929,12 @@ const missionStyles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.textTertiary,
   },
   kicker: {
     fontSize: 9,
     fontFamily: 'Inter_700Bold',
-    color: Colors.primary,
+    color: Colors.textTertiary,
     letterSpacing: 2.2,
   },
   duration: {
