@@ -21,7 +21,7 @@ import { Assets } from '@/constants/assets';
 import { Colors, Radius, Shadow, Spacing } from '@/constants/theme';
 import { TopHighlight } from '@/constants/visualExtensions';
 import { Btn } from '@/components/ui';
-import { ScreenHeader } from '@/components/ClutchrUI';
+import { ScreenHeader } from '@/components/ui/ClutchrUI';
 import { useMicrocopy } from '@/hooks/useMicrocopy';
 import { useProContext } from '@/context/ProContext';
 import { ErrorState, SkeletonCard } from '@/components/SkeletonLoader';

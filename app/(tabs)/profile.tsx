@@ -23,7 +23,7 @@ import { Assets } from '@/constants/assets';
 import { Colors, Radius, Spacing } from '@/constants/theme';
 import { RolePill } from '@/components/ui';
 import { ClutchrHeader } from '@/components/ClutchrHeader';
-import { ScreenHeader } from '@/components/ClutchrUI';
+import { ScreenHeader } from '@/components/ui/ClutchrUI';
 import { EmblemBadge } from '@/components/EmblemBadge';
 import { ProgressBar } from '@/components/ProgressBar';
 import { getRankProgress } from '@/lib/progressionRanks';

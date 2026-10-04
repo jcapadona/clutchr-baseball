@@ -17,7 +17,7 @@ import { Assets } from '@/constants/assets';
 import { Colors, Radius, Spacing } from '@/constants/theme';
 import { ErrorState, SkeletonCard } from '@/components/SkeletonLoader';
 import { ClutchrHeader } from '@/components/ClutchrHeader';
-import { ScreenHeader } from '@/components/ClutchrUI';
+import { ScreenHeader } from '@/components/ui/ClutchrUI';
 import { useAthlete } from '@/context/AthleteContext';
 import { useProContext } from '@/context/ProContext';
 

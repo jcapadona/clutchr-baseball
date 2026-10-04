@@ -22,7 +22,7 @@ import { TopHighlight } from "@/constants/visualExtensions";
 import type { SeasonPhase } from "@/context/AthleteContext";
 import { SkeletonCard } from "@/components/SkeletonLoader";
 import { ClutchrHeader } from "@/components/ClutchrHeader";
-import { ScreenHeader } from "@/components/ClutchrUI";
+import { ScreenHeader } from "@/components/ui/ClutchrUI";
 import { getBestCue } from "@/lib/personalCue";
 import { useToast } from "@/components/Toast";
 import { useProContext } from "@/context/ProContext";

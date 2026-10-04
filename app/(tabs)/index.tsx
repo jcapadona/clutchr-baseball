@@ -28,7 +28,7 @@ import { EmblemBadge } from '@/components/EmblemBadge';
 import { getCurrentRank, getRankProgress } from '@/lib/progressionRanks';
 import { useMicrocopy } from '@/hooks/useMicrocopy';
 import { Btn } from '@/components/ui';
-import { ScreenHeader } from '@/components/ClutchrUI';
+import { ScreenHeader } from '@/components/ui/ClutchrUI';
 import { ProgressRing } from '@/components/ProgressRing';
 import { useToast } from '@/components/Toast';
 import Svg, { Path, Defs, LinearGradient as SvgLinearGradient, Stop, Circle } from 'react-native-svg';
