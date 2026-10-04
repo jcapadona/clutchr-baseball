@@ -52,7 +52,7 @@ const FREE_FEATURES = [
   { label: 'Streak tracking',                   included: true  },
   { label: 'Playbook (5 cue words)',            included: true  },
   { label: 'Role-specific career path',         included: false },
-  { label: 'All 50+ gold-standard lessons',     included: false },
+  { label: 'Hundreds of reps across 30+ worlds', included: false },
   { label: 'Pressure & resilience worlds',      included: false },
   { label: 'Slump reset system',                included: false },
   { label: 'Between-innings tools (full)',       included: false },
@@ -64,7 +64,7 @@ const PRO_FEATURES = [
     icon: 'baseball',
     color: Colors.primary,
     title: 'Full Career Path',
-    desc: '50+ lessons across all 7 phases. Role-specific, season-aware, always adapting.',
+    desc: 'Hundreds of reps across 30+ worlds. Role-specific, season-aware, always adapting.',
   },
   {
     icon: 'pulse',

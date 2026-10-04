@@ -54,7 +54,7 @@ const WORLDS: World[] = [
     id: 'foundation',
     label: 'Foundation',
     tagline: 'The mental basics that hold up under pressure.',
-    color: '#22CC5E',
+    color: Colors.primary,
     chapter: 'foundation',
     roles: [],
     isStateTrigger: false,
@@ -67,7 +67,7 @@ const WORLDS: World[] = [
     id: 'readiness-routines',
     label: 'Routines & Rituals',
     tagline: 'Build the habits that lock you in.',
-    color: '#30D158',
+    color: Colors.primary,
     chapter: 'foundation',
     roles: [],
     isStateTrigger: false,
@@ -653,7 +653,7 @@ const WORLDS: World[] = [
     id: 'mental-recovery',
     label: 'Mental Recovery',
     tagline: 'Reset fast. Come back fresh.',
-    color: '#30D158',
+    color: Colors.primary,
     chapter: 'the-grind',
     roles: [],
     isStateTrigger: false,
@@ -838,7 +838,7 @@ const WORLDS: World[] = [
 ];
 
 const CHAPTERS = [
-  { id: 'foundation', label: 'FOUNDATION', icon: 'layers-outline' as const,  color: '#22CC5E' },
+  { id: 'foundation', label: 'FOUNDATION', icon: 'layers-outline' as const,  color: Colors.primary },
   { id: 'your-craft', label: 'YOUR CRAFT', icon: 'construct-outline' as const, color: '#BF5AF2' },
   { id: 'edge',       label: 'COMPETE',    icon: 'flash-outline' as const,    color: '#FF6B6B' },
   { id: 'the-grind',  label: 'THE GRIND',  icon: 'barbell-outline' as const,  color: '#FF9F0A' },

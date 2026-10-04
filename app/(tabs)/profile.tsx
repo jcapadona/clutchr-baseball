@@ -482,8 +482,8 @@ export default function ProfileScreen() {
             <Switch
               value={notifsOn}
               onValueChange={handleNotifToggle}
-              trackColor={{ false: '#222', true: '#22CC5E33' }}
-              thumbColor={notifsOn ? '#22CC5E' : '#555'}
+              trackColor={{ false: '#222', true: Colors.primaryBorder }}
+              thumbColor={notifsOn ? Colors.primary : '#555'}
             />
           </View>
           <View style={styles.actionDivider} />

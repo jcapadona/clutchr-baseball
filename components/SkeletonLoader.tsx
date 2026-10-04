@@ -75,7 +75,7 @@ export function ErrorState({ message = 'Could not load content.', onRetry }: Err
       <Text style={skStyles.errorText}>{message}</Text>
       {onRetry && (
         <Pressable onPress={onRetry} style={skStyles.retryBtn} hitSlop={12}>
-          <Ionicons name="refresh" size={14} color="#22CC5E" />
+          <Ionicons name="refresh" size={14} color={Colors.primary} />
           <Text style={skStyles.retryText}>Try Again</Text>
         </Pressable>
       )}
@@ -130,7 +130,7 @@ const skStyles = StyleSheet.create({
     borderColor: Colors.border,
   },
   retryText: {
-    color: '#22CC5E',
+    color: Colors.primary,
     fontSize: 13,
     fontWeight: '600',
   },

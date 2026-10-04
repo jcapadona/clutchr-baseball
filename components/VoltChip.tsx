@@ -1,7 +1,8 @@
 import React from 'react';
 import Svg, { Circle, Rect } from 'react-native-svg';
+import { Colors } from '@/constants/theme';
 
-// 34px circular status chip — dark bg, #22CC5E border, angular "face" eyes.
+// 34px circular status chip — dark bg, Colors.primary border, angular "face" eyes.
 // Eyes: two 8×3 rectangles with 4px horizontal gap, centered in the circle.
 // Glow: a slightly larger, low-opacity rect drawn first behind each eye.
 
@@ -22,7 +23,7 @@ export function VoltChip() {
         cy={17}
         r={15.25}
         fill="#111111"
-        stroke="#22CC5E"
+        stroke={Colors.primary}
         strokeWidth={1.5}
       />
 
@@ -33,7 +34,7 @@ export function VoltChip() {
         width={12}
         height={8}
         rx={2}
-        fill="#22CC5E"
+        fill={Colors.primary}
         opacity={0.18}
       />
       {/* Glow behind right eye */}
@@ -43,7 +44,7 @@ export function VoltChip() {
         width={12}
         height={8}
         rx={2}
-        fill="#22CC5E"
+        fill={Colors.primary}
         opacity={0.18}
       />
 
@@ -54,7 +55,7 @@ export function VoltChip() {
         width={8}
         height={3}
         rx={0.5}
-        fill="#22CC5E"
+        fill={Colors.primary}
       />
       {/* Right eye */}
       <Rect
@@ -63,7 +64,7 @@ export function VoltChip() {
         width={8}
         height={3}
         rx={0.5}
-        fill="#22CC5E"
+        fill={Colors.primary}
       />
     </Svg>
   );

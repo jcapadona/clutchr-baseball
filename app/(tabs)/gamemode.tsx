@@ -235,7 +235,7 @@ const RAPID_REP_DRILLS: RapidRepDrill[] = [
     label: "FIELD IQ",
     title: "Field IQ",
     subtitle: "5 quick defensive reads",
-    color: "#22CC5E",
+    color: Colors.primary,
     icon: "baseball",
     takeaway: "Clean defenders decide before the ball arrives: runner, out, clock, throw lane.",
     reps: [
@@ -305,7 +305,7 @@ const RAPID_REP_DRILLS: RapidRepDrill[] = [
 
 const RAPID_REP_ROADMAP_CARDS = [
   { label: "RUNNER READS", sub: "Jump and dirt-ball reads", color: "#4BA3E3", icon: "navigate" },
-  { label: "SWING/TAKE", sub: "Strike zone decisions", color: "#22CC5E", icon: "scan" },
+  { label: "SWING/TAKE", sub: "Strike zone decisions", color: Colors.primary, icon: "scan" },
   { label: "PRESSURE REPLAY", sub: "Reset under game heat", color: "#F5A623", icon: "trending-up" },
 ];
 

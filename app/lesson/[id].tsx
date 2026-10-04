@@ -1280,7 +1280,7 @@ function LessonCompletionPayoff({
           {/* XP Row */}
           <Animated.View style={[payoffStyles.xpRow, { transform: [{ scale: xpBounce }], opacity: xpOpacity }]}>
             <Animated.View style={{ transform: [{ scale: boltScale }], opacity: boltOpacity }}>
-              <Ionicons name="flash" size={32} color="#39FF88" />
+              <Ionicons name="flash" size={32} color={Colors.primary} />
             </Animated.View>
             <Text style={payoffStyles.xpText}>+{xpDisplay}</Text>
             <View style={{ justifyContent: 'flex-end', paddingBottom: 7, gap: 4 }}>
@@ -1296,7 +1296,7 @@ function LessonCompletionPayoff({
           {/* Cue saved pill */}
           {isFirstClear && (
             <Animated.View style={[payoffStyles.cueSavedRow, { transform: [{ translateY: cueSlideY }], opacity: cueOp }]}>
-              <Ionicons name="checkmark-circle" size={15} color="#23D160" />
+              <Ionicons name="checkmark-circle" size={15} color={Colors.primary} />
               <Text style={payoffStyles.cueSavedText}>Cue saved to Playbook</Text>
             </Animated.View>
           )}
@@ -1306,7 +1306,7 @@ function LessonCompletionPayoff({
             <Pressable onPress={onContinue} onPressIn={ctaPressIn} onPressOut={ctaPressOut}>
               <Animated.View style={[payoffStyles.primaryCta, Shadow.green, { transform: [{ scale: ctaScale }], opacity: ctaOpacity }]}>
                 <View style={[StyleSheet.absoluteFill, { borderRadius: Radius.md, overflow: 'hidden' }]}>
-                  <LinearGradient colors={['#23D160', '#18A84A']} style={StyleSheet.absoluteFill} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} />
+                  <LinearGradient colors={[Colors.primary, '#18A84A']} style={StyleSheet.absoluteFill} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} />
                 </View>
                 <Text style={payoffStyles.primaryCtaText}>Continue Career</Text>
                 <Ionicons name="arrow-forward" size={18} color="#050806" />
@@ -1612,14 +1612,14 @@ export default function LessonPlayerScreen() {
                 screenStyles.muteBtn,
                 {
                   backgroundColor: isMuted ? '#1a1a1a' : '#0F2410',
-                  borderColor: isMuted ? '#333' : '#22CC5E44',
+                  borderColor: isMuted ? '#333' : Colors.primaryBorder,
                 },
               ]}
             >
               <Ionicons
                 name={isMuted ? 'volume-mute-outline' : 'volume-medium-outline'}
                 size={15}
-                color={isMuted ? '#555' : '#22CC5E'}
+                color={isMuted ? '#555' : Colors.primary}
               />
             </Pressable>
             <Text style={screenStyles.durationText}>{safeIndex + 1} / {totalSteps}</Text>
@@ -2536,7 +2536,7 @@ const payoffStyles = StyleSheet.create({
     borderRadius: 105,
     borderWidth: 1,
     borderColor: 'rgba(35,209,96,0.25)',
-    shadowColor: '#23D160',
+    shadowColor: Colors.primary,
     shadowOpacity: 0.35,
     shadowRadius: 32,
     shadowOffset: { width: 0, height: 0 },
@@ -2548,7 +2548,7 @@ const payoffStyles = StyleSheet.create({
     borderRadius: 70,
     borderWidth: 1.5,
     borderColor: 'rgba(35,209,96,0.5)',
-    shadowColor: '#23D160',
+    shadowColor: Colors.primary,
     shadowOpacity: 0.55,
     shadowRadius: 20,
     shadowOffset: { width: 0, height: 0 },
@@ -2557,10 +2557,10 @@ const payoffStyles = StyleSheet.create({
     width: 70,
     height: 70,
     borderRadius: 35,
-    backgroundColor: '#23D160',
+    backgroundColor: Colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#39FF88',
+    shadowColor: Colors.primary,
     shadowOpacity: 0.85,
     shadowRadius: 28,
     shadowOffset: { width: 0, height: 0 },
@@ -2568,7 +2568,7 @@ const payoffStyles = StyleSheet.create({
   heroBadge: {
     position: 'absolute',
     bottom: 10,
-    color: '#23D160',
+    color: Colors.primary,
     fontFamily: 'Inter_700Bold',
     fontSize: 10,
     letterSpacing: 2.4,
@@ -2584,13 +2584,13 @@ const payoffStyles = StyleSheet.create({
   title: { color: '#F7FFF9', fontFamily: 'Inter_700Bold', fontSize: 34, lineHeight: 38, letterSpacing: -0.8 },
   lessonTitle: { color: '#A8B3AA', fontFamily: 'Inter_500Medium', fontSize: 14, lineHeight: 20 },
   xpRow: { flexDirection: 'row', alignItems: 'flex-end', gap: Spacing.sm, marginTop: Spacing.xs },
-  xpText: { color: '#39FF88', fontFamily: 'Inter_700Bold', fontSize: 44, lineHeight: 48, letterSpacing: -1 },
-  xpLabel: { color: '#23D160', fontFamily: 'Inter_700Bold', fontSize: 14, letterSpacing: 1.8, paddingBottom: 7 },
+  xpText: { color: Colors.primary, fontFamily: 'Inter_700Bold', fontSize: 44, lineHeight: 48, letterSpacing: -1 },
+  xpLabel: { color: Colors.primary, fontFamily: 'Inter_700Bold', fontSize: 14, letterSpacing: 1.8, paddingBottom: 7 },
   firstClearBadge: {
     backgroundColor: 'rgba(34, 204, 94, 0.15)', borderColor: 'rgba(34, 204, 94, 0.4)',
     borderWidth: 1, borderRadius: 99, paddingHorizontal: 8, paddingVertical: 3,
   },
-  firstClearText: { fontSize: 10, color: '#22CC5E', fontFamily: 'Inter_700Bold', letterSpacing: 1.5 },
+  firstClearText: { fontSize: 10, color: Colors.primary, fontFamily: 'Inter_700Bold', letterSpacing: 1.5 },
   cueSavedRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -2603,10 +2603,10 @@ const payoffStyles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     paddingVertical: 8,
   },
-  cueSavedText: { color: '#23D160', fontFamily: 'Inter_600SemiBold', fontSize: 13 },
+  cueSavedText: { color: Colors.primary, fontFamily: 'Inter_600SemiBold', fontSize: 13 },
   actions: { gap: Spacing.sm, marginTop: Spacing.sm },
   primaryCta: {
-    minHeight: 54, borderRadius: Radius.md, backgroundColor: '#23D160',
+    minHeight: 54, borderRadius: Radius.md, backgroundColor: Colors.primary,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm,
   },
   primaryCtaText: { color: '#050806', fontFamily: 'Inter_700Bold', fontSize: 15, letterSpacing: 0.3 },
@@ -2631,7 +2631,7 @@ const payoffStyles = StyleSheet.create({
   cardLabel: { color: '#F7FFF9', fontFamily: 'Inter_700Bold', fontSize: 14, flex: 1 },
   cardValue: { color: '#A8B3AA', fontFamily: 'Inter_600SemiBold', fontSize: 12 },
   progressTrack: { height: 9, borderRadius: 5, backgroundColor: '#050806', borderWidth: 1, borderColor: '#242B26', overflow: 'hidden' },
-  progressFill: { height: '100%', backgroundColor: '#23D160', shadowColor: '#39FF88', shadowOpacity: 0.55, shadowRadius: 9 },
+  progressFill: { height: '100%', backgroundColor: Colors.primary, shadowColor: Colors.primary, shadowOpacity: 0.55, shadowRadius: 9 },
   badgeRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
   rankTrack: { height: 8, borderRadius: 4, backgroundColor: '#050806', overflow: 'hidden', borderWidth: 1, borderColor: '#2A2518' },
   rankFill: { height: '100%', backgroundColor: Colors.warning },
@@ -2642,7 +2642,7 @@ const payoffStyles = StyleSheet.create({
   },
   takeHeaderRow: { flexDirection: 'row', alignItems: 'center' },
   takeIcon: { width: 40, height: 40, borderRadius: 8, marginRight: 10 },
-  takeLabel: { color: '#23D160', fontFamily: 'Inter_700Bold', fontSize: 10, letterSpacing: 1.6 },
+  takeLabel: { color: Colors.primary, fontFamily: 'Inter_700Bold', fontSize: 10, letterSpacing: 1.6 },
   takeText: { color: '#F7FFF9', fontFamily: 'Inter_500Medium', fontSize: 15, lineHeight: 23 },
 });
 

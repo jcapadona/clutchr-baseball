@@ -13,6 +13,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAthlete } from '@/context/AthleteContext';
 import type { SeasonPhase, Struggle, PositionRole } from '@/context/AthleteContext';
+import { Colors } from '@/constants/theme';
 
 // ─── DATA ────────────────────────────────────────────────────────────────────
 
@@ -142,7 +143,7 @@ export default function EditProfileScreen() {
                 </Text>
                 <Text style={styles.roleDesc}>{p.desc}</Text>
                 {active && (
-                  <Ionicons name="checkmark-circle" size={15} color="#22CC5E" style={styles.roleCheck} />
+                  <Ionicons name="checkmark-circle" size={15} color={Colors.primary} style={styles.roleCheck} />
                 )}
               </Pressable>
             );
@@ -168,7 +169,7 @@ export default function EditProfileScreen() {
                   <Text style={styles.optionDesc}>{opt.desc}</Text>
                 </View>
                 {isTwoWay === opt.val && (
-                  <Ionicons name="checkmark" size={17} color="#22CC5E" />
+                  <Ionicons name="checkmark" size={17} color={Colors.primary} />
                 )}
               </Pressable>
             ))}
@@ -263,7 +264,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   saveBtn: {
-    color: '#22CC5E',
+    color: Colors.primary,
     fontSize: 15,
     fontFamily: 'Inter_700Bold',
     minWidth: 32,
@@ -278,7 +279,7 @@ const styles = StyleSheet.create({
   },
 
   sectionLabel: {
-    color: '#22CC5E',
+    color: Colors.primary,
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 2,
@@ -307,7 +308,7 @@ const styles = StyleSheet.create({
   },
   pillActive: {
     backgroundColor: '#0F2410',
-    borderColor: '#22CC5E',
+    borderColor: Colors.primary,
   },
   pillDisabled: {
     opacity: 0.35,
@@ -318,7 +319,7 @@ const styles = StyleSheet.create({
     fontWeight: '400',
   },
   pillTextActive: {
-    color: '#22CC5E',
+    color: Colors.primary,
     fontWeight: '700',
   },
   pillTextDisabled: {
@@ -336,7 +337,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_400Regular',
   },
   nameInputFocused: {
-    borderColor: '#22CC5E',
+    borderColor: Colors.primary,
   },
 
   roleGrid: {
@@ -355,7 +356,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   roleCardActive: {
-    borderColor: '#22CC5E',
+    borderColor: Colors.primary,
     backgroundColor: '#0F2410',
   },
   roleLabel: {
@@ -390,7 +391,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   optionCardActive: {
-    borderColor: '#22CC5E',
+    borderColor: Colors.primary,
     backgroundColor: '#0F2410',
   },
   optionLabel: {
