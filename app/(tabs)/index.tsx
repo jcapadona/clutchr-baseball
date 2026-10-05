@@ -45,6 +45,16 @@ const LAST_ACTIVE_KEY = 'last_active_date';
 const BIQ_RUNNER_READY = false;
 const BIQ_LESSONS_TO_UNLOCK = 3;
 
+// true = visible. All hidden for v1; the code behind each flag is kept intact for v1.1.
+const HOME_FLAGS = {
+  upcomingGame: false,
+  opponentIntel: false,
+  weightRoom: false,
+  readiness: false,
+  bell: false,
+  calendar: false,
+};
+
 interface MissionsProgress {
   lessonsCompleted: number;
   gameModeOpened: boolean;
@@ -193,6 +203,8 @@ interface TileSpec {
   subColor?: string;
   /** Omit for an inert tile: no pressed state, no haptic, no toast. */
   onPress?: () => void;
+  /** Gate from HOME_FLAGS. Omitted means visible. */
+  visible?: boolean;
 }
 
 function HomeTile({ spec }: { spec: TileSpec }) {
@@ -375,7 +387,7 @@ export default function HomeScreen() {
 
   // No schedule source exists in the app yet; the tile renders its empty state.
   const nextGame = null as NextGame | null;
-  const now = useNow(!!nextGame);
+  const now = useNow(HOME_FLAGS.upcomingGame && !!nextGame);
 
   // Weather — live location + Open-Meteo
   useEffect(() => {
@@ -574,16 +586,16 @@ export default function HomeScreen() {
   const weatherReady = weatherLabel !== null;
   const weatherOk = weatherTemp !== null && weatherLabel !== null && weatherLabel !== 'Unavailable';
 
-  const tiles: TileSpec[] = [
+  const allTiles: TileSpec[] = [
     {
-      key: 'game', label: 'Upcoming Game', icon: 'calendar', accent: CategoryColor.compete, kind: 'stat',
+      visible: HOME_FLAGS.upcomingGame, key: 'game', label: 'Upcoming Game', icon: 'calendar', accent: CategoryColor.compete, kind: 'stat',
       ...(game
         ? { value: game.value, sub: game.sub }
         : { value: 'NO GAME SCHEDULED', valueSmall: { color: Colors.textTertiary }, sub: 'TAP TO ADD', subColor: CategoryColor.compete }),
       onPress: () => showToast('Game scheduling is not set up yet', 'info'),
     },
     {
-      key: 'intel', label: 'Opponent Intel', icon: 'crosshair', accent: CategoryColor.signal, kind: 'text',
+      visible: HOME_FLAGS.opponentIntel, key: 'intel', label: 'Opponent Intel', icon: 'crosshair', accent: CategoryColor.signal, kind: 'text',
       value: 'NO INTEL YET', valueSmall: { color: Colors.textTertiary },
       sub: 'TAP TO BUILD', subColor: CategoryColor.signal,
       onPress: () => showToast('Opponent intel is not set up yet', 'info'),
@@ -594,7 +606,7 @@ export default function HomeScreen() {
       onPress: BIQ_RUNNER_READY ? () => router.push('/biq' as any) : undefined,
     },
     {
-      key: 'readiness', label: 'Readiness', accent: CategoryColor.recovery, kind: 'text',
+      visible: HOME_FLAGS.readiness, key: 'readiness', label: 'Readiness', accent: CategoryColor.recovery, kind: 'text',
       value: 'NO READINESS DATA', valueSmall: { color: Colors.textTertiary },
     },
     {
@@ -611,7 +623,7 @@ export default function HomeScreen() {
       onPress: () => router.push('/(tabs)/locker'),
     },
     {
-      key: 'weight', label: 'Weight Room', icon: 'dumbbell', accent: Colors.orange, kind: 'text',
+      visible: HOME_FLAGS.weightRoom, key: 'weight', label: 'Weight Room', icon: 'dumbbell', accent: Colors.orange, kind: 'text',
       value: 'Strength · Power', valueSmall: { color: Colors.textSecondary },
       onPress: () => showToast('Strength tools are not set up yet', 'info'),
     },
@@ -624,6 +636,7 @@ export default function HomeScreen() {
     },
   ];
 
+  const tiles = allTiles.filter(t => t.visible !== false);
   const tileRows: TileSpec[][] = [];
   for (let i = 0; i < tiles.length; i += 2) tileRows.push(tiles.slice(i, i + 2));
 
@@ -637,18 +650,25 @@ export default function HomeScreen() {
           streak={streak}
           right={
             <>
-              <ProgressRing
-                value={completedTodayCount / 3}
-                size={48}
-                label="TODAY"
-                valueLabel={String(completedTodayCount)}
-              />
-              <Pressable hitSlop={10} onPress={() => showToast('Coming soon — reminders', 'info')}>
-                <Ionicons name="notifications-outline" size={22} color={Colors.textSecondary} />
-              </Pressable>
-              <Pressable hitSlop={10} onPress={() => showToast('Coming soon — schedule', 'info')}>
-                <Ionicons name="calendar-outline" size={22} color={Colors.textSecondary} />
-              </Pressable>
+              {/* Kit pads the right slot by 4px; cancel it when the ring is the last item so it lines up with the 16px screen margin. */}
+              <View style={!HOME_FLAGS.bell && !HOME_FLAGS.calendar ? { marginRight: -4 } : undefined}>
+                <ProgressRing
+                  value={completedTodayCount / 3}
+                  size={48}
+                  label="TODAY"
+                  valueLabel={String(completedTodayCount)}
+                />
+              </View>
+              {HOME_FLAGS.bell && (
+                <Pressable hitSlop={10} onPress={() => showToast('Coming soon — reminders', 'info')}>
+                  <Ionicons name="notifications-outline" size={22} color={Colors.textSecondary} />
+                </Pressable>
+              )}
+              {HOME_FLAGS.calendar && (
+                <Pressable hitSlop={10} onPress={() => showToast('Coming soon — schedule', 'info')}>
+                  <Ionicons name="calendar-outline" size={22} color={Colors.textSecondary} />
+                </Pressable>
+              )}
             </>
           }
         />
@@ -724,7 +744,7 @@ export default function HomeScreen() {
         </View>
 
         <View style={{ height: 16 }} />
-        <Reveal index={5}>
+        <Reveal index={tileRows.length + 1}>
           <CoachTake
             style={st.inset}
             text="Trust your work. Win the next pitch."
