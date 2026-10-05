@@ -19,12 +19,12 @@ import { useAthlete } from '@/context/AthleteContext';
 import { fetchLessons, type LegacyLesson } from '@/lib/supabase';
 import { Assets } from '@/constants/assets';
 import { Colors, Radius, Shadow, Spacing } from '@/constants/theme';
-import { TopHighlight } from '@/constants/visualExtensions';
+import { CategoryColor, TopHighlight } from '@/constants/visualExtensions';
 import { Btn } from '@/components/ui';
-import { ScreenHeader } from '@/components/ui/ClutchrUI';
+import { ScreenHeader, WorldTile, WorldTileSkeleton } from '@/components/ui/ClutchrUI';
 import { useMicrocopy } from '@/hooks/useMicrocopy';
 import { useProContext } from '@/context/ProContext';
-import { ErrorState, SkeletonCard } from '@/components/SkeletonLoader';
+import { ErrorState } from '@/components/SkeletonLoader';
 
 // ─── DEV FLAGS ────────────────────────────────────────────────────────────────
 // Set to false before App Store submission.
@@ -839,9 +839,9 @@ const WORLDS: World[] = [
 
 const CHAPTERS = [
   { id: 'foundation', label: 'FOUNDATION', icon: 'layers-outline' as const,  color: Colors.primary },
-  { id: 'your-craft', label: 'YOUR CRAFT', icon: 'construct-outline' as const, color: '#BF5AF2' },
+  { id: 'your-craft', label: 'CRAFT', icon: 'construct-outline' as const, color: '#BF5AF2' },
   { id: 'edge',       label: 'COMPETE',    icon: 'flash-outline' as const,    color: '#FF6B6B' },
-  { id: 'the-grind',  label: 'THE GRIND',  icon: 'barbell-outline' as const,  color: '#FF9F0A' },
+  { id: 'the-grind',  label: 'GRIND',  icon: 'barbell-outline' as const,  color: '#FF9F0A' },
   { id: 'signal',     label: 'SIGNAL',     icon: 'star-outline' as const,     color: '#FFD60A' },
 ];
 
@@ -1047,6 +1047,85 @@ function WorldNode({
     </Pressable>
   );
 }
+
+// ─── WORLD GRID ───────────────────────────────────────────────────────────────
+
+const CHAPTER_ACCENT: Record<string, string> = {
+  foundation:  CategoryColor.foundation,
+  'your-craft': CategoryColor.craft,
+  edge:        CategoryColor.compete,
+  'the-grind': CategoryColor.grind,
+};
+
+function chunk<T>(items: T[], n: number): T[][] {
+  const rows: T[][] = [];
+  for (let i = 0; i < items.length; i += n) rows.push(items.slice(i, i + n));
+  return rows;
+}
+
+function WorldGrid({ worlds, featuredId, accent, lessons, completed, isPro, onTap }: {
+  worlds: WorldWithLockState[];
+  featuredId: string | null;
+  accent: string;
+  lessons: LegacyLesson[];
+  completed: string[];
+  isPro: boolean;
+  onTap: (world: WorldWithLockState) => void;
+}) {
+  const featured = worlds.find(w => w.id === featuredId) ?? worlds[0];
+  if (!featured) return null;
+  const rest = worlds.filter(w => w.id !== featured.id);
+  const mid = rest.slice(0, 3);
+  const small = chunk(rest.slice(3), 4);
+
+  const renderTile = (world: WorldWithLockState, size: 'sm' | 'md' | 'lg') => {
+    const wl = lessons.filter(l => l.pillar_id === world.id).sort((a, b) => a.order_index - b.order_index);
+    const done = wl.filter(l => completed.includes(l.id)).length;
+    const state = world.lockState === 'active' ? 'active' : world.isPremium && !isPro ? 'pro' : 'locked';
+    const next = wl.find(l => !completed.includes(l.id));
+    return (
+      <WorldTile
+        key={world.id}
+        title={world.label}
+        size={size}
+        state={state}
+        accent={accent}
+        percent={wl.length > 0 ? (done / wl.length) * 100 : 0}
+        done={done}
+        total={wl.length}
+        description={world.tagline}
+        nextRep={next?.title}
+        cta="View reps"
+        onPress={() => onTap(world)}
+      />
+    );
+  };
+
+  return (
+    <View style={gridStyles.wrap}>
+      <View style={gridStyles.row}>{renderTile(featured, 'lg')}</View>
+      {mid.length > 0 && <View style={gridStyles.row}>{mid.map(w => renderTile(w, 'md'))}</View>}
+      {small.map((row, i) => (
+        <View key={i} style={gridStyles.row}>{row.map(w => renderTile(w, 'sm'))}</View>
+      ))}
+    </View>
+  );
+}
+
+function WorldGridSkeleton() {
+  return (
+    <View style={gridStyles.wrap}>
+      <View style={gridStyles.row}><WorldTileSkeleton size="lg" /></View>
+      <View style={gridStyles.row}>{[0, 1, 2].map(i => <WorldTileSkeleton key={i} size="md" />)}</View>
+      <View style={gridStyles.row}>{[0, 1, 2, 3].map(i => <WorldTileSkeleton key={i} size="sm" />)}</View>
+    </View>
+  );
+}
+
+const gridStyles = StyleSheet.create({
+  wrap: { paddingHorizontal: Spacing.lg, gap: 10 },
+  row:  { flexDirection: 'row', gap: 10 },
+});
 
 // ─── CURRENT MISSION CARD ─────────────────────────────────────────────────────
 
@@ -1532,12 +1611,7 @@ export default function CareerScreen() {
       />
 
       {/* ── CHAPTER TABS ── */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.tabRow}
-        contentContainerStyle={styles.tabContent}
-      >
+      <View style={styles.tabRow}>
         {CHAPTERS.map((chapter) => {
           const active = activeChapter === chapter.id;
           const labelColor = active ? Colors.textPrimary : Colors.textTertiary;
@@ -1553,11 +1627,11 @@ export default function CareerScreen() {
                 setExpandedWorldId(null);
               }}
             >
-              <Text style={[styles.tabLabel, { color: labelColor }]}>{chapter.label}</Text>
+              <Text style={[styles.tabLabel, { color: labelColor }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>{chapter.label}</Text>
             </Pressable>
           );
         })}
-      </ScrollView>
+      </View>
 
       {/* ── CONTENT ── */}
       {loadError ? (
@@ -1569,7 +1643,7 @@ export default function CareerScreen() {
           style={styles.scrollView}
           pointerEvents="none"
         >
-          {[0, 1, 2].map(i => <SkeletonCard key={i} />)}
+          <WorldGridSkeleton />
         </ScrollView>
       ) : activeChapter === 'signal' ? (
         <SignalWorldMap
@@ -1580,7 +1654,7 @@ export default function CareerScreen() {
         />
       ) : (
         <ScrollView
-          contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 100 }]}
+          contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 160 }]}
           showsVerticalScrollIndicator={false}
           style={styles.scrollView}
         >
@@ -1614,46 +1688,32 @@ export default function CareerScreen() {
             </View>
           </View>
 
-          {/* ── ASCENT ARENA TOWER ── */}
-          <View style={styles.towerWrap}>
-            {/* Vertical connecting line */}
-            <View style={styles.connectLine} />
-
-            {visibleWorlds.length === 0 ? (
-              <View style={styles.emptyChapter}>
-                <Text style={styles.emptyChapterText}>No worlds available for your role yet.</Text>
-              </View>
-            ) : visibleWorlds.map((world, index) => {
-              const worldLessons = lessons
-                .filter(l => l.pillar_id === world.id)
-                .sort((a, b) => a.order_index - b.order_index);
-              const worldDone = worldLessons.filter(l => completed.includes(l.id)).length;
-              const isExpanded = expandedWorldId === world.id;
-
-              return (
-                <WorldNode
-                  key={world.id}
-                  world={world}
-                  index={index}
-                  worldLessons={worldLessons}
-                  done={worldDone}
-                  isCurrentWorld={currentWorld?.id === world.id}
-                  isExpanded={isExpanded}
-                  onTap={() => {
-                    if (world.lockState === 'teaser') {
-                      if (world.isPremium && !isPro) {
-                        router.push('/upgrade?source=career');
-                      } else {
-                        Alert.alert('Keep stacking.', 'This world unlocks as you progress.');
-                      }
-                      return;
-                    }
-                    setExpandedWorldId(isExpanded ? null : world.id);
-                  }}
-                />
-              );
-            })}
-          </View>
+          {/* ── WORLD GRID ── */}
+          {visibleWorlds.length === 0 ? (
+            <View style={styles.emptyChapter}>
+              <Text style={styles.emptyChapterText}>No worlds available for your role yet.</Text>
+            </View>
+          ) : (
+            <WorldGrid
+              worlds={visibleWorlds}
+              featuredId={currentWorld?.id ?? null}
+              accent={CHAPTER_ACCENT[activeChapter] ?? CategoryColor.foundation}
+              lessons={lessons}
+              completed={completed}
+              isPro={isPro}
+              onTap={(world) => {
+                if (world.lockState === 'teaser') {
+                  if (world.isPremium && !isPro) {
+                    router.push('/upgrade?source=career');
+                  } else {
+                    Alert.alert('Keep stacking.', 'This world unlocks as you progress.');
+                  }
+                  return;
+                }
+                setExpandedWorldId(expandedWorldId === world.id ? null : world.id);
+              }}
+            />
+          )}
 
           {/* ── EXPANDED WORLD LESSONS (below tower) ── */}
           {visibleWorlds.map((world) => {
@@ -1717,17 +1777,18 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
     flexGrow: 0,
+    flexDirection: 'row',
   },
-  tabContent: { flexDirection: 'row' },
   tab: {
+    flex: 1,
     alignItems: 'center',
-    paddingHorizontal: Spacing.lg,
+    paddingHorizontal: 2,
     paddingVertical: Spacing.sm + 2,
   },
   tabLabel: {
     fontSize: 11,
     fontFamily: 'Inter_700Bold',
-    letterSpacing: 1,
+    letterSpacing: 0.5,
   },
 
   // World subheader

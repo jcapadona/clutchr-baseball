@@ -44,6 +44,7 @@ import {
   View, Text, Pressable, Image, StyleSheet, ViewStyle, StyleProp,
   ImageSourcePropType, ScrollView, Animated, Easing, LayoutChangeEvent,
 } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Circle, Path, Polygon } from 'react-native-svg';
 import { Colors, Typography, Spacing, Radius, Shadow, ButtonTokens } from '../../constants/theme';
@@ -481,63 +482,102 @@ export function PhotoCard({
    WORLD TILE — Career grid. Replaces the vertical node rail.
    ══════════════════════════════════════════════════════════════ */
 
+export type WorldTileState = 'active' | 'locked' | 'pro';
+
 export function WorldTile({
-  title, subtitle, percent, accent, image, locked = false, size = 'sm', onPress,
+  title, size = 'sm', state = 'active', accent, percent = 0, done = 0, total = 0,
+  description, nextRep, cta, onPress, accessibilityLabel,
 }: {
   title: string;
-  subtitle?: string;
-  percent: number;
+  size?: 'sm' | 'md' | 'lg';
+  state?: WorldTileState;
+  /** Chapter accent. Ignored (locked grey) when state is locked or pro. */
   accent: string;
-  image?: ImageSourcePropType;
-  locked?: boolean;
-  size?: 'sm' | 'lg';
+  percent?: number;
+  done?: number;
+  total?: number;
+  description?: string;
+  nextRep?: string;
+  cta?: string;
   onPress?: () => void;
+  accessibilityLabel?: string;
 }) {
-  const a = locked ? CategoryColor.locked : accent;
-  const h = size === 'lg' ? 220 : 150;
+  const gated = state !== 'active';
+  const a = gated ? CategoryColor.locked : accent;
+  const pct = Math.max(0, Math.min(100, Math.round(percent)));
+  const minHeight = size === 'lg' ? 190 : size === 'md' ? 128 : 92;
+  const titleStyle = size === 'lg' ? DisplayCard : DisplayCardSm;
+  const titleColor = gated ? Colors.textTertiary : Colors.textPrimary;
+  const gateLabel = state === 'pro' ? 'PRO' : 'LOCKED';
 
-  const body = (
-    <>
-      <View style={{ flex: 1 }} />
-      <Text
-        style={[
-          size === 'lg' ? DisplayCard : DisplayCardSm,
-          { color: locked ? Colors.textTertiary : Colors.textPrimary },
-        ]}
-        numberOfLines={2}
-      >
-        {title}
-      </Text>
-      {!!subtitle && !locked && (
-        <Text style={[Typography.bodySmall, { marginTop: 2 }]} numberOfLines={1}>{subtitle}</Text>
-      )}
-      <View style={{ marginTop: Spacing.sm }}>
-        <ProgressBar percent={locked ? 0 : percent} color={a} />
-        <Text style={[Typography.labelSmall, { marginTop: 5, color: a }]}>
-          {locked ? 'LOCKED' : `${percent}% COMPLETE`}
-        </Text>
-      </View>
-    </>
-  );
+  const press = onPress
+    ? () => { Haptics.selectionAsync().catch(() => {}); onPress(); }
+    : undefined;
 
-  if (image && !locked) {
-    return (
-      <PhotoCard image={image} accent={a} height={h} onPress={onPress}>
-        {body}
-      </PhotoCard>
-    );
-  }
   return (
-    <Card onPress={onPress} style={{ height: h, justifyContent: 'flex-end' }}>
-      <LinearGradient
-        colors={[tint(a, 0.22), 'transparent']}
-        start={{ x: 1, y: 0 }} end={{ x: 0, y: 1 }}
-        style={StyleSheet.absoluteFill as any}
-        pointerEvents="none"
-      />
-      {body}
-    </Card>
+    <Pressable
+      onPress={press}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel ?? title}
+      style={({ pressed }) => [{ flex: 1 }, pressed && { transform: [{ scale: 0.97 }], opacity: 0.85 }]}
+    >
+      <ChamferPanel
+        accent={a}
+        cut={size === 'sm' ? 8 : 10}
+        style={{ flex: 1 }}
+        contentStyle={{
+          minHeight, padding: size === 'sm' ? 10 : 14, justifyContent: 'space-between', gap: 8,
+        }}
+      >
+        <View style={{ gap: 3 }}>
+          <Text
+            style={[titleStyle, size === 'sm' && { fontSize: 13, lineHeight: 15 }, { color: titleColor }]}
+            numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.75}
+          >
+            {title}
+          </Text>
+          {size === 'md' && !!description && !gated && (
+            <Text style={Typography.bodySmall} numberOfLines={2}>{description}</Text>
+          )}
+          {size === 'lg' && !!nextRep && !gated && (
+            <Text style={[Typography.bodySmall, { marginTop: 2 }]} numberOfLines={2}>
+              {`Next: ${nextRep}`}
+            </Text>
+          )}
+        </View>
+
+        {gated ? (
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+            <StrokeIcon name="lock" size={12} color={a} />
+            <Text style={[Typography.labelSmall, { color: Colors.textTertiary }]}>{gateLabel}</Text>
+          </View>
+        ) : (
+          <View style={{ gap: 5 }}>
+            {size !== 'sm' && (
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                {size === 'md' && <Text style={[Typography.labelSmall, { color: a }]}>{`${pct}%`}</Text>}
+                {total > 0 && (
+                  <Text style={[Typography.labelSmall, { color: Colors.textSecondary }]}>
+                    {size === 'lg' ? `${done} / ${total} REPS` : `${total} REPS`}
+                  </Text>
+                )}
+              </View>
+            )}
+            {(size === 'sm' || size === 'lg') && <ProgressBar percent={pct} color={a} />}
+            {size === 'lg' && !!cta && (
+              <Text style={[Typography.labelSmall, { color: a }]}>{`${cta.toUpperCase()}`}</Text>
+            )}
+          </View>
+        )}
+      </ChamferPanel>
+    </Pressable>
   );
+}
+
+/** Same footprint as WorldTile, for loading states. */
+export function WorldTileSkeleton({ size = 'sm' }: { size?: 'sm' | 'md' | 'lg' }) {
+  const h = size === 'lg' ? 190 : size === 'md' ? 128 : 92;
+  return <Skeleton height={h} radius={Radius.md} style={{ flex: 1 }} />;
 }
 
 /* ══════════════════════════════════════════════════════════════
