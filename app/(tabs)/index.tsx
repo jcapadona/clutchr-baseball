@@ -569,7 +569,11 @@ export default function HomeScreen() {
   const lockerLoading = !lockerFailed && (lockerCards === null || isProLoading);
 
   function handleContinueCareer() {
-    if (!routingResult?.lesson) return;
+    Haptics.selectionAsync().catch(() => {});
+    if (!routingResult?.lesson) {
+      router.push('/(tabs)/career');
+      return;
+    }
     const encodedReason = encodeURIComponent(routingResult.reason ?? '');
     router.push(`/lesson/${routingResult.lesson.id}?reason=${encodedReason}`);
   }
@@ -603,7 +607,7 @@ export default function HomeScreen() {
     {
       key: 'biq', label: 'Baseball IQ', icon: 'bolt', accent: CategoryColor.craft, kind: 'stat',
       value: `${biqLessons}/${BIQ_LESSONS_TO_UNLOCK}`, sub: 'LESSONS TO UNLOCK',
-      onPress: BIQ_RUNNER_READY ? () => router.push('/biq' as any) : undefined,
+      onPress: () => router.push(BIQ_RUNNER_READY ? ('/biq' as any) : '/(tabs)/career'),
     },
     {
       visible: HOME_FLAGS.readiness, key: 'readiness', label: 'Readiness', accent: CategoryColor.recovery, kind: 'text',
