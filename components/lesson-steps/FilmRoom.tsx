@@ -222,7 +222,7 @@ function VideoCard({ step }: { step: FilmRoomData }) {
       {/* Timestamp hint for external links */}
       {step.start_sec != null && !step.youtube_id && (
         <Text style={vStyles.timestamp}>
-          Start at {formatTime(step.start_sec)}{step.end_sec != null ? ` — ${formatTime(step.end_sec)}` : ''}
+          Start at {formatTime(step.start_sec)}{step.end_sec != null ? ` to ${formatTime(step.end_sec)}` : ''}
         </Text>
       )}
 
@@ -238,7 +238,7 @@ function VideoCard({ step }: { step: FilmRoomData }) {
       ) : (
         <View style={vStyles.noVideoCard}>
           <Ionicons name="videocam-off-outline" size={16} color={Colors.textTertiary} />
-          <Text style={vStyles.noVideoText}>No video link available — read the setup and answer the question.</Text>
+          <Text style={vStyles.noVideoText}>No video link available. Read the setup and answer the question.</Text>
         </View>
       )}
 

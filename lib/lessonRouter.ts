@@ -144,7 +144,7 @@ const REASON_BY_PILLAR: Record<string, string> = {
   'outfield-path':       'First step wins the rep. Build it now.',
   'baserunner-path':     'Leads, reads, and green-light decisions.',
   'pressure-resilience': 'Clutch moments are built in practice. Time to rep it.',
-  'gamemode':            'Pregame, in-game, and postgame — full session.',
+  'gamemode':            'Pregame, in-game, and postgame. Full session.',
 };
 
 function reasonForPillar(pillar: string): string {

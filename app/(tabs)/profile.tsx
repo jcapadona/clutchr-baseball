@@ -462,7 +462,7 @@ export default function ProfileScreen() {
             <Text style={styles.playbookSub}>
               {playbookBuilt
                 ? playbook?.approach ?? 'Your 5 personal cues are set'
-                : 'No cues set yet — build your playbook'}
+                : 'No cues set yet. Build your playbook'}
             </Text>
           </View>
           <Ionicons name="chevron-forward" size={16} color={Colors.purple + '80'} />

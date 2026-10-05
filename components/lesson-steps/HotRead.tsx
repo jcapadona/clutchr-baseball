@@ -175,7 +175,7 @@ export default function HotRead({ step, onComplete }: Props) {
             ? 'Clean reads. You have the IQ for this.'
             : pct >= 50
             ? 'Good effort. Keep sharpening your reads.'
-            : 'Study these situations — the reads will come.'}
+            : 'Study these situations. The reads will come.'}
         </Text>
         <View
           style={[styles.scoreBtn, { backgroundColor: Colors.primary }]}

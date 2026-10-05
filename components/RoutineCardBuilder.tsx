@@ -198,7 +198,7 @@ export default function RoutineCardBuilder({ data, responses, feedback, onComple
           <Ionicons name="checkmark-circle" size={18} color={Colors.primary} />
           <View style={{ flex: 1 }}>
             <Text style={styles.savedTitle}>{feedback.success}</Text>
-            <Text style={styles.savedSub}>Saved — tap to revisit from your profile.</Text>
+            <Text style={styles.savedSub}>Saved. Tap to revisit from your profile.</Text>
           </View>
         </View>
       )}

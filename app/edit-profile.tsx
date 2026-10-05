@@ -155,7 +155,7 @@ export default function EditProfileScreen() {
             <Text style={[styles.sectionLabel, { marginTop: 0, marginBottom: 8 }]}>TWO-WAY?</Text>
             {[
               { val: false, label: 'Pitcher only', desc: "I don't take at-bats" },
-              { val: true,  label: 'Two-way — I also hit', desc: 'I pitch and hit' },
+              { val: true,  label: 'Two-way, I also hit', desc: 'I pitch and hit' },
             ].map(opt => (
               <Pressable
                 key={String(opt.val)}

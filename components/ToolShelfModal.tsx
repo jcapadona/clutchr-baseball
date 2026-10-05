@@ -57,7 +57,7 @@ const TOOLS: QuickTool[] = [
     whenToUse: 'After a mistake, between batters, or when you feel your focus slipping.',
     steps: [
       { cue: 'STEP OFF', instruction: 'Step away from your position or step out of the box. Physical separation from the mistake.' },
-      { cue: 'EXHALE', instruction: 'Fully exhale — empty your lungs completely. This is your flush signal.', duration: 4 },
+      { cue: 'EXHALE', instruction: 'Fully exhale. Empty your lungs completely. This is your flush signal.', duration: 4 },
       { cue: 'BREATHE IN', instruction: 'Slow inhale for 4 counts. Fill from the belly up.', duration: 4 },
       { cue: 'BREATHE OUT', instruction: 'Slow exhale for 6 counts. Release everything.', duration: 6 },
       { cue: 'CUE WORD', instruction: 'Say your reset cue quietly. "Next." "Attack." "Lock in." Whatever is yours.' },
@@ -97,7 +97,7 @@ const TOOLS: QuickTool[] = [
     categories: ['pitcher'],
     mode: 'print_card',
     duration: '30s',
-    whenToUse: 'Between every pitch — especially after a walk, hit, or error. Use before stepping back on the rubber.',
+    whenToUse: 'Between every pitch, especially after a walk, hit, or error. Use before stepping back on the rubber.',
     steps: [
       { cue: 'STEP BACK', instruction: 'Step behind the rubber. Create physical separation from the last pitch.' },
       { cue: 'ONE BREATH', instruction: 'Take one full breath. Exhale first, then inhale slowly. This resets your nervous system.' },
@@ -138,7 +138,7 @@ const TOOLS: QuickTool[] = [
     categories: ['pitcher'],
     mode: 'interactive',
     duration: '2min',
-    whenToUse: 'After every throwing session — bullpen, game, long toss. Non-negotiable.',
+    whenToUse: 'After every throwing session: bullpen, game, long toss. Non-negotiable.',
     steps: [
       { cue: 'ARM CIRCLES', instruction: '10 forward, 10 backward. Both arms. Start small and get bigger.', duration: 30 },
       { cue: 'SLEEPER STRETCH', instruction: 'Sleeper stretch: lie on your throwing side, push your forearm toward the ground gently. 30 seconds each side.', duration: 60 },
@@ -185,7 +185,7 @@ const TOOLS: QuickTool[] = [
     steps: [
       { cue: 'BREATHE OUT', instruction: 'Controlled exhale before you leave the box. Start the flush here.' },
       { cue: 'CHIN LEVEL', instruction: 'Keep your chin level. Not up, not down. Elite body language sends the right signal to your brain.' },
-      { cue: 'PUT IT AWAY', instruction: 'Put the bat away with intention, not anger. One clean motion. You are not frustrated — you are ready.' },
+      { cue: 'PUT IT AWAY', instruction: 'Put the bat away with intention, not anger. One clean motion. You are ready.' },
       { cue: 'WATCH HIM', instruction: 'Sit where you can see the pitcher. Watch his next two batters. Find his pattern.' },
       { cue: 'NEXT TIME', instruction: 'When your turn comes, you already know what you are doing differently. Clean slate.' },
     ],
@@ -229,7 +229,7 @@ const TOOLS: QuickTool[] = [
     steps: [
       { cue: 'GLOVE POP', instruction: 'One sharp clap of your glove into your throwing hand. This is your physical flush signal.' },
       { cue: 'SELF-TALK', instruction: '"Flush it." "Next play." "Same player." Say it quietly. Mean it.' },
-      { cue: 'GET MOVING', instruction: 'Walk, shuffle, jog — any movement breaks the mental freeze. Do not stand still and replay the error.' },
+      { cue: 'GET MOVING', instruction: 'Walk, shuffle, jog. Any movement breaks the mental freeze. Do not stand still and replay the error.' },
       { cue: 'EYE CONTACT', instruction: 'Make eye contact with your pitcher or a teammate. One quick nod that says: "I got the next one."' },
       { cue: 'READY POSITION', instruction: 'Get back into your ready position before the next pitch. Treat the next ball as pitch one of the game.' },
     ],
@@ -265,13 +265,13 @@ const TOOLS: QuickTool[] = [
     categories: ['universal'],
     mode: 'interactive',
     duration: '30s',
-    whenToUse: 'When you catch yourself showing negative body language — head down, shoulders slumped, slow feet.',
+    whenToUse: 'When you catch yourself showing negative body language: head down, shoulders slumped, slow feet.',
     steps: [
       { cue: 'NOTICE IT', instruction: 'You caught yourself. That awareness is the skill. Now fix it deliberately.' },
       { cue: 'CHIN UP', instruction: 'Lift your chin to level. Not up, not down. This one move changes how you feel and how you look.' },
       { cue: 'SHOULDERS BACK', instruction: 'Roll your shoulders back and down. Big chest. Open posture. Elite body language.' },
       { cue: 'LOOSE HANDS', instruction: 'Shake your hands out. Tension lives in the hands. Release it.' },
-      { cue: 'FEET MOVING', instruction: 'Get your feet moving — even a shuffle. Movement breaks the mental slump signal.' },
+      { cue: 'FEET MOVING', instruction: 'Get your feet moving, even a shuffle. Movement breaks the mental slump signal.' },
     ],
     printTitle: 'Body Language Reset',
     printCue: 'CHIN UP · SHOULDERS BACK · FEET MOVING',
@@ -691,7 +691,7 @@ export default function ToolShelfModal({ visible, onClose }: Props) {
             <View style={modalStyles.printNotice}>
               <Ionicons name="print-outline" size={13} color={Colors.textTertiary} />
               <Text style={modalStyles.printNoticeText}>
-                PRINT tools generate a notecard — screenshot and keep in your bat bag for in-game use.
+                PRINT tools generate a notecard. Screenshot and keep in your bat bag for in-game use.
               </Text>
             </View>
 

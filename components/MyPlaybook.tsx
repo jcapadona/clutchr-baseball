@@ -38,7 +38,7 @@ const CUE_SLOTS: CueSlot[] = [
     id: 'reset',
     situation: 'After a mistake',
     prompt: 'What is your one word or phrase after an error, strikeout, or bad pitch?',
-    hint: 'This fires immediately after a mistake — before your brain has time to spiral. It has to be short enough to say in half a second. Elite players practice this word the same way they practice their swing.',
+    hint: 'This fires immediately after a mistake, before your brain has time to spiral. It has to be short enough to say in half a second. Elite players practice this word the same way they practice their swing.',
     examples: ['Next.', 'Flush it.', 'Next play.', 'So what.', 'Move on.', 'Short memory.', 'Same player.', 'Play!'],
     placeholder: 'e.g. Next.',
   },
@@ -46,14 +46,14 @@ const CUE_SLOTS: CueSlot[] = [
     id: 'approach',
     situation: 'Stepping into the box or onto the rubber',
     prompt: 'What is your pre-pitch thought every time you are about to compete?',
-    hint: 'This is what Mike Trout calls his "swing thought" and what pitchers call their "mound cue." It fires right before every rep. It should direct your attention to exactly one thing — not fix everything.',
+    hint: 'This is what Mike Trout calls his "swing thought" and what pitchers call their "mound cue." It fires right before every rep. It should direct your attention to exactly one thing, not everything.',
     examples: ['See it early.', 'Attack the zone.', 'Hunt middle.', 'Trust my stuff.', 'Short and quick.', 'One pitch.', 'See the glove.', 'My zone.'],
     placeholder: 'e.g. See it early.',
   },
   {
     id: 'pressure',
     situation: 'When the moment gets big',
-    prompt: 'What do you tell yourself when the pressure spikes — bases loaded, big count, late game?',
+    prompt: 'What do you tell yourself when the pressure spikes, bases loaded, big count, late game?',
     hint: 'Pressure is when cues matter most. Without one, your brain defaults to "do not screw this up." With one, it defaults to your process. This cue should feel like a hand on your shoulder.',
     examples: ['One pitch.', 'I have been here.', 'My process.', 'Same pitch, new count.', 'Compete.', 'Execute.', 'This is my moment.', 'Stay in it.'],
     placeholder: 'e.g. One pitch.',
@@ -61,14 +61,14 @@ const CUE_SLOTS: CueSlot[] = [
   {
     id: 'confidence',
     situation: 'When your confidence drops',
-    prompt: 'What is your identity cue — the one thing you say to remind yourself who you are as a player?',
+    prompt: 'What is your identity cue, the one thing you say to remind yourself who you are as a player?',
     hint: 'This is different from the others. This one is not about the next pitch. It is about who you are at your best. Athletes who have this cue recover from slumps faster because they have an anchor outside of results.',
     examples: ['I belong here.', 'I have done the work.', 'Built different.', 'I compete.', 'I am ready.', 'Trust the process.', 'I earn it every day.', 'I know who I am.'],
     placeholder: 'e.g. I belong here.',
   },
   {
     id: 'focus',
-    situation: 'Between pitches — staying locked in',
+    situation: 'Between pitches: staying locked in',
     prompt: 'What pulls your focus back to the present when your mind starts to wander?',
     hint: 'Every inning has dead time. Pitchers wait for signs. Hitters sit in the dugout. Fielders stand and wait. Elite players use this space to stay mentally ready. Your between-pitch thought is what brings you back.',
     examples: ['This pitch.', 'Lock in.', 'Be here.', 'Ready position.', 'See the ball.', 'Breathe.', 'Stay in it.', 'Right now.'],
@@ -227,7 +227,7 @@ function SlotBuilder({
 
           {/* Example chips */}
           <Text style={slotStyles.examplesLabel}>
-            WHAT OTHER PLAYERS USE — OR WRITE YOUR OWN BELOW
+            WHAT OTHER PLAYERS USE, OR WRITE YOUR OWN BELOW
           </Text>
           <View style={slotStyles.chipGrid}>
             {slot.examples.map((ex) => (
@@ -475,13 +475,13 @@ export default function MyPlaybookScreen() {
           <View style={styles.introCard}>
             <Text style={styles.introTitle}>Why this matters</Text>
             <Text style={styles.introText}>
-              Every elite player has a personal mental vocabulary — specific words or phrases they use in specific situations. Mike Trout calls it his swing thought. Pitchers call it their mound cue. Infielders call it their pre-pitch thought.
+              Every elite player has a personal mental vocabulary, specific words or phrases they use in specific situations. Mike Trout calls it his swing thought. Pitchers call it their mound cue. Infielders call it their pre-pitch thought.
             </Text>
             <Text style={styles.introText}>
               Research is clear: self-generated cues outperform assigned ones. Clutchr assigns you cues by default. This is where you replace them with yours.
             </Text>
             <Text style={styles.introCallout}>
-              Once you build your playbook, every lesson in the app speaks your language — not a generic one.
+              Once you build your playbook, every lesson in the app speaks your language. Not a generic one.
             </Text>
           </View>
         )}

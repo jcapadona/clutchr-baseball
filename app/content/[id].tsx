@@ -14,6 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { supabase, type ContentCard } from '@/lib/supabase';
 import { Colors, Radius, Spacing } from '@/constants/theme';
 import MarkdownRenderer from '@/components/MarkdownRenderer';
+import { PrimaryButton } from '@/components/ui/ClutchrUI';
 
 // ─── TYPE CONFIG ─────────────────────────────────────────────────────────────
 
@@ -146,7 +147,10 @@ export default function ContentCardScreen() {
         ) : !hasExternalLink ? (
           <View style={styles.emptyBody}>
             <Ionicons name={typeConfig.icon as any} size={36} color={Colors.textTertiary} />
-            <Text style={styles.emptyBodyText}>Content coming soon.</Text>
+            <Text style={styles.emptyBodyText}>This item couldn't be opened.</Text>
+            <View style={{ alignSelf: 'stretch', marginTop: Spacing.lg }}>
+              <PrimaryButton label="Back" onPress={() => router.back()} />
+            </View>
           </View>
         ) : null}
 

@@ -98,7 +98,7 @@ export const HOME_GREETING = {
       "Cap's here. Let's build something this morning.",
     ],
     firedUp: [
-      "MORNING. Let's go — your rep is right here.",
+      "MORNING. Let's go. Your rep is right here.",
       "Early. Locked in. That's the edge.",
       "Morning grind hits different. Let's get it.",
       "RISE. Your next rep is loaded and ready.",
@@ -188,18 +188,18 @@ export const HOME_GREETING = {
       "Back in the building. Let's go.",
       "Back. One rep gets you right.",
       "Welcome back. Cap's here.",
-      "Back. Don't overthink it — just rep.",
+      "Back. Don't overthink it. Just rep.",
     ],
     mentor: [
       "You're back. That's the most important rep right there.",
-      "Cap's glad you're back. Let's start simple — one rep.",
+      "Cap's glad you're back. Let's start simple. One rep.",
       "The come-back rep is always the hardest. You showed up. That counts.",
       "Welcome back. No judgment. Just your next rep.",
       "Back in it. The program picks up right where you left off.",
     ],
     firedUp: [
       "YOU'RE BACK. Cap missed the energy. LET'S GO.",
-      "Return rep incoming. Don't ease in — LOCK IN.",
+      "Return rep incoming. Don't ease in. LOCK IN.",
       "Back in the building. Time to remind them why. LET'S WORK.",
       "Cap knew you'd be back. Now let's make it count. GO.",
       "RETURN. REST IS OVER. REP IS WAITING.",
@@ -264,23 +264,23 @@ export const STEP_INCORRECT: MicrocopyPool = {
     "Think through the situation.",
   ],
   mentor: [
-    "Not quite — but good to know where your thinking went.",
+    "Not quite. But good to know where your thinking went.",
     "Missed that one. Let's look at the right call together.",
     "The game punishes that decision. Here's the better play.",
     "Off on that one. Here's how to think through it next time.",
     "Not the call Cap would make. Here's why.",
     "Wrong read, but you're in the right area. Close.",
     "That's a common miss. Here's the sharper take.",
-    "Missed it — but this is exactly why we rep it.",
+    "Missed it. But this is exactly why we rep it.",
   ],
   firedUp: [
-    "WRONG CALL — but now you know. Get it right next time.",
+    "WRONG CALL. But now you know. Get it right next time.",
     "Not it. Process fast. Move on.",
     "Missed. Reset. Next pitch.",
     "Wrong read. Acknowledge it and GO.",
     "Not the move. That's why we train. Next rep.",
     "Off on that one. Short memory. Next.",
-    "Wrong — shake it and lock in.",
+    "Wrong. Shake it and lock in.",
     "Cap's seen better. Let's go again.",
   ],
 };
@@ -302,7 +302,7 @@ export const LESSON_COMPLETE: CueMicrocopyPool = {
     ],
     mentor: [
       "Rep complete. Carry {CUE} into the next moment.",
-      "Good work. That cue — {CUE} — is yours to keep.",
+      "Good work. That cue, {CUE}, is yours to keep.",
       "That's the rep. {CUE} travels with you.",
       "Nice work. Remember {CUE} when it matters.",
       "Rep locked. {CUE} stays with you today.",
@@ -464,7 +464,7 @@ export const STREAK_EXTENDED: MicrocopyPool = {
     "Another day, another rep. That's the program.",
     "Streak extended. Consistency is the whole game.",
     "Day added. Cap sees the pattern building.",
-    "One more rep. Habits don't happen overnight — but they're happening.",
+    "One more rep. Habits don't happen overnight, but they're happening.",
     "Streak alive. This is how champions are built.",
     "Another day in the program. Keep showing up.",
     "Streak continues. It doesn't feel like much today. It adds up.",
@@ -514,7 +514,7 @@ export const STREAK_MILESTONES: Record<number, MicrocopyPool> = {
     mentor: [
       "Two weeks. Research says 14 days is where habits start to stick.",
       "14-day streak. Cap calls this 'habit territory.' You're in it.",
-      "Two weeks straight. This is no longer new — it's becoming yours.",
+      "Two weeks straight. This is becoming yours.",
     ],
     firedUp: [
       "14 DAYS. TWO WEEKS. THE PROGRAM IS IN YOUR BLOOD NOW. GO.",
@@ -531,7 +531,7 @@ export const STREAK_MILESTONES: Record<number, MicrocopyPool> = {
     mentor: [
       "30 days. One full month of reps. Very few athletes get here.",
       "Month one complete. The program is part of you now.",
-      "30-day streak. Cap wants you to know — this is rare. Don't take it for granted.",
+      "30-day streak. Cap wants you to know this is rare. Don't take it for granted.",
     ],
     firedUp: [
       "30 DAYS. ONE MONTH. THAT'S ELITE CONSISTENCY. LET'S GO.",
@@ -547,7 +547,7 @@ export const STREAK_MILESTONES: Record<number, MicrocopyPool> = {
     ],
     mentor: [
       "50 days. Not many athletes reach this point. This is commitment.",
-      "50-day streak. Cap can say with confidence — you trust the program.",
+      "50-day streak. Cap can say with confidence that you trust the program.",
       "Fifty reps of showing up. The mental game is built on exactly this.",
     ],
     firedUp: [
@@ -564,7 +564,7 @@ export const STREAK_MILESTONES: Record<number, MicrocopyPool> = {
     ],
     mentor: [
       "One hundred days. Cap has coached a lot of players. This kind of commitment is rare.",
-      "100 days. You didn't just build a habit — you built a system. This is who you are now.",
+      "100 days. You built a habit and a system. This is who you are now.",
       "A hundred reps of showing up. The mental game is no longer something you work on. It's something you have.",
     ],
     firedUp: [
@@ -639,7 +639,7 @@ export const PUSH_NOTIFICATIONS = {
     mentor: [
       "Game day. Cap has a pregame session ready for you.",
       "It's game day. Let's get you locked in before first pitch.",
-      "Game day — this is what the reps were building toward.",
+      "Game day. This is what the reps were building toward.",
       "Your game is today. One session to get your mind right.",
     ],
     firedUp: [
@@ -661,7 +661,7 @@ export const PUSH_NOTIFICATIONS = {
     mentor: [
       "Game over. Cap wants to know how it went. 2 minutes.",
       "Debrief time. What's one thing you carry forward?",
-      "Win or loss — the debrief is where you get better. 2 minutes.",
+      "Win or loss, the debrief is where you get better. 2 minutes.",
       "Game done. Let's turn it into tomorrow's rep.",
     ],
     firedUp: [
@@ -687,7 +687,7 @@ export const EMPTY_STATES = {
     ],
     mentor: [
       "Your Playbook is waiting. Finish a lesson and save a cue that resonates.",
-      "No saved cues yet. Cap wants you to build this out — finish a rep and lock something in.",
+      "No saved cues yet. Cap wants you to build this out. Finish a rep and lock something in.",
       "The Playbook fills as you work. Finish a rep to save your first cue.",
     ],
     firedUp: [
@@ -705,7 +705,7 @@ export const EMPTY_STATES = {
     ],
     mentor: [
       "No game history yet. Cap wants you to start logging. The debrief is where the growth lives.",
-      "Empty here. After your next game — win or loss — come log the debrief.",
+      "Empty here. After your next game, win or loss, come log the debrief.",
       "Your game history starts with your next game. Cap will be here after.",
     ],
     firedUp: [
@@ -723,7 +723,7 @@ export const EMPTY_STATES = {
     ],
     mentor: [
       "This world unlocks when you're ready. Keep building through your current path.",
-      "Locked for now. The program sequences for a reason — keep going.",
+      "Locked for now. The program sequences for a reason. Keep going.",
       "Cap wants you to earn this one. Finish your current world first.",
     ],
     firedUp: [
@@ -735,18 +735,18 @@ export const EMPTY_STATES = {
 
   noLessonsInWorld: {
     direct: [
-      "Content coming soon.",
-      "Cap's building this world. Check back.",
-      "Coming soon.",
+      "No reps in this world yet.",
+      "Cap is still building this world. Check back later.",
+      "Nothing here yet. Try another world.",
     ],
     mentor: [
-      "Cap's still building this world. Content is coming — check back soon.",
+      "Cap is still building this world. Check back in a bit.",
       "This world is under construction. Good things take reps.",
-      "Not ready yet. Cap's writing this one. Check back soon.",
+      "No reps here yet. Cap is writing this one.",
     ],
     firedUp: [
-      "CAP IS BUILDING THIS. COME BACK SOON. IT'S GOING TO BE WORTH IT.",
-      "COMING SOON. CAP IS WORKING. SO SHOULD YOU — GO DO ANOTHER WORLD.",
+      "CAP IS BUILDING THIS. COME BACK LATER. IT'S GOING TO BE WORTH IT.",
+      "NO REPS HERE YET. CAP IS WORKING. SO SHOULD YOU. GO DO ANOTHER WORLD.",
       "UNDER CONSTRUCTION. CHECK BACK. CAP DOESN'T MISS.",
     ],
   },
@@ -770,7 +770,7 @@ export const TOASTS = {
   },
   postgameSaved: {
     direct: ["Logged. See you next game.", "Debrief saved.", "Logged."],
-    mentor: ["Debrief saved. That's how you get better — game by game.", "Logged. Cap will use that tomorrow.", "Postgame locked. See you next time."],
+    mentor: ["Debrief saved. That's how you get better, game by game.", "Logged. Cap will use that tomorrow.", "Postgame locked. See you next time."],
     firedUp: ["DEBRIEF LOGGED. THAT'S THE WORK. SEE YOU NEXT GAME.", "SAVED. TURN THAT GAME INTO TOMORROW'S REP.", "LOGGED. CAP SEES THE PROGRESS. KEEP GOING."],
   },
   settingsSaved: {
@@ -821,7 +821,7 @@ export const LEVEL_UP: MicrocopyPool = {
   mentor: [
     "Level up. The reps are compounding, whether you feel it or not.",
     "New level reached. Cap's watching the progress.",
-    "Leveled up. That's not an accident — that's the program.",
+    "Leveled up. The program is working.",
     "New level. The work is showing.",
   ],
   firedUp: [
@@ -879,9 +879,9 @@ export const ONBOARDING_COPY = {
 
   firstCue: {
     headline: "One More Thing.",
-    subhead: "Give Cap one cue you already use — a word or phrase that locks you in. This goes straight into your Playbook.",
+    subhead: "Give Cap one cue you already use, a word or phrase that locks you in. This goes straight into your Playbook.",
     placeholder: "e.g. ATTACK / SEE IT / NEXT PITCH / STAY CLOSED",
-    skipLabel: "Skip for now — I'll add cues as I go",
+    skipLabel: "Skip for now, I'll add cues as I go",
     cta: "Lock It In",
   },
 

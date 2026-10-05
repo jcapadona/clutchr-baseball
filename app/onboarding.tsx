@@ -232,7 +232,7 @@ export default function OnboardingScreen() {
                 <View style={styles.optionList}>
                   {[
                     { val: false, label: 'Pitcher only', desc: "I don't take at-bats" },
-                    { val: true, label: 'Two-way — I also hit', desc: 'I pitch and hit' },
+                    { val: true, label: 'Two-way, I also hit', desc: 'I pitch and hit' },
                   ].map((opt) => (
                     <Pressable
                       key={String(opt.val)}
@@ -360,7 +360,7 @@ export default function OnboardingScreen() {
                 You're set, {firstName || 'Athlete'}.
               </Text>
               <Text style={styles.stepSub}>
-                {levelLabel} {roleLabel}, {seasonLabel.toLowerCase()} — your first rep is ready.
+                {levelLabel} {roleLabel}, {seasonLabel.toLowerCase()}. Your first rep is ready.
               </Text>
             </View>
           );

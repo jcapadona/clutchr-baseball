@@ -48,7 +48,7 @@ import { TopHighlight } from '@/constants/visualExtensions';
 const FREE_FEATURES = [
   { label: 'First 5 Career lessons',           included: true  },
   { label: 'Foundation pillar (full)',           included: true  },
-  { label: 'Game Mode — all pre/post tools',    included: true  },
+  { label: 'Game Mode: all pre/post tools',    included: true  },
   { label: 'Streak tracking',                   included: true  },
   { label: 'Playbook (5 cue words)',            included: true  },
   { label: 'Role-specific career path',         included: false },
@@ -88,7 +88,7 @@ const PRO_FEATURES = [
     icon: 'flash',
     color: Colors.warning,
     title: 'Priority Lesson Routing',
-    desc: 'The routing engine uses your full state — phase, phase, struggles — to pick the perfect next rep.',
+    desc: 'The routing engine uses your full state (phase, struggles) to pick the perfect next rep.',
   },
 ];
 
@@ -191,7 +191,7 @@ export default function UpgradeScreen() {
   const annualPriceNum  = (annualPkg?.product.price        as number | undefined) ?? 59.99;
   const monthlyPriceNum = (monthlyPkg?.product.price       as number | undefined) ?? 9.99;
   const currencySymbol  = annualPriceStr.replace(/[\d.,\s]/g, '')[0] ?? '$';
-  const monthlyEquivStr = `Best value — ${currencySymbol}${(annualPriceNum / 12).toFixed(2)}/mo`;
+  const monthlyEquivStr = `Best value: ${currencySymbol}${(annualPriceNum / 12).toFixed(2)}/mo`;
   const savingsPct      = Math.round((1 - annualPriceNum / (monthlyPriceNum * 12)) * 100);
   const savingsBadge    = `Save ${savingsPct}%`;
 
@@ -436,7 +436,7 @@ export default function UpgradeScreen() {
             </Text>
             <Text style={[styles.finePrintText, { marginTop: 4, color: Colors.textTertiary + 'AA' }]}>
               No dark patterns. No fake timers. No guilt trips.{'\n'}
-              Train the mind or don't — it's your career.
+              Train the mind or don't. It's your career.
             </Text>
           </View>
 
@@ -461,7 +461,7 @@ export default function UpgradeScreen() {
             <Text style={styles.ctaText}>
               {purchaseLoading
                 ? 'Processing…'
-                : `Start ${selectedPlan === 'annual' ? 'Annual' : 'Monthly'} Pro — ${selectedPlan === 'annual' ? `${annualPriceStr}/yr` : `${monthlyPriceStr}/mo`}`
+                : `Start ${selectedPlan === 'annual' ? 'Annual' : 'Monthly'} Pro: ${selectedPlan === 'annual' ? `${annualPriceStr}/yr` : `${monthlyPriceStr}/mo`}`
               }
             </Text>
           </Animated.View>

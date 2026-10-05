@@ -1460,6 +1460,10 @@ export default function CareerScreen() {
     chapterWorlds, lessonPillarIds, activeChapter, athleteRole, isTwoWay, seasonPhase, healthState, isPro
   );
 
+  // Worlds with zero published lessons are hidden at render time only. No array is
+  // re-indexed: Signal nodes are placed by SIGNAL_NODE_POSITIONS[world.id].
+  const visibleWorlds = filteredWorlds.filter(w => lessonPillarIds.includes(w.id));
+
   const activeChapterConfig = CHAPTERS.find(c => c.id === activeChapter) ?? CHAPTERS[0];
 
   // First active world with incomplete lessons (drives the subheader "WORLD N" display)
@@ -1506,7 +1510,7 @@ export default function CareerScreen() {
     if (next) {
       router.push(`/lesson/${next.id}`);
     } else {
-      Alert.alert('Coming soon', 'No lessons published in this world yet.');
+      Alert.alert('No reps yet', 'This world has no reps yet.');
     }
   }
 
@@ -1569,7 +1573,7 @@ export default function CareerScreen() {
         </ScrollView>
       ) : activeChapter === 'signal' ? (
         <SignalWorldMap
-          worlds={filteredWorlds}
+          worlds={visibleWorlds}
           lessons={lessons}
           completed={completed}
           onNodePress={handleSignalNodePress}
@@ -1615,11 +1619,11 @@ export default function CareerScreen() {
             {/* Vertical connecting line */}
             <View style={styles.connectLine} />
 
-            {filteredWorlds.length === 0 ? (
+            {visibleWorlds.length === 0 ? (
               <View style={styles.emptyChapter}>
                 <Text style={styles.emptyChapterText}>No worlds available for your role yet.</Text>
               </View>
-            ) : filteredWorlds.map((world, index) => {
+            ) : visibleWorlds.map((world, index) => {
               const worldLessons = lessons
                 .filter(l => l.pillar_id === world.id)
                 .sort((a, b) => a.order_index - b.order_index);
@@ -1652,7 +1656,7 @@ export default function CareerScreen() {
           </View>
 
           {/* ── EXPANDED WORLD LESSONS (below tower) ── */}
-          {filteredWorlds.map((world) => {
+          {visibleWorlds.map((world) => {
             if (world.lockState !== 'active' || expandedWorldId !== world.id) return null;
             const worldLessons = lessons
               .filter(l => l.pillar_id === world.id)

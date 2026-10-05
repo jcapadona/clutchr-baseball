@@ -303,7 +303,7 @@ export default function ConfidenceSlider({ data, responses, feedback, onComplete
               style={styles.submitBtnText}
               onPress={handleSubmit}
             >
-              That is my {value} — submit →
+              That is my {value}. Submit →
             </Text>
           </View>
         </View>

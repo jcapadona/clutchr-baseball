@@ -82,8 +82,8 @@ const RESULT_CONFIG: Record<PitchResult, PitchResultConfig> = {
   strike_swinging: { label: 'Strike Swinging',short: 'Ks', color: Colors.primary, strikes: 1, balls: 0, terminal: false },
   foul:            { label: 'Foul Ball',       short: 'F',  color: Colors.warning, strikes: 1, balls: 0, terminal: false },
   ball:            { label: 'Ball',            short: 'B',  color: Colors.textTertiary, strikes: 0, balls: 1, terminal: false },
-  in_play_out:     { label: 'In Play — Out',   short: 'IP', color: Colors.danger,  strikes: 0, balls: 0, terminal: true  },
-  in_play_hit:     { label: 'In Play — Hit',   short: 'H',  color: Colors.info,    strikes: 0, balls: 0, terminal: true  },
+  in_play_out:     { label: 'In Play, Out',   short: 'IP', color: Colors.danger,  strikes: 0, balls: 0, terminal: true  },
+  in_play_hit:     { label: 'In Play, Hit',   short: 'H',  color: Colors.info,    strikes: 0, balls: 0, terminal: true  },
   hit_by_pitch:    { label: 'Hit by Pitch',    short: 'HBP',color: Colors.danger,  strikes: 0, balls: 0, terminal: true  },
 };
 
@@ -436,7 +436,7 @@ export default function PitchCountBoard({ data, responses, feedback, onComplete 
           ? atBatOver
             ? `At-bat ended on pitch ${pitches.length}`
             : `${maxPitches}-pitch sequence complete`
-          : `Pitch ${pitches.length + 1} of ${maxPitches} — tap the result`}
+          : `Pitch ${pitches.length + 1} of ${maxPitches}: tap the result`}
       </Text>
 
       {/* Result buttons — hidden when done */}
