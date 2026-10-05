@@ -18,7 +18,8 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import { useAthlete } from '@/context/AthleteContext';
-import { fetchLessons } from '@/lib/supabase';
+import { fetchLessons, fetchContentCards, type ContentCard } from '@/lib/supabase';
+import { useProContext } from '@/context/ProContext';
 import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
 import {
   CategoryColor, DisplayCard, DisplayCardSm, DisplayStat, TopHighlight,
@@ -29,16 +30,20 @@ import { SkeletonBox, SkeletonCard } from '@/components/SkeletonLoader';
 import { EmblemBadge } from '@/components/EmblemBadge';
 import { getCurrentRank, getRankProgress } from '@/lib/progressionRanks';
 import {
-  ChamferPanel, CoachTake, HudRule, ProgressBar, PrimaryButton, PulseRing,
+  ChamferPanel, CoachTake, HudRule, ProgressBar, PrimaryButton,
   ScreenHeader, Skeleton, StrokeIcon, type StrokeIconName,
 } from '@/components/ui/ClutchrUI';
 import { ProgressRing } from '@/components/ProgressRing';
 import { useToast } from '@/components/Toast';
-import { updateMentalGameScore, MentalGameScoreHistory } from '@/lib/mentalGameScore';
+import { updateMentalGameScore } from '@/lib/mentalGameScore';
 
 const MISSIONS_DATE_KEY = 'missions_date';
 const MISSIONS_PROG_KEY = 'missions_progress';
 const LAST_ACTIVE_KEY = 'last_active_date';
+
+// Flip to true once the Baseball IQ runner ships; the tile then routes to /biq.
+const BIQ_RUNNER_READY = false;
+const BIQ_LESSONS_TO_UNLOCK = 3;
 
 interface MissionsProgress {
   lessonsCompleted: number;
@@ -178,38 +183,34 @@ interface TileSpec {
   label: string;
   accent: string;
   icon?: TileIconName;
-  /** 'stat' = big accent number, 'text' = 2-line display text, 'ring' = readiness ring */
-  kind: 'stat' | 'text' | 'ring';
+  /** 'stat' = big accent number, 'text' = 2-line display text */
+  kind: 'stat' | 'text';
   loading?: boolean;
   value?: string;
   /** Small, muted value used for empty states and fallbacks. */
   valueSmall?: { color: string };
   sub?: string;
   subColor?: string;
-  ringPercent?: number;
-  onPress: () => void;
+  /** Omit for an inert tile: no pressed state, no haptic, no toast. */
+  onPress?: () => void;
 }
 
 function HomeTile({ spec }: { spec: TileSpec }) {
-  const { label, accent, icon, kind, loading, value, valueSmall, sub, subColor, ringPercent } = spec;
+  const { label, accent, icon, kind, loading, value, valueSmall, sub, subColor } = spec;
 
-  const press = () => {
-    Haptics.selectionAsync().catch(() => {});
-    spec.onPress();
-  };
+  const { onPress } = spec;
+  const press = onPress
+    ? () => {
+        Haptics.selectionAsync().catch(() => {});
+        onPress();
+      }
+    : undefined;
 
-  const a11yValue = kind === 'ring' ? `${ringPercent ?? 0} percent` : value ?? '';
-  const a11y = [label, a11yValue, sub].filter(Boolean).join(', ');
+  const a11y = [label, value, sub].filter(Boolean).join(', ');
 
   let valueNode: React.ReactNode;
   if (loading) {
     valueNode = <Skeleton height={28} width="55%" />;
-  } else if (kind === 'ring') {
-    valueNode = (
-      <PulseRing percent={ringPercent ?? 0} size={56} stroke={5} ringColor={accent}>
-        <Text style={[DisplayStat, { fontSize: 16, lineHeight: 18 }]}>{value ?? '—'}</Text>
-      </PulseRing>
-    );
   } else if (valueSmall) {
     valueNode = (
       <Text style={[DisplayCardSm, { fontSize: 15, color: valueSmall.color }]} numberOfLines={2}>{value}</Text>
@@ -249,7 +250,7 @@ function HomeTile({ spec }: { spec: TileSpec }) {
       </View>
       <View style={{ gap: 2 }}>
         {valueNode}
-        {!loading && kind !== 'ring' && !!sub && (
+        {!loading && !!sub && (
           <Text style={[Typography.labelSmall, { color: subColor ?? Colors.textSecondary }]} numberOfLines={1}>
             {sub}
           </Text>
@@ -364,10 +365,12 @@ export default function HomeScreen() {
   const [routingResult, setRoutingResult] = useState<RoutingResult | null>(null);
   const [loadingLesson, setLoadingLesson] = useState(true);
   const [missions, setMissions] = useState<MissionsProgress>({ lessonsCompleted: 0, gameModeOpened: false });
-  const [mgsHistory, setMgsHistory] = useState<MentalGameScoreHistory | null>(null);
+  const [lockerCards, setLockerCards] = useState<ContentCard[] | null>(null);
+  const [lockerFailed, setLockerFailed] = useState(false);
   const [weatherTemp, setWeatherTemp] = useState<number | null>(null);
   const [weatherLabel, setWeatherLabel] = useState<string | null>(null);
   const [showWeatherModal, setShowWeatherModal] = useState(false);
+  const { isPro, isProLoading } = useProContext();
   const { showToast } = useToast();
 
   // No schedule source exists in the app yet; the tile renders its empty state.
@@ -434,6 +437,16 @@ export default function HomeScreen() {
     });
   }, [completedTodayCount]);
 
+  // Locker count — same existing query the Locker screen uses
+  useEffect(() => {
+    let cancelled = false;
+    fetchContentCards()
+      .then(data => { if (!cancelled) setLockerCards(data); })
+      .catch(() => { if (!cancelled) setLockerFailed(true); });
+    return () => { cancelled = true; };
+  }, []);
+
+  // TODO: delete this effect, lib/mentalGameScore.ts, and the clutchr_mental_game_score_v1 key when the Baseball IQ Profile card replaces the Mental Game Score on Profile.
   // Mental Game Score — recompute when rep count or streak changes
   useEffect(() => {
     if (!athleteState) return;
@@ -442,9 +455,7 @@ export default function HomeScreen() {
       repsCompletedToday: completedTodayCount,
       cuesSavedToday: playbookBuilt ? 1 : 0,
       streakActiveToday: (athleteState.streak_count ?? 0) > 0,
-    })
-      .then(setMgsHistory)
-      .catch(() => {});
+    }).catch(() => {});
   }, [completedTodayCount, athleteState?.streak_count]);
 
   // Routing engine
@@ -539,8 +550,11 @@ export default function HomeScreen() {
   const edgeLine = reason && reason.length <= 82 ? reason : 'Build command and tempo before the game speeds up.';
   const heroLine = lesson?.subtitle || edgeLine;
 
-  const mgsToday = mgsHistory?.days[mgsHistory.days.length - 1];
-  const mgsScore = mgsToday?.score;
+  const biqLessons = Math.min(athleteState.completed_lessons?.length ?? 0, BIQ_LESSONS_TO_UNLOCK);
+  const lockerCount = lockerCards
+    ? (isPro ? lockerCards : lockerCards.filter(c => !c.is_premium)).length
+    : null;
+  const lockerLoading = !lockerFailed && (lockerCards === null || isProLoading);
 
   function handleContinueCareer() {
     if (!routingResult?.lesson) return;
@@ -575,16 +589,13 @@ export default function HomeScreen() {
       onPress: () => showToast('Opponent intel is not set up yet', 'info'),
     },
     {
-      key: 'mental', label: 'Mental Game', icon: 'bolt', accent: CategoryColor.craft, kind: 'stat',
-      loading: !mgsHistory,
-      value: mgsScore !== undefined ? String(mgsScore) : '—', sub: 'SCORE',
-      onPress: () => router.push('/(tabs)/career'),
+      key: 'biq', label: 'Baseball IQ', icon: 'bolt', accent: CategoryColor.craft, kind: 'stat',
+      value: `${biqLessons}/${BIQ_LESSONS_TO_UNLOCK}`, sub: 'LESSONS TO UNLOCK',
+      onPress: BIQ_RUNNER_READY ? () => router.push('/biq' as any) : undefined,
     },
     {
-      key: 'readiness', label: 'Readiness', accent: CategoryColor.recovery, kind: 'ring',
-      loading: !mgsHistory,
-      ringPercent: mgsScore ?? 0, value: mgsScore !== undefined ? String(mgsScore) : '—',
-      onPress: () => showToast('Readiness check is not set up yet', 'info'),
+      key: 'readiness', label: 'Readiness', accent: CategoryColor.recovery, kind: 'text',
+      value: 'NO READINESS DATA', valueSmall: { color: Colors.textTertiary },
     },
     {
       key: 'film', label: 'Film Room', icon: 'film', accent: Colors.info, kind: 'text',
@@ -592,8 +603,11 @@ export default function HomeScreen() {
       onPress: handleGameModePress,
     },
     {
-      key: 'locker', label: 'Locker', icon: 'locker', accent: Colors.warning, kind: 'text',
-      value: 'Open Locker', valueSmall: { color: Colors.textSecondary },
+      key: 'locker', label: 'Locker', icon: 'locker', accent: Colors.warning, kind: 'stat',
+      loading: lockerLoading,
+      ...(lockerCount !== null
+        ? { value: String(lockerCount), sub: 'ITEMS' }
+        : { kind: 'text' as const, value: 'Open Locker', valueSmall: { color: Colors.textSecondary } }),
       onPress: () => router.push('/(tabs)/locker'),
     },
     {
