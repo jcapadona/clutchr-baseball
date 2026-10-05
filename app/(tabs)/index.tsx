@@ -691,7 +691,9 @@ export default function HomeScreen() {
               wash={0.2}
               scrim="left"
               image={require('../../assets/backgrounds/hero_night.png')}
-              contentStyle={{ minHeight: 244, padding: 16, justifyContent: 'space-between' }}
+              // zIndex lifts the content (and its button) above the panel's SVG outline overlay, which is
+              // rendered after it and can swallow touches on iOS Fabric even with pointerEvents="none".
+              contentStyle={{ minHeight: 244, padding: 16, justifyContent: 'space-between', zIndex: 1 }}
             >
               <View style={{ width: '62%', gap: 6 }}>
                 <View style={st.kickerRow}>
