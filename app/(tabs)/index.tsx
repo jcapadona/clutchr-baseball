@@ -2,190 +2,260 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import * as Location from 'expo-location';
-import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import React, { useEffect, useRef, useState } from 'react';
 import {
+  AccessibilityInfo,
   Animated,
-  Image,
+  Easing,
   Modal,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
-  useWindowDimensions,
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Svg, { Path } from 'react-native-svg';
 import { useAthlete } from '@/context/AthleteContext';
 import { fetchLessons } from '@/lib/supabase';
-import { Colors, Radius, Shadow, Spacing } from '@/constants/theme';
-import { TopHighlight } from '@/constants/visualExtensions';
+import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
+import {
+  CategoryColor, DisplayCard, DisplayCardSm, DisplayStat, TopHighlight,
+} from '@/constants/visualExtensions';
 import { Assets } from '@/constants/assets';
 import { pickNextLesson, type RoutingResult } from '@/lib/lessonRouter';
 import { SkeletonBox, SkeletonCard } from '@/components/SkeletonLoader';
 import { EmblemBadge } from '@/components/EmblemBadge';
 import { getCurrentRank, getRankProgress } from '@/lib/progressionRanks';
-import { useMicrocopy } from '@/hooks/useMicrocopy';
-import { Btn } from '@/components/ui';
-import { ScreenHeader } from '@/components/ui/ClutchrUI';
+import {
+  ChamferPanel, CoachTake, HudRule, ProgressBar, PrimaryButton, PulseRing,
+  ScreenHeader, Skeleton, StrokeIcon, type StrokeIconName,
+} from '@/components/ui/ClutchrUI';
 import { ProgressRing } from '@/components/ProgressRing';
 import { useToast } from '@/components/Toast';
-import Svg, { Path, Defs, LinearGradient as SvgLinearGradient, Stop, Circle } from 'react-native-svg';
-import {
-  updateMentalGameScore,
-  MentalGameScoreHistory,
-  MentalGameScoreDay,
-} from '@/lib/mentalGameScore';
+import { updateMentalGameScore, MentalGameScoreHistory } from '@/lib/mentalGameScore';
 
-const MISSIONS_DATE_KEY  = 'missions_date';
-const MISSIONS_PROG_KEY  = 'missions_progress';
+const MISSIONS_DATE_KEY = 'missions_date';
+const MISSIONS_PROG_KEY = 'missions_progress';
+const LAST_ACTIVE_KEY = 'last_active_date';
 
 interface MissionsProgress {
   lessonsCompleted: number;
   gameModeOpened: boolean;
 }
 
-function formatLabel(value?: string | null) {
-  if (!value) return '';
-  return value
-    .split('_')
-    .filter(Boolean)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join('-');
+// ─── LOCAL ICONS (24-grid, 2px stroke) ───────────────────────────────────────
+
+const LOCAL_ICON_PATHS = {
+  film: 'M4 5.5A1.5 1.5 0 0 1 5.5 4h13A1.5 1.5 0 0 1 20 5.5v13a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18.5v-13ZM8 4v16M16 4v16M4 9h4M4 15h4M16 9h4M16 15h4',
+  dumbbell: 'M6.5 6.5v11M17.5 6.5v11M3.5 9v6M20.5 9v6M6.5 12h11',
+  sun: 'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8ZM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',
+} as const;
+
+type LocalIconName = keyof typeof LOCAL_ICON_PATHS;
+type TileIconName = StrokeIconName | LocalIconName;
+
+function isLocalIcon(name: TileIconName): name is LocalIconName {
+  return name in LOCAL_ICON_PATHS;
 }
 
-// ─── SCORE SPARKLINE ─────────────────────────────────────────────────────────
-
-function HomeScoreSparkline({ days, positive }: { days: MentalGameScoreDay[]; positive: boolean }) {
-  const [cardWidth, setCardWidth] = useState(0);
-  const color = positive ? Colors.primary : Colors.danger;
-  const H = 80;
-  const PAD = 8;
-  const last7 = days.slice(-7);
-  const hasData = last7.length >= 2;
-
-  function buildPaths(w: number) {
-    const drawH = H - PAD * 2;
-    if (!hasData) {
-      const y = H / 2;
-      return { line: `M 0,${y} L ${w},${y}`, fill: '', dotX: w, dotY: y };
-    }
-    const scores = last7.map(d => d.score);
-    const minS = Math.min(...scores);
-    const maxS = Math.max(...scores);
-    const span = Math.max(maxS - minS, 1);
-    const pts = scores.map((s, i) => ({
-      x: (i / (scores.length - 1)) * w,
-      y: PAD + drawH - ((s - minS) / span) * drawH,
-    }));
-    let d = `M ${pts[0].x.toFixed(1)},${pts[0].y.toFixed(1)}`;
-    for (let i = 1; i < pts.length; i++) {
-      const prev = pts[i - 1];
-      const next = pts[i];
-      const cpx = (next.x - prev.x) / 3;
-      d += ` C ${(prev.x + cpx).toFixed(1)},${prev.y.toFixed(1)} ${(next.x - cpx).toFixed(1)},${next.y.toFixed(1)} ${next.x.toFixed(1)},${next.y.toFixed(1)}`;
-    }
-    const last = pts[pts.length - 1];
-    const fill = `${d} L ${last.x.toFixed(1)},${H} L ${pts[0].x.toFixed(1)},${H} Z`;
-    return { line: d, fill, dotX: last.x, dotY: last.y };
-  }
-
-  const paths = cardWidth > 0 ? buildPaths(cardWidth) : null;
-
+function TileIcon({ name, size, color }: { name: TileIconName; size: number; color: string }) {
+  if (!isLocalIcon(name)) return <StrokeIcon name={name} size={size} color={color} />;
   return (
-    <View
-      style={{ width: '100%', height: H }}
-      onLayout={e => setCardWidth(e.nativeEvent.layout.width)}
-    >
-      {paths && (
-        <Svg width={cardWidth} height={H}>
-          <Defs>
-            <SvgLinearGradient id="mgs_hm_grad" x1="0" y1="0" x2="0" y2="1">
-              <Stop offset={0} stopColor={color} stopOpacity="0.25" />
-              <Stop offset={1} stopColor={color} stopOpacity="0" />
-            </SvgLinearGradient>
-          </Defs>
-          {paths.fill ? <Path d={paths.fill} fill="url(#mgs_hm_grad)" stroke="none" /> : null}
-          <Path
-            d={paths.line}
-            fill="none"
-            stroke={color}
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          {hasData && (
-            <>
-              <Circle cx={paths.dotX} cy={paths.dotY} r={8} fill={color} opacity={0.2} />
-              <Circle cx={paths.dotX} cy={paths.dotY} r={4} fill={color} />
-            </>
-          )}
-        </Svg>
-      )}
-    </View>
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d={LOCAL_ICON_PATHS[name]}
+        stroke={color} strokeWidth={2} fill="none"
+        strokeLinecap="round" strokeLinejoin="round"
+      />
+    </Svg>
   );
 }
 
-// ─── GRID CARD ───────────────────────────────────────────────────────────────
+// ─── REVEAL (mount-only entrance) ────────────────────────────────────────────
 
-interface GridCardProps {
-  title: string;
-  subtitle?: string;
-  icon: keyof typeof Ionicons.glyphMap;
-  onPress: () => void;
-  backgroundImage?: ReturnType<typeof require>;
+function Reveal({ index, children }: { index: number; children: React.ReactNode }) {
+  const v = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    let cancelled = false;
+    let anim: Animated.CompositeAnimation | null = null;
+    AccessibilityInfo.isReduceMotionEnabled()
+      .then(reduce => {
+        if (cancelled) return;
+        if (reduce) { v.setValue(1); return; }
+        anim = Animated.timing(v, {
+          toValue: 1, duration: 260, delay: index * 60,
+          easing: Easing.out(Easing.cubic), useNativeDriver: true,
+        });
+        anim.start();
+      })
+      .catch(() => { if (!cancelled) v.setValue(1); });
+    return () => { cancelled = true; anim?.stop(); };
+  }, [v, index]);
+
+  return (
+    <Animated.View
+      style={{
+        opacity: v,
+        transform: [{ translateY: v.interpolate({ inputRange: [0, 1], outputRange: [14, 0] }) }],
+      }}
+    >
+      {children}
+    </Animated.View>
+  );
 }
 
-function GridCard({ title, subtitle, icon, onPress, backgroundImage }: GridCardProps) {
-  const scale = useRef(new Animated.Value(1)).current;
+// ─── PULSING DOT ─────────────────────────────────────────────────────────────
 
-  function handlePressIn() {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-    Animated.spring(scale, { toValue: 0.96, useNativeDriver: true, tension: 200, friction: 10 }).start();
-  }
+function PulseDot() {
+  const o = useRef(new Animated.Value(1)).current;
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(o, { toValue: 0.35, duration: 900, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
+        Animated.timing(o, { toValue: 1, duration: 900, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
+      ]),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [o]);
+  return <Animated.View style={[st.dot, { opacity: o }]} />;
+}
 
-  function handlePressOut() {
-    Animated.spring(scale, { toValue: 1, useNativeDriver: true, tension: 200, friction: 10 }).start();
+// ─── UPCOMING GAME COUNTDOWN ─────────────────────────────────────────────────
+
+interface NextGame {
+  startsAt: Date;
+  opponent?: string | null;
+}
+
+const WEEKDAYS = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+
+function startOfDay(d: Date) {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+}
+
+function describeGame(game: NextGame, now: Date): { value: string; sub: string } {
+  const start = game.startsAt;
+  const dayDiff = Math.round((startOfDay(start) - startOfDay(now)) / 86400000);
+  const msAway = start.getTime() - now.getTime();
+
+  let value: string;
+  if (dayDiff <= 0) {
+    if (msAway <= 0) value = 'GAME TIME';
+    else {
+      const mins = Math.floor(msAway / 60000);
+      value = mins < 60 ? `IN ${Math.max(mins, 1)}M` : `IN ${Math.floor(mins / 60)}H ${mins % 60}M`;
+    }
+  } else if (dayDiff === 1) value = 'TOMORROW';
+  else value = `IN ${dayDiff} DAYS`;
+
+  const h = start.getHours();
+  const m = String(start.getMinutes()).padStart(2, '0');
+  const time = `${h % 12 === 0 ? 12 : h % 12}:${m} ${h >= 12 ? 'PM' : 'AM'}`;
+  const day = dayDiff === 0 ? 'TODAY' : WEEKDAYS[start.getDay()];
+  const opp = game.opponent?.trim();
+  return { value, sub: `${day} · ${time}${opp ? ` · VS ${opp.toUpperCase()}` : ''}` };
+}
+
+function useNow(enabled: boolean) {
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    if (!enabled) return;
+    setNow(new Date());
+    const id = setInterval(() => setNow(new Date()), 60000);
+    return () => clearInterval(id);
+  }, [enabled]);
+  return now;
+}
+
+// ─── HOME TILE ───────────────────────────────────────────────────────────────
+
+interface TileSpec {
+  key: string;
+  label: string;
+  accent: string;
+  icon?: TileIconName;
+  /** 'stat' = big accent number, 'text' = 2-line display text, 'ring' = readiness ring */
+  kind: 'stat' | 'text' | 'ring';
+  loading?: boolean;
+  value?: string;
+  /** Small, muted value used for empty states and fallbacks. */
+  valueSmall?: { color: string };
+  sub?: string;
+  subColor?: string;
+  ringPercent?: number;
+  onPress: () => void;
+}
+
+function HomeTile({ spec }: { spec: TileSpec }) {
+  const { label, accent, icon, kind, loading, value, valueSmall, sub, subColor, ringPercent } = spec;
+
+  const press = () => {
+    Haptics.selectionAsync().catch(() => {});
+    spec.onPress();
+  };
+
+  const a11yValue = kind === 'ring' ? `${ringPercent ?? 0} percent` : value ?? '';
+  const a11y = [label, a11yValue, sub].filter(Boolean).join(', ');
+
+  let valueNode: React.ReactNode;
+  if (loading) {
+    valueNode = <Skeleton height={28} width="55%" />;
+  } else if (kind === 'ring') {
+    valueNode = (
+      <PulseRing percent={ringPercent ?? 0} size={56} stroke={5} ringColor={accent}>
+        <Text style={[DisplayStat, { fontSize: 16, lineHeight: 18 }]}>{value ?? '—'}</Text>
+      </PulseRing>
+    );
+  } else if (valueSmall) {
+    valueNode = (
+      <Text style={[DisplayCardSm, { fontSize: 15, color: valueSmall.color }]} numberOfLines={2}>{value}</Text>
+    );
+  } else if (kind === 'text') {
+    valueNode = (
+      <Text style={[DisplayCardSm, { fontSize: 16, color: Colors.textPrimary }]} numberOfLines={2}>{value}</Text>
+    );
+  } else {
+    valueNode = (
+      <Text
+        style={[DisplayStat, { fontSize: 28, lineHeight: 30, color: accent }]}
+        numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}
+      >
+        {value}
+      </Text>
+    );
   }
 
   return (
-    <Animated.View style={[gc.wrapper, { transform: [{ scale }] }]}>
-      <Pressable
-        style={[gc.card, backgroundImage && gc.cardPhoto]}
-        onPress={onPress}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
-      >
-        {backgroundImage && (
-          <>
-            <Image
-              pointerEvents="none"
-              source={backgroundImage}
-              style={StyleSheet.absoluteFill}
-              resizeMode="cover"
-            />
-            <LinearGradient
-              pointerEvents="none"
-              colors={['rgba(0,0,0,0.08)', 'rgba(0,0,0,0.72)']}
-              style={StyleSheet.absoluteFill}
-              start={{ x: 0.5, y: 0 }}
-              end={{ x: 0.5, y: 1 }}
-            />
-          </>
+    <ChamferPanel
+      accent={accent}
+      cut={10}
+      onPress={press}
+      accessibilityLabel={a11y}
+      style={{ flex: 1 }}
+      contentStyle={{ minHeight: 116, padding: 14, justifyContent: 'space-between' }}
+    >
+      <View style={st.tileTop}>
+        {!!icon && <TileIcon name={icon} size={18} color={accent} />}
+        <Text
+          style={[Typography.labelSmall, st.tileLabel]}
+          numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}
+        >
+          {label}
+        </Text>
+      </View>
+      <View style={{ gap: 2 }}>
+        {valueNode}
+        {!loading && kind !== 'ring' && !!sub && (
+          <Text style={[Typography.labelSmall, { color: subColor ?? Colors.textSecondary }]} numberOfLines={1}>
+            {sub}
+          </Text>
         )}
-        <View style={gc.iconBox}>
-          <Ionicons name={icon} size={15} color={Colors.primary} />
-        </View>
-        <Text style={gc.title} numberOfLines={1}>{title}</Text>
-        {subtitle ? (
-          <Text style={gc.subtitle} numberOfLines={2}>{subtitle}</Text>
-        ) : null}
-        <View style={gc.chevronRow}>
-          <Ionicons name="chevron-forward" size={11} color={Colors.primary} />
-        </View>
-      </Pressable>
-    </Animated.View>
+      </View>
+    </ChamferPanel>
   );
 }
 
@@ -251,9 +321,7 @@ const wm = StyleSheet.create({
     alignSelf: 'center',
     marginBottom: 24,
   },
-  icon: {
-    marginBottom: 12,
-  },
+  icon: { marginBottom: 12 },
   temp: {
     fontSize: 72,
     fontFamily: 'Inter_700Bold',
@@ -289,58 +357,35 @@ const wm = StyleSheet.create({
 
 // ─── SCREEN ──────────────────────────────────────────────────────────────────
 
-const LAST_ACTIVE_KEY = 'last_active_date';
-
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
-  const { height: screenHeight } = useWindowDimensions();
   const { athleteState, isLoading, completedTodayCount, updateAthleteState } = useAthlete();
 
-  const [routingResult, setRoutingResult]   = useState<RoutingResult | null>(null);
-  const [loadingLesson, setLoadingLesson]   = useState(true);
-  const [missions, setMissions]             = useState<MissionsProgress>({ lessonsCompleted: 0, gameModeOpened: false });
-  const [isReturn, setIsReturn]             = useState(false);
-  const [mgsHistory, setMgsHistory]         = useState<MentalGameScoreHistory | null>(null);
-  const [weatherTemp, setWeatherTemp]       = useState<number | null>(null);
-  const [weatherLabel, setWeatherLabel]     = useState<string | null>(null);
+  const [routingResult, setRoutingResult] = useState<RoutingResult | null>(null);
+  const [loadingLesson, setLoadingLesson] = useState(true);
+  const [missions, setMissions] = useState<MissionsProgress>({ lessonsCompleted: 0, gameModeOpened: false });
+  const [mgsHistory, setMgsHistory] = useState<MentalGameScoreHistory | null>(null);
+  const [weatherTemp, setWeatherTemp] = useState<number | null>(null);
+  const [weatherLabel, setWeatherLabel] = useState<string | null>(null);
   const [showWeatherModal, setShowWeatherModal] = useState(false);
-  const microcopy = useMicrocopy();
   const { showToast } = useToast();
-  // TODO: wire isGameDay from AthleteState or schedule data (added during game-mode prompt)
-  const isGameDay = false;
-  const greetingRef = useRef<string | null>(null);
 
-  const anim1 = useRef(new Animated.Value(0)).current;
-  const anim2 = useRef(new Animated.Value(0)).current;
-  const anim3 = useRef(new Animated.Value(0)).current;
-  const anim4 = useRef(new Animated.Value(0)).current;
-  const anim5 = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    Animated.stagger(70, [
-      Animated.spring(anim1, { toValue: 1, tension: 80, friction: 11, useNativeDriver: true }),
-      Animated.spring(anim2, { toValue: 1, tension: 80, friction: 11, useNativeDriver: true }),
-      Animated.spring(anim3, { toValue: 1, tension: 80, friction: 11, useNativeDriver: true }),
-      Animated.spring(anim4, { toValue: 1, tension: 80, friction: 11, useNativeDriver: true }),
-      Animated.spring(anim5, { toValue: 1, tension: 80, friction: 11, useNativeDriver: true }),
-    ]).start();
-  }, []);
+  // No schedule source exists in the app yet; the tile renders its empty state.
+  const nextGame = null as NextGame | null;
+  const now = useNow(!!nextGame);
 
   // Weather — live location + Open-Meteo
   useEffect(() => {
     (async () => {
       try {
         const { status } = await Location.requestForegroundPermissionsAsync();
-        console.log('[Weather] permission status:', status);
         if (status !== 'granted') { setWeatherLabel('Unavailable'); return; }
         const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Lowest });
-        console.log('[Weather] coords:', loc.coords.latitude, loc.coords.longitude);
         const { latitude: lat, longitude: lon } = loc.coords;
         const res = await fetch(
           `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&temperature_unit=fahrenheit`
         );
         const data = await res.json();
-        console.log('[Weather] raw response:', JSON.stringify(data));
         const temp = Math.round(data.current_weather.temperature);
         const code = data.current_weather.weathercode as number;
         let label = 'Clear';
@@ -352,24 +397,15 @@ export default function HomeScreen() {
         else if (code === 95)              label = 'Stormy';
         setWeatherTemp(temp);
         setWeatherLabel(label);
-      } catch (err) {
-        console.log('[Weather] error:', err);
+      } catch {
         setWeatherLabel('Unavailable');
       }
     })();
   }, []);
 
-  // Track return status and stamp last_active_date
+  // Stamp last_active_date
   useEffect(() => {
-    (async () => {
-      const today = new Date().toISOString().slice(0, 10);
-      const last = await AsyncStorage.getItem(LAST_ACTIVE_KEY);
-      if (last) {
-        const dayGap = Math.round((new Date(today).getTime() - new Date(last).getTime()) / 86400000);
-        if (dayGap >= 3) setIsReturn(true);
-      }
-      await AsyncStorage.setItem(LAST_ACTIVE_KEY, today);
-    })();
+    AsyncStorage.setItem(LAST_ACTIVE_KEY, new Date().toISOString().slice(0, 10)).catch(() => {});
   }, []);
 
   // Daily missions — reset on new day, hydrate from storage
@@ -411,31 +447,6 @@ export default function HomeScreen() {
       .catch(() => {});
   }, [completedTodayCount, athleteState?.streak_count]);
 
-  // DEV ONLY: seed 7 days of sample history so the sparkline curve is visible during development
-  useEffect(() => {
-    if (!__DEV__ || !mgsHistory || mgsHistory.days.length >= 3) return;
-    const today = new Date();
-    const seedScores = [58, 59, 60, 59, 61, 62, 63];
-    setMgsHistory(prev => {
-      if (!prev) return prev;
-      return {
-        ...prev,
-        days: seedScores.map((score, i) => {
-          const d = new Date(today);
-          d.setDate(d.getDate() - (6 - i));
-          return {
-            date: d.toISOString().slice(0, 10),
-            score,
-            delta: i === 0 ? 0 : score - seedScores[i - 1],
-            reps_completed: 1,
-            cues_saved: 0,
-            streak_active: true,
-          };
-        }),
-      };
-    });
-  }, [mgsHistory?.days.length]);
-
   // Routing engine
   useEffect(() => {
     if (!athleteState) return;
@@ -470,16 +481,12 @@ export default function HomeScreen() {
     checkGM();
   }, []);
 
-  const lessonsToday    = completedTodayCount;
-  const mission1Progress = Math.min(lessonsToday, 2);
-  const mission1Done    = mission1Progress >= 2;
-  const mission2Progress = gmDoneToday ? 1 : 0;
-  const mission2Done    = gmDoneToday;
+  const mission1Done = Math.min(completedTodayCount, 2) >= 2;
+  const mission2Done = gmDoneToday;
 
   useEffect(() => {
     if (!athleteState || !mission1Done) return;
-    const today = new Date().toDateString();
-    const key = `mission1_awarded_${today}`;
+    const key = `mission1_awarded_${new Date().toDateString()}`;
     (async () => {
       const already = await AsyncStorage.getItem(key);
       if (already) return;
@@ -490,8 +497,7 @@ export default function HomeScreen() {
 
   useEffect(() => {
     if (!athleteState || !mission2Done) return;
-    const today = new Date().toDateString();
-    const key = `mission2_awarded_${today}`;
+    const key = `mission2_awarded_${new Date().toDateString()}`;
     (async () => {
       const already = await AsyncStorage.getItem(key);
       if (already) return;
@@ -500,19 +506,19 @@ export default function HomeScreen() {
     })();
   }, [mission2Done]);
 
-  const totalXp     = athleteState?.total_xp ?? 0;
+  const totalXp = athleteState?.total_xp ?? 0;
   const currentRank = getCurrentRank(totalXp);
   const rankProgress = getRankProgress(totalXp);
-  const streak      = athleteState?.streak_count ?? 0;
+  const streak = athleteState?.streak_count ?? 0;
 
   if (isLoading || !athleteState) {
     return (
-      <View style={s.container}>
+      <View style={st.container}>
         <View style={{ paddingTop: insets.top }}>
           <ScreenHeader logo={Assets.branding.mainWordmark} />
         </View>
         <ScrollView
-          contentContainerStyle={[s.scroll, { paddingBottom: insets.bottom + 140 }]}
+          contentContainerStyle={[st.skeletonScroll, { paddingBottom: insets.bottom + 100 }]}
           showsVerticalScrollIndicator={false}
         >
           <SkeletonBox width="55%" height={20} radius={6} />
@@ -528,31 +534,13 @@ export default function HomeScreen() {
     );
   }
 
-  const roleLabel    = athleteState.primary_role
-    ? athleteState.primary_role.charAt(0).toUpperCase() + athleteState.primary_role.slice(1)
-    : 'Player';
-  const phaseLabel   = formatLabel(athleteState.season_phase) || 'Train';
-  const lesson       = routingResult?.lesson ?? null;
-  const reason       = routingResult?.reason ?? '';
-  const heroSubtitle = lesson?.subtitle || 'Command, tempo, and mound IQ.';
-  const firstName    = athleteState.first_name?.trim();
-  if (greetingRef.current === null) {
-    greetingRef.current = microcopy.useHomeGreeting({ isGameDay, isReturn });
-  }
-  const planTitle    = greetingRef.current;
-  const planSubtitle = firstName ? `${firstName} · ${phaseLabel} · ${roleLabel}` : `${phaseLabel} · ${roleLabel} · Next rep loaded`;
-  const edgeLine     = reason && reason.length <= 82 ? reason : 'Build command and tempo before the game speeds up.';
-  const repsProgressPercent  = `${(mission1Progress / 2) * 100}%`;
-  const resetProgressPercent = `${mission2Progress * 100}%`;
-  const earnedMissionXp = (mission1Done ? 30 : 0) + (mission2Done ? 15 : 0);
+  const lesson = routingResult?.lesson ?? null;
+  const reason = routingResult?.reason ?? '';
+  const edgeLine = reason && reason.length <= 82 ? reason : 'Build command and tempo before the game speeds up.';
+  const heroLine = lesson?.subtitle || edgeLine;
 
-  const mgsToday      = mgsHistory?.days[mgsHistory.days.length - 1];
-  const mgsScore      = mgsToday?.score ?? 60;
-  const mgsDelta      = mgsToday?.delta ?? 0;
-  const mgsIsPositive = mgsDelta >= 0;
-
-  // Hero pill computed subtitles
-  const edgeSubtitle = ((athleteState as any)?.playbook?.focus ?? '').slice(0, 20) || 'Stay locked';
+  const mgsToday = mgsHistory?.days[mgsHistory.days.length - 1];
+  const mgsScore = mgsToday?.score;
 
   function handleContinueCareer() {
     if (!routingResult?.lesson) return;
@@ -567,19 +555,67 @@ export default function HomeScreen() {
     router.push('/(tabs)/gamemode');
   }
 
-  const animCard = (anim: Animated.Value, child: React.ReactNode) => (
-    <Animated.View style={{
-      opacity: anim,
-      transform: [{ translateY: anim.interpolate({ inputRange: [0, 1], outputRange: [12, 0] }) }],
-    }}>
-      {child}
-    </Animated.View>
-  );
+  // ── Tile specs — reorder the grid by moving an entry. Rows are consecutive pairs. ──
+  const game = nextGame ? describeGame(nextGame, now) : null;
+  const weatherReady = weatherLabel !== null;
+  const weatherOk = weatherTemp !== null && weatherLabel !== null && weatherLabel !== 'Unavailable';
+
+  const tiles: TileSpec[] = [
+    {
+      key: 'game', label: 'Upcoming Game', icon: 'calendar', accent: CategoryColor.compete, kind: 'stat',
+      ...(game
+        ? { value: game.value, sub: game.sub }
+        : { value: 'NO GAME SCHEDULED', valueSmall: { color: Colors.textTertiary }, sub: 'TAP TO ADD', subColor: CategoryColor.compete }),
+      onPress: () => showToast('Game scheduling is not set up yet', 'info'),
+    },
+    {
+      key: 'intel', label: 'Opponent Intel', icon: 'crosshair', accent: CategoryColor.signal, kind: 'text',
+      value: 'NO INTEL YET', valueSmall: { color: Colors.textTertiary },
+      sub: 'TAP TO BUILD', subColor: CategoryColor.signal,
+      onPress: () => showToast('Opponent intel is not set up yet', 'info'),
+    },
+    {
+      key: 'mental', label: 'Mental Game', icon: 'bolt', accent: CategoryColor.craft, kind: 'stat',
+      loading: !mgsHistory,
+      value: mgsScore !== undefined ? String(mgsScore) : '—', sub: 'SCORE',
+      onPress: () => router.push('/(tabs)/career'),
+    },
+    {
+      key: 'readiness', label: 'Readiness', accent: CategoryColor.recovery, kind: 'ring',
+      loading: !mgsHistory,
+      ringPercent: mgsScore ?? 0, value: mgsScore !== undefined ? String(mgsScore) : '—',
+      onPress: () => showToast('Readiness check is not set up yet', 'info'),
+    },
+    {
+      key: 'film', label: 'Film Room', icon: 'film', accent: Colors.info, kind: 'text',
+      value: 'Game Prep', valueSmall: { color: Colors.textSecondary },
+      onPress: handleGameModePress,
+    },
+    {
+      key: 'locker', label: 'Locker', icon: 'locker', accent: Colors.warning, kind: 'text',
+      value: 'Open Locker', valueSmall: { color: Colors.textSecondary },
+      onPress: () => router.push('/(tabs)/locker'),
+    },
+    {
+      key: 'weight', label: 'Weight Room', icon: 'dumbbell', accent: Colors.orange, kind: 'text',
+      value: 'Strength · Power', valueSmall: { color: Colors.textSecondary },
+      onPress: () => showToast('Strength tools are not set up yet', 'info'),
+    },
+    {
+      key: 'weather', label: 'Weather', icon: 'sun', accent: CategoryColor.signal, kind: 'stat',
+      loading: !weatherReady,
+      value: weatherOk ? `${weatherTemp}°` : '—',
+      sub: weatherOk ? weatherLabel!.toUpperCase() : undefined,
+      onPress: () => setShowWeatherModal(true),
+    },
+  ];
+
+  const tileRows: TileSpec[][] = [];
+  for (let i = 0; i < tiles.length; i += 2) tileRows.push(tiles.slice(i, i + 2));
 
   return (
-    <View style={s.container}>
+    <View style={st.container}>
 
-      {/* ── HEADER ── */}
       <View style={{ paddingTop: insets.top }}>
         <ScreenHeader
           logo={Assets.branding.mainWordmark}
@@ -605,169 +641,82 @@ export default function HomeScreen() {
       </View>
 
       <ScrollView
-        contentContainerStyle={[s.scroll, { paddingBottom: insets.bottom + 120 }]}
+        contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
         showsVerticalScrollIndicator={false}
-        scrollEnabled
       >
-
-        {/* ── 1. CONTINUE CAREER CARD ── */}
-        {animCard(anim2,
-          <Pressable
-            style={({ pressed }) => [c.card, { height: 240 }, pressed && { opacity: 0.95, transform: [{ scale: 0.992 }] }]}
-            onPress={handleContinueCareer}
-            disabled={loadingLesson || !lesson}
-          >
-            <Image
-              pointerEvents="none"
-              source={Assets.backgrounds.heroNight}
-              style={{ position: 'absolute', top: 0, bottom: 0, right: 0, aspectRatio: 1672 / 941 }}
-              resizeMode="cover"
-            />
-            <LinearGradient
-              pointerEvents="none"
-              colors={['rgba(0,0,0,0.12)', 'rgba(0,0,0,0.80)']}
-              style={StyleSheet.absoluteFill}
-              start={{ x: 0.5, y: 0 }}
-              end={{ x: 0.5, y: 1 }}
-            />
-            <View style={c.nextRepBadge}>
-              <View style={c.greenDot} />
-              <Text style={c.nextRepText}>NEXT REP</Text>
-            </View>
-
-            {loadingLesson ? (
-              <>
-                <View style={[c.skeleton, { width: '85%', height: 28, marginTop: 18 }]} />
-                <View style={[c.skeleton, { width: '60%', height: 16, marginTop: 8 }]} />
-              </>
-            ) : (
-              <Text style={c.lessonTitle} numberOfLines={2}>
-                {lesson?.title ?? 'Control the Controllables'}
-              </Text>
-            )}
-
-            <View style={c.edgeNote}>
-              <Text style={c.edgeLabel}>TODAY'S EDGE</Text>
-              <Text style={c.edgeText} numberOfLines={2}>{edgeLine}</Text>
-            </View>
-
-            <View style={c.rankMini}>
-              <EmblemBadge rank={currentRank} size="small" />
-              <View style={c.rankMiniCopy}>
-                <Text style={c.rankMiniText}>{currentRank.name}</Text>
-                <Text style={c.rankMiniSub}>{rankProgress.nextRank ? `Next rank: ${rankProgress.nextRank.name}` : 'Elite standard held'}</Text>
+        {/* ── HERO ── */}
+        <Reveal index={0}>
+          <View style={st.inset}>
+            <ChamferPanel
+              active
+              cut={16}
+              wash={0.2}
+              scrim="left"
+              image={require('../../assets/backgrounds/hero_night.png')}
+              contentStyle={{ minHeight: 244, padding: 16, justifyContent: 'space-between' }}
+            >
+              <View style={{ width: '62%', gap: 6 }}>
+                <View style={st.kickerRow}>
+                  <PulseDot />
+                  <Text style={[Typography.labelSmall, { letterSpacing: 3, color: Colors.primary }]}>NEXT REP</Text>
+                </View>
+                {loadingLesson ? (
+                  <>
+                    <Skeleton height={24} width="85%" />
+                    <Skeleton height={14} width="60%" />
+                  </>
+                ) : (
+                  <>
+                    <Text style={[DisplayCard, { color: Colors.white }]} numberOfLines={2}>
+                      {lesson?.title ?? 'Control the Controllables'}
+                    </Text>
+                    <Text style={[Typography.bodySmall, { color: Colors.textSecondary }]} numberOfLines={1}>
+                      {heroLine}
+                    </Text>
+                  </>
+                )}
+                <View style={st.rankRow}>
+                  <EmblemBadge rank={currentRank} size="small" />
+                  <View style={{ flex: 1, gap: 2 }}>
+                    <Text style={[Typography.labelSmall, { color: Colors.textPrimary }]} numberOfLines={1}>
+                      {currentRank.name}
+                    </Text>
+                    <Text style={[Typography.labelSmall, { color: Colors.textSecondary }]} numberOfLines={1}>
+                      {rankProgress.nextRank ? `NEXT: ${rankProgress.nextRank.name.toUpperCase()}` : 'ELITE STANDARD HELD'}
+                    </Text>
+                    {!!rankProgress.nextRank && (
+                      <ProgressBar percent={rankProgress.progressToNextRank * 100} height={3} />
+                    )}
+                  </View>
+                </View>
               </View>
-            </View>
-
-            {!isGameDay && (
-              <Pressable
-                style={({ pressed }) => [c.ctaBtn, pressed && { opacity: 0.9 }]}
-                onPress={handleContinueCareer}
-                disabled={loadingLesson || !lesson}
-              >
-                <Text style={c.ctaBtnText}>Start Next Rep →</Text>
-              </Pressable>
-            )}
-          </Pressable>
-        )}
-
-        {/* ── 2. COMMAND CENTER GRID ── */}
-        <Animated.View style={{ opacity: anim1 }}>
-          <View style={g.section}>
-            <Text style={g.label}>COMMAND CENTER</Text>
-
-            {/* Row 1 — Upcoming Game + Opponent Intel */}
-            <View style={g.row}>
-              <GridCard
-                title="Upcoming Game"
-                subtitle="TODAY · 7:00 PM"
-                icon="calendar-outline"
-                backgroundImage={Assets.backgrounds.compete}
-                onPress={() => showToast('Coming soon — schedule', 'info')}
-              />
-              <GridCard
-                title="Opponent Intel"
-                subtitle="Aggressive early."
-                icon="locate-outline"
-                backgroundImage={Assets.backgrounds.opponentIntel}
-                onPress={() => showToast('Coming soon — opponent intel', 'info')}
-              />
-            </View>
-
-            {/* Row 2 — Locker + Film Room */}
-            <View style={g.row}>
-              <GridCard
-                title="Locker"
-                subtitle="Open Locker"
-                icon="book-outline"
-                backgroundImage={Assets.backgrounds.lockerRoom}
-                onPress={() => router.push('/(tabs)/locker')}
-              />
-              <GridCard
-                title="Film Room"
-                subtitle="Game Prep"
-                icon="film-outline"
-                backgroundImage={Assets.backgrounds.yourCraft}
-                onPress={handleGameModePress}
-              />
-            </View>
-
-            {/* Row 3 — Weight Room + Your Edge */}
-            <View style={g.row}>
-              <GridCard
-                title="Weight Room"
-                subtitle="Strength · Power"
-                icon="barbell-outline"
-                backgroundImage={Assets.backgrounds.theGrind}
-                onPress={() => showToast('Coming soon — strength tools', 'info')}
-              />
-              <GridCard
-                title="Your Edge"
-                subtitle={edgeSubtitle}
-                icon="star-outline"
-                onPress={() => {
-                  if ((athleteState as any)?.playbook?.built_at) {
-                    router.push('/(tabs)/locker');
-                  } else {
-                    showToast('Build your playbook in a lesson', 'info');
-                  }
-                }}
-              />
-            </View>
-
-            {/* Row 4 — Readiness + Weather */}
-            <View style={g.row}>
-              <GridCard
-                title="Readiness"
-                subtitle={`MGS · ${mgsScore}`}
-                icon="checkmark-circle-outline"
-                onPress={() => showToast('Coming soon — readiness check', 'info')}
-              />
-              <GridCard
-                title="Weather"
-                subtitle={weatherTemp !== null && weatherLabel !== null ? `${weatherTemp}° · ${weatherLabel}` : weatherLabel === 'Unavailable' ? 'Unavailable' : 'Checking...'}
-                icon="sunny-outline"
-                onPress={() => setShowWeatherModal(true)}
-              />
-            </View>
+              <PrimaryButton label="Start Next Rep" arrow onPress={handleContinueCareer} />
+            </ChamferPanel>
           </View>
-        </Animated.View>
+        </Reveal>
 
-        {/* ── 3. COACH C QUOTE ── */}
-        {animCard(anim3,
-          <View style={s.quoteCard}>
-            <Text style={s.quoteText}>Trust your work.{'\n'}Win the next pitch.</Text>
-            <Text style={s.quoteAttrib}>— Coach C</Text>
-          </View>
-        )}
+        <View style={{ height: 20 }} />
+        <HudRule>COMMAND CENTER</HudRule>
 
-        {/* ── 5. START GAME PREP CTA (game day only) ── */}
-        {isGameDay && (
-          <View style={s.gameCtaWrap}>
-            <Btn label="START GAME PREP" onPress={handleGameModePress} />
-          </View>
-        )}
+        {/* ── TILE GRID ── */}
+        <View style={{ gap: 12 }}>
+          {tileRows.map((row, i) => (
+            <Reveal key={row.map(t => t.key).join('-')} index={i + 1}>
+              <View style={[st.inset, st.tileRow]}>
+                {row.map(spec => <HomeTile key={spec.key} spec={spec} />)}
+              </View>
+            </Reveal>
+          ))}
+        </View>
 
+        <View style={{ height: 16 }} />
+        <Reveal index={5}>
+          <CoachTake
+            style={st.inset}
+            text="Trust your work. Win the next pitch."
+            avatar={require('../../assets/coach-cap/circular-avatar.png')}
+          />
+        </Reveal>
       </ScrollView>
 
       <WeatherModal
@@ -781,277 +730,14 @@ export default function HomeScreen() {
   );
 }
 
-// ─── GRID CARD STYLES ────────────────────────────────────────────────────────
-
-const gc = StyleSheet.create({
-  wrapper: {
-    flex: 1,
-  },
-  card: {
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: 'rgba(245,245,245,0.10)',
-    borderRadius: Radius.lg,
-    padding: Spacing.sm,
-    height: 130,
-    justifyContent: 'space-between',
-    overflow: 'hidden',
-  },
-  cardPhoto: {
-    borderTopColor: TopHighlight,
-  },
-  iconBox: {
-    width: 28,
-    height: 28,
-    borderRadius: Radius.md,
-    backgroundColor: Colors.primary + '14',
-    borderWidth: 1,
-    borderColor: Colors.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  title: {
-    color: Colors.textPrimary,
-    fontSize: 12,
-    fontFamily: 'Inter_700Bold',
-    marginTop: Spacing.xs,
-  },
-  subtitle: {
-    color: Colors.textSecondary,
-    fontSize: 11,
-    fontFamily: 'Inter_400Regular',
-    lineHeight: 15,
-    flex: 1,
-  },
-  chevronRow: { alignItems: 'flex-end' },
-});
-
-// ─── GRID SECTION STYLES ─────────────────────────────────────────────────────
-
-const g = StyleSheet.create({
-  section: {
-    marginHorizontal: Spacing.lg,
-    gap: Spacing.sm,
-  },
-  label: {
-    color: Colors.textTertiary,
-    fontSize: 10,
-    fontFamily: 'Inter_700Bold',
-    letterSpacing: 2.5,
-    textAlign: 'center',
-    marginBottom: 2,
-  },
-  row: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
-  },
-});
-
-// ─── SCREEN STYLES ────────────────────────────────────────────────────────────
-
-const s = StyleSheet.create({
+const st = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
-  scroll: { paddingTop: 0, gap: Spacing.sm },
-
-
-  // ── Mental Game Score ──
-  mgsSection: { marginHorizontal: Spacing.lg },
-  mgsCard: {
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderTopColor: TopHighlight,
-    borderRadius: Radius.xl,
-    padding: Spacing.lg,
-    gap: Spacing.sm,
-  },
-  mgsKicker: {
-    color: Colors.primary,
-    fontSize: 9,
-    fontFamily: 'Inter_700Bold',
-    letterSpacing: 2.2,
-    marginBottom: 4,
-  },
-  mgsTopRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  mgsScoreRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-    marginTop: 2,
-  },
-  mgsScoreNum: {
-    fontSize: 48,
-    fontFamily: 'Inter_700Bold',
-    color: Colors.textPrimary,
-    lineHeight: 52,
-  },
-  mgsDeltaPill: {
-    paddingHorizontal: 7,
-    paddingVertical: 3,
-    borderRadius: Radius.pill,
-    borderWidth: 1,
-  },
-  mgsDeltaPos: {
-    backgroundColor: Colors.primaryMuted,
-    borderColor: Colors.border,
-  },
-  mgsDeltaNeg: {
-    backgroundColor: Colors.danger + '12',
-    borderColor: Colors.danger + '30',
-  },
-  mgsDeltaText: {
-    fontSize: 11,
-    fontFamily: 'Inter_600SemiBold',
-  },
-  mgsSub: {
-    fontSize: 11,
-    fontFamily: 'Inter_400Regular',
-    color: Colors.textTertiary,
-  },
-
-  // ── Coach C Quote ──
-  quoteCard: {
-    marginHorizontal: Spacing.lg,
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: Radius.xl,
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
-  },
-  quoteMark: {
-    color: Colors.primary,
-    fontSize: 44,
-    fontFamily: 'Inter_700Bold',
-    lineHeight: 44,
-    marginBottom: -Spacing.md,
-  },
-  quoteText: {
-    color: Colors.textPrimary,
-    fontSize: 16,
-    fontFamily: 'Inter_700Bold',
-    fontStyle: 'italic',
-    lineHeight: 22,
-    letterSpacing: -0.3,
-  },
-  quoteAttrib: {
-    color: Colors.primary,
-    fontSize: 13,
-    fontFamily: 'Inter_600SemiBold',
-    marginTop: Spacing.sm,
-  },
-
-  // ── Game Day CTA ──
-  gameCtaWrap: {
-    marginHorizontal: Spacing.lg,
-    marginTop: Spacing.sm,
-  },
-});
-
-// ─── CONTINUE CAREER CARD STYLES ─────────────────────────────────────────────
-
-const c = StyleSheet.create({
-  card: {
-    position: 'relative',
-    overflow: 'hidden',
-    marginHorizontal: Spacing.lg,
-    backgroundColor: '#0D1410',
-    borderWidth: 1,
-    borderColor: Colors.primaryBorder,
-    borderRadius: Radius.xxl,
-    padding: Spacing.md,
-  },
-  nextRepBadge: {
-    alignSelf: 'flex-start',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-    marginBottom: Spacing.xs,
-  },
-  greenDot: {
-    width: 7,
-    height: 7,
-    borderRadius: Radius.pill,
-    backgroundColor: Colors.primary,
-  },
-  nextRepText: {
-    fontSize: 10,
-    color: Colors.primary,
-    fontFamily: 'Inter_700Bold',
-    letterSpacing: 2.2,
-  },
-  skeleton: {
-    backgroundColor: Colors.borderSubtle,
-    borderRadius: Radius.sm,
-  },
-  lessonTitle: {
-    fontSize: 22,
-    color: Colors.textPrimary,
-    fontFamily: 'Inter_700Bold',
-    lineHeight: 28,
-    letterSpacing: -0.5,
-  },
-  lessonSubtitle: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    marginTop: 7,
-    fontFamily: 'Inter_400Regular',
-    lineHeight: 20,
-  },
-  edgeNote: {
-    marginTop: Spacing.sm,
-    borderLeftWidth: 2,
-    borderLeftColor: Colors.primaryBorder,
-    paddingLeft: Spacing.sm,
-    paddingRight: Spacing.xs,
-  },
-  edgeLabel: {
-    color: Colors.primary,
-    fontSize: 9,
-    fontFamily: 'Inter_700Bold',
-    letterSpacing: 1.4,
-    marginBottom: 4,
-    opacity: 0.9,
-  },
-  edgeText: {
-    color: Colors.textSecondary,
-    fontSize: 13,
-    fontFamily: 'Inter_400Regular',
-    lineHeight: 18,
-  },
-  rankMini: {
-    alignSelf: 'flex-start',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.xs,
-    marginTop: Spacing.xs,
-    opacity: 0.78,
-  },
-  rankMiniCopy: { gap: 1 },
-  rankMiniText: {
-    color: Colors.textSecondary,
-    fontSize: 11,
-    fontFamily: 'Inter_700Bold',
-  },
-  rankMiniSub: {
-    color: Colors.textTertiary,
-    fontSize: 10,
-    fontFamily: 'Inter_500Medium',
-  },
-  ctaBtn: {
-    backgroundColor: Colors.primary,
-    borderRadius: Radius.lg,
-    paddingVertical: Spacing.sm,
-    alignItems: 'center',
-    marginTop: Spacing.sm,
-  },
-  ctaBtnText: {
-    fontSize: 15,
-    color: Colors.background,
-    fontFamily: 'Inter_700Bold',
-  },
+  skeletonScroll: { gap: Spacing.sm, paddingHorizontal: Spacing.lg },
+  inset: { marginHorizontal: Spacing.lg },
+  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: Colors.primary },
+  kickerRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  rankRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 2 },
+  tileRow: { flexDirection: 'row', gap: 12 },
+  tileTop: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  tileLabel: { flex: 1, letterSpacing: 1.2, textTransform: 'uppercase', color: Colors.textSecondary },
 });
