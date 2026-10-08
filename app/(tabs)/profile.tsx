@@ -16,14 +16,14 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { registerForPushNotifications, scheduleStreakReminder } from '@/lib/notifications';
-import Svg, { Path, Defs, LinearGradient as SvgLinearGradient, Stop, Circle } from 'react-native-svg';
+import Svg, { Path, Defs, LinearGradient as SvgLinearGradient, Stop, Circle, Line } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAthlete } from '@/context/AthleteContext';
 import { Assets } from '@/constants/assets';
 import { Colors, Radius, Spacing } from '@/constants/theme';
 import { RolePill } from '@/components/ui';
 import { ClutchrHeader } from '@/components/ClutchrHeader';
-import { ScreenHeader } from '@/components/ui/ClutchrUI';
+import { Chip, PulseRing, ScreenHeader, StatTile } from '@/components/ui/ClutchrUI';
 import { EmblemBadge } from '@/components/EmblemBadge';
 import { ProgressBar } from '@/components/ProgressBar';
 import { getRankProgress } from '@/lib/progressionRanks';
@@ -51,23 +51,31 @@ const LEVEL_LABELS: Record<string, string> = {
 
 // ─── SCORE SPARKLINE ──────────────────────────────────────────────────────────
 
-function ScoreSparkline({ days, positive }: { days: MentalGameScoreDay[]; positive: boolean }) {
+type ScoreRange = '7D' | '30D' | 'ALL';
+const SCORE_RANGES: ScoreRange[] = ['7D', '30D', 'ALL'];
+
+function ScoreSparkline({ days, positive, range }: { days: MentalGameScoreDay[]; positive: boolean; range: ScoreRange }) {
   const [cardWidth, setCardWidth] = useState(0);
   const color = positive ? Colors.primary : Colors.danger;
-  const H = 80;
+  const H = 40;
   const PAD = 8;
-  const last7 = days.slice(-7);
+  const shown = range === '7D' ? days.slice(-7) : range === '30D' ? days.slice(-30) : days;
+  const last7 = shown;
   const hasData = last7.length >= 2;
+  const recent = days.slice(-7);
+  const avg7 = recent.length > 0 ? recent.reduce((sum, d) => sum + d.score, 0) / recent.length : null;
 
   function buildPaths(w: number) {
     const drawH = H - PAD * 2;
     if (!hasData) {
       const y = H / 2;
-      return { line: `M 0,${y} L ${w},${y}`, fill: '', dotX: w, dotY: y };
+      return { line: `M 0,${y} L ${w},${y}`, fill: '', dotX: w, dotY: y, avgY: null as number | null };
     }
     const scores = last7.map(d => d.score);
-    const minS = Math.min(...scores);
-    const maxS = Math.max(...scores);
+    // Include the 7-day average in the scale so the reference line always fits.
+    const domain = avg7 === null ? scores : [...scores, avg7];
+    const minS = Math.min(...domain);
+    const maxS = Math.max(...domain);
     const span = Math.max(maxS - minS, 1);
     const pts = scores.map((s, i) => ({
       x: (i / (scores.length - 1)) * w,
@@ -82,7 +90,8 @@ function ScoreSparkline({ days, positive }: { days: MentalGameScoreDay[]; positi
     }
     const last = pts[pts.length - 1];
     const fill = `${d} L ${last.x.toFixed(1)},${H} L ${pts[0].x.toFixed(1)},${H} Z`;
-    return { line: d, fill, dotX: last.x, dotY: last.y };
+    const avgY = avg7 === null ? null : PAD + drawH - ((avg7 - minS) / span) * drawH;
+    return { line: d, fill, dotX: last.x, dotY: last.y, avgY };
   }
 
   const paths = cardWidth > 0 ? buildPaths(cardWidth) : null;
@@ -100,6 +109,12 @@ function ScoreSparkline({ days, positive }: { days: MentalGameScoreDay[]; positi
               <Stop offset={1} stopColor={color} stopOpacity="0" />
             </SvgLinearGradient>
           </Defs>
+          {paths.avgY !== null && (
+            <Line
+              x1={0} y1={paths.avgY} x2={cardWidth} y2={paths.avgY}
+              stroke={Colors.textTertiary} strokeWidth={1} strokeDasharray="2,4" strokeLinecap="round"
+            />
+          )}
           {paths.fill ? <Path d={paths.fill} fill="url(#mgs_pf_grad)" stroke="none" /> : null}
           <Path
             d={paths.line}
@@ -133,6 +148,7 @@ function MentalGameScoreCard({
   streakActive: boolean;
 }) {
   const [history, setHistory] = useState<MentalGameScoreHistory | null>(null);
+  const [range, setRange] = useState<ScoreRange>('7D');
 
   useEffect(() => {
     updateMentalGameScore({
@@ -189,7 +205,14 @@ function MentalGameScoreCard({
           </View>
         </View>
       </View>
-      <ScoreSparkline days={history?.days ?? []} positive={isPositive} />
+      <View style={mgsStyles.rangeRow}>
+        {SCORE_RANGES.map((r) => (
+          <Pressable key={r} onPress={() => setRange(r)} hitSlop={6}>
+            <Chip label={r} filled={range === r} />
+          </Pressable>
+        ))}
+      </View>
+      <ScoreSparkline days={history?.days ?? []} positive={isPositive} range={range} />
       <Text style={mgsStyles.sub}>Computed from reps, cues, and streak</Text>
     </View>
   );
@@ -289,6 +312,8 @@ export default function ProfileScreen() {
   const completedCount = athleteState.completed_lessons.length;
   const rankProgress   = getRankProgress(xp);
   const rank           = rankProgress.currentRank;
+  // getRankProgress().percent is 0..1; PulseRing takes 0..100.
+  const rankProgressPercent = rankProgress.percent * 100;
   const playbook       = (athleteState as any)?.playbook;
   const playbookBuilt  = !!playbook?.built_at;
   const repsToday      = (athleteState as any).lessons_today ?? 0;
@@ -365,14 +390,13 @@ export default function ProfileScreen() {
             start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
           />
           <View style={styles.identityLeft}>
-            <View style={styles.avatarWrap}>
+            <PulseRing percent={rankProgressPercent} size={96} ringColor={Colors.warning}>
               <Image
                 source={require('../../assets/coach-cap/circular-avatar.png')}
                 style={styles.avatarImage}
                 resizeMode="contain"
               />
-              <View style={styles.avatarRing} />
-            </View>
+            </PulseRing>
             <View style={styles.identityInfo}>
               <Text style={styles.identityName}>{athleteState.first_name}</Text>
               <View style={styles.identityMeta}>
@@ -423,17 +447,9 @@ export default function ProfileScreen() {
 
         {/* ── STATS ROW ── */}
         <View style={styles.statsRow}>
-          {[
-            { label: 'Reps',   value: completedCount,                        icon: 'barbell', color: Colors.primary },
-            { label: 'Streak', value: `${athleteState.streak_count ?? 0}d`,  icon: 'flame',   color: Colors.warning },
-            { label: 'Best',   value: `${athleteState.streak_best ?? 0}d`,   icon: 'trophy',  color: Colors.purple  },
-          ].map((stat) => (
-            <View key={stat.label} style={styles.statCard}>
-              <Ionicons name={stat.icon as any} size={16} color={stat.color} />
-              <Text style={[styles.statValue, { color: stat.color }]}>{stat.value}</Text>
-              <Text style={styles.statLabel}>{stat.label}</Text>
-            </View>
-          ))}
+          <StatTile value={completedCount} label="Reps" accent={Colors.textPrimary} />
+          <StatTile value={`${athleteState.streak_count ?? 0}d`} label="Streak" accent={Colors.textPrimary} />
+          <StatTile value={`${athleteState.streak_best ?? 0}d`} label="Best" accent={Colors.textPrimary} />
         </View>
 
         {/* ── CURRENT CUE ── */}
@@ -519,17 +535,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   identityLeft: { flexDirection: 'row', alignItems: 'center', flex: 1, gap: Spacing.md },
-  avatarWrap: {
-    width: 56, height: 56, borderRadius: 28,
-    backgroundColor: Colors.primaryMuted,
-    alignItems: 'center', justifyContent: 'center',
-    position: 'relative',
-  },
-  avatarRing: {
-    position: 'absolute', inset: -3, borderRadius: 32,
-    borderWidth: 2, borderColor: Colors.primary + '50',
-  } as any,
-  avatarImage: { width: 52, height: 52 },
+  avatarImage: { width: 76, height: 76, borderRadius: 38 },
   identityInfo: { flex: 1, gap: 4 },
   identityName: { fontSize: 20, fontFamily: 'Inter_700Bold', color: Colors.textPrimary },
   identityMeta: { flexDirection: 'row', alignItems: 'center', gap: 8 },
@@ -558,13 +564,6 @@ const styles = StyleSheet.create({
 
   // Stats row
   statsRow: { flexDirection: 'row', gap: Spacing.sm },
-  statCard: {
-    flex: 1, backgroundColor: Colors.surface, borderRadius: Radius.lg,
-    padding: Spacing.md, alignItems: 'center', gap: 4,
-    borderWidth: 1, borderColor: Colors.border,
-  },
-  statValue: { fontSize: 18, fontFamily: 'Inter_700Bold', color: Colors.textPrimary },
-  statLabel: { fontSize: 10, fontFamily: 'Inter_400Regular', color: Colors.textTertiary },
 
   // Playbook CTA
   playbookRow: {
@@ -652,6 +651,7 @@ const mgsStyles = StyleSheet.create({
     fontSize: 10,
     fontFamily: 'Inter_600SemiBold',
   },
+  rangeRow: { flexDirection: 'row', gap: Spacing.sm },
   sub: {
     fontSize: 11,
     fontFamily: 'Inter_400Regular',
