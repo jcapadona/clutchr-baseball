@@ -7,7 +7,6 @@ import {
   Alert,
   Animated,
   Image,
-  ImageBackground,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -913,6 +912,7 @@ const CHAPTER_ACCENT: Record<string, string> = {
   'your-craft': CategoryColor.craft,
   edge:        CategoryColor.compete,
   'the-grind': CategoryColor.grind,
+  signal:      CategoryColor.signal,
 };
 
 function chunk<T>(items: T[], n: number): T[][] {
@@ -1225,88 +1225,6 @@ function TimelineNode({ lesson, idx, isDone, isNext, isLocked, isBoss, color }: 
   );
 }
 
-// ─── SIGNAL WORLD MAP ────────────────────────────────────────────────────────
-
-const SIGNAL_NODE_POSITIONS: Record<string, { topPct: number; leftPct: number }> = {
-  'showcase-recruiting': { topPct: 0.12, leftPct: 0.52 },
-  'coach-dynamics':      { topPct: 0.22, leftPct: 0.38 },
-  'what-the-pros-do':    { topPct: 0.33, leftPct: 0.55 },
-  'college-recruiting':  { topPct: 0.44, leftPct: 0.35 },
-  'baseball-identity':   { topPct: 0.54, leftPct: 0.58 },
-  'coach-trust':         { topPct: 0.63, leftPct: 0.32 },
-  'opponent-intel':      { topPct: 0.73, leftPct: 0.54 },
-  'pitch-tipping-lab':   { topPct: 0.82, leftPct: 0.40 },
-};
-
-const NODE_SIZE = 52;
-const NODE_LABEL_WIDTH = 80;
-
-function SignalWorldMap({
-  worlds,
-  lessons,
-  completed,
-  onNodePress,
-}: {
-  worlds: WorldWithLockState[];
-  lessons: LegacyLesson[];
-  completed: string[];
-  onNodePress: (world: WorldWithLockState) => void;
-}) {
-  const [size, setSize] = useState({ width: 0, height: 0 });
-
-  return (
-    <View
-      style={signalMapStyles.container}
-      onLayout={e => {
-        const { width, height } = e.nativeEvent.layout;
-        setSize({ width, height });
-      }}
-    >
-      <ImageBackground
-        source={Assets.backgrounds.signalBg}
-        style={StyleSheet.absoluteFillObject}
-        resizeMode="cover"
-      />
-      <View style={signalMapStyles.overlay} />
-
-      {size.width > 0 && worlds.map(world => {
-        const pos = SIGNAL_NODE_POSITIONS[world.id];
-        if (!pos) return null;
-
-        const worldLessons = lessons.filter(l => l.pillar_id === world.id);
-        const doneCount = worldLessons.filter(l => completed.includes(l.id)).length;
-        const hasProgress = doneCount > 0;
-        const isLocked = world.lockState === 'teaser';
-
-        const left = size.width  * pos.leftPct - NODE_LABEL_WIDTH / 2;
-        const top  = size.height * pos.topPct  - NODE_SIZE / 2;
-
-        return (
-          <View key={world.id} style={[signalMapStyles.nodeContainer, { left, top }]}>
-            <Pressable
-              style={[
-                signalMapStyles.nodeCircle,
-                hasProgress && !isLocked && signalMapStyles.nodeCircleActive,
-                isLocked && signalMapStyles.nodeCircleLocked,
-              ]}
-              onPress={() => onNodePress(world)}
-            >
-              {hasProgress && !isLocked && <View style={signalMapStyles.progressDot} />}
-              {isLocked
-                ? <Ionicons name="lock-closed" size={18} color="rgba(245,197,66,0.6)" />
-                : <Text style={signalMapStyles.nodeNum}>{world.worldNumber}</Text>
-              }
-            </Pressable>
-            <Text style={signalMapStyles.nodeLabel} numberOfLines={2}>
-              {world.label}
-            </Text>
-          </View>
-        );
-      })}
-    </View>
-  );
-}
-
 // ─── SCREEN ──────────────────────────────────────────────────────────────────
 
 // Persists active chapter across navigation (lesson completion, exits) so the
@@ -1398,7 +1316,7 @@ export default function CareerScreen() {
   );
 
   // Worlds with zero published lessons are hidden at render time only. No array is
-  // re-indexed: Signal nodes are placed by SIGNAL_NODE_POSITIONS[world.id].
+  // re-indexed.
   const visibleWorlds = filteredWorlds.filter(w => lessonPillarIds.includes(w.id));
 
   const activeChapterConfig = CHAPTERS.find(c => c.id === activeChapter) ?? CHAPTERS[0];
@@ -1434,22 +1352,6 @@ export default function CareerScreen() {
     }
     return null;
   }, [lessons, completed, lessonPillarIds, isPro]);
-
-  function handleSignalNodePress(world: WorldWithLockState) {
-    if (world.lockState === 'teaser') {
-      router.push('/upgrade?source=signal_map');
-      return;
-    }
-    const worldLessons = lessons
-      .filter(l => l.pillar_id === world.id)
-      .sort((a, b) => a.order_index - b.order_index);
-    const next = worldLessons.find(l => !completed.includes(l.id)) ?? worldLessons[0];
-    if (next) {
-      router.push(`/lesson/${next.id}`);
-    } else {
-      Alert.alert('No reps yet', 'This world has no reps yet.');
-    }
-  }
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -1503,13 +1405,6 @@ export default function CareerScreen() {
         >
           <WorldGridSkeleton />
         </ScrollView>
-      ) : activeChapter === 'signal' ? (
-        <SignalWorldMap
-          worlds={visibleWorlds}
-          lessons={lessons}
-          completed={completed}
-          onNodePress={handleSignalNodePress}
-        />
       ) : (
         <ScrollView
           contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 160 }]}
@@ -1908,65 +1803,4 @@ const tlStyles = StyleSheet.create({
   xpText:      { fontSize: 12, fontFamily: 'Inter_600SemiBold', color: '#F5A623' },
   timeText:    { fontSize: 11, fontFamily: 'Inter_400Regular', color: 'rgba(255,255,255,0.3)' },
   xpEarnedText: { fontSize: 11, fontFamily: 'Inter_600SemiBold', marginTop: 6 },
-});
-
-// ─── SIGNAL MAP STYLES ────────────────────────────────────────────────────────
-
-const signalMapStyles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.35)',
-  },
-  nodeContainer: {
-    position: 'absolute',
-    width: NODE_LABEL_WIDTH,
-    alignItems: 'center',
-  },
-  nodeCircle: {
-    width: NODE_SIZE,
-    height: NODE_SIZE,
-    borderRadius: NODE_SIZE / 2,
-    borderWidth: 2,
-    borderColor: 'rgba(245,197,66,0.9)',
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  nodeCircleActive: {
-    borderColor: 'rgba(245,197,66,1)',
-  },
-  nodeCircleLocked: {
-    opacity: 0.5,
-  },
-  progressDot: {
-    position: 'absolute',
-    top: 3,
-    right: 3,
-    width: 9,
-    height: 9,
-    borderRadius: 5,
-    backgroundColor: Colors.primary,
-    borderWidth: 1.5,
-    borderColor: Colors.background,
-  },
-  nodeNum: {
-    fontSize: 14,
-    fontFamily: 'Inter_700Bold',
-    color: '#F5C542',
-  },
-  nodeLabel: {
-    color: '#fff',
-    fontSize: 10,
-    fontFamily: 'Inter_700Bold',
-    textAlign: 'center',
-    marginTop: 4,
-    maxWidth: NODE_LABEL_WIDTH,
-    letterSpacing: 0.3,
-    textShadowColor: 'rgba(0,0,0,0.8)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 3,
-  },
 });
