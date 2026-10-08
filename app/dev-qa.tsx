@@ -163,6 +163,9 @@ export default function DevQAScreen() {
             >
               <Text style={styles.testBtnText}>Test World Clear Celebration</Text>
             </Pressable>
+            <Pressable style={styles.testBtn} onPress={() => router.push('/welcome-pro')}>
+              <Text style={styles.testBtnText}>Open Welcome to Pro</Text>
+            </Pressable>
           </Section>
 
           <Section title="Unmatched completed IDs">{report.unmatchedCompleted.map((id) => <Text key={id} style={styles.issue}>{id}</Text>)}</Section>

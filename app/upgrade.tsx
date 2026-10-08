@@ -208,7 +208,7 @@ export default function UpgradeScreen() {
     try {
       await Purchases.purchasePackage(pkg);
       await refreshPro();
-      router.replace('/(tabs)');
+      router.replace('/welcome-pro');
     } catch (e: any) {
       if (e.code !== PURCHASES_ERROR_CODE.PURCHASE_CANCELLED_ERROR) {
         setPurchaseError('Purchase failed. Please try again.');
@@ -230,7 +230,7 @@ export default function UpgradeScreen() {
     try {
       await Purchases.purchasePackage(pkg);
       await refreshPro();
-      router.replace('/(tabs)');
+      router.replace('/welcome-pro');
     } catch (e: any) {
       if (e.code !== PURCHASES_ERROR_CODE.PURCHASE_CANCELLED_ERROR) {
         setPurchaseError('Purchase failed. Please try again.');
