@@ -17,7 +17,8 @@ import { Assets } from '@/constants/assets';
 import { Colors, Radius, Spacing } from '@/constants/theme';
 import { ErrorState, SkeletonCard } from '@/components/SkeletonLoader';
 import { ClutchrHeader } from '@/components/ClutchrHeader';
-import { ScreenHeader } from '@/components/ui/ClutchrUI';
+import { ListRow, Rail, ScreenHeader, SectionLabel } from '@/components/ui/ClutchrUI';
+import { TypeColor } from '@/constants/visualExtensions';
 import { useAthlete } from '@/context/AthleteContext';
 import { useProContext } from '@/context/ProContext';
 
@@ -275,43 +276,16 @@ export default function LockerScreen() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          <View style={styles.introCard}>
-            <LinearGradient
-              colors={[Colors.primary + '22', 'rgba(255,255,255,0.03)', 'rgba(255,255,255,0.01)']}
-              style={StyleSheet.absoluteFill}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-            />
-            <Image
-              source={require('../../assets/branding/monochrome-c.png')}
-              style={styles.introBrandMark}
-              resizeMode="contain"
-            />
-            <View style={styles.introCopy}>
-              <Text style={styles.introTitle}>{activeConfig.label}</Text>
-              <Text style={styles.introSubtitle}>{activeConfig.subtitle}</Text>
-            </View>
-            <View style={styles.introCount}>
-              <Text style={styles.introCountValue}>{filtered.length}</Text>
-              <Text style={styles.introCountLabel}>TOOLS</Text>
-            </View>
-          </View>
-
           {featured.length > 0 && (
             <View style={styles.section}>
-              <View style={styles.sectionHeader}>
-                <Text style={styles.sectionKicker}>READY REFERENCE</Text>
-                <Text style={styles.sectionCount}>{featured.length}</Text>
+              <SectionLabel>START HERE</SectionLabel>
+              <View style={styles.railBleed}>
+                <Rail>
+                  {featured.map((card) => (
+                    <FeaturedCard key={card.id} card={card} onOpen={() => router.push(`/content/${card.id}?from=locker`)} />
+                  ))}
+                </Rail>
               </View>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.featuredRow}
-              >
-                {featured.map((card) => (
-                  <FeaturedCard key={card.id} card={card} onOpen={() => router.push(`/content/${card.id}?from=locker`)} />
-                ))}
-              </ScrollView>
             </View>
           )}
 
@@ -323,7 +297,14 @@ export default function LockerScreen() {
               </View>
               <View style={styles.cardList}>
                 {rest.map((card) => (
-                  <ListCard key={card.id} card={card} onOpen={() => router.push(`/content/${card.id}?from=locker`)} />
+                  <ListRow
+                    key={card.id}
+                    title={card.title}
+                    meta={card.summary ?? undefined}
+                    typeKey={card.card_type in TypeColor ? (card.card_type as keyof typeof TypeColor) : 'article'}
+                    duration={card.duration_minutes ? `${card.duration_minutes} min` : undefined}
+                    onPress={() => router.push(`/content/${card.id}?from=locker`)}
+                  />
                 ))}
               </View>
             </View>
@@ -380,44 +361,6 @@ function FeaturedCard({ card, onOpen }: { card: ContentCard; onOpen: () => void 
   );
 }
 
-// ─── LIST CARD ────────────────────────────────────────────────────────────────
-
-function ListCard({ card, onOpen }: { card: ContentCard; onOpen: () => void }) {
-  const cfg = TYPE_CONFIG[card.card_type] ?? TYPE_CONFIG.article;
-  return (
-    <Pressable
-      style={({ pressed }) => [listStyles.wrap, pressed && { opacity: 0.82, transform: [{ scale: 0.99 }] }]}
-      onPress={onOpen}
-    >
-      {/* Icon */}
-      <View style={[listStyles.iconWrap, { backgroundColor: cfg.bg, borderColor: cfg.color + '30' }]}>
-        <Ionicons name={cfg.icon as any} size={18} color={cfg.color} />
-      </View>
-
-      {/* Info */}
-      <View style={listStyles.info}>
-        <Text style={listStyles.title} numberOfLines={2}>{card.title}</Text>
-        {card.summary && (
-          <Text style={listStyles.summary} numberOfLines={1}>{card.summary}</Text>
-        )}
-        <View style={listStyles.metaRow}>
-          <Text style={[listStyles.typePill, { color: cfg.color }]}>
-            {card.card_type.toUpperCase()}
-          </Text>
-          {card.duration_minutes ? (
-            <>
-              <Text style={listStyles.metaDot}>·</Text>
-              <Text style={listStyles.duration}>{card.duration_minutes} min</Text>
-            </>
-          ) : null}
-        </View>
-      </View>
-
-      <Ionicons name="chevron-forward" size={14} color={Colors.textTertiary} />
-    </Pressable>
-  );
-}
-
 // ─── STYLES ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
@@ -425,11 +368,6 @@ const styles = StyleSheet.create({
 
 
   // Search
-  introBrandMark: {
-    width: 44,
-    height: 44,
-    marginRight: Spacing.sm,
-  },
   emptyBrandMark: {
     width: 54,
     height: 54,
@@ -511,67 +449,9 @@ const styles = StyleSheet.create({
 
   section: { gap: Spacing.md },
 
-  featuredRow: { gap: Spacing.sm },
+  railBleed: { marginHorizontal: -Spacing.lg },
   cardList: { gap: 8 },
 
-  introCard: {
-    minHeight: 112,
-    borderRadius: Radius.xl,
-    borderWidth: 1,
-    borderColor: Colors.primaryBorder,
-    backgroundColor: Colors.surface,
-    overflow: 'hidden',
-    padding: Spacing.lg,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.md,
-  },
-  introIcon: {
-    width: 42,
-    height: 42,
-    borderRadius: Radius.md,
-    backgroundColor: Colors.primaryMuted,
-    borderWidth: 1,
-    borderColor: Colors.primaryBorder,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  introCopy: { flex: 1, gap: 4 },
-  introTitle: {
-    fontSize: 20,
-    fontFamily: 'Inter_700Bold',
-    color: Colors.textPrimary,
-    letterSpacing: -0.2,
-  },
-  introSubtitle: {
-    fontSize: 12,
-    fontFamily: 'Inter_400Regular',
-    color: Colors.textSecondary,
-    lineHeight: 18,
-  },
-  introCount: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    minWidth: 54,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    borderRadius: Radius.md,
-    backgroundColor: 'rgba(34,204,94,0.10)',
-    borderWidth: 1,
-    borderColor: Colors.primaryBorder,
-  },
-  introCountValue: {
-    fontSize: 18,
-    fontFamily: 'Inter_700Bold',
-    color: Colors.primary,
-    lineHeight: 22,
-  },
-  introCountLabel: {
-    fontSize: 8,
-    fontFamily: 'Inter_700Bold',
-    color: Colors.primary,
-    letterSpacing: 0.9,
-  },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -703,63 +583,6 @@ const featStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-  },
-  duration: {
-    fontSize: 10,
-    fontFamily: 'Inter_400Regular',
-    color: Colors.textTertiary,
-  },
-});
-
-// ─── LIST CARD STYLES ─────────────────────────────────────────────────────────
-
-const listStyles = StyleSheet.create({
-  wrap: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.surface,
-    borderRadius: Radius.lg,
-    padding: Spacing.md,
-    gap: Spacing.md,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  iconWrap: {
-    width: 44,
-    height: 44,
-    borderRadius: Radius.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    flexShrink: 0,
-  },
-  info: { flex: 1, gap: 3 },
-  title: {
-    fontSize: 14,
-    fontFamily: 'Inter_600SemiBold',
-    color: Colors.textPrimary,
-    lineHeight: 20,
-  },
-  summary: {
-    fontSize: 12,
-    fontFamily: 'Inter_400Regular',
-    color: Colors.textSecondary,
-    lineHeight: 17,
-  },
-  metaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    marginTop: 2,
-  },
-  typePill: {
-    fontSize: 9,
-    fontFamily: 'Inter_700Bold',
-    letterSpacing: 0.8,
-  },
-  metaDot: {
-    fontSize: 10,
-    color: Colors.textTertiary,
   },
   duration: {
     fontSize: 10,
