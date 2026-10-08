@@ -390,17 +390,23 @@ export function Card({
   padded?: boolean;
 }) {
   const Wrap: any = onPress ? Pressable : View;
+  const base = [
+    s.card,
+    active && s.cardActive,
+    active && Shadow.greenFocus,
+    padded && { padding: Spacing.lg },
+  ];
   return (
     <Wrap
       onPress={onPress}
-      style={({ pressed }: any) => [
-        s.card,
-        active && s.cardActive,
-        active && Shadow.greenFocus,
-        padded && { padding: Spacing.lg },
-        pressed && { opacity: 0.85, transform: [{ scale: 0.995 }] },
-        style,
-      ]}
+      // View ignores function styles, so only a Pressable gets the pressed state.
+      style={onPress
+        ? ({ pressed }: any) => [
+            ...base,
+            pressed && { opacity: 0.85, transform: [{ scale: 0.995 }] },
+            style,
+          ]
+        : [...base, style]}
     >
       <LinearGradient
         colors={active ? Gradient.cardActive : Gradient.card}

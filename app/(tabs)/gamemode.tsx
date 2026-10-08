@@ -18,11 +18,11 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAthlete } from "@/context/AthleteContext";
 import { Assets } from "@/constants/assets";
 import { Colors, Radius, Spacing } from "@/constants/theme";
-import { TopHighlight } from "@/constants/visualExtensions";
+import { CategoryColor, TopHighlight } from "@/constants/visualExtensions";
 import type { SeasonPhase } from "@/context/AthleteContext";
 import { SkeletonCard } from "@/components/SkeletonLoader";
 import { ClutchrHeader } from "@/components/ClutchrHeader";
-import { ScreenHeader } from "@/components/ui/ClutchrUI";
+import { Card, Chip, PhotoCard, ScreenHeader, SectionLabel } from "@/components/ui/ClutchrUI";
 import { getBestCue } from "@/lib/personalCue";
 import { useToast } from "@/components/Toast";
 import { useProContext } from "@/context/ProContext";
@@ -303,12 +303,6 @@ const RAPID_REP_DRILLS: RapidRepDrill[] = [
   },
 ];
 
-const RAPID_REP_ROADMAP_CARDS = [
-  { label: "RUNNER READS", sub: "Jump and dirt-ball reads", color: "#4BA3E3", icon: "navigate" },
-  { label: "SWING/TAKE", sub: "Strike zone decisions", color: Colors.primary, icon: "scan" },
-  { label: "PRESSURE REPLAY", sub: "Reset under game heat", color: "#F5A623", icon: "trending-up" },
-];
-
 function getNextRepForMiss(miss: string): string {
   const key = miss.toLowerCase();
   if (key.includes("focus")) return "Between-Pitch Reset";
@@ -329,7 +323,7 @@ const GAME_TOOLS: GameTool[] = [
     name: "Pregame Prime",
     tagline: "Lock in before first pitch.",
     icon: "sunny",
-    color: Colors.primary,
+    color: CategoryColor.compete,
     bucket: "pregame",
     roles: "all",
     mode: "interactive",
@@ -1418,7 +1412,7 @@ const GAME_TOOLS: GameTool[] = [
     name: "Tough Night Reset",
     tagline: "Reframe the rough stretch. Keep your standard.",
     icon: "moon",
-    color: Colors.purple,
+    color: CategoryColor.recovery,
     bucket: "postgame",
     roles: "all",
     mode: "interactive",
@@ -1825,7 +1819,6 @@ function formatSeasonPhase(phase: SeasonPhase): string {
 }
 
 function DrillModeSection({ onStartDrill }: { onStartDrill: (drill: RapidRepDrill) => void }) {
-  const { showToast } = useToast();
   return (
     <View style={s.drillSection}>
       <View style={s.drillHeroCard}>
@@ -1857,23 +1850,6 @@ function DrillModeSection({ onStartDrill }: { onStartDrill: (drill: RapidRepDril
             </View>
             <Text style={[s.drillTitle, { color: drill.color }]}>{drill.label}</Text>
             <Text style={s.drillCardSub}>{drill.subtitle}</Text>
-          </Pressable>
-        ))}
-
-        {RAPID_REP_ROADMAP_CARDS.map((drill) => (
-          <Pressable
-            key={drill.label}
-            onPress={() => showToast('Coming soon — in development', 'info')}
-            style={[s.drillCard, { borderColor: drill.color + "20", opacity: 0.45 }]}
-          >
-            <View style={s.drillCardTopRow}>
-              <Ionicons name={drill.icon as any} size={17} color={drill.color} />
-              <View style={s.drillSoonPill}>
-                <Text style={s.drillSoonTag}>COMING SOON</Text>
-              </View>
-            </View>
-            <Text style={[s.drillTitle, { color: drill.color }]}>{drill.label}</Text>
-            <Text style={s.drillCardSub}>{drill.sub}</Text>
           </Pressable>
         ))}
       </View>
@@ -2468,21 +2444,19 @@ function PostgameDebriefRunner({
 
 // ─── TOOL CARD ────────────────────────────────────────────────────────────────
 
-function ToolCard({
+function ToolTile({
   tool,
+  iconColor,
   onPress,
-  compact = false,
 }: {
   tool: GameTool;
+  iconColor: string;
   onPress: () => void;
-  compact?: boolean;
 }) {
   return (
     <Pressable
       style={({ pressed }) => [
-        cStyles.card,
-        tool.mode === "print_card" && cStyles.printCard,
-        compact && cStyles.compactCard,
+        s.toolTile,
         pressed && { opacity: 0.82, transform: [{ scale: 0.99 }] },
       ]}
       onPress={() => {
@@ -2490,57 +2464,27 @@ function ToolCard({
         onPress();
       }}
     >
-      <View
-        style={[
-          cStyles.icon,
-          { backgroundColor: tool.color + "18" },
-          compact && cStyles.compactIcon,
-        ]}
-      >
-        <Ionicons
-          name={tool.icon as any}
-          size={compact ? 18 : 22}
-          color={tool.color}
-        />
+      <View style={[s.toolTileIcon, { backgroundColor: iconColor + "18" }]}>
+        <Ionicons name={tool.icon as any} size={20} color={iconColor} />
       </View>
-      <View style={cStyles.info}>
-        <View style={cStyles.titleRow}>
-          <Text style={[cStyles.name, compact && cStyles.compactName]}>
-            {tool.name}
-          </Text>
-          {tool.mode === "print_card" ? (
-            <View style={cStyles.printBadge}>
-              <Ionicons name="print" size={9} color={Colors.warning} />
-              <Text style={[cStyles.badgeText, { color: Colors.warning }]}>
-                PRINT
-              </Text>
-            </View>
-          ) : (
-            <View style={cStyles.phoneBadge}>
-              <Ionicons name="phone-portrait" size={9} color={Colors.primary} />
-              <Text style={[cStyles.badgeText, { color: Colors.primary }]}>
-                PHONE
-              </Text>
-            </View>
-          )}
-        </View>
-        {!compact && (
-          <Text style={cStyles.tagline} numberOfLines={1}>
-            {tool.tagline}
-          </Text>
+      <Text style={s.toolTileName} numberOfLines={2}>
+        {tool.name}
+      </Text>
+      <View style={s.toolTileMeta}>
+        <Text style={s.toolTileDuration}>{tool.duration}</Text>
+        {tool.mode === "print_card" && (
+          <Ionicons name="print-outline" size={12} color={Colors.textTertiary} />
         )}
-        <Text style={[cStyles.duration, { color: tool.color }]}>
-          {tool.duration}
-        </Text>
       </View>
-      <Ionicons
-        name={tool.mode === "print_card" ? "print-outline" : "play-circle"}
-        size={compact ? 20 : 24}
-        color={tool.color}
-      />
     </Pressable>
   );
 }
+
+const HERO_IMAGE: Record<TimingBucket, any> = {
+  pre: Assets.backgrounds.lockerRoom,
+  live: Assets.backgrounds.quickReset,
+  post: Assets.backgrounds.lessonCompletion,
+};
 
 // ─── MAIN SCREEN ─────────────────────────────────────────────────────────────
 
@@ -2571,6 +2515,16 @@ export default function GameModeScreen() {
     (tool) => !nextRepIds.has(tool.id),
   );
   const hasFilteredTools = nextRepTools.length > 0 || moreTools.length > 0;
+  const heroTool = nextRepTools[0] ?? null;
+  const gridTools = [...nextRepTools.slice(1), ...moreTools];
+  // Tool tile icons: category color on PRE and POST (green mapped to the tab
+  // accent so green never repeats), neutral on LIVE.
+  const toolIconColor = (tool: GameTool) =>
+    bucket === "live"
+      ? Colors.textSecondary
+      : tool.color === Colors.primary
+        ? meta.color
+        : tool.color;
   // True when the bucket is empty solely because of pro gating (not missing content).
   const hasGatedTools = !isPro && !hasFilteredTools &&
     getTools(bucket, role, selectedIntent, true).length > 0;
@@ -2717,7 +2671,7 @@ export default function GameModeScreen() {
                 s.bucketTab,
                 active && {
                   borderBottomWidth: 2,
-                  borderBottomColor: Colors.primary,
+                  borderBottomColor: BUCKET_META[b].color,
                 },
               ]}
               onPress={() => selectBucket(b)}
@@ -2725,13 +2679,13 @@ export default function GameModeScreen() {
               <Ionicons
                 name={m.icon as any}
                 size={12}
-                color={active ? Colors.primary : "rgba(255,255,255,0.4)"}
+                color={active ? Colors.textPrimary : "rgba(255,255,255,0.4)"}
               />
               <Text
                 style={[
                   s.bucketLabel,
                   active
-                    ? { color: Colors.primary }
+                    ? { color: Colors.textPrimary }
                     : { color: "rgba(255,255,255,0.4)" },
                 ]}
               >
@@ -2752,65 +2706,71 @@ export default function GameModeScreen() {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        <View
-          style={[
-            s.banner,
-            {
-              borderColor: meta.color + "30",
-              backgroundColor: meta.color + "08",
-            },
-          ]}
-        >
-          <Image
-            source={require('../../assets/branding/charcoal-c.png')}
-            style={s.bannerBrandMark}
-            resizeMode="contain"
-          />
-          <View style={{ flex: 1 }}>
-            <Text style={[s.bannerHead, { color: meta.color }]}>
-              {meta.headline}
-            </Text>
-            <Text style={s.bannerSub}>{meta.subtext}</Text>
-          </View>
-        </View>
-
-        <View style={s.intentPanel}>
-          <Text style={s.intentQuestion}>What do you need right now?</Text>
-          <View style={s.intentRow}>
-            {intentChips.map((intent) => {
-              const active = selectedIntent === intent.key;
-              return (
-                <Pressable
-                  key={intent.key}
-                  onPress={() => {
-                    setSelectedIntent(intent.key);
-                    Haptics.selectionAsync();
-                  }}
-                  style={[s.intentChip, active && s.intentChipActive]}
+        <View style={s.intentRow}>
+          {intentChips.map((intent) => {
+            const active = selectedIntent === intent.key;
+            return (
+              <Pressable
+                key={intent.key}
+                onPress={() => {
+                  setSelectedIntent(intent.key);
+                  Haptics.selectionAsync();
+                }}
+                style={[s.intentChip, active && s.intentChipActive]}
+              >
+                <Text
+                  style={[s.intentChipText, active && s.intentChipTextActive]}
                 >
-                  <Text
-                    style={[s.intentChipText, active && s.intentChipTextActive]}
-                  >
-                    {intent.label}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
+                  {intent.label}
+                </Text>
+              </Pressable>
+            );
+          })}
         </View>
 
-        {bucket === "pre" && (
-          <View style={s.commandCard}>
-            <Text style={s.commandKicker}>BEFORE FIRST PITCH</Text>
-            <Text style={s.commandTitle}>Use first: Pregame 90-Second Switch-On</Text>
-            <Text style={s.commandSub}>Then lock one role cue, one first job, and one reset line.</Text>
-            <View style={s.miniCueRow}>
-              {(ROLE_CUES[role] ?? ROLE_CUES.infielder).slice(0, 3).map((cue) => (
-                <Text key={cue} style={s.miniCueChip}>{cue}</Text>
-              ))}
-            </View>
+        {isLoading || proLoading ? (
+          <SkeletonCard />
+        ) : heroTool ? (
+          <PhotoCard
+            active
+            height={200}
+            image={HERO_IMAGE[bucket]}
+            accent={meta.color}
+            accentWash={bucket !== "live"}
+            style={{ borderColor: meta.color, shadowColor: meta.color }}
+            onPress={() => openTool(heroTool)}
+            footer={
+              <View style={s.heroCta}>
+                <Ionicons
+                  name={heroTool.mode === "print_card" ? "print-outline" : "play"}
+                  size={14}
+                  color={Colors.textPrimary}
+                />
+                <Text style={s.heroCtaText}>
+                  {heroTool.mode === "print_card" ? "OPEN CARD" : "START"}
+                </Text>
+              </View>
+            }
+          >
+            <Text style={s.heroKicker}>USE THIS FIRST</Text>
+            <Text style={s.heroName} numberOfLines={2}>{heroTool.name}</Text>
+            <Text style={s.heroDuration}>{heroTool.duration}</Text>
+          </PhotoCard>
+        ) : null}
+
+        <View style={s.sectionLabelWrap}>
+          <SectionLabel>YOUR CUES</SectionLabel>
+        </View>
+        <Card>
+          <View style={s.cueChipRow}>
+            {(ROLE_CUES[role] ?? ROLE_CUES.infielder).slice(0, 3).map((cue) => (
+              <Chip key={cue} label={cue} />
+            ))}
           </View>
-        )}
+          <Text style={s.pressureCueText}>
+            Pressure cue: {pressureCue || "Compete."}
+          </Text>
+        </Card>
 
         {bucket === "post" && lastDebrief && (
           <View style={s.carryCard}>
@@ -2821,46 +2781,16 @@ export default function GameModeScreen() {
             <Text style={s.commandTitle}>{lastDebrief.cue}</Text>
             <Text style={s.commandSub}>One win: {lastDebrief.win}</Text>
             <Text style={s.commandSub}>One fix: {lastDebrief.miss}</Text>
-            <Text style={[s.commandSub, { color: Colors.primary }]}>Next useful rep: {lastDebrief.nextRep}</Text>
+            <Text style={s.commandSub}>Next useful rep: {lastDebrief.nextRep}</Text>
           </View>
         )}
 
-        <View style={s.bannerSlim}>
-          <Text style={[s.bannerHead, { color: Colors.primary }]}>
-            PERSONAL PRESSURE CUE
-          </Text>
-          <Text style={[s.bannerSub, { color: "rgba(255,255,255,0.88)" }]}>
-            {pressureCue || "Compete."}
-          </Text>
-        </View>
-
-        <View style={s.sectionDivider}>
-          <View style={s.dividerLine} />
-          <Text style={s.dividerLabel}>YOUR NEXT REP</Text>
-          <View style={s.dividerLine} />
-        </View>
-
-        {isLoading || proLoading
-          ? [0, 1].map((i) => <SkeletonCard key={i} />)
-          : nextRepTools.length > 0
-            ? nextRepTools.map((tool) => (
-                <ToolCard
-                  key={tool.id}
-                  tool={tool}
-                  onPress={() => openTool(tool)}
-                  compact={nextRepTools.length > 1}
-                />
-              ))
-            : null}
-
-        <View style={s.sectionDivider}>
-          <View style={s.dividerLine} />
-          <Text style={s.dividerLabel}>MORE TOOLS</Text>
-          <View style={s.dividerLine} />
+        <View style={s.sectionLabelWrap}>
+          <SectionLabel>TOOLS</SectionLabel>
         </View>
 
         {isLoading || proLoading ? (
-          [0, 1, 2].map((i) => <SkeletonCard key={i} />)
+          [0, 1].map((i) => <SkeletonCard key={i} />)
         ) : hasGatedTools ? (
           <View style={s.empty}>
             <Ionicons
@@ -2893,19 +2823,18 @@ export default function GameModeScreen() {
               <Text style={s.emptyBtnText}>Show All Tools</Text>
             </Pressable>
           </View>
-        ) : moreTools.length > 0 ? (
-          moreTools.map((tool) => (
-            <ToolCard
-              key={tool.id}
-              tool={tool}
-              onPress={() => openTool(tool)}
-            />
-          ))
-        ) : (
-          <Text style={s.moreComplete}>
-            Next rep is the best fit. Keep it short.
-          </Text>
-        )}
+        ) : gridTools.length > 0 ? (
+          <View style={s.toolGrid}>
+            {gridTools.map((tool) => (
+              <ToolTile
+                key={tool.id}
+                tool={tool}
+                iconColor={toolIconColor(tool)}
+                onPress={() => openTool(tool)}
+              />
+            ))}
+          </View>
+        ) : null}
 
         <DrillModeSection onStartDrill={openDrill} />
       </ScrollView>
@@ -2917,6 +2846,83 @@ export default function GameModeScreen() {
 
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
+  sectionLabelWrap: { marginHorizontal: -Spacing.lg, marginTop: -Spacing.sm, marginBottom: -Spacing.sm },
+  heroKicker: {
+    fontSize: 10,
+    fontFamily: "Inter_700Bold",
+    color: Colors.textSecondary,
+    letterSpacing: 1.4,
+  },
+  heroName: {
+    fontSize: 22,
+    fontFamily: "Inter_700Bold",
+    color: Colors.textPrimary,
+    letterSpacing: -0.3,
+    marginTop: 4,
+  },
+  heroDuration: {
+    fontSize: 12,
+    fontFamily: "Inter_600SemiBold",
+    color: Colors.textSecondary,
+    marginTop: 4,
+  },
+  heroCta: {
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "flex-start",
+    gap: 6,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: 8,
+    borderRadius: Radius.pill,
+    borderWidth: 1,
+    borderColor: Colors.textSecondary,
+    backgroundColor: "rgba(0,0,0,0.35)",
+  },
+  heroCtaText: {
+    fontSize: 11,
+    fontFamily: "Inter_700Bold",
+    color: Colors.textPrimary,
+    letterSpacing: 1,
+  },
+  cueChipRow: { flexDirection: "row", flexWrap: "wrap", gap: Spacing.sm },
+  pressureCueText: {
+    fontSize: 12,
+    fontFamily: "Inter_500Medium",
+    color: Colors.textSecondary,
+    marginTop: Spacing.md,
+  },
+  toolGrid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", rowGap: 10 },
+  toolTile: {
+    width: "48.5%",
+    minHeight: 112,
+    padding: Spacing.md,
+    gap: Spacing.sm,
+    justifyContent: "space-between",
+    borderRadius: Radius.lg,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: Colors.surface,
+  },
+  toolTileIcon: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  toolTileName: {
+    fontSize: 13,
+    fontFamily: "Inter_700Bold",
+    color: Colors.textPrimary,
+    lineHeight: 17,
+  },
+  toolTileMeta: { flexDirection: "row", alignItems: "center", gap: 6 },
+  toolTileDuration: {
+    fontSize: 11,
+    fontFamily: "Inter_600SemiBold",
+    color: Colors.textTertiary,
+  },
+
   bucketRow: {
     flexDirection: "row",
     backgroundColor: "#0D0D0D",
@@ -2938,38 +2944,7 @@ const s = StyleSheet.create({
     color: "rgba(255,255,255,0.4)",
     letterSpacing: 0.6,
   },
-  banner: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: Spacing.sm,
-    marginHorizontal: Spacing.xl,
-    marginBottom: Spacing.sm,
-    padding: Spacing.md,
-    borderRadius: Radius.md,
-    borderWidth: 1,
-  },
-  bannerBrandMark: {
-    width: 24,
-    height: 24,
-    marginTop: -1,
-  },
-  bannerHead: { fontSize: 12, fontFamily: "Inter_700Bold", letterSpacing: 0.3 },
-  bannerSub: {
-    fontSize: 11,
-    fontFamily: "Inter_400Regular",
-    color: Colors.textSecondary,
-    lineHeight: 16,
-    marginTop: 2,
-  },
   scroll: { paddingHorizontal: Spacing.xl, gap: Spacing.md },
-  sectionDivider: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.sm,
-    marginTop: Spacing.sm,
-    marginBottom: 2,
-  },
-  dividerLine: { flex: 1, height: 1, backgroundColor: Colors.border },
   dividerLabel: {
     fontSize: 9,
     fontFamily: "Inter_700Bold",
@@ -3004,23 +2979,6 @@ const s = StyleSheet.create({
     color: Colors.primary,
     letterSpacing: 0.7,
   },
-  bannerSlim: {
-    borderColor: Colors.border,
-    borderTopColor: TopHighlight,
-    backgroundColor: "#0F1612",
-    padding: Spacing.md,
-    borderRadius: Radius.md,
-    borderWidth: 1,
-  },
-  commandCard: {
-    backgroundColor: "#101510",
-    borderRadius: Radius.lg,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderTopColor: TopHighlight,
-    padding: Spacing.md,
-    gap: Spacing.xs,
-  },
   carryCard: {
     backgroundColor: "#171304",
     borderRadius: Radius.lg,
@@ -3038,7 +2996,7 @@ const s = StyleSheet.create({
   commandKicker: {
     fontSize: 10,
     fontFamily: "Inter_700Bold",
-    color: Colors.primary,
+    color: Colors.warning,
     letterSpacing: 1.1,
   },
   screenshotTag: {
@@ -3058,32 +3016,6 @@ const s = StyleSheet.create({
     color: Colors.textSecondary,
     lineHeight: 17,
   },
-  miniCueRow: { flexDirection: "row", flexWrap: "wrap", gap: Spacing.xs, marginTop: Spacing.xs },
-  miniCueChip: {
-    fontSize: 10,
-    fontFamily: "Inter_700Bold",
-    color: Colors.primary,
-    backgroundColor: Colors.primaryMuted,
-    borderColor: Colors.border,
-    borderWidth: 1,
-    borderRadius: Radius.pill,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 5,
-  },
-  intentPanel: {
-    backgroundColor: Colors.surface,
-    borderRadius: Radius.lg,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    padding: Spacing.md,
-    gap: Spacing.sm,
-  },
-  intentQuestion: {
-    fontSize: 16,
-    fontFamily: "Inter_700Bold",
-    color: Colors.textPrimary,
-    letterSpacing: 0.2,
-  },
   intentRow: { flexDirection: "row", flexWrap: "wrap", gap: Spacing.sm },
   intentChip: {
     minHeight: 36,
@@ -3096,22 +3028,15 @@ const s = StyleSheet.create({
     paddingVertical: Spacing.sm,
   },
   intentChipActive: {
-    borderColor: Colors.primaryBorder,
-    backgroundColor: Colors.primaryMuted,
+    borderColor: Colors.textSecondary,
+    backgroundColor: "rgba(255,255,255,0.08)",
   },
   intentChipText: {
     fontSize: 12,
     fontFamily: "Inter_700Bold",
     color: Colors.textSecondary,
   },
-  intentChipTextActive: { color: Colors.primary },
-  moreComplete: {
-    fontSize: 12,
-    fontFamily: "Inter_500Medium",
-    color: Colors.textTertiary,
-    textAlign: "center",
-    paddingVertical: Spacing.sm,
-  },
+  intentChipTextActive: { color: Colors.textPrimary },
   drillSection: { gap: Spacing.md, marginTop: Spacing.lg },
   drillCoachImage: {
     position: 'absolute',
@@ -3166,20 +3091,6 @@ const s = StyleSheet.create({
     fontSize: 8,
     fontFamily: "Inter_700Bold",
     letterSpacing: 0.7,
-  },
-  drillSoonPill: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    backgroundColor: Colors.surface,
-  },
-  drillSoonTag: {
-    fontSize: 7,
-    fontFamily: "Inter_700Bold",
-    color: Colors.textTertiary,
-    letterSpacing: 0.6,
   },
   drillTitle: {
     fontSize: 11,
