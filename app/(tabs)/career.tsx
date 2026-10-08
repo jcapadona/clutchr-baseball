@@ -1089,7 +1089,7 @@ function WorldGrid({ worlds, featuredId, accent, lessons, completed, isPro, onTa
         title={world.label}
         size={size}
         state={state}
-        accent={accent}
+        accent={world.id === featured.id || accent !== Colors.primary ? accent : Colors.textTertiary}
         percent={wl.length > 0 ? (done / wl.length) * 100 : 0}
         done={done}
         total={wl.length}
