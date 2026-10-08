@@ -46,47 +46,42 @@ import { TopHighlight } from '@/constants/visualExtensions';
 // ─── FREE vs PRO COMPARISON ───────────────────────────────────────────────────
 
 const FREE_FEATURES = [
-  { label: 'First 5 Career lessons',           included: true  },
-  { label: 'Foundation pillar (full)',           included: true  },
-  { label: 'Game Mode: all pre/post tools',    included: true  },
-  { label: 'Streak tracking',                   included: true  },
-  { label: 'Playbook (5 cue words)',            included: true  },
-  { label: 'Role-specific career path',         included: false },
-  { label: 'Hundreds of reps across 30+ worlds', included: false },
-  { label: 'Pressure & resilience worlds',      included: false },
-  { label: 'Slump reset system',                included: false },
-  { label: 'Between-innings tools (full)',       included: false },
-  { label: 'XP milestones & phase badges',      included: false },
+  { label: 'Playbook (3 cue slots)',                         included: true  },
+  { label: 'Role-specific career path',                      included: false },
+  { label: 'Hundreds of reps across every position and phase', included: false },
+  { label: 'Slump reset system',                             included: false },
+  { label: 'Between-innings tools (full)',                    included: false },
+  { label: 'XP milestones & phase badges',                   included: false },
 ];
 
 const PRO_FEATURES = [
   {
     icon: 'baseball',
-    color: Colors.primary,
+    color: Colors.textSecondary,
     title: 'Full Career Path',
-    desc: 'Hundreds of reps across 30+ worlds. Role-specific, season-aware, always adapting.',
+    desc: 'Hundreds of reps across every position and phase. Role-specific, season-aware, always adapting.',
   },
   {
     icon: 'pulse',
-    color: Colors.warning,
+    color: Colors.textSecondary,
     title: 'Pressure & Slump Systems',
     desc: 'Dedicated slump-reset world. Clutch-moment training. Short memory reps.',
   },
   {
     icon: 'shield',
-    color: Colors.purple,
+    color: Colors.textSecondary,
     title: 'Phase Badges & Milestones',
     desc: 'Earn clean rank progress from Foundation to Elite. Every rep builds.',
   },
   {
     icon: 'refresh',
-    color: Colors.info,
+    color: Colors.textSecondary,
     title: 'Full Between-Innings Tools',
     desc: 'Battery sync, inning transition, mid-game slump shrink. The full in-game toolkit.',
   },
   {
     icon: 'flash',
-    color: Colors.warning,
+    color: Colors.textSecondary,
     title: 'Priority Lesson Routing',
     desc: 'The routing engine uses your full state (phase, struggles) to pick the perfect next rep.',
   },
@@ -192,8 +187,9 @@ export default function UpgradeScreen() {
   const monthlyPriceNum = (monthlyPkg?.product.price       as number | undefined) ?? 9.99;
   const currencySymbol  = annualPriceStr.replace(/[\d.,\s]/g, '')[0] ?? '$';
   const monthlyEquivStr = `Best value: ${currencySymbol}${(annualPriceNum / 12).toFixed(2)}/mo`;
-  const savingsPct      = Math.round((1 - annualPriceNum / (monthlyPriceNum * 12)) * 100);
-  const savingsBadge    = `Save ${savingsPct}%`;
+  // Only show a savings figure when both live packages are loaded.
+  const savingsPct      = Math.floor((1 - annualPriceNum / (monthlyPriceNum * 12)) * 100);
+  const savingsBadge    = annualPkg && monthlyPkg && savingsPct > 0 ? `Save ${savingsPct}%` : undefined;
 
   function handleSelectPlan(id: 'monthly' | 'annual') {
     H.select();
@@ -290,13 +286,13 @@ export default function UpgradeScreen() {
           {/* ── HERO ── */}
           <View style={styles.heroWrap}>
             <LinearGradient
-              colors={['rgba(34,204,94,0.08)', 'transparent']}
-              style={StyleSheet.absoluteFill}
+              colors={['rgba(245,166,35,0.08)', 'transparent']}
+              style={[StyleSheet.absoluteFill, { borderRadius: Radius.xl }]}
               start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }}
             />
             <View style={styles.heroIconWrap}>
               <LinearGradient
-                colors={[Colors.primary, Colors.primaryDim]}
+                colors={[Colors.warning, '#D4890A']}
                 style={styles.heroIconGrad}
                 start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
               />
@@ -314,7 +310,7 @@ export default function UpgradeScreen() {
                   <Ionicons
                     name={line.icon as any}
                     size={14}
-                    color={i === 2 ? Colors.primary : Colors.textTertiary}
+                    color={i === 2 ? Colors.warning : Colors.textTertiary}
                   />
                 </View>
                 <Text style={[styles.comparisonText, i === 2 && styles.comparisonTextHighlight]}>
@@ -327,6 +323,7 @@ export default function UpgradeScreen() {
           {/* ── PRO FEATURES ── */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>WHAT YOU UNLOCK</Text>
+            <View style={styles.featureList}>
             {PRO_FEATURES.map((feat) => (
               <View key={feat.title} style={styles.featureRow}>
                 <View style={[styles.featureIcon, { backgroundColor: feat.color + '15' }]}>
@@ -338,6 +335,7 @@ export default function UpgradeScreen() {
                 </View>
               </View>
             ))}
+            </View>
           </View>
 
           {/* ── FREE vs PRO TABLE ── */}
@@ -357,7 +355,7 @@ export default function UpgradeScreen() {
                     <Ionicons
                       name={f.included ? 'checkmark-circle' : 'ellipse-outline'}
                       size={16}
-                      color={f.included ? Colors.primary : Colors.textTertiary}
+                      color={f.included ? Colors.textSecondary : Colors.textTertiary}
                     />
                   </View>
                   <View style={styles.compTableCheck}>
@@ -403,7 +401,7 @@ export default function UpgradeScreen() {
                     <Text style={styles.planNote}>{noteStr}</Text>
                     {selectedPlan === plan.id && (
                       <View style={styles.planCheckWrap}>
-                        <Ionicons name="checkmark-circle" size={18} color={plan.highlight ? Colors.warning : Colors.primary} />
+                        <Ionicons name="checkmark-circle" size={18} color={plan.highlight ? Colors.warning : Colors.textSecondary} />
                       </View>
                     )}
                   </Pressable>
@@ -414,7 +412,7 @@ export default function UpgradeScreen() {
 
           {/* ── FINE PRINT ── */}
           <View style={styles.finePrint}>
-            <Pressable onPress={handleRestore} disabled={purchaseLoading}>
+            <Pressable onPress={handleRestore} disabled={purchaseLoading} style={styles.restoreBtn}>
               <Text style={styles.restoreText}>Restore purchases</Text>
             </Pressable>
             <Text style={styles.finePrintText}>
@@ -444,7 +442,7 @@ export default function UpgradeScreen() {
       </ScrollView>
 
       {/* ── STICKY CTA FOOTER ── */}
-      <Animated.View style={[styles.stickyFooter, { paddingBottom: insets.bottom + Spacing.md }, { opacity: fadeAnim }]}>
+      <Animated.View style={[styles.stickyFooter, { paddingBottom: insets.bottom + Spacing.lg }, { opacity: fadeAnim }]}>
         <Pressable
           onPress={selectedPlan === 'annual' ? handlePurchaseYearly : handlePurchaseMonthly}
           onPressIn={ctaPressIn}
@@ -453,7 +451,7 @@ export default function UpgradeScreen() {
         >
           <Animated.View style={[styles.ctaBtn, { transform: [{ scale: ctaScale }], opacity: purchaseLoading ? 0.6 : ctaOpacity }]}>
             <LinearGradient
-              colors={selectedPlan === 'annual' ? [Colors.warning, '#D4890A'] : [Colors.primary, Colors.primaryDim]}
+              colors={[Colors.warning, '#D4890A']}
               style={StyleSheet.absoluteFill}
               start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
             />
@@ -481,7 +479,7 @@ const styles = StyleSheet.create({
 
   topBar: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: Spacing.xl, paddingVertical: Spacing.md,
+    paddingHorizontal: 20, paddingVertical: Spacing.md,
   },
   closeBtn: {
     width: 36, height: 36, borderRadius: 18,
@@ -494,27 +492,27 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12, paddingVertical: 6,
     borderWidth: 1, borderColor: Colors.warning + '40',
   },
-  proPillText: { fontSize: 10, fontFamily: 'Inter_700Bold', color: Colors.warning, letterSpacing: 1.2 },
+  proPillText: { fontSize: 10, lineHeight: 14, paddingTop: 2, fontFamily: 'Inter_700Bold', color: Colors.warning, letterSpacing: 1.2 },
 
-  scroll: { paddingHorizontal: Spacing.xl, gap: Spacing.xl },
+  scroll: { paddingHorizontal: 20 },
 
   // Hero
   heroWrap: {
     alignItems: 'center', gap: Spacing.md,
     paddingVertical: Spacing.xl, borderRadius: Radius.xl,
     borderWidth: 1, borderColor: Colors.border, borderTopColor: TopHighlight,
-    overflow: 'hidden', paddingHorizontal: Spacing.lg,
+    paddingHorizontal: Spacing.lg, marginBottom: Spacing.xl,
   },
   heroIconWrap: {
     width: 72, height: 72, borderRadius: 36,
     alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
-    shadowColor: Colors.primary, shadowOffset: { width: 0, height: 0 },
+    shadowColor: Colors.warning, shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.5, shadowRadius: 16,
   },
   heroIconGrad: { ...StyleSheet.absoluteFillObject },
   heroTitle: {
     fontSize: 24, fontFamily: 'Inter_700Bold',
-    color: Colors.textPrimary, textAlign: 'center', lineHeight: 30,
+    color: Colors.textPrimary, textAlign: 'center', lineHeight: 32, paddingTop: 3,
   },
   heroSub: {
     fontSize: 14, fontFamily: 'Inter_400Regular',
@@ -524,7 +522,7 @@ const styles = StyleSheet.create({
   // Comparison
   comparisonWrap: {
     backgroundColor: Colors.surface, borderRadius: Radius.lg,
-    padding: Spacing.md, borderWidth: 1, borderColor: Colors.border, gap: Spacing.sm,
+    padding: Spacing.lg, borderWidth: 1, borderColor: Colors.border, gap: Spacing.lg,
   },
   comparisonRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
   comparisonIcon: {
@@ -532,22 +530,23 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surfaceElevated,
     alignItems: 'center', justifyContent: 'center',
   },
-  comparisonIconHighlight: { backgroundColor: Colors.primaryMuted },
-  comparisonText: { flex: 1, fontSize: 12, fontFamily: 'Inter_400Regular', color: Colors.textTertiary },
+  comparisonIconHighlight: { backgroundColor: Colors.warningMuted },
+  comparisonText: { flex: 1, fontSize: 12, lineHeight: 18, fontFamily: 'Inter_400Regular', color: Colors.textTertiary },
   comparisonTextHighlight: { color: Colors.textPrimary, fontFamily: 'Inter_600SemiBold' },
   bestValueBadge: {
-    backgroundColor: Colors.primaryMuted, borderRadius: Radius.pill,
+    backgroundColor: Colors.warningMuted, borderRadius: Radius.pill,
     paddingHorizontal: 7, paddingVertical: 3,
     borderWidth: 1, borderColor: Colors.border,
   },
-  bestValueText: { fontSize: 8, fontFamily: 'Inter_700Bold', color: Colors.primary, letterSpacing: 0.8 },
+  bestValueText: { fontSize: 8, fontFamily: 'Inter_700Bold', color: Colors.warning, letterSpacing: 0.8 },
 
   // Section
-  section: { gap: Spacing.md },
+  section: { marginTop: Spacing.xxl, gap: Spacing.md },
   sectionTitle: {
-    fontSize: 10, fontFamily: 'Inter_700Bold',
+    fontSize: 10, lineHeight: 16, paddingTop: 3, fontFamily: 'Inter_700Bold',
     color: Colors.textTertiary, letterSpacing: 1.5,
   },
+  featureList: { gap: Spacing.lg },
 
   // Feature rows
   featureRow: {
@@ -560,7 +559,7 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center', flexShrink: 0,
   },
   featureText: { flex: 1, gap: 3 },
-  featureTitle: { fontSize: 14, fontFamily: 'Inter_600SemiBold', color: Colors.textPrimary },
+  featureTitle: { fontSize: 14, lineHeight: 20, fontFamily: 'Inter_600SemiBold', color: Colors.textPrimary },
   featureDesc: { fontSize: 12, fontFamily: 'Inter_400Regular', color: Colors.textSecondary, lineHeight: 17 },
 
   // Free vs Pro table
@@ -569,26 +568,26 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: Colors.border, overflow: 'hidden',
   },
   compTableHeader: {
-    flexDirection: 'row', paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm,
+    flexDirection: 'row', paddingHorizontal: Spacing.md, paddingVertical: Spacing.md,
     borderBottomWidth: 1, borderBottomColor: Colors.border,
   },
   compTableHeaderCell: {
-    flex: 1, fontSize: 10, fontFamily: 'Inter_700Bold',
+    flex: 1, fontSize: 10, lineHeight: 14, fontFamily: 'Inter_700Bold',
     letterSpacing: 0.8, textAlign: 'center',
   },
-  compTableRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: Spacing.md, paddingVertical: 10 },
+  compTableRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: Spacing.md, paddingVertical: 12, minHeight: 44 },
   compTableRowAlt: { backgroundColor: Colors.surfaceElevated + '60' },
-  compTableLabel: { flex: 3, fontSize: 12, fontFamily: 'Inter_400Regular', color: Colors.textSecondary },
+  compTableLabel: { flex: 3, fontSize: 12, lineHeight: 17, paddingRight: Spacing.sm, fontFamily: 'Inter_400Regular', color: Colors.textSecondary },
   compTableCheck: { flex: 1, alignItems: 'center' },
 
   // Plan cards
-  plansRow: { flexDirection: 'row', gap: Spacing.sm },
+  plansRow: { flexDirection: 'row', gap: Spacing.lg },
   planCard: {
     flex: 1, backgroundColor: Colors.surface, borderRadius: Radius.lg,
     padding: Spacing.md, borderWidth: 1.5, borderColor: Colors.border,
-    gap: 4, position: 'relative', overflow: 'hidden',
+    gap: 4, position: 'relative',
   },
-  planCardSelected: { borderColor: Colors.primary + '60' },
+  planCardSelected: { borderColor: Colors.textSecondary + '60' },
   planCardHighlight: { borderColor: Colors.warning + '60', backgroundColor: Colors.warningMuted + '20' },
   savingsBadge: {
     position: 'absolute', top: 8, right: 8,
@@ -596,17 +595,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6, paddingVertical: 2,
   },
   savingsText: { fontSize: 8, fontFamily: 'Inter_700Bold', color: '#000', letterSpacing: 0.5 },
-  planLabel: { fontSize: 11, fontFamily: 'Inter_700Bold', color: Colors.textTertiary, letterSpacing: 0.5 },
-  planPriceRow: { flexDirection: 'row', alignItems: 'baseline', gap: 2 },
-  planPrice: { fontSize: 22, fontFamily: 'Inter_700Bold', color: Colors.textPrimary },
-  planPeriod: { fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.textTertiary },
-  planNote: { fontSize: 10, fontFamily: 'Inter_400Regular', color: Colors.textTertiary },
+  planLabel: { fontSize: 11, lineHeight: 16, fontFamily: 'Inter_700Bold', color: Colors.textTertiary, letterSpacing: 0.5 },
+  planPriceRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'baseline', gap: 2 },
+  planPrice: { fontSize: 22, lineHeight: 30, fontFamily: 'Inter_700Bold', color: Colors.textPrimary },
+  planPeriod: { fontSize: 11, lineHeight: 16, fontFamily: 'Inter_400Regular', color: Colors.textTertiary },
+  planNote: { fontSize: 10, lineHeight: 14, fontFamily: 'Inter_400Regular', color: Colors.textTertiary },
   planCheckWrap: { position: 'absolute', bottom: 8, right: 8 },
 
   // Sticky footer
   stickyFooter: {
-    paddingHorizontal: Spacing.xl,
-    paddingTop: Spacing.md,
+    paddingHorizontal: 20,
+    paddingTop: Spacing.lg,
     gap: Spacing.sm,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: Colors.border,
@@ -622,7 +621,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3, shadowRadius: 12,
   },
-  ctaText: { fontSize: 16, fontFamily: 'Inter_700Bold', color: '#000' },
+  ctaText: { flexShrink: 1, fontSize: 16, lineHeight: 22, fontFamily: 'Inter_700Bold', color: '#000' },
 
   // Purchase error
   purchaseError: {
@@ -631,11 +630,12 @@ const styles = StyleSheet.create({
   },
 
   // Fine print
-  finePrint: { gap: 8, alignItems: 'center', paddingBottom: Spacing.lg },
-  restoreText: { fontSize: 13, fontFamily: 'Inter_600SemiBold', color: Colors.primary },
+  finePrint: { marginTop: Spacing.xl, gap: Spacing.sm, alignItems: 'center', paddingBottom: Spacing.lg },
+  restoreBtn: { minHeight: 44, paddingHorizontal: Spacing.lg, alignItems: 'center', justifyContent: 'center' },
+  restoreText: { fontSize: 13, fontFamily: 'Inter_600SemiBold', color: Colors.textSecondary },
   finePrintText: {
     fontSize: 11, fontFamily: 'Inter_400Regular',
-    color: Colors.textTertiary, textAlign: 'center', lineHeight: 17,
+    color: Colors.textTertiary, textAlign: 'center', lineHeight: 20,
   },
-  linkText: { color: Colors.primary, textDecorationLine: 'underline' },
+  linkText: { color: Colors.warning, textDecorationLine: 'underline' },
 });
