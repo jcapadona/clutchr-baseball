@@ -22,7 +22,7 @@ import { CategoryColor, TopHighlight } from "@/constants/visualExtensions";
 import type { SeasonPhase } from "@/context/AthleteContext";
 import { SkeletonCard } from "@/components/SkeletonLoader";
 import { ClutchrHeader } from "@/components/ClutchrHeader";
-import { Card, Chip, PhotoCard, ScreenHeader, SectionLabel } from "@/components/ui/ClutchrUI";
+import { Card, Chip, Eyebrow, PhotoCard, ScreenHeader } from "@/components/ui/ClutchrUI";
 import { getBestCue } from "@/lib/personalCue";
 import { useToast } from "@/components/Toast";
 import { useProContext } from "@/context/ProContext";
@@ -164,7 +164,7 @@ const RAPID_REP_DRILLS: RapidRepDrill[] = [
     label: "PITCH IQ",
     title: "Pitch IQ",
     subtitle: "5 quick pitch-call decisions",
-    color: "#BF5AF2",
+    color: CategoryColor.craft,
     icon: "analytics",
     takeaway: "Best pitch calls start with count, hitter timing, and the cleanest way to win the next pitch.",
     reps: [
@@ -235,7 +235,7 @@ const RAPID_REP_DRILLS: RapidRepDrill[] = [
     label: "FIELD IQ",
     title: "Field IQ",
     subtitle: "5 quick defensive reads",
-    color: Colors.primary,
+    color: CategoryColor.craft,
     icon: "baseball",
     takeaway: "Clean defenders decide before the ball arrives: runner, out, clock, throw lane.",
     reps: [
@@ -1840,7 +1840,7 @@ function DrillModeSection({ onStartDrill }: { onStartDrill: (drill: RapidRepDril
             style={({ pressed }) => [
               s.drillCard,
               s.drillCardPlayable,
-              { borderColor: drill.color + "66", backgroundColor: drill.color + "12" },
+              { borderColor: drill.color, backgroundColor: drill.color + "12" },
               pressed && { opacity: 0.82, transform: [{ scale: 0.99 }] },
             ]}
           >
@@ -2446,11 +2446,9 @@ function PostgameDebriefRunner({
 
 function ToolTile({
   tool,
-  iconColor,
   onPress,
 }: {
   tool: GameTool;
-  iconColor: string;
   onPress: () => void;
 }) {
   return (
@@ -2464,8 +2462,8 @@ function ToolTile({
         onPress();
       }}
     >
-      <View style={[s.toolTileIcon, { backgroundColor: iconColor + "18" }]}>
-        <Ionicons name={tool.icon as any} size={20} color={iconColor} />
+      <View style={s.toolTileIcon}>
+        <Ionicons name={tool.icon as any} size={20} color="#C9D1CC" />
       </View>
       <Text style={s.toolTileName} numberOfLines={2}>
         {tool.name}
@@ -2517,14 +2515,6 @@ export default function GameModeScreen() {
   const hasFilteredTools = nextRepTools.length > 0 || moreTools.length > 0;
   const heroTool = nextRepTools[0] ?? null;
   const gridTools = [...nextRepTools.slice(1), ...moreTools];
-  // Tool tile icons: category color on PRE and POST (green mapped to the tab
-  // accent so green never repeats), neutral on LIVE.
-  const toolIconColor = (tool: GameTool) =>
-    bucket === "live"
-      ? Colors.textSecondary
-      : tool.color === Colors.primary
-        ? meta.color
-        : tool.color;
   // True when the bucket is empty solely because of pro gating (not missing content).
   const hasGatedTools = !isPro && !hasFilteredTools &&
     getTools(bucket, role, selectedIntent, true).length > 0;
@@ -2671,7 +2661,7 @@ export default function GameModeScreen() {
                 s.bucketTab,
                 active && {
                   borderBottomWidth: 2,
-                  borderBottomColor: BUCKET_META[b].color,
+                  borderBottomColor: Colors.textPrimary,
                 },
               ]}
               onPress={() => selectBucket(b)}
@@ -2732,19 +2722,17 @@ export default function GameModeScreen() {
           <SkeletonCard />
         ) : heroTool ? (
           <PhotoCard
-            active
             height={200}
             image={HERO_IMAGE[bucket]}
-            accent={meta.color}
-            accentWash={bucket !== "live"}
-            style={{ borderColor: meta.color, shadowColor: meta.color }}
+            accentWash={false}
+            style={{ borderColor: Colors.borderStrong, borderWidth: 1 }}
             onPress={() => openTool(heroTool)}
             footer={
               <View style={s.heroCta}>
                 <Ionicons
                   name={heroTool.mode === "print_card" ? "print-outline" : "play"}
                   size={14}
-                  color={Colors.textPrimary}
+                  color="#050806"
                 />
                 <Text style={s.heroCtaText}>
                   {heroTool.mode === "print_card" ? "OPEN CARD" : "START"}
@@ -2759,7 +2747,7 @@ export default function GameModeScreen() {
         ) : null}
 
         <View style={s.sectionLabelWrap}>
-          <SectionLabel>YOUR CUES</SectionLabel>
+          <Eyebrow>YOUR CUES</Eyebrow>
         </View>
         <Card>
           <View style={s.cueChipRow}>
@@ -2786,7 +2774,7 @@ export default function GameModeScreen() {
         )}
 
         <View style={s.sectionLabelWrap}>
-          <SectionLabel>TOOLS</SectionLabel>
+          <Eyebrow>TOOLS</Eyebrow>
         </View>
 
         {isLoading || proLoading ? (
@@ -2829,7 +2817,6 @@ export default function GameModeScreen() {
               <ToolTile
                 key={tool.id}
                 tool={tool}
-                iconColor={toolIconColor(tool)}
                 onPress={() => openTool(tool)}
               />
             ))}
@@ -2846,7 +2833,7 @@ export default function GameModeScreen() {
 
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
-  sectionLabelWrap: { marginHorizontal: -Spacing.lg, marginTop: -Spacing.sm, marginBottom: -Spacing.sm },
+  sectionLabelWrap: { marginTop: Spacing.xs },
   heroKicker: {
     fontSize: 10,
     fontFamily: "Inter_700Bold",
@@ -2870,18 +2857,17 @@ const s = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     alignSelf: "flex-start",
+    justifyContent: "center",
     gap: 6,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: 8,
-    borderRadius: Radius.pill,
-    borderWidth: 1,
-    borderColor: Colors.textSecondary,
-    backgroundColor: "rgba(0,0,0,0.35)",
+    height: 44,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    backgroundColor: "#39FF88",
   },
   heroCtaText: {
-    fontSize: 11,
+    fontSize: 13,
     fontFamily: "Inter_700Bold",
-    color: Colors.textPrimary,
+    color: "#050806",
     letterSpacing: 1,
   },
   cueChipRow: { flexDirection: "row", flexWrap: "wrap", gap: Spacing.sm },
@@ -2904,23 +2890,24 @@ const s = StyleSheet.create({
     backgroundColor: Colors.surface,
   },
   toolTileIcon: {
-    width: 34,
-    height: 34,
-    borderRadius: 10,
+    width: 40,
+    height: 40,
+    borderRadius: 6,
+    backgroundColor: Colors.surfaceElevated,
     alignItems: "center",
     justifyContent: "center",
   },
   toolTileName: {
-    fontSize: 13,
-    fontFamily: "Inter_700Bold",
+    fontSize: 16,
+    fontFamily: "Inter_600SemiBold",
     color: Colors.textPrimary,
-    lineHeight: 17,
+    lineHeight: 20,
   },
   toolTileMeta: { flexDirection: "row", alignItems: "center", gap: 6 },
   toolTileDuration: {
-    fontSize: 11,
+    fontSize: 13,
     fontFamily: "Inter_600SemiBold",
-    color: Colors.textTertiary,
+    color: "#6E7873",
   },
 
   bucketRow: {
@@ -3047,7 +3034,7 @@ const s = StyleSheet.create({
     opacity: 0.9,
   },
   drillHeroCard: {
-    backgroundColor: Colors.surfaceGlow,
+    backgroundColor: "#0D110F",
     borderRadius: Radius.lg,
     borderWidth: 1,
     borderColor: Colors.border,
