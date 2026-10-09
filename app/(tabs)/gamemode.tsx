@@ -2503,6 +2503,28 @@ export default function GameModeScreen() {
   const savedScrollY = useRef(0);
 
   const role = (athleteState?.primary_role ?? "infielder") as RoleKey;
+  // Cue chips: the player's own playbook cues when they have any, else role defaults.
+  // Free players only see the first three playbook slots (confidence and focus are Pro).
+  const playbookCues = (() => {
+    const pb = athleteState?.playbook;
+    if (!pb) return [] as string[];
+    const slots = (["reset", "approach", "pressure", "confidence", "focus"] as const)
+      .slice(0, isPro ? 5 : 3);
+    const seen = new Set<string>();
+    const out: string[] = [];
+    for (const slot of slots) {
+      const cue = pb[slot]?.trim();
+      if (!cue || seen.has(cue.toLowerCase())) continue;
+      seen.add(cue.toLowerCase());
+      out.push(cue);
+    }
+    return out.slice(0, 3);
+  })();
+  const hasOwnCues = playbookCues.length > 0;
+  const cueChips = hasOwnCues
+    ? playbookCues
+    : (ROLE_CUES[role] ?? ROLE_CUES.infielder).slice(0, 3);
+  const pressureInChips = cueChips.some((c) => c.toLowerCase() === pressureCue.trim().toLowerCase());
   const phase = (athleteState?.season_phase ?? "in_season") as SeasonPhase;
   const firstName = athleteState?.first_name ?? "Athlete";
   const meta = BUCKET_META[bucket];
@@ -2747,17 +2769,19 @@ export default function GameModeScreen() {
         ) : null}
 
         <View style={s.sectionLabelWrap}>
-          <Eyebrow>YOUR CUES</Eyebrow>
+          <Eyebrow>{hasOwnCues ? "YOUR CUES" : "ROLE CUES"}</Eyebrow>
         </View>
         <Card>
           <View style={s.cueChipRow}>
-            {(ROLE_CUES[role] ?? ROLE_CUES.infielder).slice(0, 3).map((cue) => (
-              <Chip key={cue} label={cue} />
+            {cueChips.map((cue) => (
+              <Chip key={cue} label={cue} numberOfLines={1} />
             ))}
           </View>
-          <Text style={s.pressureCueText}>
-            Pressure cue: {pressureCue || "Compete."}
-          </Text>
+          {!pressureInChips && (
+            <Text style={s.pressureCueText}>
+              Pressure cue: {pressureCue || "Compete."}
+            </Text>
+          )}
         </Card>
 
         {bucket === "post" && lastDebrief && (

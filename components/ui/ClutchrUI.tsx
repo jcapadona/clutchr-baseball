@@ -690,16 +690,21 @@ export function ProgressBar({ percent, color = Colors.primary, height = 4 }:
   );
 }
 
-export function Chip({ label, tone = Colors.primary, filled = false }:
-  { label: string; tone?: string; filled?: boolean }) {
+export function Chip({ label, tone = Colors.primary, filled = false, numberOfLines }:
+  { label: string; tone?: string; filled?: boolean; numberOfLines?: number }) {
   return (
     <View style={[
       s.chip,
+      !!numberOfLines && { maxWidth: '100%' },
       filled
         ? { backgroundColor: tint(tone, 0.18), borderColor: 'transparent' }
         : { borderColor: Colors.border },
     ]}>
-      <Text style={[Typography.labelSmall, { color: filled ? tone : Colors.textSecondary, letterSpacing: 1 }]}>
+      <Text
+        style={[Typography.labelSmall, { color: filled ? tone : Colors.textSecondary, letterSpacing: 1 }]}
+        numberOfLines={numberOfLines}
+        ellipsizeMode="tail"
+      >
         {label}
       </Text>
     </View>
