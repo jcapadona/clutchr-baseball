@@ -446,7 +446,7 @@ const styles = StyleSheet.create({
     borderTopColor: Colors.border,
     gap: 4,
   },
-  coachingNoteLabel: { fontSize: 9, fontFamily: 'Inter_700Bold', color: Colors.textTertiary, letterSpacing: 1 },
+  coachingNoteLabel: { fontSize: 10, fontFamily: 'Inter_700Bold', color: Colors.textTertiary, letterSpacing: 1 },
   coachingNoteText: { fontSize: 13, fontFamily: 'Inter_400Regular', color: Colors.textSecondary, lineHeight: 19 },
 
   submitWrap: { gap: Spacing.sm },

@@ -165,6 +165,30 @@ export const Typography = {
   },
 } as const;
 
+/**
+ * Type scale. Two families only: Barlow Condensed (display) and Inter (body).
+ * Use for new code and when touching a screen; existing Typography tokens stay as they are.
+ * Condensed italic styles carry paddingTop so the top of the glyphs never clips.
+ */
+const BARLOW_ITALIC = 'BarlowCondensed_800ExtraBold_Italic';
+
+export const TypeScale = {
+  displayXL:  { fontFamily: BARLOW_ITALIC, fontSize: 88, lineHeight: 80, paddingTop: 3, paddingRight: 8 },
+  display:    { fontFamily: BARLOW_ITALIC, fontSize: 40, lineHeight: 44, paddingTop: 4, letterSpacing: 0.5, textTransform: 'uppercase' },
+  number:     { fontFamily: BARLOW_ITALIC, fontSize: 40, lineHeight: 42, paddingTop: 2 },
+  title:      { fontFamily: BARLOW_ITALIC, fontSize: 32, lineHeight: 36, paddingTop: 3, letterSpacing: 0.3, textTransform: 'uppercase' },
+  numberSm:   { fontFamily: BARLOW_ITALIC, fontSize: 22, lineHeight: 24, paddingTop: 2 },
+  heading:    { fontFamily: 'Inter_700Bold',     fontSize: 22, lineHeight: 28 },
+  subheading: { fontFamily: 'Inter_600SemiBold', fontSize: 17, lineHeight: 22 },
+  bodyLarge:  { fontFamily: 'Inter_400Regular',  fontSize: 16, lineHeight: 22 },
+  body:       { fontFamily: 'Inter_400Regular',  fontSize: 15, lineHeight: 20 },
+  bodySmall:  { fontFamily: 'Inter_400Regular',  fontSize: 13, lineHeight: 18 },
+  button:     { fontFamily: 'Inter_700Bold',     fontSize: 15, lineHeight: 20, letterSpacing: 0.3 },
+  label:      { fontFamily: 'Inter_600SemiBold', fontSize: 12, lineHeight: 16, letterSpacing: 1 },
+  eyebrow:    { fontFamily: 'Inter_700Bold',     fontSize: 10, lineHeight: 14, letterSpacing: 2, textTransform: 'uppercase' },
+  caption:    { fontFamily: 'Inter_400Regular',  fontSize: 11, lineHeight: 16 },
+} as const;
+
 export const Spacing = {
   xs: 4,
   sm: 8,

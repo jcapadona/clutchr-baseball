@@ -184,7 +184,7 @@ const dStyles = StyleSheet.create({
     borderBottomColor: Colors.border,
   },
   cueAccent: { width: 4, height: 4, borderRadius: 2 },
-  cueLabelText: { fontSize: 9, fontFamily: 'Inter_700Bold', letterSpacing: 1.3 },
+  cueLabelText: { fontSize: 10, fontFamily: 'Inter_700Bold', letterSpacing: 1.3 },
   cueDesc: {
     fontSize: 14,
     fontFamily: 'Inter_500Medium',
@@ -404,7 +404,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 9,
     paddingVertical: 3,
   },
-  situationText: { fontSize: 9, fontFamily: 'Inter_700Bold', color: Colors.info, letterSpacing: 1.3 },
+  situationText: { fontSize: 10, fontFamily: 'Inter_700Bold', color: Colors.info, letterSpacing: 1.3 },
   situationDesc: { fontSize: 13, fontFamily: 'Inter_500Medium', color: Colors.textSecondary, flex: 1 },
 
   imageWrap: {
@@ -469,7 +469,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 9,
     paddingVertical: 3,
   },
-  fbBadgeText: { fontSize: 9, fontFamily: 'Inter_700Bold', letterSpacing: 1.3 },
+  fbBadgeText: { fontSize: 10, fontFamily: 'Inter_700Bold', letterSpacing: 1.3 },
   fbGlobal: { fontSize: 15, fontFamily: 'Inter_600SemiBold', color: Colors.textPrimary, lineHeight: 21 },
   fbDetail: { fontSize: 13, fontFamily: 'Inter_400Regular', color: Colors.textSecondary, lineHeight: 19 },
   retryBtn: {

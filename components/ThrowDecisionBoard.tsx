@@ -359,7 +359,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 9,
     paddingVertical: 3,
   },
-  fbBadgeText: { fontSize: 9, fontFamily: 'Inter_700Bold', letterSpacing: 1.3 },
+  fbBadgeText: { fontSize: 10, fontFamily: 'Inter_700Bold', letterSpacing: 1.3 },
   fbGlobal: { fontSize: 15, fontFamily: 'Inter_600SemiBold', color: Colors.textPrimary, lineHeight: 21 },
   fbDetail: { fontSize: 13, fontFamily: 'Inter_400Regular', color: Colors.textSecondary, lineHeight: 19 },
   retryBtn: {

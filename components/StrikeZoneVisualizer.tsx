@@ -373,7 +373,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   sideLabel: {
-    fontSize: 9,
+    fontSize: 10,
     fontFamily: 'Inter_700Bold',
     color: Colors.textTertiary,
     letterSpacing: 1,
@@ -401,7 +401,7 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   zoneCellLabel: {
-    fontSize: 9,
+    fontSize: 10,
     fontFamily: 'Inter_600SemiBold',
     color: Colors.textTertiary,
     textAlign: 'center',

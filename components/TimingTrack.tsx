@@ -283,7 +283,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 3,
   },
-  promptBadgeText: { fontSize: 9, fontFamily: 'Inter_700Bold', color: Colors.primary, letterSpacing: 1.2 },
+  promptBadgeText: { fontSize: 10, fontFamily: 'Inter_700Bold', color: Colors.primary, letterSpacing: 1.2 },
   promptText: { fontSize: 16, fontFamily: 'Inter_600SemiBold', color: Colors.textPrimary, lineHeight: 22 },
   instruction: { fontSize: 13, fontFamily: 'Inter_400Regular', color: Colors.textSecondary, lineHeight: 18 },
 

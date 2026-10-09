@@ -1631,7 +1631,7 @@ const missionStyles = StyleSheet.create({
     backgroundColor: Colors.textTertiary,
   },
   kicker: {
-    fontSize: 9,
+    fontSize: 10,
     fontFamily: 'Inter_700Bold',
     color: Colors.textTertiary,
     letterSpacing: 2.2,
@@ -1712,7 +1712,7 @@ const mapStyles = StyleSheet.create({
     marginRight: 16,
   },
   dividerLabel: {
-    fontSize: 9,
+    fontSize: 10,
     fontFamily: 'Inter_700Bold',
     letterSpacing: 2,
     marginLeft: 48,
@@ -1772,7 +1772,7 @@ const tlStyles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.06)',
   },
   doneBadgeText: {
-    fontSize: 9,
+    fontSize: 10,
     fontFamily: 'Inter_700Bold',
     color: 'rgba(255,255,255,0.3)',
     letterSpacing: 0.8,

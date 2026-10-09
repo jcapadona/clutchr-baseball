@@ -286,13 +286,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 3,
   },
-  situationBadgeText: { fontSize: 9, fontFamily: 'Inter_700Bold', color: Colors.danger, letterSpacing: 1.2 },
+  situationBadgeText: { fontSize: 10, fontFamily: 'Inter_700Bold', color: Colors.danger, letterSpacing: 1.2 },
   situationText: { fontSize: 15, fontFamily: 'Inter_600SemiBold', color: Colors.textPrimary, lineHeight: 22 },
 
   instruction: { fontSize: 13, fontFamily: 'Inter_500Medium', color: Colors.textSecondary },
 
   slotsSection: { gap: Spacing.sm },
-  slotsLabel: { fontSize: 9, fontFamily: 'Inter_700Bold', color: Colors.textTertiary, letterSpacing: 1.2 },
+  slotsLabel: { fontSize: 10, fontFamily: 'Inter_700Bold', color: Colors.textTertiary, letterSpacing: 1.2 },
   slots: { gap: Spacing.sm },
   slot: {
     flexDirection: 'row',
@@ -319,7 +319,7 @@ const styles = StyleSheet.create({
   slotEmpty: { fontSize: 13, fontFamily: 'Inter_400Regular', color: Colors.textTertiary, flex: 1, fontStyle: 'italic' },
 
   pool: { gap: Spacing.sm },
-  poolLabel: { fontSize: 9, fontFamily: 'Inter_700Bold', color: Colors.textTertiary, letterSpacing: 1.2 },
+  poolLabel: { fontSize: 10, fontFamily: 'Inter_700Bold', color: Colors.textTertiary, letterSpacing: 1.2 },
   poolItems: { gap: Spacing.sm },
   poolItem: {
     flexDirection: 'row',
@@ -365,7 +365,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 9,
     paddingVertical: 3,
   },
-  fbBadgeText: { fontSize: 9, fontFamily: 'Inter_700Bold', letterSpacing: 1.3 },
+  fbBadgeText: { fontSize: 10, fontFamily: 'Inter_700Bold', letterSpacing: 1.3 },
   fbGlobal: { fontSize: 15, fontFamily: 'Inter_600SemiBold', color: Colors.textPrimary, lineHeight: 21 },
   retryBtn: {
     flexDirection: 'row',

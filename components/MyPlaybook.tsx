@@ -596,7 +596,7 @@ const slotStyles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
   iconWrap: { width: 36, height: 36, borderRadius: Radius.md, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
   headerText: { flex: 1, gap: 2 },
-  situationLabel: { fontSize: 9, fontFamily: 'Inter_700Bold', letterSpacing: 1 },
+  situationLabel: { fontSize: 10, fontFamily: 'Inter_700Bold', letterSpacing: 1 },
   situationText: { fontSize: 13, fontFamily: 'Inter_600SemiBold', color: Colors.textPrimary },
   cuePreview: {
     borderRadius: Radius.pill, borderWidth: 1,
@@ -608,7 +608,7 @@ const slotStyles = StyleSheet.create({
     paddingHorizontal: 7, paddingVertical: 3,
     borderWidth: 1, borderColor: Colors.border,
   },
-  emptyBadgeText: { fontSize: 8, fontFamily: 'Inter_700Bold', color: Colors.textTertiary, letterSpacing: 1 },
+  emptyBadgeText: { fontSize: 10, fontFamily: 'Inter_700Bold', color: Colors.textTertiary, letterSpacing: 1 },
 
   divider: { height: 1, backgroundColor: Colors.border },
 
@@ -621,7 +621,7 @@ const slotStyles = StyleSheet.create({
 
   prompt: { fontSize: 15, fontFamily: 'Inter_600SemiBold', color: Colors.textPrimary, lineHeight: 22 },
 
-  examplesLabel: { fontSize: 9, fontFamily: 'Inter_700Bold', color: Colors.textTertiary, letterSpacing: 1 },
+  examplesLabel: { fontSize: 10, fontFamily: 'Inter_700Bold', color: Colors.textTertiary, letterSpacing: 1 },
   chipGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm, marginTop: 2 },
 
   inputWrap: {
@@ -639,7 +639,7 @@ const slotStyles = StyleSheet.create({
     borderRadius: Radius.md, borderWidth: 1,
     padding: Spacing.lg, gap: 6, marginTop: Spacing.sm,
   },
-  lockedCueLabel: { fontSize: 9, fontFamily: 'Inter_700Bold', color: Colors.textTertiary, letterSpacing: 1 },
+  lockedCueLabel: { fontSize: 10, fontFamily: 'Inter_700Bold', color: Colors.textTertiary, letterSpacing: 1 },
   lockedCueText: { fontSize: 20, fontFamily: 'Inter_700Bold', letterSpacing: 0.5 },
 });
 
@@ -665,7 +665,7 @@ const lockedSlotStyles = StyleSheet.create({
     paddingHorizontal: Spacing.sm, paddingVertical: 3,
     borderWidth: 1, borderColor: Colors.border,
   },
-  badgeText: { fontSize: 8, fontFamily: 'Inter_700Bold', color: Colors.textTertiary, letterSpacing: 1 },
+  badgeText: { fontSize: 10, fontFamily: 'Inter_700Bold', color: Colors.textTertiary, letterSpacing: 1 },
 });
 
 const completeStyles = StyleSheet.create({
@@ -687,7 +687,7 @@ const completeStyles = StyleSheet.create({
   rowBorder: { borderBottomWidth: 1, borderBottomColor: Colors.border },
   rowIcon: { width: 32, height: 32, borderRadius: Radius.sm, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
   rowText: { flex: 1, gap: 1 },
-  rowLabel: { fontSize: 9, fontFamily: 'Inter_700Bold', letterSpacing: 0.8 },
+  rowLabel: { fontSize: 10, fontFamily: 'Inter_700Bold', letterSpacing: 0.8 },
   rowSituation: { fontSize: 12, fontFamily: 'Inter_400Regular', color: Colors.textSecondary },
   rowCue: { fontSize: 13, fontFamily: 'Inter_700Bold', maxWidth: 120, textAlign: 'right' },
 

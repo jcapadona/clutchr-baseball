@@ -210,7 +210,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 3,
   },
-  situationText: { fontSize: 9, fontFamily: 'Inter_700Bold', color: Colors.warning, letterSpacing: 1.2 },
+  situationText: { fontSize: 10, fontFamily: 'Inter_700Bold', color: Colors.warning, letterSpacing: 1.2 },
   scenarioText: {
     fontSize: 16,
     fontFamily: 'Inter_600SemiBold',
@@ -286,7 +286,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 9,
     paddingVertical: 3,
   },
-  qualityText: { fontSize: 9, fontFamily: 'Inter_700Bold', letterSpacing: 1.3 },
+  qualityText: { fontSize: 10, fontFamily: 'Inter_700Bold', letterSpacing: 1.3 },
   feedbackGlobal: {
     fontSize: 15,
     fontFamily: 'Inter_600SemiBold',

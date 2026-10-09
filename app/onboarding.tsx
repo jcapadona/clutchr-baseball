@@ -465,6 +465,7 @@ const styles = StyleSheet.create({
   ctaText: { fontSize: 16, fontFamily: 'Inter_600SemiBold', color: Colors.background },
   signOutLink: {
     fontSize: 12,
+    fontFamily: 'Inter_400Regular',
     color: 'rgba(255,255,255,0.35)',
     textAlign: 'center',
     marginTop: 16,

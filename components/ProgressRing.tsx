@@ -99,5 +99,5 @@ const styles = StyleSheet.create({
   wrap: { alignItems: 'center', gap: 5 },
   center: { alignItems: 'center', justifyContent: 'center' },
   valueText: { fontFamily: 'Inter_700Bold', color: Colors.textPrimary },
-  label: { fontSize: 9, fontFamily: 'Inter_700Bold', color: Colors.textTertiary, letterSpacing: 1 },
+  label: { fontSize: 10, fontFamily: 'Inter_700Bold', color: Colors.textTertiary, letterSpacing: 1 },
 });

@@ -1732,7 +1732,7 @@ const sparkStyles = StyleSheet.create({
     borderRadius: 1,
   },
   accentLabel: {
-    fontSize: 9,
+    fontSize: 10,
     fontFamily: 'Inter_700Bold',
     color: Colors.primary,
     letterSpacing: 2,
@@ -1804,7 +1804,7 @@ const cueStyles = StyleSheet.create({
     borderColor: Colors.border,
   },
   labelText: {
-    fontSize: 9,
+    fontSize: 10,
     fontFamily: 'Inter_700Bold',
     color: Colors.primary,
     letterSpacing: 1.2,
@@ -2125,7 +2125,7 @@ const reflectStyles = StyleSheet.create({
     gap: 5,
   },
   exampleLabel: {
-    fontSize: 9,
+    fontSize: 10,
     fontFamily: 'Inter_700Bold',
     color: Colors.warning,
     letterSpacing: 1.2,
@@ -2193,7 +2193,7 @@ const nwStyles = StyleSheet.create({
   },
   situationBorder: { width: 3 },
   situationInner: { flex: 1, padding: Spacing.lg, gap: 6 },
-  situationLabel: { fontSize: 9, fontFamily: 'Inter_700Bold', color: Colors.textTertiary, letterSpacing: 1.2 },
+  situationLabel: { fontSize: 10, fontFamily: 'Inter_700Bold', color: Colors.textTertiary, letterSpacing: 1.2 },
   situationText: { fontSize: 15, fontFamily: 'Inter_500Medium', color: Colors.textPrimary, lineHeight: 23 },
 
   noticeInstruct: {
@@ -2287,7 +2287,7 @@ const nwStyles = StyleSheet.create({
   revealText: { fontSize: 16, fontFamily: 'Inter_500Medium', color: Colors.textPrimary, lineHeight: 25 },
 
   recapWrap: { gap: 6 },
-  recapLabel: { fontSize: 9, fontFamily: 'Inter_700Bold', color: Colors.textTertiary, letterSpacing: 1.5 },
+  recapLabel: { fontSize: 10, fontFamily: 'Inter_700Bold', color: Colors.textTertiary, letterSpacing: 1.5 },
   recapChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 5 },
   recapChip: {
     backgroundColor: Colors.primaryMuted,
@@ -2424,28 +2424,28 @@ const screenStyles = StyleSheet.create({
     paddingHorizontal: Spacing.sm, paddingVertical: 3,
     borderWidth: 1, borderColor: Colors.border,
   },
-  roleBadgeText: { fontSize: 9, fontFamily: 'Inter_700Bold', color: Colors.primary, letterSpacing: 0.8 },
+  roleBadgeText: { fontSize: 10, fontFamily: 'Inter_700Bold', color: Colors.primary, letterSpacing: 0.8 },
   interactiveBadge: {
     flexDirection: 'row', alignItems: 'center', gap: 3,
     backgroundColor: Colors.purpleMuted, borderRadius: Radius.pill,
     paddingHorizontal: Spacing.sm, paddingVertical: 3,
     borderWidth: 1, borderColor: `${Colors.purple}40`,
   },
-  interactiveBadgeText: { fontSize: 9, fontFamily: 'Inter_700Bold', color: Colors.purple, letterSpacing: 0.8 },
+  interactiveBadgeText: { fontSize: 10, fontFamily: 'Inter_700Bold', color: Colors.purple, letterSpacing: 0.8 },
   bossBadge: {
     flexDirection: 'row', alignItems: 'center', gap: 3,
     backgroundColor: Colors.warningMuted, borderRadius: Radius.pill,
     paddingHorizontal: Spacing.sm, paddingVertical: 3,
     borderWidth: 1, borderColor: `${Colors.warning}50`,
   },
-  bossBadgeText: { fontSize: 9, fontFamily: 'Inter_700Bold', color: Colors.warning, letterSpacing: 0.8 },
+  bossBadgeText: { fontSize: 10, fontFamily: 'Inter_700Bold', color: Colors.warning, letterSpacing: 0.8 },
   checkpointBadge: {
     flexDirection: 'row', alignItems: 'center', gap: 3,
     backgroundColor: Colors.infoMuted, borderRadius: Radius.pill,
     paddingHorizontal: Spacing.sm, paddingVertical: 3,
     borderWidth: 1, borderColor: `${Colors.info}50`,
   },
-  checkpointBadgeText: { fontSize: 9, fontFamily: 'Inter_700Bold', color: Colors.info, letterSpacing: 0.8 },
+  checkpointBadgeText: { fontSize: 10, fontFamily: 'Inter_700Bold', color: Colors.info, letterSpacing: 0.8 },
   diffText: { fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.textTertiary, textTransform: 'capitalize' },
   durationText: { fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.textTertiary },
 
@@ -2491,7 +2491,7 @@ const checkInStyles = StyleSheet.create({
   card: { backgroundColor: Colors.surface, borderRadius: Radius.xl, borderWidth: 1, borderColor: Colors.border, padding: Spacing.xl, width: '100%', gap: Spacing.lg },
   headerRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
   iconWrap: { width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.warningMuted, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-  eyebrow: { fontSize: 9, fontFamily: 'Inter_700Bold', color: Colors.textTertiary, letterSpacing: 1.2 },
+  eyebrow: { fontSize: 10, fontFamily: 'Inter_700Bold', color: Colors.textTertiary, letterSpacing: 1.2 },
   title: { fontSize: 16, fontFamily: 'Inter_700Bold', color: Colors.textPrimary, marginTop: 2 },
   divider: { height: 1, backgroundColor: Colors.border },
   prompt: { fontSize: 13, fontFamily: 'Inter_400Regular', color: Colors.textSecondary, lineHeight: 20, textAlign: 'center' },

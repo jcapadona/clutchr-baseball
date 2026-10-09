@@ -428,7 +428,7 @@ const styles = StyleSheet.create({
     gap: Spacing.xs,
   },
   scenarioLabel: {
-    fontSize: 9,
+    fontSize: 10,
     fontFamily: 'Inter_700Bold',
     color: Colors.warning,
     letterSpacing: 2,
@@ -458,7 +458,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   sectionLabel: {
-    fontSize: 9,
+    fontSize: 10,
     fontFamily: 'Inter_700Bold',
     color: 'rgba(255,255,255,0.35)',
     letterSpacing: 2,
@@ -660,7 +660,7 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
   },
   revealLabel: {
-    fontSize: 9,
+    fontSize: 10,
     fontFamily: 'Inter_700Bold',
     color: 'rgba(255,255,255,0.35)',
     letterSpacing: 2,

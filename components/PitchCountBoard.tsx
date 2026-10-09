@@ -559,14 +559,14 @@ const styles = StyleSheet.create({
     borderRadius: Radius.sm, borderWidth: 1,
     padding: Spacing.sm, alignItems: 'center', gap: 2, minWidth: 44,
   },
-  recapCount: { fontSize: 9, fontFamily: 'Inter_600SemiBold' },
+  recapCount: { fontSize: 10, fontFamily: 'Inter_600SemiBold' },
   recapResult: { fontSize: 13, fontFamily: 'Inter_700Bold' },
-  recapPitchType: { fontSize: 8, fontFamily: 'Inter_400Regular', color: Colors.textTertiary },
+  recapPitchType: { fontSize: 10, fontFamily: 'Inter_400Regular', color: Colors.textTertiary },
 
   coachingNote: {
     paddingTop: Spacing.sm, borderTopWidth: 1, borderTopColor: Colors.border, gap: 4,
   },
-  coachingLabel: { fontSize: 9, fontFamily: 'Inter_700Bold', color: Colors.textTertiary, letterSpacing: 1 },
+  coachingLabel: { fontSize: 10, fontFamily: 'Inter_700Bold', color: Colors.textTertiary, letterSpacing: 1 },
   coachingText: { fontSize: 13, fontFamily: 'Inter_400Regular', color: Colors.textSecondary, lineHeight: 19 },
 
   actionRow: { flexDirection: 'row', gap: Spacing.sm },
@@ -601,7 +601,7 @@ const dotStyles = StyleSheet.create({
     borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', gap: 2,
   },
   shortLabel: { fontSize: 13, fontFamily: 'Inter_700Bold' },
-  countLabel: { fontSize: 9, fontFamily: 'Inter_400Regular', color: Colors.textTertiary },
+  countLabel: { fontSize: 10, fontFamily: 'Inter_400Regular', color: Colors.textTertiary },
 });
 
 const countStyles = StyleSheet.create({
@@ -620,7 +620,7 @@ const countStyles = StyleSheet.create({
   },
   orbBall: { backgroundColor: Colors.primary },
   orbStrike: { backgroundColor: Colors.danger },
-  label: { fontSize: 9, fontFamily: 'Inter_700Bold', color: Colors.textTertiary, letterSpacing: 1 },
+  label: { fontSize: 10, fontFamily: 'Inter_700Bold', color: Colors.textTertiary, letterSpacing: 1 },
   count: { fontSize: 28, fontFamily: 'Inter_700Bold', color: Colors.textPrimary },
 });
 

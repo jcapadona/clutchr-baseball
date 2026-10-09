@@ -2957,7 +2957,7 @@ const s = StyleSheet.create({
   },
   scroll: { paddingHorizontal: Spacing.xl, gap: Spacing.md },
   dividerLabel: {
-    fontSize: 9,
+    fontSize: 10,
     fontFamily: "Inter_700Bold",
     color: Colors.textTertiary,
     letterSpacing: 1.2,
@@ -3011,7 +3011,7 @@ const s = StyleSheet.create({
     letterSpacing: 1.1,
   },
   screenshotTag: {
-    fontSize: 8,
+    fontSize: 10,
     fontFamily: "Inter_700Bold",
     color: Colors.warning,
     letterSpacing: 0.8,
@@ -3099,7 +3099,7 @@ const s = StyleSheet.create({
     justifyContent: "space-between",
   },
   drillLiveTag: {
-    fontSize: 8,
+    fontSize: 10,
     fontFamily: "Inter_700Bold",
     letterSpacing: 0.7,
   },
@@ -3158,7 +3158,7 @@ const s = StyleSheet.create({
     borderColor: Colors.warning + "40",
   },
   printTagText: {
-    fontSize: 9,
+    fontSize: 10,
     fontFamily: "Inter_700Bold",
     color: Colors.warning,
     letterSpacing: 0.5,
@@ -3372,7 +3372,6 @@ const cStyles = StyleSheet.create({
     color: Colors.textPrimary,
     flex: 1,
   },
-  compactName: { fontSize: 13 },
   printBadge: {
     flexDirection: "row",
     alignItems: "center",
@@ -3395,7 +3394,7 @@ const cStyles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
   },
-  badgeText: { fontSize: 8, fontFamily: "Inter_700Bold", letterSpacing: 0.5 },
+  badgeText: { fontSize: 10, fontFamily: "Inter_700Bold", letterSpacing: 0.5 },
   tagline: {
     fontSize: 11,
     fontFamily: "Inter_400Regular",
@@ -3615,7 +3614,7 @@ const pStyles = StyleSheet.create({
     flexShrink: 0,
   },
   cardEyebrow: {
-    fontSize: 8,
+    fontSize: 10,
     fontFamily: "Inter_700Bold",
     color: Colors.textTertiary,
     letterSpacing: 1.5,
@@ -3657,7 +3656,7 @@ const pStyles = StyleSheet.create({
   },
   cueBar: { padding: Spacing.lg, gap: 4 },
   cueBarLabel: {
-    fontSize: 8,
+    fontSize: 10,
     fontFamily: "Inter_700Bold",
     color: Colors.textTertiary,
     letterSpacing: 1.5,

@@ -238,7 +238,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.primaryBorder,
   },
-  atMaxText: { fontSize: 9, fontFamily: 'Inter_700Bold', color: Colors.primary, letterSpacing: 0.5 },
+  atMaxText: { fontSize: 10, fontFamily: 'Inter_700Bold', color: Colors.primary, letterSpacing: 0.5 },
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -272,7 +272,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   blockCategory: {
-    fontSize: 8,
+    fontSize: 10,
     fontFamily: 'Inter_700Bold',
     letterSpacing: 0.8,
     flex: 1,

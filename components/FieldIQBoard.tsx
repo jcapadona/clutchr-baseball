@@ -330,7 +330,7 @@ const boardStyles = StyleSheet.create({
   targetWrong: { borderColor: Colors.danger, backgroundColor: 'rgba(255,59,48,0.1)' },
   targetHint: { borderColor: Colors.primaryBorder, opacity: 0.7 },
   targetLabel: {
-    fontSize: 7,
+    fontSize: 10,
     fontFamily: 'Inter_700Bold',
     color: Colors.textTertiary,
     textAlign: 'center',
@@ -338,7 +338,7 @@ const boardStyles = StyleSheet.create({
     transform: [{ rotate: '-45deg' }],
   },
   targetLabelAction: {
-    fontSize: 7,
+    fontSize: 10,
     transform: [],
   },
 });

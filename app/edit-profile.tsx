@@ -281,13 +281,14 @@ const styles = StyleSheet.create({
   sectionLabel: {
     color: Colors.primary,
     fontSize: 11,
-    fontWeight: '700',
+    fontFamily: 'Inter_700Bold',
     letterSpacing: 2,
     marginBottom: 12,
   },
   sectionSub: {
     color: 'rgba(255,255,255,0.35)',
     fontSize: 11,
+    fontFamily: 'Inter_400Regular',
     marginBottom: 12,
     marginTop: -6,
   },
@@ -316,11 +317,11 @@ const styles = StyleSheet.create({
   pillText: {
     color: 'rgba(255,255,255,0.5)',
     fontSize: 13,
-    fontWeight: '400',
+    fontFamily: 'Inter_400Regular',
   },
   pillTextActive: {
     color: Colors.primary,
-    fontWeight: '700',
+    fontFamily: 'Inter_700Bold',
   },
   pillTextDisabled: {
     color: 'rgba(255,255,255,0.25)',
@@ -369,6 +370,7 @@ const styles = StyleSheet.create({
   },
   roleDesc: {
     fontSize: 11,
+    fontFamily: 'Inter_400Regular',
     color: 'rgba(255,255,255,0.35)',
   },
   roleCheck: {
@@ -405,6 +407,7 @@ const styles = StyleSheet.create({
   },
   optionDesc: {
     fontSize: 11,
+    fontFamily: 'Inter_400Regular',
     color: 'rgba(255,255,255,0.35)',
     marginTop: 2,
   },

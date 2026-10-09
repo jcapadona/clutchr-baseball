@@ -334,7 +334,7 @@ const styles = StyleSheet.create({
     lineHeight: 40,
   },
   resultLabel: {
-    fontSize: 9,
+    fontSize: 10,
     fontFamily: 'Inter_700Bold',
     color: Colors.textTertiary,
     letterSpacing: 1.5,

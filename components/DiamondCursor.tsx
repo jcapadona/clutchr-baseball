@@ -494,7 +494,7 @@ const styles = StyleSheet.create({
     gap: Spacing.xs,
   },
   scenarioLabel: {
-    fontSize: 9,
+    fontSize: 10,
     fontFamily: 'Inter_700Bold',
     color: Colors.warning,
     letterSpacing: 2,
@@ -563,7 +563,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   cursorLabel: {
-    fontSize: 9,
+    fontSize: 10,
     fontFamily: 'Inter_700Bold',
     color: Colors.primary,
     letterSpacing: 0.5,

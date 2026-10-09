@@ -236,7 +236,7 @@ const styles = StyleSheet.create({
   },
   statusPillText: {
     color: BRAND_GREEN,
-    fontSize: 9,
+    fontSize: 10,
     fontFamily: 'Inter_700Bold',
     letterSpacing: 0.8,
   },
@@ -277,7 +277,7 @@ const styles = StyleSheet.create({
   },
   flowKicker: {
     color: BRAND_GREEN,
-    fontSize: 9,
+    fontSize: 10,
     fontFamily: 'Inter_700Bold',
     letterSpacing: 1.2,
     marginBottom: 1,

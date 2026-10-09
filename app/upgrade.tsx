@@ -530,7 +530,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 7, paddingVertical: 3,
     borderWidth: 1, borderColor: Colors.border,
   },
-  bestValueText: { fontSize: 8, fontFamily: 'Inter_700Bold', color: Colors.warning, letterSpacing: 0.8 },
+  bestValueText: { fontSize: 10, fontFamily: 'Inter_700Bold', color: Colors.warning, letterSpacing: 0.8 },
 
   // Section
   section: { marginTop: Spacing.xxl, gap: Spacing.md },
@@ -583,7 +583,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.warning, borderRadius: Radius.pill,
     paddingHorizontal: 6, paddingVertical: 2,
   },
-  savingsText: { fontSize: 8, fontFamily: 'Inter_700Bold', color: '#000', letterSpacing: 0.5 },
+  savingsText: { fontSize: 10, fontFamily: 'Inter_700Bold', color: '#000', letterSpacing: 0.5 },
   planLabel: { fontSize: 11, lineHeight: 16, fontFamily: 'Inter_700Bold', color: Colors.textTertiary, letterSpacing: 0.5 },
   planPriceRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'baseline', gap: 2 },
   planPrice: { fontSize: 44, lineHeight: 48, fontFamily: DisplayFont.italic, color: '#F2F5F3' },

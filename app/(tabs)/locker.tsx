@@ -518,7 +518,7 @@ const lockerTabStyles = StyleSheet.create({
     color: '#F2F5F3',
   },
   count: {
-    fontSize: 9,
+    fontSize: 10,
     fontFamily: 'Inter_700Bold',
     color: '#F2F5F3',
     letterSpacing: 0.5,
@@ -555,7 +555,7 @@ const featStyles = StyleSheet.create({
     borderColor: Colors.borderStrong,
   },
   typeText: {
-    fontSize: 8,
+    fontSize: 10,
     color: Colors.textSecondary,
     fontFamily: 'Inter_700Bold',
     letterSpacing: 0.8,

@@ -519,7 +519,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8, paddingVertical: 3,
     borderWidth: 1, borderColor: Colors.warning + '40',
   },
-  proBadgeText: { fontSize: 9, fontFamily: 'Inter_700Bold', color: Colors.warning, letterSpacing: 0.8 },
+  proBadgeText: { fontSize: 10, fontFamily: 'Inter_700Bold', color: Colors.warning, letterSpacing: 0.8 },
 });
 
 // ─── MENTAL GAME SCORE STYLES ─────────────────────────────────────────────────

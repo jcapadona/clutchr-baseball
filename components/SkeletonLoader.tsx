@@ -115,6 +115,7 @@ const skStyles = StyleSheet.create({
   errorText: {
     color: 'rgba(255,255,255,0.35)',
     fontSize: 14,
+    fontFamily: 'Inter_400Regular',
     textAlign: 'center',
     paddingHorizontal: 32,
   },
@@ -132,6 +133,6 @@ const skStyles = StyleSheet.create({
   retryText: {
     color: Colors.primary,
     fontSize: 13,
-    fontWeight: '600',
+    fontFamily: 'Inter_600SemiBold',
   },
 });

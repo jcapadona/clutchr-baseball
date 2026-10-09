@@ -15,12 +15,10 @@
  *
  * Then in app/_layout.tsx, alongside your existing Inter font loading, add:
  *   import {
- *     BarlowCondensed_600SemiBold,
- *     BarlowCondensed_700Bold,
  *     BarlowCondensed_800ExtraBold,
  *     BarlowCondensed_800ExtraBold_Italic,
  *   } from '@expo-google-fonts/barlow-condensed';
- *   // add these four to your existing useFonts({...}) call
+ *   // add these two to your existing useFonts({...}) call
  */
 
 import { Colors, Typography, Spacing, Radius, Shadow } from './theme';
@@ -34,8 +32,6 @@ import { Colors, Typography, Spacing, Radius, Shadow } from './theme';
 export const DisplayFont = {
   italic: 'BarlowCondensed_800ExtraBold_Italic',
   bold:   'BarlowCondensed_800ExtraBold',
-  semi:   'BarlowCondensed_700Bold',
-  medium: 'BarlowCondensed_600SemiBold',
 } as const;
 
 /** Screen titles — "BUILD YOUR PATH", "GAME MODE". Two-tone in component: lead white, rest Colors.primary. */

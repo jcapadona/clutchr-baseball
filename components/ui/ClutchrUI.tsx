@@ -753,7 +753,7 @@ export function ListRow({
           {!!duration && <Text style={[Typography.labelSmall, { marginLeft: Spacing.sm }]}>· {duration}</Text>}
         </View>
       </View>
-      <Text style={{ color: Colors.textTertiary, fontSize: 20 }}>›</Text>
+      <Text style={{ color: Colors.textTertiary, fontSize: 20, fontFamily: 'Inter_400Regular' }}>›</Text>
     </Pressable>
   );
 }

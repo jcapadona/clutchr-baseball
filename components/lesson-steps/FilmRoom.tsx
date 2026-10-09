@@ -266,7 +266,7 @@ const vStyles = StyleSheet.create({
   },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   tag: { fontSize: 10, fontFamily: 'Inter_700Bold', color: Colors.primary, letterSpacing: 2 },
-  provider: { fontSize: 9, fontFamily: 'Inter_500Medium', color: Colors.textTertiary, letterSpacing: 1 },
+  provider: { fontSize: 10, fontFamily: 'Inter_500Medium', color: Colors.textTertiary, letterSpacing: 1 },
   metaRow: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
   meta: { fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.textSecondary },
   diamondWrap: { alignItems: 'center', gap: Spacing.sm, paddingVertical: Spacing.xs },
@@ -492,7 +492,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 9,
     paddingVertical: 3,
   },
-  resultBadgeText: { fontSize: 9, fontFamily: 'Inter_700Bold', letterSpacing: 1.3 },
+  resultBadgeText: { fontSize: 10, fontFamily: 'Inter_700Bold', letterSpacing: 1.3 },
   feedbackText: {
     fontSize: 14,
     fontFamily: 'Inter_400Regular',
@@ -507,7 +507,7 @@ const styles = StyleSheet.create({
     borderLeftWidth: 3,
     borderLeftColor: Colors.border,
   },
-  takeawayLabel: { fontSize: 8, fontFamily: 'Inter_700Bold', color: Colors.primary, letterSpacing: 1.5 },
+  takeawayLabel: { fontSize: 10, fontFamily: 'Inter_700Bold', color: Colors.primary, letterSpacing: 1.5 },
   takeawayText: { fontSize: 13, fontFamily: 'Inter_500Medium', color: Colors.textPrimary, lineHeight: 19 },
   retryBtn: {
     flexDirection: 'row',

@@ -166,5 +166,5 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.primaryBorder,
   },
-  rolePillText: { fontSize: 8, fontFamily: 'Inter_700Bold', color: Colors.primary, letterSpacing: 0.8 },
+  rolePillText: { fontSize: 10, fontFamily: 'Inter_700Bold', color: Colors.primary, letterSpacing: 0.8 },
 });
