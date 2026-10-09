@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import React, { useRef, useState } from 'react';
 import {
@@ -81,12 +82,12 @@ function getZoneLabel(zone: Zone, metric: string): string {
 
 // ─── METRIC CONFIG ────────────────────────────────────────────────────────────
 
-const METRIC_META: Record<string, { icon: string; label: string }> = {
-  confidence: { icon: '💪', label: 'CONFIDENCE' },
-  focus:      { icon: '🎯', label: 'FOCUS' },
-  composure:  { icon: '🧊', label: 'COMPOSURE' },
-  readiness:  { icon: '⚡', label: 'READINESS' },
-  energy:     { icon: '🔥', label: 'ENERGY' },
+const METRIC_META: Record<string, { icon: React.ComponentProps<typeof Ionicons>['name']; label: string }> = {
+  confidence: { icon: 'shield-checkmark-outline', label: 'CONFIDENCE' },
+  focus:      { icon: 'radio-button-on-outline',  label: 'FOCUS' },
+  composure:  { icon: 'pulse-outline',            label: 'COMPOSURE' },
+  readiness:  { icon: 'flash-outline',            label: 'READINESS' },
+  energy:     { icon: 'flame-outline',            label: 'ENERGY' },
 };
 
 // ─── COMPONENT ────────────────────────────────────────────────────────────────
@@ -166,7 +167,7 @@ export default function ConfidenceSlider({ data, responses, feedback, onComplete
     <View style={styles.container}>
       {/* Metric badge */}
       <View style={[styles.metricBadge, { borderColor: Colors.border, backgroundColor: Colors.primaryMuted }]}>
-        <Text style={styles.metricIcon}>{metric.icon}</Text>
+        <Ionicons name={metric.icon} size={14} color={Colors.textSecondary} />
         <Text style={styles.metricLabel}>{metric.label}</Text>
       </View>
 
@@ -337,8 +338,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md, paddingVertical: 5,
     borderRadius: Radius.pill, borderWidth: 1,
   },
-  metricIcon: { fontSize: 14 },
-  metricLabel: { fontSize: 10, fontFamily: 'Inter_700Bold', color: Colors.primary, letterSpacing: 1 },
+  metricLabel: { fontSize: 10, fontFamily: 'Inter_700Bold', color: Colors.textSecondary, letterSpacing: 1 },
 
   prompt: { fontSize: 18, fontFamily: 'Inter_600SemiBold', color: Colors.textPrimary, lineHeight: 26 },
   subPrompt: { fontSize: 14, fontFamily: 'Inter_400Regular', color: Colors.textSecondary, lineHeight: 20, marginTop: -Spacing.sm },
