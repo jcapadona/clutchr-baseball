@@ -41,7 +41,7 @@
 
 import React, { useEffect, useRef } from 'react';
 import {
-  View, Text, Pressable, Image, StyleSheet, ViewStyle, StyleProp,
+  View, Text, Pressable, Image, StyleSheet, ViewStyle, TextStyle, StyleProp,
   ImageSourcePropType, ScrollView, Animated, Easing, LayoutChangeEvent,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
@@ -272,6 +272,11 @@ export function SkewPill({ children }: { children: React.ReactNode }) {
       <View style={s.skewInner}>{children}</View>
     </View>
   );
+}
+
+/** Section eyebrow: small, letter-spaced, text3. The shared label style for section headings. */
+export function Eyebrow({ children, style }: { children: React.ReactNode; style?: StyleProp<TextStyle> }) {
+  return <Text style={[s.eyebrow, style]}>{children}</Text>;
 }
 
 /** Letter-spaced title flanked by tick rules — "— COMMAND CENTER —". */
@@ -783,7 +788,7 @@ export function CoachTake({ text, avatar, loading = false, style }: {
           : <StrokeIcon name="cap" size={22} color={Colors.primary} />}
       </View>
       <View style={{ flex: 1 }}>
-        <Text style={s.takeLabel}>CC'S TAKE</Text>
+        <Eyebrow>CC'S TAKE</Eyebrow>
         {loading
           ? (
             <View style={{ gap: 6, marginTop: 6 }}>
@@ -932,9 +937,6 @@ const s = StyleSheet.create({
     borderWidth: 1.5, borderColor: Colors.border,
     alignItems: 'center', justifyContent: 'center',
   },
-  takeLabel: {
-    fontFamily: DisplayFont.italic, fontSize: 18, lineHeight: 20,
-    letterSpacing: 0.6, color: Colors.primary,
-  },
+  eyebrow: { fontFamily: 'Inter_700Bold', fontSize: 10, lineHeight: 14, letterSpacing: 2, color: '#6E7873' },
   takeText: { ...Typography.body, fontSize: 14, lineHeight: 20, marginTop: 4 },
 });

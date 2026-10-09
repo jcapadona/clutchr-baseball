@@ -22,7 +22,7 @@ import { fetchLessons, fetchContentCards, type ContentCard } from '@/lib/supabas
 import { useProContext } from '@/context/ProContext';
 import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
 import {
-  CategoryColor, DisplayCard, DisplayCardSm, DisplayStat, TopHighlight,
+  CategoryColor, DisplayCard, DisplayFont, DisplayCardSm, DisplayStat, TopHighlight,
 } from '@/constants/visualExtensions';
 import { Assets } from '@/constants/assets';
 import { pickNextLesson, type RoutingResult } from '@/lib/lessonRouter';
@@ -30,12 +30,15 @@ import { SkeletonBox, SkeletonCard } from '@/components/SkeletonLoader';
 import { EmblemBadge } from '@/components/EmblemBadge';
 import { getCurrentRank, getRankProgress } from '@/lib/progressionRanks';
 import {
-  ChamferPanel, CoachTake, HudRule, ProgressBar, PrimaryButton,
+  ChamferPanel, CoachTake, Eyebrow, ProgressBar, PrimaryButton,
   ScreenHeader, Skeleton, StrokeIcon, type StrokeIconName,
 } from '@/components/ui/ClutchrUI';
-import { ProgressRing } from '@/components/ProgressRing';
 import { useToast } from '@/components/Toast';
 import { updateMentalGameScore } from '@/lib/mentalGameScore';
+
+const HOME_TEXT = '#F2F5F3';
+const HOME_TEXT3 = '#6E7873';
+const TILE_SURFACE = '#0D110F';
 
 const MISSIONS_DATE_KEY = 'missions_date';
 const MISSIONS_PROG_KEY = 'missions_progress';
@@ -234,7 +237,7 @@ function HomeTile({ spec }: { spec: TileSpec }) {
   } else {
     valueNode = (
       <Text
-        style={[DisplayStat, { fontSize: 28, lineHeight: 30, color: accent }]}
+        style={[DisplayStat, { fontFamily: DisplayFont.italic, fontSize: 40, lineHeight: 42, color: accent }]}
         numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}
       >
         {value}
@@ -245,6 +248,9 @@ function HomeTile({ spec }: { spec: TileSpec }) {
   return (
     <ChamferPanel
       accent={accent}
+      edge={Colors.border}
+      fill={TILE_SURFACE}
+      glow={false}
       cut={10}
       onPress={press}
       accessibilityLabel={a11y}
@@ -562,7 +568,6 @@ export default function HomeScreen() {
   const edgeLine = reason && reason.length <= 82 ? reason : 'Build command and tempo before the game speeds up.';
   const heroLine = lesson?.subtitle || edgeLine;
 
-  const biqLessons = Math.min(athleteState.completed_lessons?.length ?? 0, BIQ_LESSONS_TO_UNLOCK);
   const lockerCount = lockerCards
     ? (isPro ? lockerCards : lockerCards.filter(c => !c.is_premium)).length
     : null;
@@ -606,7 +611,7 @@ export default function HomeScreen() {
     },
     {
       key: 'biq', label: 'Baseball IQ', icon: 'bolt', accent: CategoryColor.craft, kind: 'stat',
-      value: `${biqLessons}/${BIQ_LESSONS_TO_UNLOCK}`, sub: 'LESSONS TO UNLOCK',
+      value: String(BIQ_LESSONS_TO_UNLOCK), sub: 'LESSONS TO UNLOCK',
       onPress: () => router.push(BIQ_RUNNER_READY ? ('/biq' as any) : '/(tabs)/career'),
     },
     {
@@ -614,12 +619,12 @@ export default function HomeScreen() {
       value: 'NO READINESS DATA', valueSmall: { color: Colors.textTertiary },
     },
     {
-      key: 'film', label: 'Film Room', icon: 'film', accent: Colors.info, kind: 'text',
+      key: 'film', label: 'Film Room', icon: 'film', accent: CategoryColor.compete, kind: 'text',
       value: 'Game Prep', valueSmall: { color: Colors.textSecondary },
       onPress: handleGameModePress,
     },
     {
-      key: 'locker', label: 'Locker', icon: 'locker', accent: Colors.warning, kind: 'stat',
+      key: 'locker', label: 'Locker', icon: 'locker', accent: HOME_TEXT, kind: 'stat',
       loading: lockerLoading,
       ...(lockerCount !== null
         ? { value: String(lockerCount), sub: 'ITEMS' }
@@ -632,7 +637,7 @@ export default function HomeScreen() {
       onPress: () => showToast('Strength tools are not set up yet', 'info'),
     },
     {
-      key: 'weather', label: 'Weather', icon: 'sun', accent: CategoryColor.signal, kind: 'stat',
+      key: 'weather', label: 'Weather', icon: 'sun', accent: HOME_TEXT, kind: 'stat',
       loading: !weatherReady,
       value: weatherOk ? `${weatherTemp}°` : '—',
       sub: weatherOk ? weatherLabel!.toUpperCase() : undefined,
@@ -654,15 +659,6 @@ export default function HomeScreen() {
           streak={streak}
           right={
             <>
-              {/* Kit pads the right slot by 4px; cancel it when the ring is the last item so it lines up with the 16px screen margin. */}
-              <View style={!HOME_FLAGS.bell && !HOME_FLAGS.calendar ? { marginRight: -4 } : undefined}>
-                <ProgressRing
-                  value={completedTodayCount / 3}
-                  size={48}
-                  label="TODAY"
-                  valueLabel={String(completedTodayCount)}
-                />
-              </View>
               {HOME_FLAGS.bell && (
                 <Pressable hitSlop={10} onPress={() => showToast('Coming soon — reminders', 'info')}>
                   <Ionicons name="notifications-outline" size={22} color={Colors.textSecondary} />
@@ -686,7 +682,6 @@ export default function HomeScreen() {
         <Reveal index={0}>
           <View style={st.inset}>
             <ChamferPanel
-              active
               cut={16}
               wash={0.2}
               scrim="left"
@@ -698,7 +693,7 @@ export default function HomeScreen() {
               <View style={{ width: '62%', gap: 6 }}>
                 <View style={st.kickerRow}>
                   <PulseDot />
-                  <Text style={[Typography.labelSmall, { letterSpacing: 3, color: Colors.primary }]}>NEXT REP</Text>
+                  <Eyebrow>{`NEXT REP · ${completedTodayCount}/3 TODAY`}</Eyebrow>
                 </View>
                 {loadingLesson ? (
                   <>
@@ -710,7 +705,7 @@ export default function HomeScreen() {
                     <Text style={[DisplayCard, { color: Colors.white }]} numberOfLines={2}>
                       {lesson?.title ?? 'Control the Controllables'}
                     </Text>
-                    <Text style={[Typography.bodySmall, { color: Colors.textSecondary }]} numberOfLines={1}>
+                    <Text style={[Typography.bodySmall, { color: Colors.textSecondary }]} numberOfLines={2}>
                       {heroLine}
                     </Text>
                   </>
@@ -725,7 +720,7 @@ export default function HomeScreen() {
                       {rankProgress.nextRank ? `NEXT: ${rankProgress.nextRank.name.toUpperCase()}` : 'ELITE STANDARD HELD'}
                     </Text>
                     {!!rankProgress.nextRank && (
-                      <ProgressBar percent={rankProgress.progressToNextRank * 100} height={3} />
+                      <ProgressBar percent={rankProgress.progressToNextRank * 100} height={3} color={Colors.textSecondary} />
                     )}
                   </View>
                 </View>
@@ -736,7 +731,8 @@ export default function HomeScreen() {
         </Reveal>
 
         <View style={{ height: 20 }} />
-        <HudRule>COMMAND CENTER</HudRule>
+        <Eyebrow style={st.inset}>COMMAND CENTER</Eyebrow>
+        <View style={{ height: 12 }} />
 
         {/* ── TILE GRID ── */}
         <View style={{ gap: 12 }}>
@@ -774,7 +770,7 @@ const st = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
   skeletonScroll: { gap: Spacing.sm, paddingHorizontal: Spacing.lg },
   inset: { marginHorizontal: Spacing.lg },
-  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: Colors.primary },
+  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: HOME_TEXT3 },
   kickerRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   rankRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 2 },
   tileRow: { flexDirection: 'row', gap: 12 },
