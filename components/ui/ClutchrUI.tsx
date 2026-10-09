@@ -44,6 +44,7 @@ import {
   View, Text, Pressable, Image, StyleSheet, ViewStyle, TextStyle, StyleProp,
   ImageSourcePropType, ScrollView, Animated, Easing, LayoutChangeEvent,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Circle, Path, Polygon } from 'react-native-svg';
@@ -714,6 +715,13 @@ export function StatTile({ value, label, accent = Colors.primary }:
 }
 
 /** Locker row — ~96px, type-coded icon color instead of repeated identical icons. */
+const LIST_ROW_ICON: Record<keyof typeof TypeColor, React.ComponentProps<typeof Ionicons>['name']> = {
+  article: 'document-text-outline',
+  exercise: 'checkbox-outline',
+  video: 'play-outline',
+  audio: 'headset-outline',
+};
+
 export function ListRow({
   title, meta, typeKey = 'article', duration, onPress,
 }: {
@@ -723,17 +731,18 @@ export function ListRow({
   duration?: string;
   onPress?: () => void;
 }) {
-  const c = TypeColor[typeKey];
   return (
     <Pressable onPress={onPress} style={({ pressed }) => [s.row, pressed && { opacity: 0.7 }]}>
-      <View style={[s.rowIcon, { backgroundColor: tint(c, 0.16), borderColor: tint(c, 0.3) }]}>
-        <View style={[s.rowDot, { backgroundColor: c }]} />
+      <View style={s.rowIcon}>
+        <Ionicons name={LIST_ROW_ICON[typeKey]} size={20} color="#C9D1CC" />
       </View>
       <View style={{ flex: 1, marginLeft: Spacing.md }}>
-        <Text style={Typography.h3} numberOfLines={1}>{title}</Text>
-        {!!meta && <Text style={Typography.bodySmall} numberOfLines={1}>{meta}</Text>}
+        <Text style={s.rowTitle} numberOfLines={2}>{title}</Text>
+        {!!meta && <Text style={s.rowSub} numberOfLines={1}>{meta}</Text>}
         <View style={s.rowMeta}>
-          <Text style={[Typography.labelSmall, { color: c }]}>{String(typeKey).toUpperCase()}</Text>
+          <View style={s.typeTag}>
+            <Text style={s.typeTagText}>{String(typeKey).toUpperCase()}</Text>
+          </View>
           {!!duration && <Text style={[Typography.labelSmall, { marginLeft: Spacing.sm }]}>· {duration}</Text>}
         </View>
       </View>
@@ -915,15 +924,21 @@ const s = StyleSheet.create({
 
   row: {
     flexDirection: 'row', alignItems: 'center',
-    paddingVertical: Spacing.md, paddingHorizontal: Spacing.lg,
-    borderBottomWidth: 1, borderBottomColor: Colors.borderSubtle,
+    paddingVertical: 16, paddingHorizontal: Spacing.lg,
+    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: Colors.border,
   },
   rowIcon: {
-    width: 44, height: 44, borderRadius: Radius.sm, borderWidth: 1,
+    width: 40, height: 40, borderRadius: 6, backgroundColor: Colors.surfaceElevated,
     alignItems: 'center', justifyContent: 'center',
   },
-  rowDot: { width: 14, height: 14, borderRadius: 3 },
-  rowMeta: { flexDirection: 'row', alignItems: 'center', marginTop: 5 },
+  rowTitle: { fontFamily: 'Inter_600SemiBold', fontSize: 17, lineHeight: 22, color: Colors.textPrimary },
+  rowSub: { fontFamily: 'Inter_400Regular', fontSize: 14, lineHeight: 20, color: Colors.textSecondary },
+  rowMeta: { flexDirection: 'row', alignItems: 'center', marginTop: 6 },
+  typeTag: {
+    borderWidth: 1, borderColor: Colors.borderStrong, borderRadius: 4,
+    paddingHorizontal: 6, paddingVertical: 2,
+  },
+  typeTagText: { fontFamily: 'Inter_700Bold', fontSize: 10, lineHeight: 14, letterSpacing: 0.8, color: Colors.textSecondary },
 
   cta: {
     height: ButtonTokens.minHeight, borderRadius: Radius.pill,

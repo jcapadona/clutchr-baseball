@@ -1,5 +1,4 @@
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
@@ -17,7 +16,7 @@ import { Assets } from '@/constants/assets';
 import { Colors, Radius, Spacing } from '@/constants/theme';
 import { ErrorState, SkeletonCard } from '@/components/SkeletonLoader';
 import { ClutchrHeader } from '@/components/ClutchrHeader';
-import { ListRow, Rail, ScreenHeader, SectionLabel } from '@/components/ui/ClutchrUI';
+import { Eyebrow, ListRow, Rail, ScreenHeader } from '@/components/ui/ClutchrUI';
 import { TypeColor } from '@/constants/visualExtensions';
 import { useAthlete } from '@/context/AthleteContext';
 import { useProContext } from '@/context/ProContext';
@@ -278,7 +277,7 @@ export default function LockerScreen() {
         >
           {featured.length > 0 && (
             <View style={styles.section}>
-              <SectionLabel>START HERE</SectionLabel>
+              <Eyebrow>START HERE</Eyebrow>
               <View style={styles.railBleed}>
                 <Rail>
                   {featured.map((card) => (
@@ -292,7 +291,7 @@ export default function LockerScreen() {
           {rest.length > 0 && (
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
-                <Text style={styles.sectionKicker}>{activeConfig.shortLabel.toUpperCase()} TOOLS</Text>
+                <Eyebrow>{activeConfig.shortLabel.toUpperCase()} TOOLS</Eyebrow>
                 <Text style={styles.sectionCount}>{rest.length}</Text>
               </View>
               <View style={styles.cardList}>
@@ -336,18 +335,11 @@ function FeaturedCard({ card, onOpen }: { card: ContentCard; onOpen: () => void 
       style={({ pressed }) => [featStyles.wrap, pressed && { opacity: 0.88 }]}
       onPress={onOpen}
     >
-      {/* Gradient background using card's type color */}
-      <LinearGradient
-        colors={[cfg.color + '22', cfg.color + '08', Colors.surface]}
-        style={StyleSheet.absoluteFill}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 1 }}
-      />
       <View style={featStyles.inner}>
         {/* Type badge */}
-        <View style={[featStyles.typeBadge, { backgroundColor: cfg.bg, borderColor: cfg.color + '40' }]}>
-          <Ionicons name={cfg.icon as any} size={10} color={cfg.color} />
-          <Text style={[featStyles.typeText, { color: cfg.color }]}>{card.card_type.toUpperCase()}</Text>
+        <View style={featStyles.typeBadge}>
+          <Ionicons name={cfg.icon as any} size={10} color={Colors.textSecondary} />
+          <Text style={featStyles.typeText}>{card.card_type.toUpperCase()}</Text>
         </View>
         <Text style={featStyles.title} numberOfLines={3}>{card.title}</Text>
         <View style={featStyles.footer}>
@@ -450,23 +442,17 @@ const styles = StyleSheet.create({
   section: { gap: Spacing.md },
 
   railBleed: { marginHorizontal: -Spacing.lg },
-  cardList: { gap: 8 },
+  cardList: { gap: 0 },
 
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  sectionKicker: {
-    fontSize: 10,
-    fontFamily: 'Inter_700Bold',
-    color: Colors.textTertiary,
-    letterSpacing: 1.2,
-  },
   sectionCount: {
     fontSize: 11,
     fontFamily: 'Inter_700Bold',
-    color: Colors.primary,
+    color: '#F2F5F3',
   },
 
   empty: {
@@ -513,13 +499,14 @@ const lockerTabStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: Radius.lg,
+    borderWidth: 1,
+    borderColor: 'transparent',
     gap: 2,
     paddingHorizontal: 6,
   },
   tabActive: {
-    backgroundColor: Colors.primaryMuted,
-    borderWidth: 1,
-    borderColor: Colors.primaryBorder,
+    backgroundColor: Colors.surfaceElevated,
+    borderColor: '#39FF88',
   },
   label: {
     fontSize: 12,
@@ -528,12 +515,12 @@ const lockerTabStyles = StyleSheet.create({
     letterSpacing: 0.2,
   },
   labelActive: {
-    color: Colors.primary,
+    color: '#F2F5F3',
   },
   count: {
     fontSize: 9,
     fontFamily: 'Inter_700Bold',
-    color: Colors.primary,
+    color: '#F2F5F3',
     letterSpacing: 0.5,
     textTransform: 'uppercase',
   },
@@ -546,7 +533,7 @@ const featStyles = StyleSheet.create({
     width: 180,
     height: 160,
     borderRadius: Radius.xl,
-    backgroundColor: Colors.surface,
+    backgroundColor: '#0D110F',
     borderWidth: 1,
     borderColor: Colors.border,
     overflow: 'hidden',
@@ -563,11 +550,13 @@ const featStyles = StyleSheet.create({
     alignSelf: 'flex-start',
     paddingHorizontal: 7,
     paddingVertical: 3,
-    borderRadius: Radius.pill,
+    borderRadius: 4,
     borderWidth: 1,
+    borderColor: Colors.borderStrong,
   },
   typeText: {
     fontSize: 8,
+    color: Colors.textSecondary,
     fontFamily: 'Inter_700Bold',
     letterSpacing: 0.8,
   },
