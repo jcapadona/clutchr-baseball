@@ -17,8 +17,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAthlete } from '@/context/AthleteContext';
 import { fetchLessons, type LegacyLesson } from '@/lib/supabase';
 import { Assets } from '@/constants/assets';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Colors, Radius, Shadow, Spacing } from '@/constants/theme';
-import { CategoryColor, TopHighlight } from '@/constants/visualExtensions';
+import { CategoryColor } from '@/constants/visualExtensions';
 import { Btn } from '@/components/ui';
 import { ScreenHeader, WorldTile, WorldTileSkeleton } from '@/components/ui/ClutchrUI';
 import { useMicrocopy } from '@/hooks/useMicrocopy';
@@ -947,13 +948,13 @@ function WorldGrid({ worlds, featuredId, accent, lessons, completed, isPro, onTa
         title={world.label}
         size={size}
         state={state}
-        accent={world.id === featured.id || accent !== Colors.primary ? accent : Colors.textTertiary}
         percent={wl.length > 0 ? (done / wl.length) * 100 : 0}
         done={done}
         total={wl.length}
         description={world.tagline}
         nextRep={next?.title}
         cta="View reps"
+        topBar={world.id === 'slump-recovery' ? CategoryColor.recovery : undefined}
         onPress={() => onTap(world)}
       />
     );
@@ -990,12 +991,17 @@ const gridStyles = StyleSheet.create({
 function CurrentMissionCard({
   nextLesson,
   insets,
+  onHeight,
 }: {
   nextLesson: { lesson: LegacyLesson; world: World };
   insets: { bottom: number };
+  onHeight: (h: number) => void;
 }) {
   return (
-    <View style={[missionStyles.wrap, { paddingBottom: Math.max(insets.bottom, 16) + 4 }]}>
+    <View
+      style={[missionStyles.wrap, { paddingBottom: Math.max(insets.bottom, 16) + 4 }]}
+      onLayout={(e) => onHeight(e.nativeEvent.layout.height)}
+    >
       <View style={missionStyles.topRow}>
         <View style={missionStyles.kickerWrap}>
           <View style={missionStyles.dot} />
@@ -1078,7 +1084,7 @@ function WorldMapSection({ world, lessons, completed }: {
                 isNext={isNext}
                 isLocked={isLocked}
                 isBoss={isBoss}
-                color={color}
+                color={color === Colors.primary ? Colors.textSecondary : color}
               />
             </React.Fragment>
           );
@@ -1241,6 +1247,7 @@ export default function CareerScreen() {
   const [activeChapter, _setActiveChapter] = useState(_savedChapter);
   const setActiveChapter = (ch: string) => { _savedChapter = ch; _setActiveChapter(ch); };
   const [expandedWorldId, setExpandedWorldId] = useState<string | null>(null);
+  const [measuredDockH, setMeasuredDockH] = useState(0);
 
   const xpRef = useRef<number | null>(null);
   const [xpShown, setXpShown] = useState(athleteState?.total_xp ?? 0);
@@ -1305,6 +1312,8 @@ export default function CareerScreen() {
   const seasonPhase = (athleteState as any)?.season_phase ?? null;
   const healthState = (athleteState as any)?.health_state ?? null;
 
+  // Measured dock height; the estimate only covers the first frame.
+  const dockHeight = measuredDockH || 130 + Math.max(insets.bottom, 16) + 4;
   const totalDone = completed.length;
   const totalAll  = lessons.length;
 
@@ -1363,11 +1372,6 @@ export default function CareerScreen() {
         titleRest="YOUR PATH"
         xp={xpShown}
         streak={athleteState?.streak_count ?? 0}
-        right={
-          <View style={styles.lessonCountPill}>
-            <Text style={styles.lessonCountText}>{totalDone} / {totalAll}</Text>
-          </View>
-        }
       />
 
       {/* ── CHAPTER TABS ── */}
@@ -1407,7 +1411,7 @@ export default function CareerScreen() {
         </ScrollView>
       ) : (
         <ScrollView
-          contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 160 }]}
+          contentContainerStyle={[styles.scroll, { paddingBottom: dockHeight + 24 }]}
           showsVerticalScrollIndicator={false}
           style={styles.scrollView}
         >
@@ -1417,13 +1421,16 @@ export default function CareerScreen() {
               {activeChapterConfig.label}
               {currentWorld ? ` • WORLD ${currentWorld.worldNumber}` : ''}
             </Text>
-            {currentWorldTotal > 0 && (
-              <View style={[styles.chapterCountPill, { borderColor: Colors.border }]}>
-                <Text style={[styles.chapterCountText, { color: Colors.textTertiary }]}>
-                  {currentWorldDone} / {currentWorldTotal}
-                </Text>
-              </View>
-            )}
+            <View style={styles.subheaderRight}>
+              <Text style={styles.subheaderTitle}>{totalDone} / {totalAll} REPS</Text>
+              {currentWorldTotal > 0 && (
+                <View style={[styles.chapterCountPill, { borderColor: Colors.border }]}>
+                  <Text style={[styles.chapterCountText, { color: Colors.textTertiary }]}>
+                    {currentWorldDone} / {currentWorldTotal}
+                  </Text>
+                </View>
+              )}
+            </View>
           </View>
 
           {/* ── ROLE PILL ── */}
@@ -1489,7 +1496,14 @@ export default function CareerScreen() {
 
       {/* ── CURRENT MISSION (pinned) ── */}
       {!loading && !loadError && nextLesson && (
-        <CurrentMissionCard nextLesson={nextLesson} insets={insets} />
+        <>
+          <LinearGradient
+            colors={['rgba(5,8,6,0)', '#050806']}
+            pointerEvents="none"
+            style={styles.dockFade}
+          />
+          <CurrentMissionCard nextLesson={nextLesson} insets={insets} onHeight={setMeasuredDockH} />
+        </>
       )}
 
 
@@ -1505,22 +1519,7 @@ const styles = StyleSheet.create({
   container:  { flex: 1, backgroundColor: Colors.background },
   scrollView: { flex: 1, backgroundColor: Colors.background },
   scroll:     { paddingTop: Spacing.lg },
-
-  lessonCountPill: {
-    paddingHorizontal: Spacing.sm + 2,
-    paddingVertical: 6,
-    borderRadius: Radius.pill,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    backgroundColor: Colors.surface,
-  },
-  lessonCountText: {
-    fontSize: 11,
-    fontFamily: 'Inter_700Bold',
-    color: Colors.textTertiary,
-    letterSpacing: 0.5,
-  },
-
+  dockFade:   { height: 32, marginTop: -32 },
 
   // Chapter tabs
   tabRow: {
@@ -1556,6 +1555,7 @@ const styles = StyleSheet.create({
     color: Colors.textTertiary,
     letterSpacing: 2,
   },
+  subheaderRight: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
   chapterCountPill: {
     paddingHorizontal: Spacing.sm,
     paddingVertical: 3,
@@ -1607,8 +1607,8 @@ const styles = StyleSheet.create({
 const missionStyles = StyleSheet.create({
   wrap: {
     backgroundColor: Colors.surface,
-    borderTopWidth: 1,
-    borderTopColor: TopHighlight,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Colors.border,
     paddingHorizontal: Spacing.xl,
     paddingTop: 10,
     gap: 4,

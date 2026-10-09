@@ -144,7 +144,7 @@ export function Skeleton({ width = '100%', height = 14, radius = Radius.sm, styl
 
 export function ChamferPanel({
   children, accent = Colors.textTertiary, active = false, activeColor = Colors.primary, cut = 12,
-  image, wash = 0.34, scrim = 'left', fill = Colors.surface,
+  image, wash = 0.34, scrim = 'left', fill = Colors.surface, glow = true, edge,
   onPress, accessibilityLabel, style, contentStyle,
 }: {
   children?: React.ReactNode;
@@ -163,6 +163,10 @@ export function ChamferPanel({
   /** Which side the text sits on — that side gets darkened. */
   scrim?: 'left' | 'bottom' | 'none';
   fill?: string;
+  /** Set false to drop the accent corner glow (no tinted fill). */
+  glow?: boolean;
+  /** Explicit outline and tick color at full opacity, instead of the accent at reduced opacity. */
+  edge?: string;
   onPress?: () => void;
   accessibilityLabel?: string;
   style?: StyleProp<ViewStyle>;
@@ -187,7 +191,7 @@ export function ChamferPanel({
         {/* accent wash: over a photo it sets the hue; with no photo it is the corner glow */}
         {image
           ? <View style={[StyleSheet.absoluteFill, { backgroundColor: tint(tone, wash) }]} pointerEvents="none" />
-          : (
+          : glow && (
             <LinearGradient
               colors={[tint(tone, 0.22), tint(tone, 0)] as any}
               start={{ x: 1, y: 0 }} end={{ x: 0.3, y: 0.8 }}
@@ -215,13 +219,13 @@ export function ChamferPanel({
           <Svg width={w} height={h} style={StyleSheet.absoluteFill} pointerEvents="none">
             <Polygon
               points={outline} fill="none"
-              stroke={tone} strokeWidth={active ? 1.5 : 1}
-              strokeOpacity={active ? 0.95 : pressed ? 0.85 : 0.42}
+              stroke={edge && !active ? edge : tone} strokeWidth={active ? 1.5 : 1}
+              strokeOpacity={edge && !active ? 1 : active ? 0.95 : pressed ? 0.85 : 0.42}
             />
             {/* HUD ticks on the two square corners */}
             <Path
               d={`M${w - t - 3},3.5 H${w - 3.5} V${t + 3} M3.5,${h - t - 3} V${h - 3.5} H${t + 3}`}
-              fill="none" stroke={tone} strokeWidth={1.5} strokeOpacity={0.9} strokeLinecap="square"
+              fill="none" stroke={edge && !active ? edge : tone} strokeWidth={1.5} strokeOpacity={edge && !active ? 1 : 0.9} strokeLinecap="square"
             />
           </Svg>
         )}
@@ -490,33 +494,39 @@ export function PhotoCard({
    WORLD TILE — Career grid. Replaces the vertical node rail.
    ══════════════════════════════════════════════════════════════ */
 
+const TILE_TEXT = '#F2F5F3';
+const TILE_SURFACE = '#0D110F';
+
 export type WorldTileState = 'active' | 'locked' | 'pro';
 
 export function WorldTile({
-  title, size = 'sm', state = 'active', accent, percent = 0, done = 0, total = 0,
-  description, nextRep, cta, onPress, accessibilityLabel,
+  title, size = 'sm', state = 'active', percent = 0, done = 0, total = 0,
+  description, nextRep, cta, topBar, onPress, accessibilityLabel,
 }: {
   title: string;
   size?: 'sm' | 'md' | 'lg';
   state?: WorldTileState;
-  /** Chapter accent. Ignored (locked grey) when state is locked or pro. */
-  accent: string;
   percent?: number;
   done?: number;
   total?: number;
   description?: string;
   nextRep?: string;
   cta?: string;
+  /** Optional 3px bar across the top of the tile. The only tinted tile treatment. */
+  topBar?: string;
   onPress?: () => void;
   accessibilityLabel?: string;
 }) {
   const gated = state !== 'active';
-  const a = gated ? CategoryColor.locked : accent;
   const pct = Math.max(0, Math.min(100, Math.round(percent)));
-  const minHeight = size === 'lg' ? 190 : size === 'md' ? 128 : 92;
-  const titleStyle = size === 'lg' ? DisplayCard : DisplayCardSm;
-  const titleColor = gated ? Colors.textTertiary : Colors.textPrimary;
+  const minHeight = size === 'lg' ? 0 : size === 'md' ? 128 : 110;
+  const pad = size === 'lg' ? 20 : size === 'sm' ? 10 : 14;
+  const heroTitle = { fontFamily: DisplayFont.italic, fontSize: 32, lineHeight: 36, letterSpacing: 0.3, textTransform: 'uppercase' as const };
+  const titleStyle = size === 'lg' ? heroTitle : DisplayCardSm;
+  const titleColor = gated ? Colors.textTertiary : TILE_TEXT;
   const gateLabel = state === 'pro' ? 'PRO' : 'LOCKED';
+  const subSize = size === 'sm' ? { fontSize: 11, lineHeight: 14 } : { fontSize: 13, lineHeight: 18 };
+  const subLines = 2;
 
   const press = onPress
     ? () => { Haptics.selectionAsync().catch(() => {}); onPress(); }
@@ -530,13 +540,22 @@ export function WorldTile({
       style={({ pressed }) => [{ flex: 1 }, pressed && { transform: [{ scale: 0.97 }], opacity: 0.85 }]}
     >
       <ChamferPanel
-        accent={a}
+        accent={Colors.border}
+        edge={Colors.border}
+        fill={TILE_SURFACE}
+        glow={false}
         cut={size === 'sm' ? 8 : 10}
         style={{ flex: 1 }}
         contentStyle={{
-          minHeight, padding: size === 'sm' ? 10 : 14, justifyContent: 'space-between', gap: 8,
+          minHeight, padding: pad, justifyContent: 'space-between', gap: 8,
         }}
       >
+        {!!topBar && (
+          <View
+            pointerEvents="none"
+            style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, backgroundColor: topBar }}
+          />
+        )}
         <View style={{ gap: 3 }}>
           <Text
             style={[titleStyle, size === 'sm' && { fontSize: 13, lineHeight: 15 }, { color: titleColor }]}
@@ -544,11 +563,19 @@ export function WorldTile({
           >
             {title}
           </Text>
-          {size === 'md' && !!description && !gated && (
-            <Text style={Typography.bodySmall} numberOfLines={2}>{description}</Text>
+          {size !== 'lg' && !!description && !gated && (
+            <Text
+              style={[Typography.bodySmall, subSize, { minHeight: subSize.lineHeight * subLines }]}
+              numberOfLines={subLines}
+            >
+              {description}
+            </Text>
           )}
           {size === 'lg' && !!nextRep && !gated && (
-            <Text style={[Typography.bodySmall, { marginTop: 2 }]} numberOfLines={2}>
+            <Text
+              style={{ fontFamily: 'Inter_400Regular', fontSize: 15, lineHeight: 21, color: Colors.textSecondary, marginTop: 6 }}
+              numberOfLines={2}
+            >
               {`Next: ${nextRep}`}
             </Text>
           )}
@@ -556,24 +583,22 @@ export function WorldTile({
 
         {gated ? (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-            <StrokeIcon name="lock" size={12} color={a} />
+            <StrokeIcon name="lock" size={12} color={CategoryColor.locked} />
             <Text style={[Typography.labelSmall, { color: Colors.textTertiary }]}>{gateLabel}</Text>
           </View>
         ) : (
-          <View style={{ gap: 5 }}>
-            {size !== 'sm' && (
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                {size === 'md' && <Text style={[Typography.labelSmall, { color: a }]}>{`${pct}%`}</Text>}
-                {total > 0 && (
-                  <Text style={[Typography.labelSmall, { color: Colors.textSecondary }]}>
-                    {size === 'lg' ? `${done} / ${total} REPS` : `${total} REPS`}
-                  </Text>
-                )}
-              </View>
-            )}
-            {(size === 'sm' || size === 'lg') && <ProgressBar percent={pct} color={a} />}
+          <View style={{ gap: 5, marginTop: size === 'lg' ? 12 : 0 }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+              {size !== 'lg' && <Text style={[Typography.labelSmall, { color: Colors.textSecondary }]}>{`${pct}%`}</Text>}
+              {total > 0 && (
+                <Text style={[Typography.labelSmall, { color: Colors.textSecondary }]}>
+                  {size === 'lg' ? `${done} / ${total} REPS` : `${total} REPS`}
+                </Text>
+              )}
+            </View>
+            {size !== 'md' && <ProgressBar percent={pct} color={Colors.textSecondary} />}
             {size === 'lg' && !!cta && (
-              <Text style={[Typography.labelSmall, { color: a }]}>{`${cta.toUpperCase()}`}</Text>
+              <Text style={[Typography.labelSmall, { color: TILE_TEXT }]}>{`${cta.toUpperCase()}`}</Text>
             )}
           </View>
         )}
@@ -584,7 +609,7 @@ export function WorldTile({
 
 /** Same footprint as WorldTile, for loading states. */
 export function WorldTileSkeleton({ size = 'sm' }: { size?: 'sm' | 'md' | 'lg' }) {
-  const h = size === 'lg' ? 190 : size === 'md' ? 128 : 92;
+  const h = size === 'lg' ? 140 : size === 'md' ? 128 : 110;
   return <Skeleton height={h} radius={Radius.md} style={{ flex: 1 }} />;
 }
 
