@@ -22,7 +22,7 @@ const GRAY = '#A8B3AA';
 const GOLD = '#F5C542';
 
 const UNLOCKS: { icon: React.ComponentProps<typeof Ionicons>['name']; title: string; desc: string }[] = [
-  { icon: 'diamond',  title: 'Full Career Path', desc: 'All five chapters, role-specific, always adapting' },
+  { icon: 'diamond',  title: 'Full Career Path', desc: 'Every world, role-specific, always adapting' },
   { icon: 'baseball', title: 'Full Game Mode',   desc: 'Every pregame routine and in-game reset' },
   { icon: 'book',     title: 'Full Playbook',    desc: 'All 5 personal cue slots' },
   { icon: 'albums',   title: 'Full Locker',      desc: 'The entire resource library' },
