@@ -54,10 +54,10 @@ export async function scheduleStreakReminder(streakCount: number) {
 
   const messages =
     streakCount >= 7
-      ? { title: `⚡ Day ${streakCount} streak`, body: "Don't break it. Your rep is waiting." }
+      ? { title: `Day ${streakCount} streak`, body: "Don't break it. Your rep is waiting." }
       : streakCount >= 2
-      ? { title: `⚡ ${streakCount}-day streak`, body: 'Keep stacking. Do your rep today.' }
-      : { title: '⚡ Clutchr', body: "One rep. That's all it takes today." };
+      ? { title: `${streakCount}-day streak`, body: 'Keep stacking. Do your rep today.' }
+      : { title: 'Clutchr', body: "One rep. That's all it takes today." };
 
   const trigger = new Date();
   trigger.setHours(17, 0, 0, 0);
@@ -81,7 +81,7 @@ export async function scheduleMorningGameDayReminder() {
 
   await Notifications.scheduleNotificationAsync({
     content: {
-      title: '🎯 Game day.',
+      title: 'Game day.',
       body: 'Run your pregame rep. Lock in before first pitch.',
       sound: true,
       data: { screen: 'gamemode' },

@@ -408,7 +408,7 @@ export default function PitchCountBoard({ data, responses, feedback, onComplete 
       {/* Perspective badge */}
       <View style={styles.perspectiveBadge}>
         <Text style={styles.perspectiveText}>
-          {data.perspective === 'pitcher' ? '⚾ PITCHER VIEW' : '🏏 HITTER VIEW'}
+          {data.perspective === 'pitcher' ? 'PITCHER VIEW' : 'HITTER VIEW'}
         </Text>
       </View>
 

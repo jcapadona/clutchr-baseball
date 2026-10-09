@@ -900,7 +900,7 @@ export async function triggerWorldClearCelebration(worldId: string, _color: stri
   await new Promise(r => setTimeout(r, 200));
   await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   Alert.alert(
-    '⚡ WORLD CLEARED',
+    'WORLD CLEARED',
     'You finished every lesson in this world.\n\nThat rep is built in. Keep stacking.',
     [{ text: "Let's go →", style: 'default' }]
   );
