@@ -1,7 +1,7 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/constants/theme';
-import { Platform } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import { H } from '@/utils/haptics';
 
 export default function TabLayout() {
@@ -13,18 +13,17 @@ export default function TabLayout() {
         tabBarStyle: {
           backgroundColor: Colors.surface,
           borderTopColor: Colors.border,
-          borderTopWidth: 1,
+          borderTopWidth: StyleSheet.hairlineWidth,
           height: Platform.OS === 'ios' ? 88 : 64,
           paddingBottom: Platform.OS === 'ios' ? 28 : 8,
           paddingTop: 8,
         },
-        tabBarActiveTintColor: Colors.primary,
-        tabBarInactiveTintColor: Colors.textTertiary,
+        tabBarActiveTintColor: '#F2F5F3',
+        tabBarInactiveTintColor: '#5A635E',
         tabBarLabelStyle: {
-          fontSize: 10,
+          fontSize: 11,
           fontFamily: 'Inter_600SemiBold',
-          letterSpacing: 0.5,
-          marginTop: 2,
+          marginTop: 4,
         },
       }}
     >
@@ -32,8 +31,8 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'Home',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="home" size={size} color={color} />
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="home-outline" size={24} color={color} />
           ),
         }}
       />
@@ -41,8 +40,8 @@ export default function TabLayout() {
         name="career"
         options={{
           title: 'Career',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="trending-up" size={size} color={color} />
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="trending-up-outline" size={24} color={color} />
           ),
         }}
       />
@@ -50,8 +49,8 @@ export default function TabLayout() {
         name="gamemode"
         options={{
           title: 'Game Mode',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="flash" size={size} color={color} />
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="flash-outline" size={24} color={color} />
           ),
         }}
       />
@@ -59,8 +58,8 @@ export default function TabLayout() {
         name="locker"
         options={{
           title: 'Locker',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="library" size={size} color={color} />
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="library-outline" size={24} color={color} />
           ),
         }}
       />
@@ -68,8 +67,8 @@ export default function TabLayout() {
         name="profile"
         options={{
           title: 'Profile',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person" size={size} color={color} />
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="person-outline" size={24} color={color} />
           ),
         }}
       />

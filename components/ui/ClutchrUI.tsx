@@ -262,10 +262,9 @@ export function CornerPlay({ size = 64, color = Colors.primary }: { size?: numbe
 }
 
 /** Parallelogram stat pill. Children are counter-skewed so text stays upright. */
-export function SkewPill({ children, tone = 'neutral' }:
-  { children: React.ReactNode; tone?: 'neutral' | 'gold' }) {
+export function SkewPill({ children }: { children: React.ReactNode }) {
   return (
-    <View style={[s.skew, tone === 'gold' && { borderColor: Colors.warningBorder, backgroundColor: Colors.warningMuted }]}>
+    <View style={s.skew}>
       <View style={s.skewInner}>{children}</View>
     </View>
   );
@@ -325,13 +324,16 @@ export function HudTabs<K extends string>({ tabs, active, onChange, size = 'md' 
    Kills the breadcrumb + subtitle. Two-tone display title.
    ══════════════════════════════════════════════════════════════ */
 
+const HEADER_TEXT = '#F2F5F3';
+const HEADER_TEXT3 = '#6E7873';
+
 export function ScreenHeader({
   titleLead, titleRest, xp, streak, right, logo,
 }: {
   /** Your wordmark image. Literal require() / Assets entry. Falls back to the text wordmark. */
   logo?: ImageSourcePropType;
-  titleLead?: string;      // shown in WHITE  e.g. "BUILD"
-  titleRest?: string;      // shown in GREEN  e.g. "YOUR PATH"
+  titleLead?: string;      // shown in text3  e.g. "BUILD"
+  titleRest?: string;      // shown in text   e.g. "YOUR PATH"
   xp?: number;
   streak?: number;
   right?: React.ReactNode;
@@ -347,17 +349,17 @@ export function ScreenHeader({
             </Text>
           )}
         <View style={s.headerRight}>
-          {typeof xp === 'number' && (
-            <SkewPill tone="gold">
-              <Text style={s.xpLabel}>XP</Text>
-              <Text style={s.xpNum}>{xp.toLocaleString()}</Text>
-            </SkewPill>
-          )}
-          {typeof streak === 'number' && (
-            <SkewPill>
-              <StrokeIcon name="flame" size={14} color={Colors.warning} />
-              <Text style={s.streakNum}>{streak}</Text>
-            </SkewPill>
+          {(typeof xp === 'number' || typeof streak === 'number') && (
+            <>
+              <SkewPill>
+                <Text style={s.xpLabel}>XP</Text>
+                <Text style={s.xpNum}>{(xp ?? 0).toLocaleString()}</Text>
+              </SkewPill>
+              <SkewPill>
+                <StrokeIcon name="flame" size={14} color={HEADER_TEXT} />
+                <Text style={s.streakNum}>{streak ?? 0}</Text>
+              </SkewPill>
+            </>
           )}
           {right}
         </View>
@@ -365,8 +367,8 @@ export function ScreenHeader({
 
       {!!titleLead && (
         <Text style={[DisplayHero, { paddingHorizontal: Spacing.lg, marginTop: Spacing.md }]}>
-          {titleLead}
-          {!!titleRest && <Text style={{ color: Colors.primary }}> {titleRest}</Text>}
+          <Text style={{ color: HEADER_TEXT3 }}>{titleLead}</Text>
+          {!!titleRest && <Text style={{ color: HEADER_TEXT }}> {titleRest}</Text>}
         </Text>
       )}
     </View>
@@ -806,9 +808,9 @@ const s = StyleSheet.create({
   },
   tab: { paddingVertical: 10, borderBottomWidth: 2, borderBottomColor: 'transparent', marginBottom: -1 },
   tabText: { fontFamily: DisplayFont.italic, fontSize: 15, lineHeight: 18, letterSpacing: 0.8 },
-  xpNum: { fontFamily: DisplayFont.bold, fontSize: 17, lineHeight: 20, color: Colors.textPrimary },
-  xpLabel: { fontFamily: DisplayFont.bold, fontSize: 12, lineHeight: 20, letterSpacing: 1, color: Colors.warning },
-  streakNum: { fontFamily: DisplayFont.bold, fontSize: 17, lineHeight: 20, color: Colors.textPrimary },
+  xpNum: { fontFamily: DisplayFont.italic, fontSize: 22, lineHeight: 24, color: HEADER_TEXT },
+  xpLabel: { fontFamily: 'Inter_700Bold', fontSize: 11, lineHeight: 20, color: HEADER_TEXT3 },
+  streakNum: { fontFamily: DisplayFont.italic, fontSize: 22, lineHeight: 24, color: HEADER_TEXT },
 
   chamfer: { overflow: 'hidden' },
   chamferPhoto: { ...StyleSheet.absoluteFillObject, width: '100%', height: '100%' },
@@ -823,8 +825,8 @@ const s = StyleSheet.create({
 
   skew: {
     height: 32, paddingHorizontal: 14, justifyContent: 'center',
-    backgroundColor: Colors.surfaceElevated,
-    borderWidth: 1, borderColor: Colors.borderStrong,
+    backgroundColor: '#0D110F',
+    borderWidth: 1, borderColor: '#2E3732',
     transform: [{ skewX: '-18deg' }],
   },
   skewInner: {
