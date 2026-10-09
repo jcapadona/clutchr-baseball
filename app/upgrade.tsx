@@ -41,7 +41,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAthlete } from '@/context/AthleteContext';
 import { useProContext, PRO_ENTITLEMENT_ID } from '@/context/ProContext';
 import { Colors, Radius, Spacing } from '@/constants/theme';
-import { TopHighlight } from '@/constants/visualExtensions';
+import { DisplayFont, TopHighlight } from '@/constants/visualExtensions';
+import { Eyebrow } from '@/components/ui/ClutchrUI';
 
 // ─── FREE vs PRO COMPARISON ───────────────────────────────────────────────────
 
@@ -285,18 +286,8 @@ export default function UpgradeScreen() {
 
           {/* ── HERO ── */}
           <View style={styles.heroWrap}>
-            <LinearGradient
-              colors={['rgba(245,166,35,0.08)', 'transparent']}
-              style={[StyleSheet.absoluteFill, { borderRadius: Radius.xl }]}
-              start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }}
-            />
             <View style={styles.heroIconWrap}>
-              <LinearGradient
-                colors={[Colors.warning, '#D4890A']}
-                style={styles.heroIconGrad}
-                start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-              />
-              <Ionicons name="flash" size={28} color="#000" />
+              <Ionicons name="flash" size={22} color="#F2F5F3" />
             </View>
             <Text style={styles.heroTitle}>{headline}</Text>
             <Text style={styles.heroSub}>{subhead}</Text>
@@ -310,7 +301,7 @@ export default function UpgradeScreen() {
                   <Ionicons
                     name={line.icon as any}
                     size={14}
-                    color={i === 2 ? Colors.warning : Colors.textTertiary}
+                    color={i === 2 ? '#F2F5F3' : Colors.textSecondary}
                   />
                 </View>
                 <Text style={[styles.comparisonText, i === 2 && styles.comparisonTextHighlight]}>
@@ -322,7 +313,7 @@ export default function UpgradeScreen() {
 
           {/* ── PRO FEATURES ── */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>WHAT YOU UNLOCK</Text>
+            <Eyebrow style={styles.sectionTitle}>WHAT YOU UNLOCK</Eyebrow>
             <View style={styles.featureList}>
             {PRO_FEATURES.map((feat) => (
               <View key={feat.title} style={styles.featureRow}>
@@ -340,7 +331,7 @@ export default function UpgradeScreen() {
 
           {/* ── FREE vs PRO TABLE ── */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>FREE vs PRO</Text>
+            <Eyebrow style={styles.sectionTitle}>FREE vs PRO</Eyebrow>
             <View style={styles.compTable}>
               {/* Header */}
               <View style={styles.compTableHeader}>
@@ -368,7 +359,7 @@ export default function UpgradeScreen() {
 
           {/* ── PLAN SELECTOR ── */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>CHOOSE YOUR PLAN</Text>
+            <Eyebrow style={styles.sectionTitle}>CHOOSE YOUR PLAN</Eyebrow>
             <View style={styles.plansRow}>
               {PLANS.map((plan) => {
                 const priceStr = plan.id === 'annual' ? annualPriceStr  : monthlyPriceStr;
@@ -393,7 +384,10 @@ export default function UpgradeScreen() {
                       {plan.label}
                     </Text>
                     <View style={styles.planPriceRow}>
-                      <Text style={[styles.planPrice, selectedPlan === plan.id && plan.highlight && { color: Colors.warning }]}>
+                      <Text
+                        style={[styles.planPrice, plan.highlight && { color: Colors.warning }]}
+                        numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}
+                      >
                         {priceStr}
                       </Text>
                       <Text style={styles.planPeriod}>{plan.period}</Text>
@@ -433,8 +427,7 @@ export default function UpgradeScreen() {
               </Text>.
             </Text>
             <Text style={[styles.finePrintText, { marginTop: 4, color: Colors.textTertiary + 'AA' }]}>
-              No dark patterns. No fake timers. No guilt trips.{'\n'}
-              Train the mind or don't. It's your career.
+              No dark patterns. No fake timers. No guilt trips.
             </Text>
           </View>
 
@@ -498,25 +491,24 @@ const styles = StyleSheet.create({
 
   // Hero
   heroWrap: {
-    alignItems: 'center', gap: Spacing.md,
+    alignItems: 'flex-start', gap: Spacing.md,
     paddingVertical: Spacing.xl, borderRadius: Radius.xl,
     borderWidth: 1, borderColor: Colors.border, borderTopColor: TopHighlight,
     paddingHorizontal: Spacing.lg, marginBottom: Spacing.xl,
   },
   heroIconWrap: {
-    width: 72, height: 72, borderRadius: 36,
-    alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
-    shadowColor: Colors.warning, shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.5, shadowRadius: 16,
+    width: 48, height: 48, borderRadius: 24,
+    alignItems: 'center', justifyContent: 'center',
+    backgroundColor: Colors.surfaceElevated,
+    borderWidth: 1, borderColor: Colors.border,
   },
-  heroIconGrad: { ...StyleSheet.absoluteFillObject },
   heroTitle: {
-    fontSize: 24, fontFamily: 'Inter_700Bold',
-    color: Colors.textPrimary, textAlign: 'center', lineHeight: 32, paddingTop: 3,
+    fontSize: 40, fontFamily: DisplayFont.italic, textTransform: 'uppercase',
+    color: Colors.textPrimary, textAlign: 'left', lineHeight: 44, paddingTop: 4,
   },
   heroSub: {
-    fontSize: 14, fontFamily: 'Inter_400Regular',
-    color: Colors.textSecondary, textAlign: 'center', lineHeight: 20,
+    fontSize: 16, fontFamily: 'Inter_400Regular',
+    color: Colors.textSecondary, textAlign: 'left', lineHeight: 22,
   },
 
   // Comparison
@@ -530,9 +522,9 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surfaceElevated,
     alignItems: 'center', justifyContent: 'center',
   },
-  comparisonIconHighlight: { backgroundColor: Colors.warningMuted },
-  comparisonText: { flex: 1, fontSize: 12, lineHeight: 18, fontFamily: 'Inter_400Regular', color: Colors.textTertiary },
-  comparisonTextHighlight: { color: Colors.textPrimary, fontFamily: 'Inter_600SemiBold' },
+  comparisonIconHighlight: { backgroundColor: Colors.surfaceHigh },
+  comparisonText: { flex: 1, fontSize: 15, lineHeight: 20, fontFamily: 'Inter_400Regular', color: Colors.textSecondary },
+  comparisonTextHighlight: { color: '#F2F5F3', fontFamily: 'Inter_600SemiBold' },
   bestValueBadge: {
     backgroundColor: Colors.warningMuted, borderRadius: Radius.pill,
     paddingHorizontal: 7, paddingVertical: 3,
@@ -542,10 +534,7 @@ const styles = StyleSheet.create({
 
   // Section
   section: { marginTop: Spacing.xxl, gap: Spacing.md },
-  sectionTitle: {
-    fontSize: 10, lineHeight: 16, paddingTop: 3, fontFamily: 'Inter_700Bold',
-    color: Colors.textTertiary, letterSpacing: 1.5,
-  },
+  sectionTitle: { lineHeight: 16, paddingTop: 3 },
   featureList: { gap: Spacing.lg },
 
   // Feature rows
@@ -597,7 +586,7 @@ const styles = StyleSheet.create({
   savingsText: { fontSize: 8, fontFamily: 'Inter_700Bold', color: '#000', letterSpacing: 0.5 },
   planLabel: { fontSize: 11, lineHeight: 16, fontFamily: 'Inter_700Bold', color: Colors.textTertiary, letterSpacing: 0.5 },
   planPriceRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'baseline', gap: 2 },
-  planPrice: { fontSize: 22, lineHeight: 30, fontFamily: 'Inter_700Bold', color: Colors.textPrimary },
+  planPrice: { fontSize: 44, lineHeight: 48, fontFamily: DisplayFont.italic, color: '#F2F5F3' },
   planPeriod: { fontSize: 11, lineHeight: 16, fontFamily: 'Inter_400Regular', color: Colors.textTertiary },
   planNote: { fontSize: 10, lineHeight: 14, fontFamily: 'Inter_400Regular', color: Colors.textTertiary },
   planCheckWrap: { position: 'absolute', bottom: 8, right: 8 },
@@ -637,5 +626,5 @@ const styles = StyleSheet.create({
     fontSize: 11, fontFamily: 'Inter_400Regular',
     color: Colors.textTertiary, textAlign: 'center', lineHeight: 20,
   },
-  linkText: { color: Colors.warning, textDecorationLine: 'underline' },
+  linkText: { color: Colors.textSecondary, textDecorationLine: 'underline' },
 });
