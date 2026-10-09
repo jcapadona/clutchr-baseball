@@ -625,12 +625,14 @@ export function WorldTileSkeleton({ size = 'sm' }: { size?: 'sm' | 'md' | 'lg' }
    ══════════════════════════════════════════════════════════════ */
 
 export function PulseRing({
-  percent, size = 72, stroke = 6, ringColor = Colors.primary, children,
+  percent, size = 72, stroke = 6, ringColor = Colors.primary, trackColor = Colors.surfaceHigh, children,
 }: {
   percent: number;
   size?: number;
   stroke?: number;
   ringColor?: string;
+  /** Color of the unfilled track. */
+  trackColor?: string;
   children?: React.ReactNode;
 }) {
   const r = (size - stroke) / 2;
@@ -646,7 +648,7 @@ export function PulseRing({
         />
         <Circle
           cx={size / 2} cy={size / 2} r={r}
-          stroke={Colors.surfaceHigh} strokeWidth={stroke} fill="none"
+          stroke={trackColor} strokeWidth={stroke} fill="none"
         />
         <Circle
           cx={size / 2} cy={size / 2} r={r}

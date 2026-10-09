@@ -1,5 +1,4 @@
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React, { useRef, useEffect, useState } from 'react';
 import * as Notifications from 'expo-notifications';
@@ -21,9 +20,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAthlete } from '@/context/AthleteContext';
 import { Assets } from '@/constants/assets';
 import { Colors, Radius, Spacing } from '@/constants/theme';
+import { DisplayFont } from '@/constants/visualExtensions';
 import { RolePill } from '@/components/ui';
 import { ClutchrHeader } from '@/components/ClutchrHeader';
-import { Chip, PulseRing, ScreenHeader, StatTile } from '@/components/ui/ClutchrUI';
+import { PulseRing, ScreenHeader, StatTile } from '@/components/ui/ClutchrUI';
 import { EmblemBadge } from '@/components/EmblemBadge';
 import { ProgressBar } from '@/components/ProgressBar';
 import { getRankProgress } from '@/lib/progressionRanks';
@@ -34,6 +34,9 @@ import {
 } from '@/lib/mentalGameScore';
 
 // ─── CONSTANTS ───────────────────────────────────────────────────────────────
+
+const NEON = '#39FF88';
+const TEXT = '#F2F5F3';
 
 const ROLE_LABELS: Record<string, string> = {
   pitcher: 'Pitcher',
@@ -46,7 +49,7 @@ const LEVEL_LABELS: Record<string, string> = {
   youth: 'Youth',
   high_school: 'High School',
   college: 'College',
-  pro: 'Pro / Advanced',
+  pro: 'Advanced',
 };
 
 // ─── SCORE SPARKLINE ──────────────────────────────────────────────────────────
@@ -56,7 +59,7 @@ const SCORE_RANGES: ScoreRange[] = ['7D', '30D', 'ALL'];
 
 function ScoreSparkline({ days, positive, range }: { days: MentalGameScoreDay[]; positive: boolean; range: ScoreRange }) {
   const [cardWidth, setCardWidth] = useState(0);
-  const color = positive ? Colors.primary : Colors.danger;
+  const color = positive ? NEON : Colors.danger;
   const H = 40;
   const PAD = 8;
   const shown = range === '7D' ? days.slice(-7) : range === '30D' ? days.slice(-30) : days;
@@ -105,8 +108,8 @@ function ScoreSparkline({ days, positive, range }: { days: MentalGameScoreDay[];
         <Svg width={cardWidth} height={H}>
           <Defs>
             <SvgLinearGradient id="mgs_pf_grad" x1="0" y1="0" x2="0" y2="1">
-              <Stop offset={0} stopColor={color} stopOpacity="0.25" />
-              <Stop offset={1} stopColor={color} stopOpacity="0" />
+              <Stop offset={0} stopColor={TEXT} stopOpacity="0.08" />
+              <Stop offset={1} stopColor={TEXT} stopOpacity="0" />
             </SvgLinearGradient>
           </Defs>
           {paths.avgY !== null && (
@@ -197,8 +200,8 @@ function MentalGameScoreCard({
           <Text style={mgsStyles.scoreNum}>{score}</Text>
           <View style={mgsStyles.scoreRight}>
             <Text style={mgsStyles.scoreLabel}>MENTAL GAME{'\n'}SCORE</Text>
-            <View style={[mgsStyles.deltaBadge, isPositive ? mgsStyles.deltaPos : mgsStyles.deltaNeg]}>
-              <Text style={[mgsStyles.deltaText, { color: isPositive ? Colors.primary : Colors.danger }]}>
+            <View style={mgsStyles.deltaBadge}>
+              <Text style={mgsStyles.deltaText}>
                 {isPositive ? '+' : ''}{delta.toFixed(1)} today
               </Text>
             </View>
@@ -208,7 +211,9 @@ function MentalGameScoreCard({
       <View style={mgsStyles.rangeRow}>
         {SCORE_RANGES.map((r) => (
           <Pressable key={r} onPress={() => setRange(r)} hitSlop={6}>
-            <Chip label={r} filled={range === r} />
+            <View style={[mgsStyles.rangeChip, range === r && mgsStyles.rangeChipActive]}>
+              <Text style={[mgsStyles.rangeChipText, range === r && { color: TEXT }]}>{r}</Text>
+            </View>
           </Pressable>
         ))}
       </View>
@@ -221,14 +226,17 @@ function MentalGameScoreCard({
 // ─── CURRENT CUE CARD ────────────────────────────────────────────────────────
 
 function CurrentCueCard({ playbook }: { playbook: any }) {
+  const built = !!playbook?.built_at;
   const cue: string | null = playbook?.focus || playbook?.pressure || null;
+  const approachLine: string = playbook?.approach || 'Your 5 personal cues are set';
 
   return (
     <View style={cueStyles.card}>
       <Text style={cueStyles.label}>CURRENT CUE</Text>
-      {cue ? (
+      {built ? (
         <>
-          <Text style={cueStyles.cueText}>"{cue}"</Text>
+          {cue ? <Text style={cueStyles.cueText}>"{cue}"</Text> : null}
+          <Text style={cueStyles.approachText}>{approachLine}</Text>
           <Pressable
             style={({ pressed }) => [cueStyles.link, pressed && { opacity: 0.7 }]}
             onPress={() => router.push('/playbook')}
@@ -247,48 +255,6 @@ function CurrentCueCard({ playbook }: { playbook: any }) {
           >
             <Text style={cueStyles.buildBtnText}>Build Your Playbook</Text>
           </Pressable>
-        </View>
-      )}
-    </View>
-  );
-}
-
-// ─── COACH'S EYE CARD ────────────────────────────────────────────────────────
-
-function CoachsEyeCard({
-  reps,
-  xp,
-  rankName,
-  cue,
-}: {
-  reps: number;
-  xp: number;
-  rankName: string;
-  cue: string | null;
-}) {
-  return (
-    <View style={eyeStyles.card}>
-      <Text style={eyeStyles.label}>COACH'S EYE</Text>
-      <View style={eyeStyles.grid}>
-        <View style={eyeStyles.cell}>
-          <Text style={eyeStyles.cellValue}>{reps}</Text>
-          <Text style={eyeStyles.cellLabel}>Total Reps</Text>
-        </View>
-        <View style={eyeStyles.divider} />
-        <View style={eyeStyles.cell}>
-          <Text style={eyeStyles.cellValue}>{xp.toLocaleString()}</Text>
-          <Text style={eyeStyles.cellLabel}>XP Earned</Text>
-        </View>
-        <View style={eyeStyles.divider} />
-        <View style={eyeStyles.cell}>
-          <Text style={[eyeStyles.cellValue, { fontSize: 13 }]}>{rankName}</Text>
-          <Text style={eyeStyles.cellLabel}>Rank</Text>
-        </View>
-      </View>
-      {cue && (
-        <View style={eyeStyles.cueRow}>
-          <Ionicons name="chatbubble-outline" size={12} color={Colors.textTertiary} />
-          <Text style={eyeStyles.cueText} numberOfLines={2}>{cue}</Text>
         </View>
       )}
     </View>
@@ -319,7 +285,6 @@ export default function ProfileScreen() {
   const repsToday      = (athleteState as any).lessons_today ?? 0;
   const cuesSaved      = playbookBuilt ? 1 : 0;
   const streakActive   = (athleteState.streak_count ?? 0) > 0;
-  const currentCue: string | null = playbook?.focus || playbook?.pressure || null;
 
   const [devTapCount, setDevTapCount] = useState(0);
   const [devTapReset, setDevTapReset] = useState<ReturnType<typeof setTimeout> | null>(null);
@@ -384,13 +349,8 @@ export default function ProfileScreen() {
 
         {/* ── IDENTITY CARD ── */}
         <View style={styles.identityCard}>
-          <LinearGradient
-            colors={['rgba(34,204,94,0.06)', 'transparent']}
-            style={StyleSheet.absoluteFill}
-            start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-          />
           <View style={styles.identityLeft}>
-            <PulseRing percent={rankProgressPercent} size={96} ringColor={Colors.warning}>
+            <PulseRing percent={rankProgressPercent} size={96} stroke={4} ringColor={TEXT} trackColor={Colors.border}>
               <Image
                 source={require('../../assets/coach-cap/circular-avatar.png')}
                 style={styles.avatarImage}
@@ -400,7 +360,11 @@ export default function ProfileScreen() {
             <View style={styles.identityInfo}>
               <Text style={styles.identityName}>{athleteState.first_name}</Text>
               <View style={styles.identityMeta}>
-                <RolePill label={ROLE_LABELS[athleteState.primary_role]?.toUpperCase() ?? 'PLAYER'} />
+                <RolePill
+                  label={ROLE_LABELS[athleteState.primary_role]?.toUpperCase() ?? 'PLAYER'}
+                  style={{ borderWidth: 1, borderColor: Colors.borderStrong, borderRadius: 4, backgroundColor: 'transparent' }}
+                  textStyle={{ color: Colors.textSecondary }}
+                />
                 <Text style={styles.identityLevel}>
                   {LEVEL_LABELS[athleteState.level_band] ?? athleteState.level_band}
                 </Text>
@@ -412,7 +376,7 @@ export default function ProfileScreen() {
           </View>
           <View style={styles.rankBlock}>
             <EmblemBadge rank={rank} size="medium" />
-            <Text style={[styles.rankText, { color: rank.primaryColor }]}>{rank.name}</Text>
+            <Text style={[styles.rankText, { color: Colors.textSecondary }]}>{rank.name}</Text>
           </View>
         </View>
 
@@ -428,7 +392,7 @@ export default function ProfileScreen() {
           <View style={styles.xpTopRow}>
             <View style={styles.xpLeft}>
               <View style={styles.xpIconBox}>
-                <Ionicons name="flash" size={12} color={Colors.warning} />
+                <Ionicons name="flash" size={12} color={TEXT} />
               </View>
               <Text style={styles.xpNum}>{xp.toLocaleString()}</Text>
               <Text style={styles.xpUnit}>XP</Text>
@@ -437,7 +401,7 @@ export default function ProfileScreen() {
               {rankProgress.nextMilestoneLabel}
             </Text>
           </View>
-          <ProgressBar value={rankProgress.percent} color={rank.accentColor} height={5} />
+          <ProgressBar value={rankProgress.percent} color={Colors.textSecondary} height={5} />
           <Text style={styles.xpSub}>
             {rankProgress.nextRank
               ? `${rankProgress.xpIntoCurrentRank.toLocaleString()} / ${rankProgress.xpNeededForNextRank?.toLocaleString()} XP in ${rank.name}. Earned through completed work.`
@@ -455,35 +419,6 @@ export default function ProfileScreen() {
         {/* ── CURRENT CUE ── */}
         <CurrentCueCard playbook={playbook} />
 
-        {/* ── COACH'S EYE ── */}
-        <CoachsEyeCard
-          reps={completedCount}
-          xp={xp}
-          rankName={rank.name}
-          cue={currentCue}
-        />
-
-        {/* ── PLAYBOOK CTA ── */}
-        <Pressable
-          style={({ pressed }) => [styles.playbookRow, pressed && { opacity: 0.8 }]}
-          onPress={() => router.push('/playbook')}
-        >
-          <View style={[styles.playbookIcon, { backgroundColor: Colors.purple + '18' }]}>
-            <Ionicons name="book" size={16} color={Colors.purple} />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.playbookLabel}>
-              {playbookBuilt ? 'MY PLAYBOOK' : 'BUILD YOUR PLAYBOOK'}
-            </Text>
-            <Text style={styles.playbookSub}>
-              {playbookBuilt
-                ? playbook?.approach ?? 'Your 5 personal cues are set'
-                : 'No cues set yet. Build your playbook'}
-            </Text>
-          </View>
-          <Ionicons name="chevron-forward" size={16} color={Colors.purple + '80'} />
-        </Pressable>
-
         {/* ── ACTIONS ── */}
         <View style={styles.actionsSection}>
           <Pressable style={styles.actionRow} onPress={() => router.push('/edit-profile')}>
@@ -498,8 +433,8 @@ export default function ProfileScreen() {
             <Switch
               value={notifsOn}
               onValueChange={handleNotifToggle}
-              trackColor={{ false: '#222', true: Colors.primaryBorder }}
-              thumbColor={notifsOn ? Colors.primary : '#555'}
+              trackColor={{ false: '#222', true: TEXT }}
+              thumbColor={notifsOn ? '#050806' : '#555'}
             />
           </View>
           <View style={styles.actionDivider} />
@@ -531,7 +466,7 @@ const styles = StyleSheet.create({
   identityCard: {
     flexDirection: 'row', alignItems: 'center',
     backgroundColor: Colors.surface, borderRadius: Radius.xl,
-    padding: Spacing.lg, borderWidth: 1, borderColor: Colors.primaryBorder,
+    padding: Spacing.lg, borderWidth: 1, borderColor: Colors.border,
     overflow: 'hidden',
   },
   identityLeft: { flexDirection: 'row', alignItems: 'center', flex: 1, gap: Spacing.md },
@@ -554,26 +489,16 @@ const styles = StyleSheet.create({
   xpLeft: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   xpIconBox: {
     width: 22, height: 22, borderRadius: 11,
-    backgroundColor: Colors.warningMuted,
+    backgroundColor: Colors.surfaceElevated,
     alignItems: 'center', justifyContent: 'center',
   },
-  xpNum: { fontSize: 18, fontFamily: 'Inter_700Bold', color: Colors.warning },
+  xpNum: { fontSize: 18, fontFamily: 'Inter_700Bold', color: TEXT },
   xpUnit: { fontSize: 10, fontFamily: 'Inter_700Bold', color: Colors.textTertiary, letterSpacing: 1 },
   xpPhaseLabel: { fontSize: 11, fontFamily: 'Inter_600SemiBold', color: Colors.textSecondary },
   xpSub: { fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.textTertiary },
 
   // Stats row
   statsRow: { flexDirection: 'row', gap: Spacing.sm },
-
-  // Playbook CTA
-  playbookRow: {
-    flexDirection: 'row', alignItems: 'center', gap: Spacing.sm,
-    backgroundColor: Colors.surface, borderRadius: Radius.xl,
-    padding: Spacing.lg, borderWidth: 1, borderColor: Colors.purple + '30',
-  },
-  playbookIcon: { width: 36, height: 36, borderRadius: Radius.sm, alignItems: 'center', justifyContent: 'center' },
-  playbookLabel: { fontSize: 10, fontFamily: 'Inter_700Bold', color: Colors.purple, letterSpacing: 0.8, marginBottom: 2 },
-  playbookSub: { fontSize: 12, fontFamily: 'Inter_400Regular', color: Colors.textSecondary },
 
   // Actions
   actionsSection: {
@@ -605,7 +530,7 @@ const mgsStyles = StyleSheet.create({
     borderRadius: Radius.xl,
     padding: Spacing.lg,
     borderWidth: 1,
-    borderColor: Colors.primaryBorder,
+    borderColor: Colors.border,
     gap: Spacing.sm,
   },
   topRow: {
@@ -619,16 +544,18 @@ const mgsStyles = StyleSheet.create({
     gap: Spacing.sm,
   },
   scoreNum: {
-    fontSize: 48,
-    fontFamily: 'Inter_700Bold',
+    fontSize: 88,
+    fontFamily: DisplayFont.italic,
     color: Colors.textPrimary,
-    lineHeight: 52,
+    lineHeight: 80,
+    paddingTop: 3,
+    paddingRight: 8,
   },
-  scoreRight: { gap: 4 },
+  scoreRight: { gap: 4, flexShrink: 1 },
   scoreLabel: {
     fontSize: 10,
     fontFamily: 'Inter_700Bold',
-    color: Colors.primary,
+    color: '#6E7873',
     letterSpacing: 1.2,
     lineHeight: 14,
   },
@@ -637,21 +564,28 @@ const mgsStyles = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: Radius.pill,
     borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: Colors.surfaceElevated,
     alignSelf: 'flex-start',
-  },
-  deltaPos: {
-    backgroundColor: Colors.primaryMuted,
-    borderColor: Colors.primaryBorder,
-  },
-  deltaNeg: {
-    backgroundColor: Colors.danger + '12',
-    borderColor: Colors.danger + '30',
   },
   deltaText: {
     fontSize: 10,
     fontFamily: 'Inter_600SemiBold',
+    color: TEXT,
   },
   rangeRow: { flexDirection: 'row', gap: Spacing.sm },
+  rangeChip: {
+    paddingHorizontal: 10, paddingVertical: 5,
+    borderRadius: Radius.sm, borderWidth: 1, borderColor: Colors.border,
+  },
+  rangeChipActive: {
+    backgroundColor: Colors.surfaceElevated,
+    borderColor: Colors.borderStrong,
+  },
+  rangeChipText: {
+    fontSize: 10, lineHeight: 14, fontFamily: 'Inter_600SemiBold',
+    letterSpacing: 1, color: Colors.textSecondary,
+  },
   sub: {
     fontSize: 11,
     fontFamily: 'Inter_400Regular',
@@ -682,6 +616,12 @@ const cueStyles = StyleSheet.create({
     color: Colors.textPrimary,
     lineHeight: 22,
     fontStyle: 'italic' as const,
+  },
+  approachText: {
+    fontSize: 12,
+    fontFamily: 'Inter_400Regular',
+    color: Colors.textSecondary,
+    lineHeight: 17,
   },
   link: {
     flexDirection: 'row',
@@ -717,65 +657,5 @@ const cueStyles = StyleSheet.create({
     fontSize: 12,
     fontFamily: 'Inter_600SemiBold',
     color: Colors.purple,
-  },
-});
-
-// ─── COACH'S EYE STYLES ───────────────────────────────────────────────────────
-
-const eyeStyles = StyleSheet.create({
-  card: {
-    backgroundColor: Colors.surface,
-    borderRadius: Radius.xl,
-    padding: Spacing.lg,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    gap: Spacing.sm,
-  },
-  label: {
-    fontSize: 10,
-    fontFamily: 'Inter_700Bold',
-    color: Colors.textSecondary,
-    letterSpacing: 1.5,
-  },
-  grid: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  cell: {
-    flex: 1,
-    alignItems: 'center',
-    gap: 2,
-  },
-  divider: {
-    width: 1,
-    height: 32,
-    backgroundColor: Colors.border,
-  },
-  cellValue: {
-    fontSize: 16,
-    fontFamily: 'Inter_700Bold',
-    color: Colors.textPrimary,
-  },
-  cellLabel: {
-    fontSize: 10,
-    fontFamily: 'Inter_400Regular',
-    color: Colors.textTertiary,
-  },
-  cueRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 6,
-    paddingTop: Spacing.sm,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-    marginTop: Spacing.xs,
-  },
-  cueText: {
-    fontSize: 12,
-    fontFamily: 'Inter_400Regular',
-    color: Colors.textSecondary,
-    flex: 1,
-    lineHeight: 17,
-    fontStyle: 'italic' as const,
   },
 });
