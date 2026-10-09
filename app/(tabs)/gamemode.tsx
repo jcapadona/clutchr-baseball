@@ -596,7 +596,7 @@ const GAME_TOOLS: GameTool[] = [
       {
         cue: "RENAME IT",
         instruction:
-          "That feeling is not fear. That is your body preparing to compete. Heart rate up, focus narrowing — that is called ready.",
+          "That feeling is not fear. That is your body preparing to compete. Heart rate up, focus narrowing, that is called ready.",
       },
       {
         cue: "BREATHE INTO IT",
@@ -716,7 +716,7 @@ const GAME_TOOLS: GameTool[] = [
       },
       {
         cue: "YES-YES-NO",
-        instruction: 'Stay on fast: assume heat, adjust to off-speed. "Yes. Yes. No." — not "No, No, Yes."',
+        instruction: 'Stay on fast: assume heat, adjust to off-speed. "Yes. Yes. No." Not "No, No, Yes."',
       },
     ],
     printCue: "FIND RELEASE · LOAD EARLY · HUNT YOUR LANE",
@@ -774,7 +774,7 @@ const GAME_TOOLS: GameTool[] = [
       },
       {
         cue: "ATTACK THE ZONE",
-        instruction: "One job for the first pitch: attack the zone. Not the perfect pitch — a competitive strike.",
+        instruction: "One job for the first pitch: attack the zone. Not the perfect pitch, a competitive strike.",
       },
       {
         cue: "CUE LOADED",
@@ -914,7 +914,7 @@ const GAME_TOOLS: GameTool[] = [
       },
       {
         cue: "GET MOVING",
-        instruction: "Walk, shuffle, jog — break the mental freeze.",
+        instruction: "Walk, shuffle, jog. Break the mental freeze.",
       },
       {
         cue: "NOD UP",
@@ -1047,7 +1047,7 @@ const GAME_TOOLS: GameTool[] = [
       },
       {
         cue: "OWN THE PLAN",
-        instruction: "Make the cue yours. Say it your way. It is not the coach's at-bat — it is yours.",
+        instruction: "Make the cue yours. Say it your way. It is not the coach's at-bat, it is yours.",
       },
       {
         cue: "OPEN THE SECOND EAR",
@@ -1104,7 +1104,7 @@ const GAME_TOOLS: GameTool[] = [
       {
         cue: "CLOSE IT",
         instruction:
-          "That inning is done. Good or bad — it is closed. Walk off with your chin up.",
+          "That inning is done. Good or bad, it is closed. Walk off with your chin up.",
       },
       {
         cue: "ONE WIN",
@@ -1295,7 +1295,7 @@ const GAME_TOOLS: GameTool[] = [
       },
       {
         cue: "PASS IT ON",
-        instruction: "Tell the next batter one thing. Concise. Actionable. Not five things — one.",
+        instruction: "Tell the next batter one thing. Concise. Actionable. Not five things, one.",
       },
     ],
     printCue: "WHAT DID WE SEE · VERIFY · PASS IT ON",
@@ -1433,7 +1433,7 @@ const GAME_TOOLS: GameTool[] = [
       {
         cue: "REFRAME",
         instruction:
-          'Rewrite the story. Not "I was terrible" — but "I competed, the results did not go my way, and I know what I want to do differently."',
+          'Rewrite the story. Not "I was terrible", but "I competed, the results did not go my way, and I know what I want to do differently."',
       },
       {
         cue: "YOUR STANDARD",
@@ -1482,7 +1482,7 @@ const GAME_TOOLS: GameTool[] = [
       {
         cue: "FOAM ROLL",
         instruction:
-          "Roll your lat and posterior shoulder. 60 seconds per side. The lat is attached to your arm — take care of it.",
+          "Roll your lat and posterior shoulder. 60 seconds per side. The lat is attached to your arm. Take care of it.",
         timer: 120,
       },
       {
@@ -1521,7 +1521,7 @@ const GAME_TOOLS: GameTool[] = [
       {
         cue: "HAMSTRINGS",
         instruction:
-          "Standing hamstring stretch. 30 seconds each side. If you dove or slid today — give extra time here.",
+          "Standing hamstring stretch. 30 seconds each side. If you dove or slid today, give extra time here.",
         timer: 60,
       },
       {
@@ -1578,7 +1578,7 @@ const GAME_TOOLS: GameTool[] = [
     steps: [
       {
         cue: "SAY THE SCORE",
-        instruction: "Name the score out loud. Own it. Then move past it — the debrief is not about the score.",
+        instruction: "Name the score out loud. Own it. Then move past it. The debrief is not about the score.",
       },
       {
         cue: "WHAT THEY DID WELL",
@@ -2004,10 +2004,10 @@ function PrintCardScreen({
 }) {
   async function handleShare() {
     const steps = tool.steps
-      .map((s, i) => `${i + 1}. ${s.cue}  —  ${s.instruction}`)
+      .map((s, i) => `${i + 1}. ${s.cue} - ${s.instruction}`)
       .join("\n");
     const text = [
-      "[ CLUTCHR BASEBALL — GAME CARD ]",
+      "[ CLUTCHR BASEBALL - GAME CARD ]",
       tool.name.toUpperCase(),
       "",
       `WHEN: ${tool.whenToUse}`,

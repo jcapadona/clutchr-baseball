@@ -314,7 +314,7 @@ function PlaybookComplete({
                 <Text style={completeStyles.rowSituation}>{slot.situation}</Text>
               </View>
               <Text style={[completeStyles.rowCue, { color }]}>
-                {value || '—'}
+                {value || '-'}
               </Text>
               <Ionicons name="create-outline" size={14} color={Colors.textTertiary} />
             </Pressable>

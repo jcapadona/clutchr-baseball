@@ -85,7 +85,7 @@ function DotRating({ value, onChange, color = Colors.primary }: { value: number;
         </Pressable>
       ))}
       <Text style={[ratingStyles.dotLabel, value > 0 && { color }]}>
-        {value===0?'—':value===1?'Low':value===2?'Okay':value===3?'Solid':value===4?'Strong':'Elite'}
+        {value===0?'-':value===1?'Low':value===2?'Okay':value===3?'Solid':value===4?'Strong':'Elite'}
       </Text>
     </View>
   );

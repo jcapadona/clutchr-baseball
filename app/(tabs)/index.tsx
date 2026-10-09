@@ -54,8 +54,6 @@ const HOME_FLAGS = {
   opponentIntel: false,
   weightRoom: false,
   readiness: false,
-  bell: false,
-  calendar: false,
 };
 
 interface MissionsProgress {
@@ -304,7 +302,7 @@ function WeatherModal({ visible, onClose, temp, label }: WeatherModalProps) {
         <Pressable style={wm.sheet} onPress={e => e.stopPropagation()}>
           <View style={wm.handle} />
           <Ionicons name={weatherIcon(label)} size={64} color={Colors.primary} style={wm.icon} />
-          <Text style={wm.temp}>{temp !== null ? `${temp}°` : '—'}</Text>
+          <Text style={wm.temp}>{temp !== null ? `${temp}°` : '-'}</Text>
           <Text style={wm.condition}>{label ?? 'Unavailable'}</Text>
           <Text style={wm.note}>Game day conditions at your location</Text>
           <Pressable style={({ pressed }) => [wm.closeBtn, pressed && { opacity: 0.85 }]} onPress={onClose}>
@@ -639,7 +637,7 @@ export default function HomeScreen() {
     {
       key: 'weather', label: 'Weather', icon: 'sun', accent: HOME_TEXT, kind: 'stat',
       loading: !weatherReady,
-      value: weatherOk ? `${weatherTemp}°` : '—',
+      value: weatherOk ? `${weatherTemp}°` : '-',
       sub: weatherOk ? weatherLabel!.toUpperCase() : undefined,
       onPress: () => setShowWeatherModal(true),
     },
@@ -657,20 +655,6 @@ export default function HomeScreen() {
           logo={Assets.branding.mainWordmark}
           xp={totalXp}
           streak={streak}
-          right={
-            <>
-              {HOME_FLAGS.bell && (
-                <Pressable hitSlop={10} onPress={() => showToast('Coming soon — reminders', 'info')}>
-                  <Ionicons name="notifications-outline" size={22} color={Colors.textSecondary} />
-                </Pressable>
-              )}
-              {HOME_FLAGS.calendar && (
-                <Pressable hitSlop={10} onPress={() => showToast('Coming soon — schedule', 'info')}>
-                  <Ionicons name="calendar-outline" size={22} color={Colors.textSecondary} />
-                </Pressable>
-              )}
-            </>
-          }
         />
       </View>
 
