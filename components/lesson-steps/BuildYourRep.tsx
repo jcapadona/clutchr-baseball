@@ -259,7 +259,7 @@ const styles = StyleSheet.create({
   sequenceX: {
     fontSize: 13,
     fontFamily: 'Inter_600SemiBold',
-    color: 'rgba(34,204,94,0.6)',
+    color: 'rgba(57,255,136,0.6)',
     lineHeight: 16,
   },
   itemsScroll: {

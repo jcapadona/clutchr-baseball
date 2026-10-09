@@ -7,7 +7,7 @@
  * missing for the visual overhaul: display font tokens, category colors,
  * content-type colors, gradients, and a tint() helper.
  *
- * Colors.primary (#00FF66) stays the single source of truth for green —
+ * Colors.primary (#39FF88) stays the single source of truth for green —
  * nothing here redefines it.
  *
  * SETUP (Terminal, if not already installed):
@@ -78,7 +78,7 @@ export const DisplayStat = {
 // ─────────────────────────────────────────────────────────────
 
 export const CategoryColor = {
-  foundation: Colors.primary,   // #00FF66 — your existing green
+  foundation: Colors.primary,   // #39FF88 — the brand neon
   craft:      Colors.purple,    // #BF5AF2 — already in your palette
   compete:    Colors.info,      // #0A84FF — already in your palette
   grind:      Colors.warning,   // #F5A623 — already gold/earned

@@ -35,7 +35,7 @@ import {
 
 // ─── CONSTANTS ───────────────────────────────────────────────────────────────
 
-const NEON = '#39FF88';
+const NEON = Colors.primary;
 const TEXT = '#F2F5F3';
 
 const ROLE_LABELS: Record<string, string> = {

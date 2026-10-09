@@ -506,7 +506,7 @@ const lockerTabStyles = StyleSheet.create({
   },
   tabActive: {
     backgroundColor: Colors.surfaceElevated,
-    borderColor: '#39FF88',
+    borderColor: Colors.primary,
   },
   label: {
     fontSize: 12,

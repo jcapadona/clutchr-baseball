@@ -2886,7 +2886,7 @@ const s = StyleSheet.create({
     height: 44,
     paddingHorizontal: 24,
     borderRadius: 8,
-    backgroundColor: "#39FF88",
+    backgroundColor: Colors.primary,
   },
   heroCtaText: {
     fontSize: 13,

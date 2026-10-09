@@ -18,7 +18,7 @@ export const Colors = {
   border: 'rgba(245,245,245,0.10)',
   borderSubtle: 'rgba(245,245,245,0.06)',
   borderStrong: 'rgba(245,245,245,0.18)',
-  borderActive: 'rgba(0, 255, 102, 0.42)',
+  borderActive: 'rgba(57, 255, 136, 0.42)',
   cardBorder: 'rgba(245,245,245,0.12)',
   warningBorder: 'rgba(245, 166, 35, 0.30)',
   infoBorder: 'rgba(10, 132, 255, 0.28)',
@@ -26,12 +26,12 @@ export const Colors = {
   dangerBorder: 'rgba(255, 59, 48, 0.28)',
 
   // ── Primary action/progress green ──────────────────────────────────────────
-  primary: '#00FF66',
-  green: '#00FF66',
+  primary: '#39FF88',
+  green: '#39FF88',
   primaryDim: '#19C85A',
-  primaryMuted: 'rgba(0, 255, 102, 0.12)',
-  primaryBorder: 'rgba(0, 255, 102, 0.28)',
-  primaryGlow: 'rgba(0, 255, 102, 0.10)',
+  primaryMuted: 'rgba(57, 255, 136, 0.12)',
+  primaryBorder: 'rgba(57, 255, 136, 0.28)',
+  primaryGlow: 'rgba(57, 255, 136, 0.10)',
 
   // ── Text ───────────────────────────────────────────────────────────────────
   textPrimary: '#F5F5F5',

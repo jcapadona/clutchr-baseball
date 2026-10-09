@@ -270,7 +270,7 @@ function CueBox({ cue, label = 'YOUR CUE' }: { cue: string; label?: string }) {
     <Animated.View style={[cueStyles.wrap, { transform: [{ scale: scaleAnim }] }]}>
       {/* Dark green background gradient */}
       <LinearGradient
-        colors={['rgba(34,204,94,0.18)', 'rgba(34,204,94,0.08)']}
+        colors={['rgba(57,255,136,0.18)', 'rgba(57,255,136,0.08)']}
         style={StyleSheet.absoluteFill}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
@@ -463,7 +463,7 @@ function ChoiceButton({ label, feedback, quality, isSelected, isRevealed, isCorr
   if (isSelected && isRevealed) {
     if (isCorrect) {
       borderColor = Colors.primary;
-      bgColor = 'rgba(34,204,94,0.10)';
+      bgColor = 'rgba(57,255,136,0.10)';
       iconName = 'checkmark-circle';
     } else if (quality === 'acceptable') {
       borderColor = Colors.warning;
@@ -2535,7 +2535,7 @@ const payoffStyles = StyleSheet.create({
     height: 210,
     borderRadius: 105,
     borderWidth: 1,
-    borderColor: 'rgba(35,209,96,0.25)',
+    borderColor: 'rgba(57,255,136,0.25)',
     shadowColor: Colors.primary,
     shadowOpacity: 0.35,
     shadowRadius: 32,
@@ -2547,7 +2547,7 @@ const payoffStyles = StyleSheet.create({
     height: 140,
     borderRadius: 70,
     borderWidth: 1.5,
-    borderColor: 'rgba(35,209,96,0.5)',
+    borderColor: 'rgba(57,255,136,0.5)',
     shadowColor: Colors.primary,
     shadowOpacity: 0.55,
     shadowRadius: 20,
@@ -2587,7 +2587,7 @@ const payoffStyles = StyleSheet.create({
   xpText: { color: Colors.primary, fontFamily: 'Inter_700Bold', fontSize: 44, lineHeight: 48, letterSpacing: -1 },
   xpLabel: { color: Colors.primary, fontFamily: 'Inter_700Bold', fontSize: 14, letterSpacing: 1.8, paddingBottom: 7 },
   firstClearBadge: {
-    backgroundColor: 'rgba(34, 204, 94, 0.15)', borderColor: 'rgba(34, 204, 94, 0.4)',
+    backgroundColor: 'rgba(57,255,136, 0.15)', borderColor: 'rgba(57,255,136, 0.4)',
     borderWidth: 1, borderRadius: 99, paddingHorizontal: 8, paddingVertical: 3,
   },
   firstClearText: { fontSize: 10, color: Colors.primary, fontFamily: 'Inter_700Bold', letterSpacing: 1.5 },
@@ -2596,9 +2596,9 @@ const payoffStyles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
     alignSelf: 'flex-start',
-    backgroundColor: 'rgba(35,209,96,0.10)',
+    backgroundColor: 'rgba(57,255,136,0.10)',
     borderWidth: 1,
-    borderColor: 'rgba(35,209,96,0.28)',
+    borderColor: 'rgba(57,255,136,0.28)',
     borderRadius: Radius.pill,
     paddingHorizontal: Spacing.md,
     paddingVertical: 8,
@@ -2637,7 +2637,7 @@ const payoffStyles = StyleSheet.create({
   rankFill: { height: '100%', backgroundColor: Colors.warning },
   helperText: { color: '#A8B3AA', fontFamily: 'Inter_400Regular', fontSize: 12, lineHeight: 17, marginTop: Spacing.sm },
   takeCard: {
-    backgroundColor: '#0B100C', borderColor: 'rgba(35,209,96,0.24)', borderWidth: 1,
+    backgroundColor: '#0B100C', borderColor: 'rgba(57,255,136,0.24)', borderWidth: 1,
     borderRadius: Radius.lg, padding: Spacing.lg, gap: Spacing.sm,
   },
   takeHeaderRow: { flexDirection: 'row', alignItems: 'center' },

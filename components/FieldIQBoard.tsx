@@ -257,7 +257,7 @@ export default function FieldIQBoard({ data, responses, feedback, onComplete }: 
 const boardStyles = StyleSheet.create({
   board: {
     position: 'relative',
-    backgroundColor: 'rgba(34,204,94,0.04)',
+    backgroundColor: 'rgba(57,255,136,0.04)',
     borderRadius: Radius.lg,
     borderWidth: 1,
     borderColor: Colors.border,

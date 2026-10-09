@@ -494,7 +494,7 @@ const styles = StyleSheet.create({
     borderStyle: 'solid',
   },
   slotReady: {
-    borderColor: 'rgba(0,255,102,0.28)',
+    borderColor: 'rgba(57,255,136,0.28)',
   },
   slotCorrect: {
     borderColor: Colors.primaryBorder,
