@@ -76,7 +76,7 @@ export default function DevQAScreen() {
       setLoading(true);
       const errors: string[] = [];
       try {
-        const data = await fetchLessons({ limit: 500 });
+        const data = await fetchLessons({ limit: 500, includeHidden: true });
         setLessons(data);
       } catch (err) {
         errors.push(`Lessons fetch failed: ${err instanceof Error ? err.message : String(err)}`);

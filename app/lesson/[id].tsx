@@ -1435,7 +1435,7 @@ export default function LessonPlayerScreen() {
     if (!id) return;
     (async () => {
       try {
-        const { data, error: err } = await supabase.from('legacy_lessons_staging').select('*').eq('id', id).single();
+        const { data, error: err } = await supabase.from('legacy_lessons_staging').select('*').eq('id', id).eq('is_hidden', false).single();
         if (err || !data) {
           const { data: cc, error: err2 } = await supabase.from('content_cards').select('*').eq('id', id).single();
           if (err2 || !cc) throw new Error('Lesson not found');

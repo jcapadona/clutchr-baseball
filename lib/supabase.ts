@@ -94,11 +94,16 @@ export async function fetchLessons(filters?: {
   pillar?: string;
   role?: string;
   limit?: number;
+  includeHidden?: boolean;
 }) {
   let query = supabase
     .from('legacy_lessons_staging')
     .select('*')
     .order('order_index', { ascending: true });
+
+  if (!filters?.includeHidden) {
+    query = query.eq('is_hidden', false);
+  }
 
   if (filters?.pillar) {
     query = query.eq('pillar_id', filters.pillar);
