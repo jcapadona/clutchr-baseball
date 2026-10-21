@@ -13,7 +13,6 @@ import * as Notifications from 'expo-notifications';
 import { Slot, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
-import { setupNotificationsOnce } from '@/lib/notifications';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AthleteProvider, useAthlete } from '@/context/AthleteContext';
@@ -38,28 +37,51 @@ Purchases.configure({
 });
 
 // ─── AUTH GATE ───────────────────────────────────────────────────────────────
-// Redirects unauthenticated users to /auth
-// Redirects users who haven't onboarded to /onboarding
+// Signed out: age screen first, then /auth. An under-13 answer is locked on the
+// device and routes through /ask-parent.
+// Signed in: under-13 accounts must save a parent consent before onboarding.
+// Everyone else is redirected to /onboarding or the tabs as before.
 
 function AuthGate() {
-  const { session, isLoading, isOnboardingComplete } = useAthlete();
+  const { session, isLoading, isOnboardingComplete, ageGate, ageGateLoaded, consent } = useAthlete();
   const segments = useSegments();
   const router = useRouter();
 
   useEffect(() => {
-    if (isLoading) return;
+    if (isLoading || !ageGateLoaded) return;
 
-    const inAuthGroup = segments[0] === 'auth';
-    const inOnboarding = segments[0] === 'onboarding';
+    const seg = segments[0] as string | undefined;
+    const inAuthGroup = seg === 'auth';
+    const inOnboarding = seg === 'onboarding';
 
-    if (!session && !inAuthGroup) {
-      router.replace('/auth');
-    } else if (session && !isOnboardingComplete && !inOnboarding) {
+    if (!session) {
+      if (!ageGate) {
+        if (seg !== 'age') router.replace('/age' as any);
+      } else if (ageGate.age_group === 'under13') {
+        if (seg !== 'ask-parent' && !inAuthGroup) router.replace('/ask-parent' as any);
+      } else if (seg !== 'age' && !inAuthGroup) {
+        router.replace('/auth');
+      }
+      return;
+    }
+
+    if (consent === 'unknown') return;
+    if (consent === 'needs_age') {
+      if (seg !== 'age') router.replace('/age' as any);
+      return;
+    }
+    if (consent === 'required') {
+      if (seg !== 'parent-consent') router.replace('/parent-consent' as any);
+      return;
+    }
+
+    const inPreAuth = inAuthGroup || seg === 'age' || seg === 'ask-parent' || seg === 'parent-consent';
+    if (!isOnboardingComplete && !inOnboarding) {
       router.replace('/onboarding');
-    } else if (session && isOnboardingComplete && (inAuthGroup || inOnboarding)) {
+    } else if (isOnboardingComplete && (inPreAuth || inOnboarding)) {
       router.replace('/(tabs)');
     }
-  }, [session, isLoading, isOnboardingComplete, segments]);
+  }, [session, isLoading, isOnboardingComplete, segments, ageGate, ageGateLoaded, consent]);
 
   return <Slot />;
 }
@@ -85,8 +107,6 @@ export default function RootLayout() {
   }, [fontsLoaded, fontError]);
 
   useEffect(() => {
-    setupNotificationsOnce().catch((err) => console.warn('setupNotificationsOnce error:', err));
-
     const sub = Notifications.addNotificationResponseReceivedListener((response) => {
       const screen = response.notification.request.content.data?.screen;
       if (screen === 'career') router.push('/(tabs)/career');
