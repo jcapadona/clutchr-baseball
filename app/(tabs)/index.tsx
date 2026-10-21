@@ -376,7 +376,7 @@ const wm = StyleSheet.create({
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
-  const { athleteState, isLoading, completedTodayCount, updateAthleteState } = useAthlete();
+  const { athleteState, isLoading, completedTodayCount, updateAthleteState, ageGroup, consent } = useAthlete();
 
   const [routingResult, setRoutingResult] = useState<RoutingResult | null>(null);
   const [loadingLesson, setLoadingLesson] = useState(true);
@@ -393,8 +393,10 @@ export default function HomeScreen() {
   const nextGame = null as NextGame | null;
   const now = useNow(HOME_FLAGS.upcomingGame && !!nextGame);
 
-  // Weather — live location + Open-Meteo
+  // Weather — live location + Open-Meteo. Never for under-13 accounts, and not
+  // before the age gate has settled.
   useEffect(() => {
+    if (consent !== 'not_required' || ageGroup === 'under13') return;
     (async () => {
       try {
         const { status } = await Location.requestForegroundPermissionsAsync();
@@ -420,7 +422,7 @@ export default function HomeScreen() {
         setWeatherLabel('Unavailable');
       }
     })();
-  }, []);
+  }, [consent, ageGroup]);
 
   // Stamp last_active_date
   useEffect(() => {
