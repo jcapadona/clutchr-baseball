@@ -11,7 +11,8 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Alert } from 'react-native';
-import { scheduleStreakReminder } from '@/lib/notifications';
+import { scheduleStreakReminder, setupNotificationsOnce } from '@/lib/notifications';
+import { loadAgeGate, lockUnder13, saveAgeGate, type AgeGate, type AgeGroup } from '@/lib/ageGate';
 import React, {
   createContext,
   useCallback,
@@ -63,6 +64,8 @@ export interface AthleteState {
   biggest_struggle: Struggle[];
   self_ratings: SelfRatings;
   routine_consistency: number;
+  birth_year?: number;
+  age_group?: AgeGroup;
   total_xp: number;
   completed_lessons: string[];
   saved_routines: string[];
@@ -88,8 +91,28 @@ export interface AthleteState {
   updated_at: string;
 }
 
+// unknown      still working it out (loading, or the consent lookup is in flight)
+// needs_age    signed in but the age question was never answered on this device
+// not_required 13 or older, or an existing user from before the age screen
+// required     under 13 and no parent consent saved yet
+// granted      under 13 with a parent consent row saved
+export type ConsentStatus = 'unknown' | 'needs_age' | 'not_required' | 'required' | 'granted';
+
+interface ConsentRow {
+  uid: string;
+  found: boolean;
+  error: boolean;
+}
+
 interface AthleteContextType {
   session: Session | null;
+  ageGate: AgeGate | null;
+  ageGateLoaded: boolean;
+  ageGroup: AgeGroup | null;
+  consent: ConsentStatus;
+  answerAge: (birthYear: number) => Promise<AgeGate>;
+  grantConsent: () => void;
+  clearAgeGate: () => void;
   athleteState: AthleteState | null;
   isLoading: boolean;
   isOnboardingComplete: boolean;
@@ -225,6 +248,12 @@ export function AthleteProvider({ children }: { children: React.ReactNode }) {
   // Set to true before an intentional signOut() call so onAuthStateChange
   // can distinguish user-initiated sign-out from involuntary token expiry.
   const intentionalSignOut = useRef(false);
+  const [ageGate, setAgeGate] = useState<AgeGate | null>(null);
+  const [ageGateLoaded, setAgeGateLoaded] = useState(false);
+  const [consentRow, setConsentRow] = useState<ConsentRow | null>(null);
+  // Read by the sync callbacks, which are created once. True only when the
+  // account may write to Supabase (13 or older, or a parent has consented).
+  const consentOkRef = useRef(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -240,9 +269,8 @@ export function AthleteProvider({ children }: { children: React.ReactNode }) {
         setSession(session);
         sessionRef.current = session;
 
-        if (session?.user?.id) {
-          Purchases.logIn(session.user.id).catch(() => {});
-        } else if (event === 'SIGNED_OUT') {
+        // Purchases.logIn is gated on consent, see the effect below.
+        if (!session?.user?.id && event === 'SIGNED_OUT') {
           Purchases.logOut().catch(() => {});
         }
       }
@@ -289,7 +317,7 @@ export function AthleteProvider({ children }: { children: React.ReactNode }) {
               }
             } else if (local) {
               // No remote record yet — push local state up
-              syncToSupabase(local, userId);
+              if (consentOkRef.current) syncToSupabase(local, userId);
             }
           } catch {
             // Supabase unavailable — continue with local state
@@ -307,7 +335,7 @@ export function AthleteProvider({ children }: { children: React.ReactNode }) {
     const updated = { ...state, updated_at: new Date().toISOString() };
     setAthleteState(updated);
     await AsyncStorage.setItem(ATHLETE_KEY, JSON.stringify(updated));
-    if (sessionRef.current?.user?.id) syncToSupabase(updated, sessionRef.current.user.id);
+    if (sessionRef.current?.user?.id && consentOkRef.current) syncToSupabase(updated, sessionRef.current.user.id);
   }, []);
 
   const updateAthleteState = useCallback(
@@ -320,7 +348,7 @@ export function AthleteProvider({ children }: { children: React.ReactNode }) {
           updated_at: new Date().toISOString(),
         };
         AsyncStorage.setItem(ATHLETE_KEY, JSON.stringify(updated)).catch(console.error);
-        if (sessionRef.current?.user?.id) syncToSupabase(updated, sessionRef.current.user.id);
+        if (sessionRef.current?.user?.id && consentOkRef.current) syncToSupabase(updated, sessionRef.current.user.id);
         return updated;
       });
     },
@@ -349,10 +377,24 @@ export function AthleteProvider({ children }: { children: React.ReactNode }) {
       };
 
       AsyncStorage.setItem(ATHLETE_KEY, JSON.stringify(updated)).catch(console.error);
-      if (sessionRef.current?.user?.id) syncToSupabase(updated, sessionRef.current.user.id);
+      if (sessionRef.current?.user?.id && consentOkRef.current) syncToSupabase(updated, sessionRef.current.user.id);
       scheduleStreakReminder(streakData.streak_count).catch(() => {});
       return updated;
     });
+  }, []);
+
+  const answerAge = useCallback(async (birthYear: number) => {
+    const gate = await saveAgeGate(birthYear);
+    setAgeGate(gate);
+    return gate;
+  }, []);
+
+  // Dev reset only: forgets the in-memory answer. The caller removes the stored key.
+  const clearAgeGate = useCallback(() => setAgeGate(null), []);
+
+  const grantConsent = useCallback(() => {
+    const uid = sessionRef.current?.user?.id;
+    if (uid) setConsentRow({ uid, found: true, error: false });
   }, []);
 
   const signOut = useCallback(async () => {
@@ -367,6 +409,73 @@ export function AthleteProvider({ children }: { children: React.ReactNode }) {
     athleteState?.first_name &&
     athleteState?.primary_role
   );
+
+  // ── Age gate and parental consent ────────────────────────────────────────
+  useEffect(() => {
+    loadAgeGate().then((gate) => {
+      setAgeGate(gate);
+      setAgeGateLoaded(true);
+    });
+  }, []);
+
+  const uid = session?.user?.id ?? null;
+
+  // A consent row means this account belongs to an under-13 child with a
+  // parent on file, even on a fresh install with no local age answer.
+  useEffect(() => {
+    if (!uid) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data, error } = await supabase
+          .from('parental_consents')
+          .select('child_birth_year')
+          .eq('parent_user_id', uid)
+          .maybeSingle();
+        if (cancelled) return;
+        if (error) {
+          setConsentRow({ uid, found: false, error: true });
+          return;
+        }
+        if (data) {
+          const existing = await loadAgeGate();
+          if (existing?.age_group !== 'under13') {
+            setAgeGate(await lockUnder13(data.child_birth_year ?? new Date().getFullYear()));
+          }
+        }
+        if (!cancelled) setConsentRow({ uid, found: !!data, error: false });
+      } catch {
+        if (!cancelled) setConsentRow({ uid, found: false, error: true });
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [uid]);
+
+  const rowResult = consentRow && consentRow.uid === uid ? consentRow : null;
+  const ageGroup: AgeGroup | null = rowResult?.found
+    ? 'under13'
+    : athleteState?.age_group ?? ageGate?.age_group ?? null;
+
+  const consent: ConsentStatus = (() => {
+    if (!uid || isLoading || !ageGateLoaded || !rowResult) return 'unknown';
+    if (rowResult.found) return 'granted';
+    if (ageGroup === 'under13') {
+      // Lookup failed offline: an under-13 user who already finished onboarding
+      // did so after consent, so keep them in.
+      return rowResult.error && isOnboardingComplete ? 'granted' : 'required';
+    }
+    if (ageGroup === '13plus') return 'not_required';
+    return isOnboardingComplete ? 'not_required' : 'needs_age';
+  })();
+
+  const consentOk = consent === 'not_required' || consent === 'granted';
+  consentOkRef.current = consentOk;
+
+  useEffect(() => {
+    if (!uid || !consentOk) return;
+    Purchases.logIn(uid).catch(() => {});
+    setupNotificationsOnce().catch((err) => console.warn('setupNotificationsOnce error:', err));
+  }, [uid, consentOk]);
 
   // ── Derived streak status for UI ─────────────────────────────────────────
   const streakStatus: AthleteContextType['streakStatus'] = (() => {
@@ -392,6 +501,13 @@ export function AthleteProvider({ children }: { children: React.ReactNode }) {
     <AthleteContext.Provider
       value={{
         session,
+        ageGate,
+        ageGateLoaded,
+        ageGroup,
+        consent,
+        answerAge,
+        grantConsent,
+        clearAgeGate,
         athleteState,
         isLoading,
         isOnboardingComplete,
