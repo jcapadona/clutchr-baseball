@@ -64,7 +64,7 @@ const STRUGGLES: { value: Struggle; label: string }[] = [
 
 export default function OnboardingScreen() {
   const insets = useSafeAreaInsets();
-  const { session, saveAthleteState } = useAthlete();
+  const { session, saveAthleteState, ageGate } = useAthlete();
 
   const [step, setStep] = useState<Step>('name');
   const [firstName, setFirstName] = useState('');
@@ -107,6 +107,8 @@ export default function OnboardingScreen() {
         biggest_struggle: struggle ? [struggle] : [],
         self_ratings: { confidence: 3, focus: 3, composure: 3, recovery_discipline: 3, reset_skill: 3 },
         routine_consistency: 3,
+        birth_year: ageGate?.birth_year,
+        age_group: ageGate?.age_group,
         updated_at: new Date().toISOString(),
       });
       registerForPushNotifications().catch(() => {});
