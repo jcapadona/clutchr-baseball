@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -64,7 +65,7 @@ function validateStep(lesson: LegacyLesson, rawStep: unknown, index: number): St
 
 export default function DevQAScreen() {
   const insets = useSafeAreaInsets();
-  const { athleteState } = useAthlete();
+  const { athleteState, signOut, clearAgeGate } = useAthlete();
   const [loading, setLoading] = useState(true);
   const [lessons, setLessons] = useState<LegacyLesson[]>([]);
   const [contentCount, setContentCount] = useState(0);
@@ -93,6 +94,13 @@ export default function DevQAScreen() {
       setLoading(false);
     })();
   }, []);
+
+  async function resetAgeGate() {
+    await AsyncStorage.removeItem('@clutchr_age_gate_v1');
+    clearAgeGate();
+    await signOut();
+    router.replace('/age' as any);
+  }
 
   const report = useMemo(() => {
     const completedIds = athleteState?.completed_lessons ?? [];
@@ -166,6 +174,11 @@ export default function DevQAScreen() {
             <Pressable style={styles.testBtn} onPress={() => router.push('/welcome-pro')}>
               <Text style={styles.testBtnText}>Open Welcome to Pro</Text>
             </Pressable>
+            {__DEV__ && (
+              <Pressable style={styles.testBtn} onPress={resetAgeGate}>
+                <Text style={styles.testBtnText}>Reset age gate</Text>
+              </Pressable>
+            )}
           </Section>
 
           <Section title="Unmatched completed IDs">{report.unmatchedCompleted.map((id) => <Text key={id} style={styles.issue}>{id}</Text>)}</Section>
