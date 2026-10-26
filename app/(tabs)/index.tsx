@@ -1,14 +1,11 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import * as Location from 'expo-location';
 import * as Haptics from 'expo-haptics';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   AccessibilityInfo,
   Animated,
   Easing,
-  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -22,7 +19,7 @@ import { fetchLessons, fetchContentCards, type ContentCard } from '@/lib/supabas
 import { useProContext } from '@/context/ProContext';
 import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
 import {
-  CategoryColor, DisplayCard, DisplayFont, DisplayCardSm, DisplayStat, TopHighlight,
+  CategoryColor, DisplayCard, DisplayFont, DisplayCardSm, DisplayStat,
 } from '@/constants/visualExtensions';
 import { Assets } from '@/constants/assets';
 import { pickNextLesson, type RoutingResult } from '@/lib/lessonRouter';
@@ -66,7 +63,6 @@ interface MissionsProgress {
 const LOCAL_ICON_PATHS = {
   film: 'M4 5.5A1.5 1.5 0 0 1 5.5 4h13A1.5 1.5 0 0 1 20 5.5v13a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18.5v-13ZM8 4v16M16 4v16M4 9h4M4 15h4M16 9h4M16 15h4',
   dumbbell: 'M6.5 6.5v11M17.5 6.5v11M3.5 9v6M20.5 9v6M6.5 12h11',
-  sun: 'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8ZM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',
 } as const;
 
 type LocalIconName = keyof typeof LOCAL_ICON_PATHS;
@@ -276,102 +272,6 @@ function HomeTile({ spec }: { spec: TileSpec }) {
   );
 }
 
-// ─── WEATHER MODAL ───────────────────────────────────────────────────────────
-
-interface WeatherModalProps {
-  visible: boolean;
-  onClose: () => void;
-  temp: number | null;
-  label: string | null;
-}
-
-function weatherIcon(label: string | null): keyof typeof Ionicons.glyphMap {
-  if (!label || label === 'Unavailable' || label === 'Clear') return 'sunny-outline';
-  if (label === 'Partly Cloudy') return 'partly-sunny-outline';
-  if (label === 'Foggy') return 'cloud-outline';
-  if (label === 'Rainy' || label === 'Showers') return 'rainy-outline';
-  if (label === 'Snowy') return 'snow-outline';
-  if (label === 'Stormy') return 'thunderstorm-outline';
-  return 'sunny-outline';
-}
-
-function WeatherModal({ visible, onClose, temp, label }: WeatherModalProps) {
-  return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <Pressable style={wm.overlay} onPress={onClose}>
-        <Pressable style={wm.sheet} onPress={e => e.stopPropagation()}>
-          <View style={wm.handle} />
-          <Ionicons name={weatherIcon(label)} size={64} color={Colors.primary} style={wm.icon} />
-          <Text style={wm.temp}>{temp !== null ? `${temp}°` : '-'}</Text>
-          <Text style={wm.condition}>{label ?? 'Unavailable'}</Text>
-          <Text style={wm.note}>Game day conditions at your location</Text>
-          <Pressable style={({ pressed }) => [wm.closeBtn, pressed && { opacity: 0.85 }]} onPress={onClose}>
-            <Text style={wm.closeBtnText}>Got It</Text>
-          </Pressable>
-        </Pressable>
-      </Pressable>
-    </Modal>
-  );
-}
-
-const wm = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    justifyContent: 'flex-end',
-  },
-  sheet: {
-    backgroundColor: '#111612',
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    padding: 32,
-    borderTopWidth: 1.5,
-    borderColor: Colors.border,
-    borderTopColor: TopHighlight,
-    alignItems: 'center',
-  },
-  handle: {
-    width: 40,
-    height: 4,
-    backgroundColor: Colors.textTertiary,
-    borderRadius: 2,
-    alignSelf: 'center',
-    marginBottom: 24,
-  },
-  icon: { marginBottom: 12 },
-  temp: {
-    fontSize: 72,
-    fontFamily: 'Inter_700Bold',
-    color: Colors.textPrimary,
-    lineHeight: 80,
-  },
-  condition: {
-    fontSize: 20,
-    color: Colors.textSecondary,
-    fontFamily: 'Inter_600SemiBold',
-    marginTop: 8,
-  },
-  note: {
-    fontSize: 13,
-    color: Colors.textTertiary,
-    fontFamily: 'Inter_400Regular',
-    marginTop: 16,
-    marginBottom: 32,
-  },
-  closeBtn: {
-    backgroundColor: Colors.primary,
-    borderRadius: Radius.lg,
-    paddingVertical: Spacing.sm,
-    paddingHorizontal: 48,
-    alignItems: 'center',
-  },
-  closeBtnText: {
-    fontSize: 15,
-    color: Colors.background,
-    fontFamily: 'Inter_700Bold',
-  },
-});
-
 // ─── SCREEN ──────────────────────────────────────────────────────────────────
 
 export default function HomeScreen() {
@@ -383,46 +283,12 @@ export default function HomeScreen() {
   const [missions, setMissions] = useState<MissionsProgress>({ lessonsCompleted: 0, gameModeOpened: false });
   const [lockerCards, setLockerCards] = useState<ContentCard[] | null>(null);
   const [lockerFailed, setLockerFailed] = useState(false);
-  const [weatherTemp, setWeatherTemp] = useState<number | null>(null);
-  const [weatherLabel, setWeatherLabel] = useState<string | null>(null);
-  const [showWeatherModal, setShowWeatherModal] = useState(false);
   const { isPro, isProLoading } = useProContext();
   const { showToast } = useToast();
 
   // No schedule source exists in the app yet; the tile renders its empty state.
   const nextGame = null as NextGame | null;
   const now = useNow(HOME_FLAGS.upcomingGame && !!nextGame);
-
-  // Weather — live location + Open-Meteo. Never for under-13 accounts, and not
-  // before the age gate has settled.
-  useEffect(() => {
-    if (consent !== 'not_required' || ageGroup === 'under13') return;
-    (async () => {
-      try {
-        const { status } = await Location.requestForegroundPermissionsAsync();
-        if (status !== 'granted') { setWeatherLabel('Unavailable'); return; }
-        const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Lowest });
-        const { latitude: lat, longitude: lon } = loc.coords;
-        const res = await fetch(
-          `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&temperature_unit=fahrenheit`
-        );
-        const data = await res.json();
-        const temp = Math.round(data.current_weather.temperature);
-        const code = data.current_weather.weathercode as number;
-        let label = 'Clear';
-        if (code >= 1 && code <= 3)   label = 'Partly Cloudy';
-        else if (code >= 45 && code <= 48) label = 'Foggy';
-        else if (code >= 51 && code <= 67) label = 'Rainy';
-        else if (code >= 71 && code <= 77) label = 'Snowy';
-        else if (code >= 80 && code <= 82) label = 'Showers';
-        else if (code === 95)              label = 'Stormy';
-        setWeatherTemp(temp);
-        setWeatherLabel(label);
-      } catch {
-        setWeatherLabel('Unavailable');
-      }
-    })();
-  }, [consent, ageGroup]);
 
   // Stamp last_active_date
   useEffect(() => {
@@ -592,8 +458,6 @@ export default function HomeScreen() {
 
   // ── Tile specs — reorder the grid by moving an entry. Rows are consecutive pairs. ──
   const game = nextGame ? describeGame(nextGame, now) : null;
-  const weatherReady = weatherLabel !== null;
-  const weatherOk = weatherTemp !== null && weatherLabel !== null && weatherLabel !== 'Unavailable';
 
   const allTiles: TileSpec[] = [
     {
@@ -637,11 +501,8 @@ export default function HomeScreen() {
       onPress: () => showToast('Strength tools are not set up yet', 'info'),
     },
     {
-      key: 'weather', label: 'Weather', icon: 'sun', accent: HOME_TEXT, kind: 'stat',
-      loading: !weatherReady,
-      value: weatherOk ? `${weatherTemp}°` : '-',
-      sub: weatherOk ? weatherLabel!.toUpperCase() : undefined,
-      onPress: () => setShowWeatherModal(true),
+      key: 'streak', label: 'Streak', icon: 'flame', accent: HOME_TEXT, kind: 'stat',
+      value: String(streak), sub: streak === 1 ? 'DAY' : 'DAYS',
     },
   ];
 
@@ -740,13 +601,6 @@ export default function HomeScreen() {
           />
         </Reveal>
       </ScrollView>
-
-      <WeatherModal
-        visible={showWeatherModal}
-        onClose={() => setShowWeatherModal(false)}
-        temp={weatherTemp}
-        label={weatherLabel}
-      />
 
     </View>
   );

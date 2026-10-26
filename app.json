@@ -16,8 +16,7 @@
       "supportsTablet": false,
   "bundleIdentifier": "com.clutchr.baseball.dev",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false,
-        "NSLocationWhenInUseUsageDescription": "Clutchr uses your location to show local weather on Home."
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
@@ -25,17 +24,12 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0A0A0A"
       },
-      "package": "com.clutchr.baseball",
-      "permissions": [
-        "android.permission.ACCESS_COARSE_LOCATION",
-        "android.permission.ACCESS_FINE_LOCATION"
-      ]
+      "package": "com.clutchr.baseball"
     },
     "plugins": [
       "expo-router",
       "expo-font",
-      "expo-web-browser",
-      "expo-location"
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true
