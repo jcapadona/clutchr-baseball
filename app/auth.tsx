@@ -5,6 +5,7 @@ import React, { useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Animated,
+  Linking,
   Pressable,
   StyleSheet,
   Text,
@@ -158,7 +159,10 @@ const handleGoogleSignIn = async () => {
         </Pressable>
 
         <Text style={styles.legal}>
-          By continuing, you agree to train harder.
+          By continuing you agree to the{' '}
+          <Text style={styles.legalLink} onPress={() => Linking.openURL('https://clutchr.app/terms')}>Terms</Text>
+          {' '}and{' '}
+          <Text style={styles.legalLink} onPress={() => Linking.openURL('https://clutchr.app/privacy')}>Privacy Policy</Text>.
         </Text>
       </View>
     </View>
@@ -278,6 +282,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: 'Inter_600SemiBold',
     color: Colors.background,
+  },
+  legalLink: {
+    color: Colors.textSecondary,
+    textDecorationLine: 'underline',
   },
   legal: {
     fontSize: 11,

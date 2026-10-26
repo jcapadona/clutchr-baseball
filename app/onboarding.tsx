@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase';
 import React, { useRef, useState } from 'react';
 import {
   Animated,
+  Linking,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -189,6 +190,12 @@ export default function OnboardingScreen() {
               returnKeyType="next"
               onSubmitEditing={() => firstName.trim() && next()}
             />
+            <Text style={styles.legalLine}>
+              By continuing you agree to the{' '}
+              <Text style={styles.legalLink} onPress={() => Linking.openURL('https://clutchr.app/terms')}>Terms</Text>
+              {' '}and{' '}
+              <Text style={styles.legalLink} onPress={() => Linking.openURL('https://clutchr.app/privacy')}>Privacy Policy</Text>
+            </Text>
           </View>
         )}
 
@@ -499,6 +506,8 @@ const styles = StyleSheet.create({
     color: Colors.primary,
     fontFamily: 'Inter_700Bold',
   },
+  legalLine: { fontSize: 12, fontFamily: 'Inter_400Regular', color: Colors.textSecondary, textAlign: 'center' },
+  legalLink: { color: Colors.textSecondary, textDecorationLine: 'underline' },
   skipLink: {
     fontSize: 13,
     fontFamily: 'Inter_400Regular',
