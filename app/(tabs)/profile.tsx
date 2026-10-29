@@ -5,7 +5,9 @@ import * as Notifications from 'expo-notifications';
 import {
   Alert,
   Animated,
+  ActivityIndicator,
   Image,
+  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -14,6 +16,9 @@ import {
   View,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Purchases from 'react-native-purchases';
+import { supabase } from '@/lib/supabase';
+import { loadAgeGate } from '@/lib/ageGate';
 import { registerForPushNotifications, scheduleStreakReminder } from '@/lib/notifications';
 import Svg, { Path, Defs, LinearGradient as SvgLinearGradient, Stop, Circle, Line } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -267,6 +272,9 @@ export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const { athleteState, signOut } = useAthlete();
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteFailed, setDeleteFailed] = useState(false);
 
   useEffect(() => {
     Animated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }).start();
@@ -304,6 +312,35 @@ export default function ProfileScreen() {
       await Notifications.cancelAllScheduledNotificationsAsync();
       await AsyncStorage.removeItem('clutchr_notifs_setup');
     }
+  }
+
+  async function handleDeleteAccount() {
+    if (deleting) return;
+    setDeleting(true);
+    setDeleteFailed(false);
+    const { error } = await supabase.rpc('delete_my_account');
+    if (error) {
+      // Nothing local is touched unless the server delete worked.
+      console.warn('delete_my_account failed:', error);
+      setDeleteFailed(true);
+      setDeleting(false);
+      return;
+    }
+    try {
+      await Purchases.logOut().catch(() => {});
+      await Notifications.cancelAllScheduledNotificationsAsync().catch(() => {});
+      await signOut();
+      // Wipe every local key except the age lock, which must outlive the account.
+      const keys = await AsyncStorage.getAllKeys();
+      const wipe = keys.filter((k) => k !== '@clutchr_age_gate_v1');
+      if (wipe.length) await AsyncStorage.multiRemove(wipe);
+    } catch (e) {
+      console.warn('Local cleanup after delete failed:', e);
+    }
+    setConfirmDelete(false);
+    setDeleting(false);
+    const gate = await loadAgeGate();
+    router.replace((gate ? '/auth' : '/age') as any);
   }
 
   function handleSignOut() {
@@ -449,9 +486,46 @@ export default function ProfileScreen() {
             <Text style={[styles.actionLabel, { color: Colors.danger }]}>Sign Out</Text>
             <Ionicons name="chevron-forward" size={14} color={Colors.textTertiary} />
           </Pressable>
+          <View style={styles.actionDivider} />
+          <Pressable style={styles.actionRow} onPress={() => { setDeleteFailed(false); setConfirmDelete(true); }}>
+            <Ionicons name="trash-outline" size={18} color={Colors.textTertiary} />
+            <Text style={[styles.actionLabel, { color: Colors.textTertiary }]}>Delete account</Text>
+            <Ionicons name="chevron-forward" size={14} color={Colors.textTertiary} />
+          </Pressable>
         </View>
 
       </Animated.ScrollView>
+
+      <Modal visible={confirmDelete} transparent animationType="fade" onRequestClose={() => !deleting && setConfirmDelete(false)}>
+        <View style={styles.deleteBackdrop}>
+          <View style={styles.deleteCard}>
+            <Text style={styles.deleteTitle}>Delete your account?</Text>
+            <Text style={styles.deleteBody}>
+              This erases your progress and cannot be undone. A subscription is not cancelled by
+              deleting. Manage it in your Apple ID settings.
+            </Text>
+            {deleteFailed && (
+              <Text style={styles.deleteError}>
+                We could not delete your account. Check your connection and try again.
+              </Text>
+            )}
+            <Pressable
+              style={[styles.deleteBtn, deleting && { opacity: 0.6 }]}
+              onPress={handleDeleteAccount}
+              disabled={deleting}
+            >
+              {deleting ? (
+                <ActivityIndicator color={Colors.white} size="small" />
+              ) : (
+                <Text style={styles.deleteBtnText}>{deleteFailed ? 'Try again' : 'Delete everything'}</Text>
+              )}
+            </Pressable>
+            <Pressable onPress={() => setConfirmDelete(false)} disabled={deleting} style={styles.deleteCancel}>
+              <Text style={styles.deleteCancelText}>Cancel</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -459,6 +533,18 @@ export default function ProfileScreen() {
 // ─── STYLES ──────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
+  deleteBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'center', padding: Spacing.xl },
+  deleteCard: {
+    backgroundColor: Colors.surfaceElevated, borderRadius: Radius.xl, borderWidth: 1,
+    borderColor: Colors.border, padding: Spacing.xl, gap: Spacing.md,
+  },
+  deleteTitle: { fontSize: 20, fontFamily: 'Inter_700Bold', color: Colors.textPrimary },
+  deleteBody: { fontSize: 14, fontFamily: 'Inter_400Regular', color: Colors.textSecondary, lineHeight: 21 },
+  deleteError: { fontSize: 13, fontFamily: 'Inter_400Regular', color: Colors.danger, lineHeight: 18 },
+  deleteBtn: { backgroundColor: Colors.danger, borderRadius: Radius.md, paddingVertical: Spacing.md, alignItems: 'center' },
+  deleteBtnText: { fontSize: 15, fontFamily: 'Inter_600SemiBold', color: Colors.white },
+  deleteCancel: { alignItems: 'center', paddingVertical: Spacing.sm },
+  deleteCancelText: { fontSize: 15, fontFamily: 'Inter_600SemiBold', color: Colors.textSecondary },
   container: { flex: 1, backgroundColor: Colors.background },
   scroll: { paddingHorizontal: Spacing.xl, gap: Spacing.xl },
 
