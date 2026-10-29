@@ -51,6 +51,7 @@ const handleGoogleSignIn = async () => {
       options: {
         redirectTo: 'clutchrbaseball://auth/callback',
         skipBrowserRedirect: true,
+        queryParams: { prompt: 'select_account' },
       },
     });
 

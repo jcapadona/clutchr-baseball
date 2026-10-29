@@ -1,6 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, Stack } from 'expo-router';
-import { supabase } from '@/lib/supabase';
 import React, { useRef, useState } from 'react';
 import {
   Animated,
@@ -65,7 +64,7 @@ const STRUGGLES: { value: Struggle; label: string }[] = [
 
 export default function OnboardingScreen() {
   const insets = useSafeAreaInsets();
-  const { session, saveAthleteState, ageGate } = useAthlete();
+  const { session, saveAthleteState, ageGate, signOut } = useAthlete();
 
   const [step, setStep] = useState<Step>('name');
   const [firstName, setFirstName] = useState('');
@@ -123,7 +122,7 @@ export default function OnboardingScreen() {
   };
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
+    await signOut();
     router.replace('/auth');
   };
 
