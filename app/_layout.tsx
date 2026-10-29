@@ -51,8 +51,11 @@ function AuthGate() {
     if (isLoading || !ageGateLoaded) return;
 
     const seg = segments[0] as string | undefined;
-    const inAuthGroup = seg === 'auth';
+    const inAuthGroup = seg === 'auth' || seg === 'email-auth';
     const inOnboarding = seg === 'onboarding';
+
+    // Password recovery signs the user in; let the reset screen finish first.
+    if (seg === 'reset-password') return;
 
     if (!session) {
       if (!ageGate) {

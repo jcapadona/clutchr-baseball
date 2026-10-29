@@ -11,8 +11,10 @@ import {
   Pressable,
   StyleSheet,
   Text,
+  useWindowDimensions,
   View,
 } from 'react-native';
+import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAthlete } from '@/context/AthleteContext';
 import { supabase } from '@/lib/supabase';
@@ -23,6 +25,7 @@ WebBrowser.maybeCompleteAuthSession();
 
 export default function AuthScreen() {
   const insets = useSafeAreaInsets();
+  const { height } = useWindowDimensions();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { ageGate, ageGateLoaded } = useAthlete();
@@ -172,14 +175,14 @@ const handleAppleSignIn = async () => {
           <Text style={styles.tagline2}>WIN THE MOMENT.</Text>
         </View>
 
-        {/* Feature pills */}
-        <View style={styles.pillsRow}>
+        {/* Feature pills (hidden on short screens to keep three sign-in options visible) */}
+        {height >= 700 && <View style={styles.pillsRow}>
           {['ROLE-AWARE', 'GAME-READY', 'BASEBALL-NATIVE'].map((label) => (
             <View key={label} style={styles.pill}>
               <Text style={styles.pillText}>{label}</Text>
             </View>
           ))}
-        </View>
+        </View>}
       </View>
 
       {/* Bottom CTA */}
@@ -218,6 +221,15 @@ const handleAppleSignIn = async () => {
             style={styles.appleBtn}
           />
         )}
+
+        <Pressable
+          onPress={() => router.push('/email-auth' as any)}
+          disabled={loading}
+          style={({ pressed }) => [styles.emailBtn, loading && { opacity: 0.6 }, pressed && { opacity: 0.7 }]}
+        >
+          <Ionicons name="mail-outline" size={20} color={Colors.textPrimary} />
+          <Text style={styles.emailBtnText}>Continue with email</Text>
+        </Pressable>
 
         <Text style={styles.legal}>
           By continuing you agree to the{' '}
@@ -339,6 +351,22 @@ const styles = StyleSheet.create({
   appleBtn: {
     width: '100%',
     height: 54,
+  },
+  emailBtn: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.md,
+    borderWidth: 1,
+    borderColor: Colors.borderStrong,
+    paddingVertical: Spacing.md,
+    borderRadius: Radius.md,
+  },
+  emailBtnText: {
+    fontSize: 16,
+    fontFamily: 'Inter_600SemiBold',
+    color: Colors.textPrimary,
   },
   googleBtnDisabled: {
     opacity: 0.6,
