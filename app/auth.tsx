@@ -1,7 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
+import * as AppleAuthentication from 'expo-apple-authentication';
+import * as Crypto from 'expo-crypto';
 import * as WebBrowser from 'expo-web-browser';
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Animated,
@@ -12,6 +14,7 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useAthlete } from '@/context/AthleteContext';
 import { supabase } from '@/lib/supabase';
 import { Colors, Radius, Shadow, Spacing, Typography } from '@/constants/theme';
 import { H } from '@/utils/haptics';
@@ -22,8 +25,19 @@ export default function AuthScreen() {
   const insets = useSafeAreaInsets();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { ageGate, ageGateLoaded } = useAthlete();
+  const [appleAvailable, setAppleAvailable] = useState(false);
   const btnScale = useRef(new Animated.Value(1)).current;
   const btnOpacity = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    AppleAuthentication.isAvailableAsync()
+      .then(setAppleAvailable)
+      .catch(() => setAppleAvailable(false));
+  }, []);
+
+  // Hidden on the under-13 parent path and until the age answer is known.
+  const showApple = appleAvailable && ageGateLoaded && ageGate?.age_group === '13plus';
 
   function pressIn() {
     if (loading) return;
@@ -95,6 +109,42 @@ const handleGoogleSignIn = async () => {
   }
 };
 
+const handleAppleSignIn = async () => {
+  try {
+    setLoading(true);
+    setError(null);
+
+    const rawNonce = Crypto.randomUUID();
+    const hashedNonce = await Crypto.digestStringAsync(
+      Crypto.CryptoDigestAlgorithm.SHA256,
+      rawNonce
+    );
+
+    const credential = await AppleAuthentication.signInAsync({
+      requestedScopes: [
+        AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+        AppleAuthentication.AppleAuthenticationScope.EMAIL,
+      ],
+      nonce: hashedNonce,
+    });
+
+    if (!credential.identityToken) throw new Error('No identity token from Apple');
+
+    const { error: idTokenError } = await supabase.auth.signInWithIdToken({
+      provider: 'apple',
+      token: credential.identityToken,
+      nonce: rawNonce,
+    });
+    if (idTokenError) throw idTokenError;
+  } catch (err: any) {
+    if (err?.code === 'ERR_REQUEST_CANCELED') return;
+    setError('Sign in failed. Try again.');
+    console.error('Apple auth error:', err);
+  } finally {
+    setLoading(false);
+  }
+};
+
   return (
     <View
       style={[
@@ -158,6 +208,16 @@ const handleGoogleSignIn = async () => {
             )}
           </Animated.View>
         </Pressable>
+
+        {showApple && (
+          <AppleAuthentication.AppleAuthenticationButton
+            buttonType={AppleAuthentication.AppleAuthenticationButtonType.CONTINUE}
+            buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.WHITE}
+            cornerRadius={Radius.md}
+            onPress={loading ? () => {} : handleAppleSignIn}
+            style={styles.appleBtn}
+          />
+        )}
 
         <Text style={styles.legal}>
           By continuing you agree to the{' '}
@@ -275,6 +335,10 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary,
     paddingVertical: Spacing.lg,
     borderRadius: Radius.md,
+  },
+  appleBtn: {
+    width: '100%',
+    height: 54,
   },
   googleBtnDisabled: {
     opacity: 0.6,
