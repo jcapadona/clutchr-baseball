@@ -28,7 +28,7 @@ function isOffline(err: any): boolean {
   return err?.name === 'AuthRetryableFetchError' || msg.includes('network request failed') || msg.includes('failed to fetch');
 }
 
-function isRateLimit(err: any): boolean {
+export function isRateLimit(err: any): boolean {
   return err?.status === 429 || String(err?.code ?? '').includes('rate_limit');
 }
 
@@ -44,7 +44,6 @@ export function signUpErrorMessage(err: any): string {
   if (isOffline(err)) return COPY.offline;
   if (isRateLimit(err)) return COPY.rateLimit;
   if (err?.code === 'weak_password') return COPY.shortPassword;
-  if (err?.code === 'user_already_exists' || err?.code === 'email_exists') return COPY.createFailed;
   return COPY.createFailed;
 }
 

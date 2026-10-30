@@ -20,6 +20,7 @@ import { Colors, Radius, Spacing } from '@/constants/theme';
 import {
   COPY,
   EMAIL_REDIRECT,
+  isRateLimit,
   isValidEmail,
   MIN_PASSWORD,
   RESET_REDIRECT,
@@ -153,9 +154,14 @@ export default function EmailAuthScreen() {
         redirectTo: RESET_REDIRECT,
       });
       // Same confirmation whether or not the address has an account. Only a
-      // missing connection is shown, since nothing was sent.
+      // missing connection or a rate limit is shown, since nothing was sent
+      // and neither reveals whether the address has an account.
       if (err && signInErrorMessage(err).message === COPY.offline) {
         setError(COPY.offline);
+        return;
+      }
+      if (err && isRateLimit(err)) {
+        setError(COPY.rateLimit);
         return;
       }
       setMode('reset_sent');
