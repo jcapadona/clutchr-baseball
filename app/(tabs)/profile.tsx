@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useRef, useEffect, useState } from 'react';
 import * as Notifications from 'expo-notifications';
+import * as AppleAuthentication from 'expo-apple-authentication';
 import {
   Alert,
   Animated,
@@ -270,7 +271,7 @@ function CurrentCueCard({ playbook }: { playbook: any }) {
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
-  const { athleteState, signOut } = useAthlete();
+  const { athleteState, signOut, session } = useAthlete();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -318,10 +319,34 @@ export default function ProfileScreen() {
     if (deleting) return;
     setDeleting(true);
     setDeleteFailed(false);
-    const { error } = await supabase.rpc('delete_my_account');
-    if (error) {
+    const user = session?.user;
+    const isApple =
+      user?.app_metadata?.provider === 'apple' ||
+      (user?.identities ?? []).some((i) => i.provider === 'apple');
+
+    // Apple users re-confirm so we get a fresh authorization code for revocation.
+    let authorizationCode: string | undefined;
+    if (isApple) {
+      try {
+        const credential = await AppleAuthentication.signInAsync({ requestedScopes: [] });
+        authorizationCode = credential.authorizationCode ?? undefined;
+      } catch (e: any) {
+        // Cancelled: stop quietly. Anything else: show the failure. Nothing is deleted either way.
+        if (e?.code !== 'ERR_REQUEST_CANCELED') {
+          console.warn('Apple re-auth failed:', e?.code);
+          setDeleteFailed(true);
+        }
+        setDeleting(false);
+        return;
+      }
+    }
+
+    const { data, error } = await supabase.functions.invoke('delete-account', {
+      body: authorizationCode ? { authorizationCode } : {},
+    });
+    if (error || data?.deleted !== true) {
       // Nothing local is touched unless the server delete worked.
-      console.warn('delete_my_account failed:', error);
+      console.warn('delete-account failed:', error);
       setDeleteFailed(true);
       setDeleting(false);
       return;
@@ -329,7 +354,10 @@ export default function ProfileScreen() {
     try {
       await Purchases.logOut().catch(() => {});
       await Notifications.cancelAllScheduledNotificationsAsync().catch(() => {});
-      await signOut();
+      // The auth user is already gone, so this may error. Ignore it and keep cleaning up.
+      try {
+        await signOut();
+      } catch {}
       // Wipe every local key except the age lock, which must outlive the account.
       const keys = await AsyncStorage.getAllKeys();
       const wipe = keys.filter((k) => k !== '@clutchr_age_gate_v1');
@@ -506,7 +534,7 @@ export default function ProfileScreen() {
             </Text>
             {deleteFailed && (
               <Text style={styles.deleteError}>
-                We could not delete your account. Check your connection and try again.
+                We could not delete your account. Nothing was changed. Try again, or email support@clutchrhq.com.
               </Text>
             )}
             <Pressable
