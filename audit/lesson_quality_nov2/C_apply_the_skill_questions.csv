@@ -1,0 +1,542 @@
+lesson_id,title,pillar,step_index,step_type,field,offending_text,check,reason
+charge_bank_u1_boss,Overtime. Fundamentals,built-different,1,choice,prompt,How will you use 'Body Language Boost' now?,C-apply,asks how the player applied/used the skill
+charge_bank_u1_boss,Overtime. Fundamentals,built-different,2,choice,prompt,How will you use 'Confidence Bank' now?,C-apply,asks how the player applied/used the skill
+charge_bank_u1_boss,Overtime. Fundamentals,built-different,3,choice,prompt,How will you use 'Past Success Replay' now?,C-apply,asks how the player applied/used the skill
+charge_bank_u1_boss,Overtime. Fundamentals,built-different,4,choice,prompt,How will you use 'Win the Moment' now?,C-apply,asks how the player applied/used the skill
+charge_bank_u1_boss,Overtime. Fundamentals,built-different,5,choice,prompt,How will you use 'Trust Your Training' now?,C-apply,asks how the player applied/used the skill
+charge_bank_u1_boss,Overtime. Fundamentals,built-different,6,choice,prompt,How will you use 'Believe and Achieve' now?,C-apply,asks how the player applied/used the skill
+charge_bank_u1_l1,Body Language Boost - Fundamentals,built-different,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+charge_bank_u1_l2,Confidence Bank - Fundamentals,built-different,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+charge_bank_u1_l3,Past Success Replay - Fundamentals,built-different,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+charge_bank_u1_l4,Win the Moment - Fundamentals,built-different,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+charge_bank_u1_l5,Trust Your Training - Fundamentals,built-different,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+charge_bank_u1_l6,Believe and Achieve - Fundamentals,built-different,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+charge_bank_u2_boss,Overtime. Game Speed,built-different,1,choice,prompt,How will you use 'Body Language Boost' now?,C-apply,asks how the player applied/used the skill
+charge_bank_u2_boss,Overtime. Game Speed,built-different,2,choice,prompt,How will you use 'Confidence Bank' now?,C-apply,asks how the player applied/used the skill
+charge_bank_u2_boss,Overtime. Game Speed,built-different,3,choice,prompt,How will you use 'Past Success Replay' now?,C-apply,asks how the player applied/used the skill
+charge_bank_u2_boss,Overtime. Game Speed,built-different,4,choice,prompt,How will you use 'Win the Moment' now?,C-apply,asks how the player applied/used the skill
+charge_bank_u2_boss,Overtime. Game Speed,built-different,5,choice,prompt,How will you use 'Trust Your Training' now?,C-apply,asks how the player applied/used the skill
+charge_bank_u2_boss,Overtime. Game Speed,built-different,6,choice,prompt,How will you use 'Believe and Achieve' now?,C-apply,asks how the player applied/used the skill
+charge_bank_u2_l1,Body Language Boost - Game Speed,built-different,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+charge_bank_u2_l2,Confidence Bank - Game Speed,built-different,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+charge_bank_u2_l3,Past Success Replay - Game Speed,built-different,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+charge_bank_u2_l4,Win the Moment - Game Speed,built-different,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+charge_bank_u2_l5,Trust Your Training - Game Speed,built-different,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+charge_bank_u2_l6,Believe and Achieve - Game Speed,built-different,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+charge_bank_u3_boss,Overtime. Pressure Proof,built-different,1,choice,prompt,How will you use 'Body Language Boost' now?,C-apply,asks how the player applied/used the skill
+charge_bank_u3_boss,Overtime. Pressure Proof,built-different,2,choice,prompt,How will you use 'Confidence Bank' now?,C-apply,asks how the player applied/used the skill
+charge_bank_u3_boss,Overtime. Pressure Proof,built-different,3,choice,prompt,How will you use 'Past Success Replay' now?,C-apply,asks how the player applied/used the skill
+charge_bank_u3_boss,Overtime. Pressure Proof,built-different,4,choice,prompt,How will you use 'Win the Moment' now?,C-apply,asks how the player applied/used the skill
+charge_bank_u3_boss,Overtime. Pressure Proof,built-different,5,choice,prompt,How will you use 'Trust Your Training' now?,C-apply,asks how the player applied/used the skill
+charge_bank_u3_boss,Overtime. Pressure Proof,built-different,6,choice,prompt,How will you use 'Believe and Achieve' now?,C-apply,asks how the player applied/used the skill
+charge_bank_u3_l1,Body Language Boost - Pressure Proof,built-different,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+charge_bank_u3_l2,Confidence Bank - Pressure Proof,built-different,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+charge_bank_u3_l3,Past Success Replay - Pressure Proof,built-different,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+charge_bank_u3_l4,Win the Moment - Pressure Proof,built-different,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+charge_bank_u3_l5,Trust Your Training - Pressure Proof,built-different,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+charge_bank_u3_l6,Believe and Achieve - Pressure Proof,built-different,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+charge_bank_u4_boss,Overtime. Integration,built-different,1,choice,prompt,How will you use 'Body Language Boost' now?,C-apply,asks how the player applied/used the skill
+charge_bank_u4_boss,Overtime. Integration,built-different,2,choice,prompt,How will you use 'Confidence Bank' now?,C-apply,asks how the player applied/used the skill
+charge_bank_u4_boss,Overtime. Integration,built-different,3,choice,prompt,How will you use 'Past Success Replay' now?,C-apply,asks how the player applied/used the skill
+charge_bank_u4_boss,Overtime. Integration,built-different,4,choice,prompt,How will you use 'Win the Moment' now?,C-apply,asks how the player applied/used the skill
+charge_bank_u4_boss,Overtime. Integration,built-different,5,choice,prompt,How will you use 'Trust Your Training' now?,C-apply,asks how the player applied/used the skill
+charge_bank_u4_boss,Overtime. Integration,built-different,6,choice,prompt,How will you use 'Believe and Achieve' now?,C-apply,asks how the player applied/used the skill
+charge_bank_u4_l1,Body Language Boost - Integration,built-different,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+charge_bank_u4_l2,Confidence Bank - Integration,built-different,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+charge_bank_u4_l3,Past Success Replay - Integration,built-different,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+charge_bank_u4_l4,Win the Moment - Integration,built-different,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+charge_bank_u4_l5,Trust Your Training - Integration,built-different,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+charge_bank_u4_l6,Believe and Achieve - Integration,built-different,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+charge_bank_u5_boss,Overtime. Overtime,built-different,1,choice,prompt,How will you use 'Body Language Boost' now?,C-apply,asks how the player applied/used the skill
+charge_bank_u5_boss,Overtime. Overtime,built-different,2,choice,prompt,How will you use 'Confidence Bank' now?,C-apply,asks how the player applied/used the skill
+charge_bank_u5_boss,Overtime. Overtime,built-different,3,choice,prompt,How will you use 'Past Success Replay' now?,C-apply,asks how the player applied/used the skill
+charge_bank_u5_boss,Overtime. Overtime,built-different,4,choice,prompt,How will you use 'Win the Moment' now?,C-apply,asks how the player applied/used the skill
+charge_bank_u5_boss,Overtime. Overtime,built-different,5,choice,prompt,How will you use 'Trust Your Training' now?,C-apply,asks how the player applied/used the skill
+charge_bank_u5_boss,Overtime. Overtime,built-different,6,choice,prompt,How will you use 'Believe and Achieve' now?,C-apply,asks how the player applied/used the skill
+charge_bank_u5_l1,Body Language Boost - Overtime,built-different,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+charge_bank_u5_l2,Confidence Bank - Overtime,built-different,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+charge_bank_u5_l3,Past Success Replay - Overtime,built-different,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+charge_bank_u5_l4,Win the Moment - Overtime,built-different,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+charge_bank_u5_l5,Trust Your Training - Overtime,built-different,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+charge_bank_u5_l6,Believe and Achieve - Overtime,built-different,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+film_room_b4_soto_pennant,Seven Pitches to the Pennant,hitter-path,5,reflection,prompt,How do you use at-bat information from pitches 1 and 2 to set up pitches 5 and 6? Write your approach.,C-apply,asks how the player applied/used the skill
+power_grid_u1_boss,Overtime. Fundamentals,leadership-dugout,1,choice,prompt,How will you use 'Body Language Boost' now?,C-apply,asks how the player applied/used the skill
+power_grid_u1_boss,Overtime. Fundamentals,leadership-dugout,2,choice,prompt,How will you use 'Confidence Bank' now?,C-apply,asks how the player applied/used the skill
+power_grid_u1_boss,Overtime. Fundamentals,leadership-dugout,3,choice,prompt,How will you use 'Past Success Replay' now?,C-apply,asks how the player applied/used the skill
+power_grid_u1_boss,Overtime. Fundamentals,leadership-dugout,4,choice,prompt,How will you use 'Win the Moment' now?,C-apply,asks how the player applied/used the skill
+power_grid_u1_boss,Overtime. Fundamentals,leadership-dugout,5,choice,prompt,How will you use 'Trust Your Training' now?,C-apply,asks how the player applied/used the skill
+power_grid_u1_boss,Overtime. Fundamentals,leadership-dugout,6,choice,prompt,How will you use 'Believe and Achieve' now?,C-apply,asks how the player applied/used the skill
+power_grid_u1_l1,Team Talk - Fundamentals,leadership-dugout,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+power_grid_u1_l2,Leadership in Action - Fundamentals,leadership-dugout,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+power_grid_u1_l3,Communicate Under Pressure - Fundamentals,leadership-dugout,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+power_grid_u1_l4,Support & Accountability - Fundamentals,leadership-dugout,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+power_grid_u1_l5,Trust & Connection - Fundamentals,leadership-dugout,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+power_grid_u1_l6,Collective Focus - Fundamentals,leadership-dugout,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+power_grid_u2_boss,Overtime. Game Speed,leadership-dugout,1,choice,prompt,How will you use 'Body Language Boost' now?,C-apply,asks how the player applied/used the skill
+power_grid_u2_boss,Overtime. Game Speed,leadership-dugout,2,choice,prompt,How will you use 'Confidence Bank' now?,C-apply,asks how the player applied/used the skill
+power_grid_u2_boss,Overtime. Game Speed,leadership-dugout,3,choice,prompt,How will you use 'Past Success Replay' now?,C-apply,asks how the player applied/used the skill
+power_grid_u2_boss,Overtime. Game Speed,leadership-dugout,4,choice,prompt,How will you use 'Win the Moment' now?,C-apply,asks how the player applied/used the skill
+power_grid_u2_boss,Overtime. Game Speed,leadership-dugout,5,choice,prompt,How will you use 'Trust Your Training' now?,C-apply,asks how the player applied/used the skill
+power_grid_u2_boss,Overtime. Game Speed,leadership-dugout,6,choice,prompt,How will you use 'Believe and Achieve' now?,C-apply,asks how the player applied/used the skill
+power_grid_u2_l1,Team Talk - Game Speed,leadership-dugout,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+power_grid_u2_l2,Leadership in Action - Game Speed,leadership-dugout,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+power_grid_u2_l3,Communicate Under Pressure - Game Speed,leadership-dugout,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+power_grid_u2_l4,Support & Accountability - Game Speed,leadership-dugout,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+power_grid_u2_l5,Trust & Connection - Game Speed,leadership-dugout,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+power_grid_u2_l6,Collective Focus - Game Speed,leadership-dugout,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+power_grid_u3_boss,Overtime. Pressure Proof,leadership-dugout,1,choice,prompt,How will you use 'Body Language Boost' now?,C-apply,asks how the player applied/used the skill
+power_grid_u3_boss,Overtime. Pressure Proof,leadership-dugout,2,choice,prompt,How will you use 'Confidence Bank' now?,C-apply,asks how the player applied/used the skill
+power_grid_u3_boss,Overtime. Pressure Proof,leadership-dugout,3,choice,prompt,How will you use 'Past Success Replay' now?,C-apply,asks how the player applied/used the skill
+power_grid_u3_boss,Overtime. Pressure Proof,leadership-dugout,4,choice,prompt,How will you use 'Win the Moment' now?,C-apply,asks how the player applied/used the skill
+power_grid_u3_boss,Overtime. Pressure Proof,leadership-dugout,5,choice,prompt,How will you use 'Trust Your Training' now?,C-apply,asks how the player applied/used the skill
+power_grid_u3_boss,Overtime. Pressure Proof,leadership-dugout,6,choice,prompt,How will you use 'Believe and Achieve' now?,C-apply,asks how the player applied/used the skill
+power_grid_u3_l1,Team Talk - Pressure Proof,leadership-dugout,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+power_grid_u3_l2,Leadership in Action - Pressure Proof,leadership-dugout,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+power_grid_u3_l3,Communicate Under Pressure - Pressure Proof,leadership-dugout,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+power_grid_u3_l4,Support & Accountability - Pressure Proof,leadership-dugout,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+power_grid_u3_l5,Trust & Connection - Pressure Proof,leadership-dugout,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+power_grid_u3_l6,Collective Focus - Pressure Proof,leadership-dugout,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+power_grid_u4_boss,Overtime. Integration,leadership-dugout,1,choice,prompt,How will you use 'Body Language Boost' now?,C-apply,asks how the player applied/used the skill
+power_grid_u4_boss,Overtime. Integration,leadership-dugout,2,choice,prompt,How will you use 'Confidence Bank' now?,C-apply,asks how the player applied/used the skill
+power_grid_u4_boss,Overtime. Integration,leadership-dugout,3,choice,prompt,How will you use 'Past Success Replay' now?,C-apply,asks how the player applied/used the skill
+power_grid_u4_boss,Overtime. Integration,leadership-dugout,4,choice,prompt,How will you use 'Win the Moment' now?,C-apply,asks how the player applied/used the skill
+power_grid_u4_boss,Overtime. Integration,leadership-dugout,5,choice,prompt,How will you use 'Trust Your Training' now?,C-apply,asks how the player applied/used the skill
+power_grid_u4_boss,Overtime. Integration,leadership-dugout,6,choice,prompt,How will you use 'Believe and Achieve' now?,C-apply,asks how the player applied/used the skill
+power_grid_u4_l1,Team Talk - Integration,leadership-dugout,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+power_grid_u4_l2,Leadership in Action - Integration,leadership-dugout,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+power_grid_u4_l3,Communicate Under Pressure - Integration,leadership-dugout,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+power_grid_u4_l4,Support & Accountability - Integration,leadership-dugout,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+power_grid_u4_l5,Trust & Connection - Integration,leadership-dugout,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+power_grid_u4_l6,Collective Focus - Integration,leadership-dugout,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+power_grid_u5_boss,Overtime. Overtime,leadership-dugout,1,choice,prompt,How will you use 'Body Language Boost' now?,C-apply,asks how the player applied/used the skill
+power_grid_u5_boss,Overtime. Overtime,leadership-dugout,2,choice,prompt,How will you use 'Confidence Bank' now?,C-apply,asks how the player applied/used the skill
+power_grid_u5_boss,Overtime. Overtime,leadership-dugout,3,choice,prompt,How will you use 'Past Success Replay' now?,C-apply,asks how the player applied/used the skill
+power_grid_u5_boss,Overtime. Overtime,leadership-dugout,4,choice,prompt,How will you use 'Win the Moment' now?,C-apply,asks how the player applied/used the skill
+power_grid_u5_boss,Overtime. Overtime,leadership-dugout,5,choice,prompt,How will you use 'Trust Your Training' now?,C-apply,asks how the player applied/used the skill
+power_grid_u5_boss,Overtime. Overtime,leadership-dugout,6,choice,prompt,How will you use 'Believe and Achieve' now?,C-apply,asks how the player applied/used the skill
+power_grid_u5_l1,Team Talk - Overtime,leadership-dugout,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+power_grid_u5_l2,Leadership in Action - Overtime,leadership-dugout,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+power_grid_u5_l3,Communicate Under Pressure - Overtime,leadership-dugout,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+power_grid_u5_l4,Support & Accountability - Overtime,leadership-dugout,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+power_grid_u5_l5,Trust & Connection - Overtime,leadership-dugout,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+power_grid_u5_l6,Collective Focus - Overtime,leadership-dugout,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+replay_room_u1_boss,Overtime. Fundamentals,built-different,1,choice,prompt,How will you use 'Body Language Boost' now?,C-apply,asks how the player applied/used the skill
+replay_room_u1_boss,Overtime. Fundamentals,built-different,2,choice,prompt,How will you use 'Confidence Bank' now?,C-apply,asks how the player applied/used the skill
+replay_room_u1_boss,Overtime. Fundamentals,built-different,3,choice,prompt,How will you use 'Past Success Replay' now?,C-apply,asks how the player applied/used the skill
+replay_room_u1_boss,Overtime. Fundamentals,built-different,4,choice,prompt,How will you use 'Win the Moment' now?,C-apply,asks how the player applied/used the skill
+replay_room_u1_boss,Overtime. Fundamentals,built-different,5,choice,prompt,How will you use 'Trust Your Training' now?,C-apply,asks how the player applied/used the skill
+replay_room_u1_boss,Overtime. Fundamentals,built-different,6,choice,prompt,How will you use 'Believe and Achieve' now?,C-apply,asks how the player applied/used the skill
+replay_room_u1_l1,Visualize Success - Fundamentals,built-different,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+replay_room_u1_l2,Replay the Win - Fundamentals,built-different,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+replay_room_u1_l3,Film to Feel - Fundamentals,built-different,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+replay_room_u1_l4,Mind's Eye - Fundamentals,built-different,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+replay_room_u1_l5,Mental Rehearsal - Fundamentals,built-different,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+replay_room_u1_l6,Imagine Victory - Fundamentals,built-different,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+replay_room_u2_boss,Overtime. Game Speed,built-different,1,choice,prompt,How will you use 'Body Language Boost' now?,C-apply,asks how the player applied/used the skill
+replay_room_u2_boss,Overtime. Game Speed,built-different,2,choice,prompt,How will you use 'Confidence Bank' now?,C-apply,asks how the player applied/used the skill
+replay_room_u2_boss,Overtime. Game Speed,built-different,3,choice,prompt,How will you use 'Past Success Replay' now?,C-apply,asks how the player applied/used the skill
+replay_room_u2_boss,Overtime. Game Speed,built-different,4,choice,prompt,How will you use 'Win the Moment' now?,C-apply,asks how the player applied/used the skill
+replay_room_u2_boss,Overtime. Game Speed,built-different,5,choice,prompt,How will you use 'Trust Your Training' now?,C-apply,asks how the player applied/used the skill
+replay_room_u2_boss,Overtime. Game Speed,built-different,6,choice,prompt,How will you use 'Believe and Achieve' now?,C-apply,asks how the player applied/used the skill
+replay_room_u2_l1,Visualize Success - Game Speed,built-different,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+replay_room_u2_l2,Replay the Win - Game Speed,built-different,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+replay_room_u2_l3,Film to Feel - Game Speed,built-different,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+replay_room_u2_l4,Mind's Eye - Game Speed,built-different,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+replay_room_u2_l5,Mental Rehearsal - Game Speed,built-different,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+replay_room_u2_l6,Imagine Victory - Game Speed,built-different,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+replay_room_u3_boss,Overtime. Pressure Proof,built-different,1,choice,prompt,How will you use 'Body Language Boost' now?,C-apply,asks how the player applied/used the skill
+replay_room_u3_boss,Overtime. Pressure Proof,built-different,2,choice,prompt,How will you use 'Confidence Bank' now?,C-apply,asks how the player applied/used the skill
+replay_room_u3_boss,Overtime. Pressure Proof,built-different,3,choice,prompt,How will you use 'Past Success Replay' now?,C-apply,asks how the player applied/used the skill
+replay_room_u3_boss,Overtime. Pressure Proof,built-different,4,choice,prompt,How will you use 'Win the Moment' now?,C-apply,asks how the player applied/used the skill
+replay_room_u3_boss,Overtime. Pressure Proof,built-different,5,choice,prompt,How will you use 'Trust Your Training' now?,C-apply,asks how the player applied/used the skill
+replay_room_u3_boss,Overtime. Pressure Proof,built-different,6,choice,prompt,How will you use 'Believe and Achieve' now?,C-apply,asks how the player applied/used the skill
+replay_room_u3_l1,Visualize Success - Pressure Proof,built-different,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+replay_room_u3_l2,Replay the Win - Pressure Proof,built-different,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+replay_room_u3_l3,Film to Feel - Pressure Proof,built-different,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+replay_room_u3_l4,Mind's Eye - Pressure Proof,built-different,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+replay_room_u3_l5,Mental Rehearsal - Pressure Proof,built-different,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+replay_room_u3_l6,Imagine Victory - Pressure Proof,built-different,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+replay_room_u4_boss,Overtime. Integration,built-different,1,choice,prompt,How will you use 'Body Language Boost' now?,C-apply,asks how the player applied/used the skill
+replay_room_u4_boss,Overtime. Integration,built-different,2,choice,prompt,How will you use 'Confidence Bank' now?,C-apply,asks how the player applied/used the skill
+replay_room_u4_boss,Overtime. Integration,built-different,3,choice,prompt,How will you use 'Past Success Replay' now?,C-apply,asks how the player applied/used the skill
+replay_room_u4_boss,Overtime. Integration,built-different,4,choice,prompt,How will you use 'Win the Moment' now?,C-apply,asks how the player applied/used the skill
+replay_room_u4_boss,Overtime. Integration,built-different,5,choice,prompt,How will you use 'Trust Your Training' now?,C-apply,asks how the player applied/used the skill
+replay_room_u4_boss,Overtime. Integration,built-different,6,choice,prompt,How will you use 'Believe and Achieve' now?,C-apply,asks how the player applied/used the skill
+replay_room_u4_l1,Visualize Success - Integration,built-different,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+replay_room_u4_l2,Replay the Win - Integration,built-different,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+replay_room_u4_l3,Film to Feel - Integration,built-different,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+replay_room_u4_l4,Mind's Eye - Integration,built-different,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+replay_room_u4_l5,Mental Rehearsal - Integration,built-different,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+replay_room_u4_l6,Imagine Victory - Integration,built-different,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+replay_room_u5_boss,Overtime. Overtime,built-different,1,choice,prompt,How will you use 'Body Language Boost' now?,C-apply,asks how the player applied/used the skill
+replay_room_u5_boss,Overtime. Overtime,built-different,2,choice,prompt,How will you use 'Confidence Bank' now?,C-apply,asks how the player applied/used the skill
+replay_room_u5_boss,Overtime. Overtime,built-different,3,choice,prompt,How will you use 'Past Success Replay' now?,C-apply,asks how the player applied/used the skill
+replay_room_u5_boss,Overtime. Overtime,built-different,4,choice,prompt,How will you use 'Win the Moment' now?,C-apply,asks how the player applied/used the skill
+replay_room_u5_boss,Overtime. Overtime,built-different,5,choice,prompt,How will you use 'Trust Your Training' now?,C-apply,asks how the player applied/used the skill
+replay_room_u5_boss,Overtime. Overtime,built-different,6,choice,prompt,How will you use 'Believe and Achieve' now?,C-apply,asks how the player applied/used the skill
+replay_room_u5_l1,Visualize Success - Overtime,built-different,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+replay_room_u5_l2,Replay the Win - Overtime,built-different,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+replay_room_u5_l3,Film to Feel - Overtime,built-different,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+replay_room_u5_l4,Mind's Eye - Overtime,built-different,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+replay_room_u5_l5,Mental Rehearsal - Overtime,built-different,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+replay_room_u5_l6,Imagine Victory - Overtime,built-different,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+reset_switch_u1_boss,Overtime. Fundamentals,pressure-resilience,1,choice,prompt,How will you use 'Body Language Boost' now?,C-apply,asks how the player applied/used the skill
+reset_switch_u1_boss,Overtime. Fundamentals,pressure-resilience,2,choice,prompt,How will you use 'Confidence Bank' now?,C-apply,asks how the player applied/used the skill
+reset_switch_u1_boss,Overtime. Fundamentals,pressure-resilience,3,choice,prompt,How will you use 'Past Success Replay' now?,C-apply,asks how the player applied/used the skill
+reset_switch_u1_boss,Overtime. Fundamentals,pressure-resilience,4,choice,prompt,How will you use 'Win the Moment' now?,C-apply,asks how the player applied/used the skill
+reset_switch_u1_boss,Overtime. Fundamentals,pressure-resilience,5,choice,prompt,How will you use 'Trust Your Training' now?,C-apply,asks how the player applied/used the skill
+reset_switch_u1_boss,Overtime. Fundamentals,pressure-resilience,6,choice,prompt,How will you use 'Believe and Achieve' now?,C-apply,asks how the player applied/used the skill
+reset_switch_u1_l1,Flush It - Fundamentals,pressure-resilience,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+reset_switch_u1_l2,Next Play - Fundamentals,pressure-resilience,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+reset_switch_u1_l3,Bounce Back - Fundamentals,pressure-resilience,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+reset_switch_u1_l4,Short Memory - Fundamentals,pressure-resilience,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+reset_switch_u1_l5,Reset & React - Fundamentals,pressure-resilience,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+reset_switch_u1_l6,Clutch Reset - Fundamentals,pressure-resilience,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+reset_switch_u2_boss,Overtime. Game Speed,pressure-resilience,1,choice,prompt,How will you use 'Body Language Boost' now?,C-apply,asks how the player applied/used the skill
+reset_switch_u2_boss,Overtime. Game Speed,pressure-resilience,2,choice,prompt,How will you use 'Confidence Bank' now?,C-apply,asks how the player applied/used the skill
+reset_switch_u2_boss,Overtime. Game Speed,pressure-resilience,3,choice,prompt,How will you use 'Past Success Replay' now?,C-apply,asks how the player applied/used the skill
+reset_switch_u2_boss,Overtime. Game Speed,pressure-resilience,4,choice,prompt,How will you use 'Win the Moment' now?,C-apply,asks how the player applied/used the skill
+reset_switch_u2_boss,Overtime. Game Speed,pressure-resilience,5,choice,prompt,How will you use 'Trust Your Training' now?,C-apply,asks how the player applied/used the skill
+reset_switch_u2_boss,Overtime. Game Speed,pressure-resilience,6,choice,prompt,How will you use 'Believe and Achieve' now?,C-apply,asks how the player applied/used the skill
+reset_switch_u2_l1,Flush It - Game Speed,pressure-resilience,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+reset_switch_u2_l2,Next Play - Game Speed,pressure-resilience,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+reset_switch_u2_l3,Bounce Back - Game Speed,pressure-resilience,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+reset_switch_u2_l4,Short Memory - Game Speed,pressure-resilience,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+reset_switch_u2_l5,Reset & React - Game Speed,pressure-resilience,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+reset_switch_u2_l6,Clutch Reset - Game Speed,pressure-resilience,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+reset_switch_u3_boss,Overtime. Pressure Proof,pressure-resilience,1,choice,prompt,How will you use 'Body Language Boost' now?,C-apply,asks how the player applied/used the skill
+reset_switch_u3_boss,Overtime. Pressure Proof,pressure-resilience,2,choice,prompt,How will you use 'Confidence Bank' now?,C-apply,asks how the player applied/used the skill
+reset_switch_u3_boss,Overtime. Pressure Proof,pressure-resilience,3,choice,prompt,How will you use 'Past Success Replay' now?,C-apply,asks how the player applied/used the skill
+reset_switch_u3_boss,Overtime. Pressure Proof,pressure-resilience,4,choice,prompt,How will you use 'Win the Moment' now?,C-apply,asks how the player applied/used the skill
+reset_switch_u3_boss,Overtime. Pressure Proof,pressure-resilience,5,choice,prompt,How will you use 'Trust Your Training' now?,C-apply,asks how the player applied/used the skill
+reset_switch_u3_boss,Overtime. Pressure Proof,pressure-resilience,6,choice,prompt,How will you use 'Believe and Achieve' now?,C-apply,asks how the player applied/used the skill
+reset_switch_u3_l1,Flush It - Pressure Proof,pressure-resilience,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+reset_switch_u3_l2,Next Play - Pressure Proof,pressure-resilience,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+reset_switch_u3_l3,Bounce Back - Pressure Proof,pressure-resilience,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+reset_switch_u3_l4,Short Memory - Pressure Proof,pressure-resilience,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+reset_switch_u3_l5,Reset & React - Pressure Proof,pressure-resilience,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+reset_switch_u3_l6,Clutch Reset - Pressure Proof,pressure-resilience,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+reset_switch_u4_boss,Overtime. Integration,pressure-resilience,1,choice,prompt,How will you use 'Body Language Boost' now?,C-apply,asks how the player applied/used the skill
+reset_switch_u4_boss,Overtime. Integration,pressure-resilience,2,choice,prompt,How will you use 'Confidence Bank' now?,C-apply,asks how the player applied/used the skill
+reset_switch_u4_boss,Overtime. Integration,pressure-resilience,3,choice,prompt,How will you use 'Past Success Replay' now?,C-apply,asks how the player applied/used the skill
+reset_switch_u4_boss,Overtime. Integration,pressure-resilience,4,choice,prompt,How will you use 'Win the Moment' now?,C-apply,asks how the player applied/used the skill
+reset_switch_u4_boss,Overtime. Integration,pressure-resilience,5,choice,prompt,How will you use 'Trust Your Training' now?,C-apply,asks how the player applied/used the skill
+reset_switch_u4_boss,Overtime. Integration,pressure-resilience,6,choice,prompt,How will you use 'Believe and Achieve' now?,C-apply,asks how the player applied/used the skill
+reset_switch_u4_l1,Flush It - Integration,pressure-resilience,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+reset_switch_u4_l2,Next Play - Integration,pressure-resilience,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+reset_switch_u4_l3,Bounce Back - Integration,pressure-resilience,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+reset_switch_u4_l4,Short Memory - Integration,pressure-resilience,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+reset_switch_u4_l5,Reset & React - Integration,pressure-resilience,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+reset_switch_u4_l6,Clutch Reset - Integration,pressure-resilience,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+reset_switch_u5_boss,Overtime. Overtime,pressure-resilience,1,choice,prompt,How will you use 'Body Language Boost' now?,C-apply,asks how the player applied/used the skill
+reset_switch_u5_boss,Overtime. Overtime,pressure-resilience,2,choice,prompt,How will you use 'Confidence Bank' now?,C-apply,asks how the player applied/used the skill
+reset_switch_u5_boss,Overtime. Overtime,pressure-resilience,3,choice,prompt,How will you use 'Past Success Replay' now?,C-apply,asks how the player applied/used the skill
+reset_switch_u5_boss,Overtime. Overtime,pressure-resilience,4,choice,prompt,How will you use 'Win the Moment' now?,C-apply,asks how the player applied/used the skill
+reset_switch_u5_boss,Overtime. Overtime,pressure-resilience,5,choice,prompt,How will you use 'Trust Your Training' now?,C-apply,asks how the player applied/used the skill
+reset_switch_u5_boss,Overtime. Overtime,pressure-resilience,6,choice,prompt,How will you use 'Believe and Achieve' now?,C-apply,asks how the player applied/used the skill
+reset_switch_u5_l1,Flush It - Overtime,pressure-resilience,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+reset_switch_u5_l2,Next Play - Overtime,pressure-resilience,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+reset_switch_u5_l3,Bounce Back - Overtime,pressure-resilience,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+reset_switch_u5_l4,Short Memory - Overtime,pressure-resilience,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+reset_switch_u5_l5,Reset & React - Overtime,pressure-resilience,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+reset_switch_u5_l6,Clutch Reset - Overtime,pressure-resilience,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+ritual_circuit_u1_boss,Overtime. Fundamentals,readiness-routines,1,choice,prompt,How will you use 'Body Language Boost' now?,C-apply,asks how the player applied/used the skill
+ritual_circuit_u1_boss,Overtime. Fundamentals,readiness-routines,2,choice,prompt,How will you use 'Confidence Bank' now?,C-apply,asks how the player applied/used the skill
+ritual_circuit_u1_boss,Overtime. Fundamentals,readiness-routines,3,choice,prompt,How will you use 'Past Success Replay' now?,C-apply,asks how the player applied/used the skill
+ritual_circuit_u1_boss,Overtime. Fundamentals,readiness-routines,4,choice,prompt,How will you use 'Win the Moment' now?,C-apply,asks how the player applied/used the skill
+ritual_circuit_u1_boss,Overtime. Fundamentals,readiness-routines,5,choice,prompt,How will you use 'Trust Your Training' now?,C-apply,asks how the player applied/used the skill
+ritual_circuit_u1_boss,Overtime. Fundamentals,readiness-routines,6,choice,prompt,How will you use 'Believe and Achieve' now?,C-apply,asks how the player applied/used the skill
+ritual_circuit_u1_l1,Pre-Game Prep - Fundamentals,readiness-routines,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+ritual_circuit_u1_l2,Routine Reset - Fundamentals,readiness-routines,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+ritual_circuit_u1_l3,Superstitions vs Systems - Fundamentals,readiness-routines,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+ritual_circuit_u1_l4,Game Day Sequence - Fundamentals,readiness-routines,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+ritual_circuit_u1_l5,Habits for Consistency - Fundamentals,readiness-routines,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+ritual_circuit_u1_l6,Pre-Shot Ritual - Fundamentals,readiness-routines,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+ritual_circuit_u2_boss,Overtime. Game Speed,readiness-routines,1,choice,prompt,How will you use 'Body Language Boost' now?,C-apply,asks how the player applied/used the skill
+ritual_circuit_u2_boss,Overtime. Game Speed,readiness-routines,2,choice,prompt,How will you use 'Confidence Bank' now?,C-apply,asks how the player applied/used the skill
+ritual_circuit_u2_boss,Overtime. Game Speed,readiness-routines,3,choice,prompt,How will you use 'Past Success Replay' now?,C-apply,asks how the player applied/used the skill
+ritual_circuit_u2_boss,Overtime. Game Speed,readiness-routines,4,choice,prompt,How will you use 'Win the Moment' now?,C-apply,asks how the player applied/used the skill
+ritual_circuit_u2_boss,Overtime. Game Speed,readiness-routines,5,choice,prompt,How will you use 'Trust Your Training' now?,C-apply,asks how the player applied/used the skill
+ritual_circuit_u2_boss,Overtime. Game Speed,readiness-routines,6,choice,prompt,How will you use 'Believe and Achieve' now?,C-apply,asks how the player applied/used the skill
+ritual_circuit_u2_l1,Pre-Game Prep - Game Speed,readiness-routines,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+ritual_circuit_u2_l2,Routine Reset - Game Speed,readiness-routines,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+ritual_circuit_u2_l3,Superstitions vs Systems - Game Speed,readiness-routines,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+ritual_circuit_u2_l4,Game Day Sequence - Game Speed,readiness-routines,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+ritual_circuit_u2_l5,Habits for Consistency - Game Speed,readiness-routines,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+ritual_circuit_u2_l6,Pre-Shot Ritual - Game Speed,readiness-routines,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+ritual_circuit_u3_boss,Overtime. Pressure Proof,readiness-routines,1,choice,prompt,How will you use 'Body Language Boost' now?,C-apply,asks how the player applied/used the skill
+ritual_circuit_u3_boss,Overtime. Pressure Proof,readiness-routines,2,choice,prompt,How will you use 'Confidence Bank' now?,C-apply,asks how the player applied/used the skill
+ritual_circuit_u3_boss,Overtime. Pressure Proof,readiness-routines,3,choice,prompt,How will you use 'Past Success Replay' now?,C-apply,asks how the player applied/used the skill
+ritual_circuit_u3_boss,Overtime. Pressure Proof,readiness-routines,4,choice,prompt,How will you use 'Win the Moment' now?,C-apply,asks how the player applied/used the skill
+ritual_circuit_u3_boss,Overtime. Pressure Proof,readiness-routines,5,choice,prompt,How will you use 'Trust Your Training' now?,C-apply,asks how the player applied/used the skill
+ritual_circuit_u3_boss,Overtime. Pressure Proof,readiness-routines,6,choice,prompt,How will you use 'Believe and Achieve' now?,C-apply,asks how the player applied/used the skill
+ritual_circuit_u3_l1,Pre-Game Prep - Pressure Proof,readiness-routines,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+ritual_circuit_u3_l2,Routine Reset - Pressure Proof,readiness-routines,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+ritual_circuit_u3_l3,Superstitions vs Systems - Pressure Proof,readiness-routines,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+ritual_circuit_u3_l4,Game Day Sequence - Pressure Proof,readiness-routines,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+ritual_circuit_u3_l5,Habits for Consistency - Pressure Proof,readiness-routines,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+ritual_circuit_u3_l6,Pre-Shot Ritual - Pressure Proof,readiness-routines,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+ritual_circuit_u4_boss,Overtime. Integration,readiness-routines,1,choice,prompt,How will you use 'Body Language Boost' now?,C-apply,asks how the player applied/used the skill
+ritual_circuit_u4_boss,Overtime. Integration,readiness-routines,2,choice,prompt,How will you use 'Confidence Bank' now?,C-apply,asks how the player applied/used the skill
+ritual_circuit_u4_boss,Overtime. Integration,readiness-routines,3,choice,prompt,How will you use 'Past Success Replay' now?,C-apply,asks how the player applied/used the skill
+ritual_circuit_u4_boss,Overtime. Integration,readiness-routines,4,choice,prompt,How will you use 'Win the Moment' now?,C-apply,asks how the player applied/used the skill
+ritual_circuit_u4_boss,Overtime. Integration,readiness-routines,5,choice,prompt,How will you use 'Trust Your Training' now?,C-apply,asks how the player applied/used the skill
+ritual_circuit_u4_boss,Overtime. Integration,readiness-routines,6,choice,prompt,How will you use 'Believe and Achieve' now?,C-apply,asks how the player applied/used the skill
+ritual_circuit_u4_l1,Pre-Game Prep - Integration,readiness-routines,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+ritual_circuit_u4_l2,Routine Reset - Integration,readiness-routines,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+ritual_circuit_u4_l3,Superstitions vs Systems - Integration,readiness-routines,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+ritual_circuit_u4_l4,Game Day Sequence - Integration,readiness-routines,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+ritual_circuit_u4_l5,Habits for Consistency - Integration,readiness-routines,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+ritual_circuit_u4_l6,Pre-Shot Ritual - Integration,readiness-routines,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+ritual_circuit_u5_boss,Overtime. Overtime,readiness-routines,1,choice,prompt,How will you use 'Body Language Boost' now?,C-apply,asks how the player applied/used the skill
+ritual_circuit_u5_boss,Overtime. Overtime,readiness-routines,2,choice,prompt,How will you use 'Confidence Bank' now?,C-apply,asks how the player applied/used the skill
+ritual_circuit_u5_boss,Overtime. Overtime,readiness-routines,3,choice,prompt,How will you use 'Past Success Replay' now?,C-apply,asks how the player applied/used the skill
+ritual_circuit_u5_boss,Overtime. Overtime,readiness-routines,4,choice,prompt,How will you use 'Win the Moment' now?,C-apply,asks how the player applied/used the skill
+ritual_circuit_u5_boss,Overtime. Overtime,readiness-routines,5,choice,prompt,How will you use 'Trust Your Training' now?,C-apply,asks how the player applied/used the skill
+ritual_circuit_u5_boss,Overtime. Overtime,readiness-routines,6,choice,prompt,How will you use 'Believe and Achieve' now?,C-apply,asks how the player applied/used the skill
+ritual_circuit_u5_l1,Pre-Game Prep - Overtime,readiness-routines,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+ritual_circuit_u5_l2,Routine Reset - Overtime,readiness-routines,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+ritual_circuit_u5_l3,Superstitions vs Systems - Overtime,readiness-routines,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+ritual_circuit_u5_l4,Game Day Sequence - Overtime,readiness-routines,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+ritual_circuit_u5_l5,Habits for Consistency - Overtime,readiness-routines,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+ritual_circuit_u5_l6,Pre-Shot Ritual - Overtime,readiness-routines,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+signal_talk_u1_boss,Overtime. Fundamentals,competitive-identity,1,choice,prompt,How will you use 'Body Language Boost' now?,C-apply,asks how the player applied/used the skill
+signal_talk_u1_boss,Overtime. Fundamentals,competitive-identity,2,choice,prompt,How will you use 'Confidence Bank' now?,C-apply,asks how the player applied/used the skill
+signal_talk_u1_boss,Overtime. Fundamentals,competitive-identity,3,choice,prompt,How will you use 'Past Success Replay' now?,C-apply,asks how the player applied/used the skill
+signal_talk_u1_boss,Overtime. Fundamentals,competitive-identity,4,choice,prompt,How will you use 'Win the Moment' now?,C-apply,asks how the player applied/used the skill
+signal_talk_u1_boss,Overtime. Fundamentals,competitive-identity,5,choice,prompt,How will you use 'Trust Your Training' now?,C-apply,asks how the player applied/used the skill
+signal_talk_u1_boss,Overtime. Fundamentals,competitive-identity,6,choice,prompt,How will you use 'Believe and Achieve' now?,C-apply,asks how the player applied/used the skill
+signal_talk_u1_l1,Positive Self-Talk - Fundamentals,competitive-identity,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+signal_talk_u1_l2,Cue Words - Fundamentals,competitive-identity,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+signal_talk_u1_l3,Calm Command - Fundamentals,competitive-identity,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+signal_talk_u1_l4,Self-Coach - Fundamentals,competitive-identity,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+signal_talk_u1_l5,Inner Pep Talk - Fundamentals,competitive-identity,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+signal_talk_u1_l6,Talk it Out - Fundamentals,competitive-identity,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+signal_talk_u2_boss,Overtime. Game Speed,competitive-identity,1,choice,prompt,How will you use 'Body Language Boost' now?,C-apply,asks how the player applied/used the skill
+signal_talk_u2_boss,Overtime. Game Speed,competitive-identity,2,choice,prompt,How will you use 'Confidence Bank' now?,C-apply,asks how the player applied/used the skill
+signal_talk_u2_boss,Overtime. Game Speed,competitive-identity,3,choice,prompt,How will you use 'Past Success Replay' now?,C-apply,asks how the player applied/used the skill
+signal_talk_u2_boss,Overtime. Game Speed,competitive-identity,4,choice,prompt,How will you use 'Win the Moment' now?,C-apply,asks how the player applied/used the skill
+signal_talk_u2_boss,Overtime. Game Speed,competitive-identity,5,choice,prompt,How will you use 'Trust Your Training' now?,C-apply,asks how the player applied/used the skill
+signal_talk_u2_boss,Overtime. Game Speed,competitive-identity,6,choice,prompt,How will you use 'Believe and Achieve' now?,C-apply,asks how the player applied/used the skill
+signal_talk_u2_l1,Positive Self-Talk - Game Speed,competitive-identity,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+signal_talk_u2_l2,Cue Words - Game Speed,competitive-identity,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+signal_talk_u2_l3,Calm Command - Game Speed,competitive-identity,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+signal_talk_u2_l4,Self-Coach - Game Speed,competitive-identity,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+signal_talk_u2_l5,Inner Pep Talk - Game Speed,competitive-identity,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+signal_talk_u2_l6,Talk it Out - Game Speed,competitive-identity,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+signal_talk_u3_boss,Overtime. Pressure Proof,competitive-identity,1,choice,prompt,How will you use 'Body Language Boost' now?,C-apply,asks how the player applied/used the skill
+signal_talk_u3_boss,Overtime. Pressure Proof,competitive-identity,2,choice,prompt,How will you use 'Confidence Bank' now?,C-apply,asks how the player applied/used the skill
+signal_talk_u3_boss,Overtime. Pressure Proof,competitive-identity,3,choice,prompt,How will you use 'Past Success Replay' now?,C-apply,asks how the player applied/used the skill
+signal_talk_u3_boss,Overtime. Pressure Proof,competitive-identity,4,choice,prompt,How will you use 'Win the Moment' now?,C-apply,asks how the player applied/used the skill
+signal_talk_u3_boss,Overtime. Pressure Proof,competitive-identity,5,choice,prompt,How will you use 'Trust Your Training' now?,C-apply,asks how the player applied/used the skill
+signal_talk_u3_boss,Overtime. Pressure Proof,competitive-identity,6,choice,prompt,How will you use 'Believe and Achieve' now?,C-apply,asks how the player applied/used the skill
+signal_talk_u3_l1,Positive Self-Talk - Pressure Proof,competitive-identity,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+signal_talk_u3_l2,Cue Words - Pressure Proof,competitive-identity,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+signal_talk_u3_l3,Calm Command - Pressure Proof,competitive-identity,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+signal_talk_u3_l4,Self-Coach - Pressure Proof,competitive-identity,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+signal_talk_u3_l5,Inner Pep Talk - Pressure Proof,competitive-identity,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+signal_talk_u3_l6,Talk it Out - Pressure Proof,competitive-identity,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+signal_talk_u4_boss,Overtime. Integration,competitive-identity,1,choice,prompt,How will you use 'Body Language Boost' now?,C-apply,asks how the player applied/used the skill
+signal_talk_u4_boss,Overtime. Integration,competitive-identity,2,choice,prompt,How will you use 'Confidence Bank' now?,C-apply,asks how the player applied/used the skill
+signal_talk_u4_boss,Overtime. Integration,competitive-identity,3,choice,prompt,How will you use 'Past Success Replay' now?,C-apply,asks how the player applied/used the skill
+signal_talk_u4_boss,Overtime. Integration,competitive-identity,4,choice,prompt,How will you use 'Win the Moment' now?,C-apply,asks how the player applied/used the skill
+signal_talk_u4_boss,Overtime. Integration,competitive-identity,5,choice,prompt,How will you use 'Trust Your Training' now?,C-apply,asks how the player applied/used the skill
+signal_talk_u4_boss,Overtime. Integration,competitive-identity,6,choice,prompt,How will you use 'Believe and Achieve' now?,C-apply,asks how the player applied/used the skill
+signal_talk_u4_l1,Positive Self-Talk - Integration,competitive-identity,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+signal_talk_u4_l2,Cue Words - Integration,competitive-identity,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+signal_talk_u4_l3,Calm Command - Integration,competitive-identity,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+signal_talk_u4_l4,Self-Coach - Integration,competitive-identity,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+signal_talk_u4_l5,Inner Pep Talk - Integration,competitive-identity,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+signal_talk_u4_l6,Talk it Out - Integration,competitive-identity,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+signal_talk_u5_boss,Overtime. Overtime,competitive-identity,1,choice,prompt,How will you use 'Body Language Boost' now?,C-apply,asks how the player applied/used the skill
+signal_talk_u5_boss,Overtime. Overtime,competitive-identity,2,choice,prompt,How will you use 'Confidence Bank' now?,C-apply,asks how the player applied/used the skill
+signal_talk_u5_boss,Overtime. Overtime,competitive-identity,3,choice,prompt,How will you use 'Past Success Replay' now?,C-apply,asks how the player applied/used the skill
+signal_talk_u5_boss,Overtime. Overtime,competitive-identity,4,choice,prompt,How will you use 'Win the Moment' now?,C-apply,asks how the player applied/used the skill
+signal_talk_u5_boss,Overtime. Overtime,competitive-identity,5,choice,prompt,How will you use 'Trust Your Training' now?,C-apply,asks how the player applied/used the skill
+signal_talk_u5_boss,Overtime. Overtime,competitive-identity,6,choice,prompt,How will you use 'Believe and Achieve' now?,C-apply,asks how the player applied/used the skill
+signal_talk_u5_l1,Positive Self-Talk - Overtime,competitive-identity,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+signal_talk_u5_l2,Cue Words - Overtime,competitive-identity,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+signal_talk_u5_l3,Calm Command - Overtime,competitive-identity,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+signal_talk_u5_l4,Self-Coach - Overtime,competitive-identity,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+signal_talk_u5_l5,Inner Pep Talk - Overtime,competitive-identity,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+signal_talk_u5_l6,Talk it Out - Overtime,competitive-identity,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+stormproof_u1_boss,Overtime. Fundamentals,pressure-resilience,1,choice,prompt,How will you use 'Body Language Boost' now?,C-apply,asks how the player applied/used the skill
+stormproof_u1_boss,Overtime. Fundamentals,pressure-resilience,2,choice,prompt,How will you use 'Confidence Bank' now?,C-apply,asks how the player applied/used the skill
+stormproof_u1_boss,Overtime. Fundamentals,pressure-resilience,3,choice,prompt,How will you use 'Past Success Replay' now?,C-apply,asks how the player applied/used the skill
+stormproof_u1_boss,Overtime. Fundamentals,pressure-resilience,4,choice,prompt,How will you use 'Win the Moment' now?,C-apply,asks how the player applied/used the skill
+stormproof_u1_boss,Overtime. Fundamentals,pressure-resilience,5,choice,prompt,How will you use 'Trust Your Training' now?,C-apply,asks how the player applied/used the skill
+stormproof_u1_boss,Overtime. Fundamentals,pressure-resilience,6,choice,prompt,How will you use 'Believe and Achieve' now?,C-apply,asks how the player applied/used the skill
+stormproof_u1_l1,Name the Emotion - Fundamentals,pressure-resilience,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+stormproof_u1_l2,Ride the Wave - Fundamentals,pressure-resilience,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+stormproof_u1_l3,Pressure is Privilege - Fundamentals,pressure-resilience,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+stormproof_u1_l4,Breathe Through It - Fundamentals,pressure-resilience,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+stormproof_u1_l5,Flip the Script - Fundamentals,pressure-resilience,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+stormproof_u1_l6,Calm Under Fire - Fundamentals,pressure-resilience,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+stormproof_u2_boss,Overtime. Game Speed,pressure-resilience,1,choice,prompt,How will you use 'Body Language Boost' now?,C-apply,asks how the player applied/used the skill
+stormproof_u2_boss,Overtime. Game Speed,pressure-resilience,2,choice,prompt,How will you use 'Confidence Bank' now?,C-apply,asks how the player applied/used the skill
+stormproof_u2_boss,Overtime. Game Speed,pressure-resilience,3,choice,prompt,How will you use 'Past Success Replay' now?,C-apply,asks how the player applied/used the skill
+stormproof_u2_boss,Overtime. Game Speed,pressure-resilience,4,choice,prompt,How will you use 'Win the Moment' now?,C-apply,asks how the player applied/used the skill
+stormproof_u2_boss,Overtime. Game Speed,pressure-resilience,5,choice,prompt,How will you use 'Trust Your Training' now?,C-apply,asks how the player applied/used the skill
+stormproof_u2_boss,Overtime. Game Speed,pressure-resilience,6,choice,prompt,How will you use 'Believe and Achieve' now?,C-apply,asks how the player applied/used the skill
+stormproof_u2_l1,Name the Emotion - Game Speed,pressure-resilience,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+stormproof_u2_l2,Ride the Wave - Game Speed,pressure-resilience,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+stormproof_u2_l3,Pressure is Privilege - Game Speed,pressure-resilience,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+stormproof_u2_l4,Breathe Through It - Game Speed,pressure-resilience,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+stormproof_u2_l5,Flip the Script - Game Speed,pressure-resilience,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+stormproof_u2_l6,Calm Under Fire - Game Speed,pressure-resilience,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+stormproof_u3_boss,Overtime. Pressure Proof,pressure-resilience,1,choice,prompt,How will you use 'Body Language Boost' now?,C-apply,asks how the player applied/used the skill
+stormproof_u3_boss,Overtime. Pressure Proof,pressure-resilience,2,choice,prompt,How will you use 'Confidence Bank' now?,C-apply,asks how the player applied/used the skill
+stormproof_u3_boss,Overtime. Pressure Proof,pressure-resilience,3,choice,prompt,How will you use 'Past Success Replay' now?,C-apply,asks how the player applied/used the skill
+stormproof_u3_boss,Overtime. Pressure Proof,pressure-resilience,4,choice,prompt,How will you use 'Win the Moment' now?,C-apply,asks how the player applied/used the skill
+stormproof_u3_boss,Overtime. Pressure Proof,pressure-resilience,5,choice,prompt,How will you use 'Trust Your Training' now?,C-apply,asks how the player applied/used the skill
+stormproof_u3_boss,Overtime. Pressure Proof,pressure-resilience,6,choice,prompt,How will you use 'Believe and Achieve' now?,C-apply,asks how the player applied/used the skill
+stormproof_u3_l1,Name the Emotion - Pressure Proof,pressure-resilience,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+stormproof_u3_l2,Ride the Wave - Pressure Proof,pressure-resilience,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+stormproof_u3_l3,Pressure is Privilege - Pressure Proof,pressure-resilience,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+stormproof_u3_l4,Breathe Through It - Pressure Proof,pressure-resilience,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+stormproof_u3_l5,Flip the Script - Pressure Proof,pressure-resilience,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+stormproof_u3_l6,Calm Under Fire - Pressure Proof,pressure-resilience,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+stormproof_u4_boss,Overtime. Integration,pressure-resilience,1,choice,prompt,How will you use 'Body Language Boost' now?,C-apply,asks how the player applied/used the skill
+stormproof_u4_boss,Overtime. Integration,pressure-resilience,2,choice,prompt,How will you use 'Confidence Bank' now?,C-apply,asks how the player applied/used the skill
+stormproof_u4_boss,Overtime. Integration,pressure-resilience,3,choice,prompt,How will you use 'Past Success Replay' now?,C-apply,asks how the player applied/used the skill
+stormproof_u4_boss,Overtime. Integration,pressure-resilience,4,choice,prompt,How will you use 'Win the Moment' now?,C-apply,asks how the player applied/used the skill
+stormproof_u4_boss,Overtime. Integration,pressure-resilience,5,choice,prompt,How will you use 'Trust Your Training' now?,C-apply,asks how the player applied/used the skill
+stormproof_u4_boss,Overtime. Integration,pressure-resilience,6,choice,prompt,How will you use 'Believe and Achieve' now?,C-apply,asks how the player applied/used the skill
+stormproof_u4_l1,Name the Emotion - Integration,pressure-resilience,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+stormproof_u4_l2,Ride the Wave - Integration,pressure-resilience,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+stormproof_u4_l3,Pressure is Privilege - Integration,pressure-resilience,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+stormproof_u4_l4,Breathe Through It - Integration,pressure-resilience,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+stormproof_u4_l5,Flip the Script - Integration,pressure-resilience,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+stormproof_u4_l6,Calm Under Fire - Integration,pressure-resilience,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+stormproof_u5_boss,Overtime. Overtime,pressure-resilience,1,choice,prompt,How will you use 'Body Language Boost' now?,C-apply,asks how the player applied/used the skill
+stormproof_u5_boss,Overtime. Overtime,pressure-resilience,2,choice,prompt,How will you use 'Confidence Bank' now?,C-apply,asks how the player applied/used the skill
+stormproof_u5_boss,Overtime. Overtime,pressure-resilience,3,choice,prompt,How will you use 'Past Success Replay' now?,C-apply,asks how the player applied/used the skill
+stormproof_u5_boss,Overtime. Overtime,pressure-resilience,4,choice,prompt,How will you use 'Win the Moment' now?,C-apply,asks how the player applied/used the skill
+stormproof_u5_boss,Overtime. Overtime,pressure-resilience,5,choice,prompt,How will you use 'Trust Your Training' now?,C-apply,asks how the player applied/used the skill
+stormproof_u5_boss,Overtime. Overtime,pressure-resilience,6,choice,prompt,How will you use 'Believe and Achieve' now?,C-apply,asks how the player applied/used the skill
+stormproof_u5_l1,Name the Emotion - Overtime,pressure-resilience,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+stormproof_u5_l2,Ride the Wave - Overtime,pressure-resilience,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+stormproof_u5_l3,Pressure is Privilege - Overtime,pressure-resilience,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+stormproof_u5_l4,Breathe Through It - Overtime,pressure-resilience,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+stormproof_u5_l5,Flip the Script - Overtime,pressure-resilience,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+stormproof_u5_l6,Calm Under Fire - Overtime,pressure-resilience,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+target_charge_u1_boss,Overtime. Fundamentals,bounce-back-player,1,choice,prompt,How will you use 'Body Language Boost' now?,C-apply,asks how the player applied/used the skill
+target_charge_u1_boss,Overtime. Fundamentals,bounce-back-player,2,choice,prompt,How will you use 'Confidence Bank' now?,C-apply,asks how the player applied/used the skill
+target_charge_u1_boss,Overtime. Fundamentals,bounce-back-player,3,choice,prompt,How will you use 'Past Success Replay' now?,C-apply,asks how the player applied/used the skill
+target_charge_u1_boss,Overtime. Fundamentals,bounce-back-player,4,choice,prompt,How will you use 'Win the Moment' now?,C-apply,asks how the player applied/used the skill
+target_charge_u1_boss,Overtime. Fundamentals,bounce-back-player,5,choice,prompt,How will you use 'Trust Your Training' now?,C-apply,asks how the player applied/used the skill
+target_charge_u1_boss,Overtime. Fundamentals,bounce-back-player,6,choice,prompt,How will you use 'Believe and Achieve' now?,C-apply,asks how the player applied/used the skill
+target_charge_u1_l1,Dream Big - Fundamentals,bounce-back-player,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+target_charge_u1_l2,Daily Grind - Fundamentals,bounce-back-player,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+target_charge_u1_l3,Vision to Plan - Fundamentals,bounce-back-player,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+target_charge_u1_l4,Goal Ladder - Fundamentals,bounce-back-player,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+target_charge_u1_l5,Small Wins - Fundamentals,bounce-back-player,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+target_charge_u1_l6,Push the Pace - Fundamentals,bounce-back-player,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+target_charge_u2_boss,Overtime. Game Speed,bounce-back-player,1,choice,prompt,How will you use 'Body Language Boost' now?,C-apply,asks how the player applied/used the skill
+target_charge_u2_boss,Overtime. Game Speed,bounce-back-player,2,choice,prompt,How will you use 'Confidence Bank' now?,C-apply,asks how the player applied/used the skill
+target_charge_u2_boss,Overtime. Game Speed,bounce-back-player,3,choice,prompt,How will you use 'Past Success Replay' now?,C-apply,asks how the player applied/used the skill
+target_charge_u2_boss,Overtime. Game Speed,bounce-back-player,4,choice,prompt,How will you use 'Win the Moment' now?,C-apply,asks how the player applied/used the skill
+target_charge_u2_boss,Overtime. Game Speed,bounce-back-player,5,choice,prompt,How will you use 'Trust Your Training' now?,C-apply,asks how the player applied/used the skill
+target_charge_u2_boss,Overtime. Game Speed,bounce-back-player,6,choice,prompt,How will you use 'Believe and Achieve' now?,C-apply,asks how the player applied/used the skill
+target_charge_u2_l1,Dream Big - Game Speed,bounce-back-player,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+target_charge_u2_l2,Daily Grind - Game Speed,bounce-back-player,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+target_charge_u2_l3,Vision to Plan - Game Speed,bounce-back-player,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+target_charge_u2_l4,Goal Ladder - Game Speed,bounce-back-player,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+target_charge_u2_l5,Small Wins - Game Speed,bounce-back-player,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+target_charge_u2_l6,Push the Pace - Game Speed,bounce-back-player,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+target_charge_u3_boss,Overtime. Pressure Proof,bounce-back-player,1,choice,prompt,How will you use 'Body Language Boost' now?,C-apply,asks how the player applied/used the skill
+target_charge_u3_boss,Overtime. Pressure Proof,bounce-back-player,2,choice,prompt,How will you use 'Confidence Bank' now?,C-apply,asks how the player applied/used the skill
+target_charge_u3_boss,Overtime. Pressure Proof,bounce-back-player,3,choice,prompt,How will you use 'Past Success Replay' now?,C-apply,asks how the player applied/used the skill
+target_charge_u3_boss,Overtime. Pressure Proof,bounce-back-player,4,choice,prompt,How will you use 'Win the Moment' now?,C-apply,asks how the player applied/used the skill
+target_charge_u3_boss,Overtime. Pressure Proof,bounce-back-player,5,choice,prompt,How will you use 'Trust Your Training' now?,C-apply,asks how the player applied/used the skill
+target_charge_u3_boss,Overtime. Pressure Proof,bounce-back-player,6,choice,prompt,How will you use 'Believe and Achieve' now?,C-apply,asks how the player applied/used the skill
+target_charge_u3_l1,Dream Big - Pressure Proof,bounce-back-player,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+target_charge_u3_l2,Daily Grind - Pressure Proof,bounce-back-player,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+target_charge_u3_l3,Vision to Plan - Pressure Proof,bounce-back-player,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+target_charge_u3_l4,Goal Ladder - Pressure Proof,bounce-back-player,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+target_charge_u3_l5,Small Wins - Pressure Proof,bounce-back-player,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+target_charge_u3_l6,Push the Pace - Pressure Proof,bounce-back-player,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+target_charge_u4_boss,Overtime. Integration,bounce-back-player,1,choice,prompt,How will you use 'Body Language Boost' now?,C-apply,asks how the player applied/used the skill
+target_charge_u4_boss,Overtime. Integration,bounce-back-player,2,choice,prompt,How will you use 'Confidence Bank' now?,C-apply,asks how the player applied/used the skill
+target_charge_u4_boss,Overtime. Integration,bounce-back-player,3,choice,prompt,How will you use 'Past Success Replay' now?,C-apply,asks how the player applied/used the skill
+target_charge_u4_boss,Overtime. Integration,bounce-back-player,4,choice,prompt,How will you use 'Win the Moment' now?,C-apply,asks how the player applied/used the skill
+target_charge_u4_boss,Overtime. Integration,bounce-back-player,5,choice,prompt,How will you use 'Trust Your Training' now?,C-apply,asks how the player applied/used the skill
+target_charge_u4_boss,Overtime. Integration,bounce-back-player,6,choice,prompt,How will you use 'Believe and Achieve' now?,C-apply,asks how the player applied/used the skill
+target_charge_u4_l1,Dream Big - Integration,bounce-back-player,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+target_charge_u4_l2,Daily Grind - Integration,bounce-back-player,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+target_charge_u4_l3,Vision to Plan - Integration,bounce-back-player,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+target_charge_u4_l4,Goal Ladder - Integration,bounce-back-player,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+target_charge_u4_l5,Small Wins - Integration,bounce-back-player,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+target_charge_u4_l6,Push the Pace - Integration,bounce-back-player,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+target_charge_u5_boss,Overtime. Overtime,bounce-back-player,1,choice,prompt,How will you use 'Body Language Boost' now?,C-apply,asks how the player applied/used the skill
+target_charge_u5_boss,Overtime. Overtime,bounce-back-player,2,choice,prompt,How will you use 'Confidence Bank' now?,C-apply,asks how the player applied/used the skill
+target_charge_u5_boss,Overtime. Overtime,bounce-back-player,3,choice,prompt,How will you use 'Past Success Replay' now?,C-apply,asks how the player applied/used the skill
+target_charge_u5_boss,Overtime. Overtime,bounce-back-player,4,choice,prompt,How will you use 'Win the Moment' now?,C-apply,asks how the player applied/used the skill
+target_charge_u5_boss,Overtime. Overtime,bounce-back-player,5,choice,prompt,How will you use 'Trust Your Training' now?,C-apply,asks how the player applied/used the skill
+target_charge_u5_boss,Overtime. Overtime,bounce-back-player,6,choice,prompt,How will you use 'Believe and Achieve' now?,C-apply,asks how the player applied/used the skill
+target_charge_u5_l1,Dream Big - Overtime,bounce-back-player,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+target_charge_u5_l2,Daily Grind - Overtime,bounce-back-player,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+target_charge_u5_l3,Vision to Plan - Overtime,bounce-back-player,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+target_charge_u5_l4,Goal Ladder - Overtime,bounce-back-player,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+target_charge_u5_l5,Small Wins - Overtime,bounce-back-player,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+target_charge_u5_l6,Push the Pace - Overtime,bounce-back-player,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+voltage_control_u1_boss,Overtime. Fundamentals,recovery-readiness,1,choice,prompt,How will you use 'Body Language Boost' now?,C-apply,asks how the player applied/used the skill
+voltage_control_u1_boss,Overtime. Fundamentals,recovery-readiness,2,choice,prompt,How will you use 'Confidence Bank' now?,C-apply,asks how the player applied/used the skill
+voltage_control_u1_boss,Overtime. Fundamentals,recovery-readiness,3,choice,prompt,How will you use 'Past Success Replay' now?,C-apply,asks how the player applied/used the skill
+voltage_control_u1_boss,Overtime. Fundamentals,recovery-readiness,4,choice,prompt,How will you use 'Win the Moment' now?,C-apply,asks how the player applied/used the skill
+voltage_control_u1_boss,Overtime. Fundamentals,recovery-readiness,5,choice,prompt,How will you use 'Trust Your Training' now?,C-apply,asks how the player applied/used the skill
+voltage_control_u1_boss,Overtime. Fundamentals,recovery-readiness,6,choice,prompt,How will you use 'Believe and Achieve' now?,C-apply,asks how the player applied/used the skill
+voltage_control_u1_l1,Energy Meter - Fundamentals,recovery-readiness,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+voltage_control_u1_l2,Recovery Reset - Fundamentals,recovery-readiness,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+voltage_control_u1_l3,Sleep & Fuel - Fundamentals,recovery-readiness,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+voltage_control_u1_l4,Bench Reset - Fundamentals,recovery-readiness,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+voltage_control_u1_l5,Mind-Body Check - Fundamentals,recovery-readiness,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+voltage_control_u1_l6,Recharge Ritual - Fundamentals,recovery-readiness,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+voltage_control_u2_boss,Overtime. Game Speed,recovery-readiness,1,choice,prompt,How will you use 'Body Language Boost' now?,C-apply,asks how the player applied/used the skill
+voltage_control_u2_boss,Overtime. Game Speed,recovery-readiness,2,choice,prompt,How will you use 'Confidence Bank' now?,C-apply,asks how the player applied/used the skill
+voltage_control_u2_boss,Overtime. Game Speed,recovery-readiness,3,choice,prompt,How will you use 'Past Success Replay' now?,C-apply,asks how the player applied/used the skill
+voltage_control_u2_boss,Overtime. Game Speed,recovery-readiness,4,choice,prompt,How will you use 'Win the Moment' now?,C-apply,asks how the player applied/used the skill
+voltage_control_u2_boss,Overtime. Game Speed,recovery-readiness,5,choice,prompt,How will you use 'Trust Your Training' now?,C-apply,asks how the player applied/used the skill
+voltage_control_u2_boss,Overtime. Game Speed,recovery-readiness,6,choice,prompt,How will you use 'Believe and Achieve' now?,C-apply,asks how the player applied/used the skill
+voltage_control_u2_l1,Energy Meter - Game Speed,recovery-readiness,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+voltage_control_u2_l2,Recovery Reset - Game Speed,recovery-readiness,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+voltage_control_u2_l3,Sleep & Fuel - Game Speed,recovery-readiness,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+voltage_control_u2_l4,Bench Reset - Game Speed,recovery-readiness,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+voltage_control_u2_l5,Mind-Body Check - Game Speed,recovery-readiness,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+voltage_control_u2_l6,Recharge Ritual - Game Speed,recovery-readiness,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+voltage_control_u3_boss,Overtime. Pressure Proof,recovery-readiness,1,choice,prompt,How will you use 'Body Language Boost' now?,C-apply,asks how the player applied/used the skill
+voltage_control_u3_boss,Overtime. Pressure Proof,recovery-readiness,2,choice,prompt,How will you use 'Confidence Bank' now?,C-apply,asks how the player applied/used the skill
+voltage_control_u3_boss,Overtime. Pressure Proof,recovery-readiness,3,choice,prompt,How will you use 'Past Success Replay' now?,C-apply,asks how the player applied/used the skill
+voltage_control_u3_boss,Overtime. Pressure Proof,recovery-readiness,4,choice,prompt,How will you use 'Win the Moment' now?,C-apply,asks how the player applied/used the skill
+voltage_control_u3_boss,Overtime. Pressure Proof,recovery-readiness,5,choice,prompt,How will you use 'Trust Your Training' now?,C-apply,asks how the player applied/used the skill
+voltage_control_u3_boss,Overtime. Pressure Proof,recovery-readiness,6,choice,prompt,How will you use 'Believe and Achieve' now?,C-apply,asks how the player applied/used the skill
+voltage_control_u3_l1,Energy Meter - Pressure Proof,recovery-readiness,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+voltage_control_u3_l2,Recovery Reset - Pressure Proof,recovery-readiness,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+voltage_control_u3_l3,Sleep & Fuel - Pressure Proof,recovery-readiness,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+voltage_control_u3_l4,Bench Reset - Pressure Proof,recovery-readiness,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+voltage_control_u3_l5,Mind-Body Check - Pressure Proof,recovery-readiness,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+voltage_control_u3_l6,Recharge Ritual - Pressure Proof,recovery-readiness,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+voltage_control_u4_boss,Overtime. Integration,recovery-readiness,1,choice,prompt,How will you use 'Body Language Boost' now?,C-apply,asks how the player applied/used the skill
+voltage_control_u4_boss,Overtime. Integration,recovery-readiness,2,choice,prompt,How will you use 'Confidence Bank' now?,C-apply,asks how the player applied/used the skill
+voltage_control_u4_boss,Overtime. Integration,recovery-readiness,3,choice,prompt,How will you use 'Past Success Replay' now?,C-apply,asks how the player applied/used the skill
+voltage_control_u4_boss,Overtime. Integration,recovery-readiness,4,choice,prompt,How will you use 'Win the Moment' now?,C-apply,asks how the player applied/used the skill
+voltage_control_u4_boss,Overtime. Integration,recovery-readiness,5,choice,prompt,How will you use 'Trust Your Training' now?,C-apply,asks how the player applied/used the skill
+voltage_control_u4_boss,Overtime. Integration,recovery-readiness,6,choice,prompt,How will you use 'Believe and Achieve' now?,C-apply,asks how the player applied/used the skill
+voltage_control_u4_l1,Energy Meter - Integration,recovery-readiness,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+voltage_control_u4_l2,Recovery Reset - Integration,recovery-readiness,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+voltage_control_u4_l3,Sleep & Fuel - Integration,recovery-readiness,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+voltage_control_u4_l4,Bench Reset - Integration,recovery-readiness,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+voltage_control_u4_l5,Mind-Body Check - Integration,recovery-readiness,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+voltage_control_u4_l6,Recharge Ritual - Integration,recovery-readiness,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+voltage_control_u5_boss,Overtime. Overtime,recovery-readiness,1,choice,prompt,How will you use 'Body Language Boost' now?,C-apply,asks how the player applied/used the skill
+voltage_control_u5_boss,Overtime. Overtime,recovery-readiness,2,choice,prompt,How will you use 'Confidence Bank' now?,C-apply,asks how the player applied/used the skill
+voltage_control_u5_boss,Overtime. Overtime,recovery-readiness,3,choice,prompt,How will you use 'Past Success Replay' now?,C-apply,asks how the player applied/used the skill
+voltage_control_u5_boss,Overtime. Overtime,recovery-readiness,4,choice,prompt,How will you use 'Win the Moment' now?,C-apply,asks how the player applied/used the skill
+voltage_control_u5_boss,Overtime. Overtime,recovery-readiness,5,choice,prompt,How will you use 'Trust Your Training' now?,C-apply,asks how the player applied/used the skill
+voltage_control_u5_boss,Overtime. Overtime,recovery-readiness,6,choice,prompt,How will you use 'Believe and Achieve' now?,C-apply,asks how the player applied/used the skill
+voltage_control_u5_l1,Energy Meter - Overtime,recovery-readiness,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+voltage_control_u5_l2,Recovery Reset - Overtime,recovery-readiness,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+voltage_control_u5_l3,Sleep & Fuel - Overtime,recovery-readiness,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+voltage_control_u5_l4,Bench Reset - Overtime,recovery-readiness,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+voltage_control_u5_l5,Mind-Body Check - Overtime,recovery-readiness,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill
+voltage_control_u5_l6,Recharge Ritual - Overtime,recovery-readiness,1,choice,prompt,How should you apply this mental skill?,C-apply,asks how the player applied/used the skill

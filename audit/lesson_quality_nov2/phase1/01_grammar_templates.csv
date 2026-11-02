@@ -1,0 +1,8 @@
+broken_template_sentence,proposed_correction,severity,where,lessons_affected,example_lesson
+You’re now entering in practice.,You’re now entering practice.,awkward,"boss, unit 1",9,charge_bank_u1_boss
+You’re now entering in a real game.,You’re now entering a real game.,awkward,"boss, unit 4",9,charge_bank_u4_boss
+You’re now entering in overtime of a championship game.,You’re now entering overtime of a championship game.,awkward,"boss, unit 5",9,charge_bank_u5_boss
+You’re now entering during a competitive drill.,You’re now entering a competitive drill.,error,"boss, unit 2",9,charge_bank_u2_boss
+You’re now entering during a high-pressure scrimmage.,You’re now entering a high-pressure scrimmage.,error,"boss, unit 3",9,charge_bank_u3_boss
+"<NAME>, you’re during a competitive drill.","<NAME>, you’re in a competitive drill.",error,"skill lesson, unit 2",54,charge_bank_u2_l1
+"<NAME>, you’re during a high-pressure scrimmage.","<NAME>, you’re in a high-pressure scrimmage.",error,"skill lesson, unit 3",54,charge_bank_u3_l1

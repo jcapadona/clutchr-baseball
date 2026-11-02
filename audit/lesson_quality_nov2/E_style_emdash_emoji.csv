@@ -1,0 +1,28 @@
+lesson_id,title,pillar,step_index,step_type,field,offending_text,check,reason
+RBI_010,Situation Plan,rbi-mode,-1,lesson,subtitle,"Build your RBI approach before the pitch — know the outs, score, and job.",E,em_dash x1
+PRC_009,Tempo as a Weapon,pickoff-runner-control,-1,lesson,subtitle,Fast and slow — using pace to disrupt hitters AND runners,E,em_dash x1
+FIN_009,The Escape Inning,finishing-hitters,-1,lesson,subtitle,Pitcher's counts after trouble — how to get out clean,E,em_dash x1
+PRC_008,Pickoff Move Mechanics: First Base,pickoff-runner-control,-1,lesson,subtitle,"RHP and LHP — different tools, same goal",E,em_dash x1
+HSP_002,Damage Zone vs Strike Zone,hitter-specialty,-1,lesson,subtitle,Not every strike is worth swinging at — learn your real attack zone.,E,em_dash x1
+FIN_014,Through the Order the Third Time,finishing-hitters,-1,lesson,subtitle,Why hitters own you late — and how to fight back,E,em_dash x1
+RBI_013,Pitcher Escape Pattern,rbi-mode,-1,lesson,subtitle,Identify what the pitcher throws when he needs a strikeout — then plan for it.,E,em_dash x1
+FIN_002,Count Leverage Breakdown,finishing-hitters,-1,lesson,subtitle,Which counts belong to you — and what to do with them,E,em_dash x1
+RBI_004,Lift When Asked,rbi-mode,-1,lesson,subtitle,A sac fly wins a run — learn the swing thought that makes it happen.,E,em_dash x1
+ct_arm_is_the_gate,Your Arm Is the Gate,arm-care-durability,-1,lesson,subtitle,If it doesn't open — nothing else gets in.,E,em_dash x1
+ct_coachable_beats_comfortable,Coachable Beats Comfortable,built-different,-1,lesson,subtitle,Protect your effectiveness — not your identity.,E,em_dash x1
+ct_confidence_is_prepared,Confidence Is Prepared,foundation,-1,lesson,subtitle,Confidence is a training outcome — not a feeling.,E,em_dash x1
+ct_pressure_shrink,One Job,pressure-resilience,-1,lesson,subtitle,The bigger the moment — the shorter the cue.,E,em_dash x1
+ct_slump_day_plan,Slump Day: Smaller Plan,slump-recovery,-1,lesson,subtitle,A slump needs less — not more.,E,em_dash x1
+LOM_005,Set The Table,leadoff-mentality,-1,lesson,subtitle,Your job as a leadoff hitter is to get on base — not to score.,E,em_dash x1
+RBI_001,"Runner On Third, Less Than Two",rbi-mode,-1,lesson,subtitle,The run is 90 feet away — your job is to get it home with contact.,E,em_dash x1
+LOM_009,Read Tempo From The Box,leadoff-mentality,-1,lesson,subtitle,A fast-working pitcher disrupts hitter timing — here is how to slow him down.,E,em_dash x1
+film_room_a1_gibson_1988,Big Moments Still Want Your Normal Move,pressure-resilience,-1,lesson,subtitle,Pressure reveals preparation — it doesn't replace it.,E,em_dash x1
+film_room_a10_freeman_slam,Pain Doesn't Change the Plan,pressure-resilience,-1,lesson,subtitle,Injury changes the body — not the process.,E,em_dash x1
+film_room_c1_madbum_game7,The Mound Got Smaller,pitcher-path,-1,lesson,subtitle,Composure is visible in pace and target — every pitch.,E,em_dash x1
+film_room_f1_dave_roberts_steal,The Steal,baserunner-path,-1,lesson,subtitle,The best steals are math plus courage — not vibes.,E,em_dash x1
+film_room_g2_adolis_organized_fire,Organized Fire,pressure-resilience,-1,lesson,subtitle,Use the edge — don't let the edge use you.,E,em_dash x1
+film_room_g5_rain_delay_reset,What to Do in the Pause,pressure-resilience,-1,lesson,subtitle,A pause is a routing test — not a break.,E,em_dash x1
+film_room_h1_alonso_scouting,Scout Without Freezing,hitter-path,-1,lesson,subtitle,Intel narrows the window — it doesn't eliminate adaptability.,E,em_dash x1
+film_room_i1_malcolm_butler,Jump the Pattern,baseball-iq,-1,lesson,subtitle,Anticipation is trained instinct — not luck.,E,em_dash x1
+FND-EXP03,Focus in the Noise,foundation,-1,lesson,subtitle,"The crowd, the calls, the scoreboard — none of it matters while the pitch is in the air.",E,em_dash x1
+RICH05,Facing the Lefty Specialist,hitter-path,-1,lesson,subtitle,He has one job — to get you out. You have a plan.,E,em_dash x1
