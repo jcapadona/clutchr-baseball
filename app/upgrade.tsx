@@ -166,13 +166,21 @@ export default function UpgradeScreen() {
 
   // Context-aware headline based on what triggered the screen
   const headline = source === 'lesson_gate'
-    ? "You've hit the free limit."
+    ? "Three reps in. Keep building."
+    : source === 'lesson_locked'
+    ? "This lesson is part of Pro."
+    : source === 'locker'
+    ? "This Locker content is part of Pro."
     : source === 'slump'
     ? "The slump reset is a Pro feature."
     : "Train the mind that wins the game.";
 
   const subhead = source === 'lesson_gate'
-    ? `You've completed 5 lessons, ${athleteState?.first_name ?? 'athlete'}. The full career path is waiting.`
+    ? `You've finished 3 lessons, ${athleteState?.first_name ?? 'athlete'}. Pro opens the full career path.`
+    : source === 'lesson_locked'
+    ? "Pro unlocks every lesson and every world in Career."
+    : source === 'locker'
+    ? "Pro unlocks the full Locker, with every video, audio rep and guide."
     : "One subscription. Your full career path. Every day.";
 
   // ── Live prices derived from RC offerings ────────────────────────────────

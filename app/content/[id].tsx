@@ -15,6 +15,7 @@ import { supabase, type ContentCard } from '@/lib/supabase';
 import { Colors, Radius, Spacing } from '@/constants/theme';
 import MarkdownRenderer from '@/components/MarkdownRenderer';
 import { PrimaryButton } from '@/components/ui/ClutchrUI';
+import { isFreeCard, upgradeRoute, PAYWALL_SOURCE, useProAccess } from '@/lib/requiresPro';
 
 // ─── TYPE CONFIG ─────────────────────────────────────────────────────────────
 
@@ -38,9 +39,13 @@ export default function ContentCardScreen() {
   const [card, setCard] = useState<ContentCard | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { isPro, isProLoading } = useProAccess();
 
+  // Route guard: a free player who deep links to Pro content goes to the paywall
+  // and the card, including its audio and video links, is never set.
   useEffect(() => {
-    if (!id) return;
+    if (!id || isProLoading) return;
+    let redirected = false;
     (async () => {
       try {
         const { data, error: err } = await supabase
@@ -49,14 +54,19 @@ export default function ContentCardScreen() {
           .eq('id', id)
           .single();
         if (err || !data) throw new Error('Content not found');
+        if (!isPro && !isFreeCard(data as ContentCard)) {
+          redirected = true;
+          router.replace(upgradeRoute(PAYWALL_SOURCE.locker) as any);
+          return;
+        }
         setCard(data as ContentCard);
       } catch (e: any) {
         setError(e.message ?? 'Failed to load');
       } finally {
-        setLoading(false);
+        if (!redirected) setLoading(false);
       }
     })();
-  }, [id]);
+  }, [id, isPro, isProLoading]);
 
   if (loading) {
     return (

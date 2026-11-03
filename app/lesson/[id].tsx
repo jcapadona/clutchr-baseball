@@ -18,6 +18,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAthlete } from '@/context/AthleteContext';
 import { supabase } from '@/lib/supabase';
+import { isFreeCard, isFreeLesson, upgradeRoute, PAYWALL_SOURCE, useProAccess } from '@/lib/requiresPro';
 import { Colors, Radius, Shadow, Spacing } from '@/constants/theme';
 import { TopHighlight } from '@/constants/visualExtensions';
 import { stopSpeech } from '@/lib/lessonAudio';
@@ -1391,10 +1392,14 @@ function getStepReadText(step: any): string | null {
 
 // ─── MAIN SCREEN ─────────────────────────────────────────────────────────────
 
+const LESSON_GATE_AFTER = 3;
+const LESSON_GATE_SHOWN_KEY = 'paywall_lesson_gate_shown';
+
 export default function LessonPlayerScreen() {
   const { id } = useLocalSearchParams<{ id: string; reason?: string }>();
   const insets = useSafeAreaInsets();
   const { athleteState, completeLesson, updateAthleteState } = useAthlete();
+  const { isPro, isProLoading } = useProAccess();
   const [lesson, setLesson] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -1431,20 +1436,39 @@ export default function LessonPlayerScreen() {
     H.tap();
   }
 
+  // Route guard: a free player who deep links to a Pro lesson goes to the paywall
+  // and the lesson is never set, so no step content renders or speaks.
+  const loadedIdRef = useRef<string | null>(null);
   useEffect(() => {
     if (!id) return;
+    if (isProLoading && !isFreeLesson(id)) return;
+    if (loadedIdRef.current === id) return;
+    loadedIdRef.current = id;
     (async () => {
+      let redirected = false;
       try {
         const { data, error: err } = await supabase.from('legacy_lessons_staging').select('*').eq('id', id).eq('is_hidden', false).single();
         if (err || !data) {
           const { data: cc, error: err2 } = await supabase.from('content_cards').select('*').eq('id', id).single();
           if (err2 || !cc) throw new Error('Lesson not found');
+          if (!isPro && !isFreeCard(cc)) {
+            redirected = true;
+            router.replace(upgradeRoute(PAYWALL_SOURCE.lessonLocked) as any);
+            return;
+          }
           setLesson(cc);
-        } else { setLesson(data); }
+        } else {
+          if (!isPro && !isFreeLesson(id)) {
+            redirected = true;
+            router.replace(upgradeRoute(PAYWALL_SOURCE.lessonLocked) as any);
+            return;
+          }
+          setLesson(data);
+        }
       } catch (e: any) { setError(e.message ?? 'Failed to load'); }
-      finally { setLoading(false); }
+      finally { if (!redirected) setLoading(false); }
     })();
-  }, [id]);
+  }, [id, isPro, isProLoading]);
   const steps: any[] = Array.isArray(lesson?.steps) ? lesson.steps : [];
 
   useEffect(() => {
@@ -1540,6 +1564,21 @@ export default function LessonPlayerScreen() {
       { text: 'Keep going', style: 'cancel' },
       { text: 'Exit', style: 'destructive', onPress: () => router.back() },
     ]);
+  }
+
+  // Payoff continue: go to Career. After the 3rd finished lesson a free player
+  // also sees the paywall once. The flag is stored so it never repeats.
+  async function handlePayoffContinue() {
+    router.push('/(tabs)/career');
+    if (isPro || isProLoading) return;
+    if ((athleteState?.completed_lessons?.length ?? 0) < LESSON_GATE_AFTER) return;
+    try {
+      if (await AsyncStorage.getItem(LESSON_GATE_SHOWN_KEY)) return;
+      await AsyncStorage.setItem(LESSON_GATE_SHOWN_KEY, '1');
+    } catch {
+      return;
+    }
+    router.push(upgradeRoute(PAYWALL_SOURCE.lessonGate) as any);
   }
 
   if (loading) return <View style={[screenStyles.center, { paddingTop: insets.top }]}><Text style={screenStyles.loadingText}>Loading rep...</Text></View>;
@@ -1697,7 +1736,7 @@ export default function LessonPlayerScreen() {
             athleteState={athleteState}
             startingXP={startingXPRef.current}
             awardedXP={finalXPRef.current}
-            onContinue={() => router.push('/(tabs)/career')}
+            onContinue={handlePayoffContinue}
           />
         </Animated.View>
       )}

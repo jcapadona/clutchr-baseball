@@ -17,6 +17,7 @@ import Svg, { Path } from 'react-native-svg';
 import { useAthlete } from '@/context/AthleteContext';
 import { fetchLessons, fetchContentCards, type ContentCard } from '@/lib/supabase';
 import { useProContext } from '@/context/ProContext';
+import { isFreeLesson } from '@/lib/requiresPro';
 import { Colors, Radius, Spacing, Typography } from '@/constants/theme';
 import {
   CategoryColor, DisplayCard, DisplayFont, DisplayCardSm, DisplayStat,
@@ -344,14 +345,20 @@ export default function HomeScreen() {
 
   // Routing engine
   useEffect(() => {
-    if (!athleteState) return;
+    if (!athleteState || isProLoading) return;
     let cancelled = false;
     (async () => {
       try {
         setLoadingLesson(true);
-        const lessons = await fetchLessons({ limit: 200 });
+        const fetched = await fetchLessons({ limit: 200 });
         if (cancelled) return;
-        setRoutingResult(pickNextLesson(lessons, athleteState));
+        // Free players are only ever routed to free lessons.
+        const lessons = isPro ? fetched : fetched.filter(l => isFreeLesson(l.id));
+        // pickNextLesson replays the last lesson when the pool is finished. For a free
+        // player that would loop the free set, so send them to Career instead.
+        const done = athleteState.completed_lessons ?? [];
+        const freePoolFinished = !isPro && lessons.every(l => done.includes(l.id));
+        setRoutingResult(freePoolFinished ? null : pickNextLesson(lessons, athleteState));
       } catch (err) {
         console.error('Lesson routing failed:', err);
       } finally {
@@ -364,6 +371,8 @@ export default function HomeScreen() {
     athleteState?.season_phase,
     athleteState?.biggest_struggle?.join(','),
     athleteState?.primary_role,
+    isPro,
+    isProLoading,
   ]);
 
   const [gmDoneToday, setGmDoneToday] = useState(false);
@@ -435,7 +444,7 @@ export default function HomeScreen() {
   const heroLine = lesson?.subtitle || edgeLine;
 
   const lockerCount = lockerCards
-    ? (isPro ? lockerCards : lockerCards.filter(c => !c.is_premium)).length
+    ? lockerCards.length
     : null;
   const lockerLoading = !lockerFailed && (lockerCards === null || isProLoading);
 

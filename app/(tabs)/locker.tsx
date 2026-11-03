@@ -20,6 +20,8 @@ import { Eyebrow, ListRow, Rail, ScreenHeader } from '@/components/ui/ClutchrUI'
 import { TypeColor } from '@/constants/visualExtensions';
 import { useAthlete } from '@/context/AthleteContext';
 import { useProContext } from '@/context/ProContext';
+import { isFreeCard, upgradeRoute, PAYWALL_SOURCE } from '@/lib/requiresPro';
+import ProPill from '@/components/ui/ProPill';
 
 // ─── LOCKER GROUPS ──────────────────────────────────────────────────────────
 
@@ -190,10 +192,18 @@ export default function LockerScreen() {
 
   const searchedCards = useMemo(() => {
     const query = search.trim().toLowerCase();
-    const visible = isPro ? cards : cards.filter((card) => !card.is_premium);
-    if (!query) return visible;
-    return visible.filter((card) => cardSearchText(card).includes(query));
-  }, [cards, search, isPro]);
+    if (!query) return cards;
+    return cards.filter((card) => cardSearchText(card).includes(query));
+  }, [cards, search]);
+
+  // Pro cards stay visible but greyed; tapping one opens the paywall.
+  const openCard = (card: ContentCard) => {
+    if (!isPro && !isFreeCard(card)) {
+      router.push(upgradeRoute(PAYWALL_SOURCE.locker) as any);
+      return;
+    }
+    router.push(`/content/${card.id}?from=locker`);
+  };
 
   const cardsByGroup = useMemo(() => {
     return GROUP_ORDER.reduce((acc, group) => {
@@ -281,7 +291,7 @@ export default function LockerScreen() {
               <View style={styles.railBleed}>
                 <Rail>
                   {featured.map((card) => (
-                    <FeaturedCard key={card.id} card={card} onOpen={() => router.push(`/content/${card.id}?from=locker`)} />
+                    <FeaturedCard key={card.id} card={card} proLocked={!isPro && !isFreeCard(card)} onOpen={() => openCard(card)} />
                   ))}
                 </Rail>
               </View>
@@ -302,7 +312,8 @@ export default function LockerScreen() {
                     meta={card.summary ?? undefined}
                     typeKey={card.card_type in TypeColor ? (card.card_type as keyof typeof TypeColor) : 'article'}
                     duration={card.duration_minutes ? `${card.duration_minutes} min` : undefined}
-                    onPress={() => router.push(`/content/${card.id}?from=locker`)}
+                    proLocked={!isPro && !isFreeCard(card)}
+                    onPress={() => openCard(card)}
                   />
                 ))}
               </View>
@@ -328,18 +339,21 @@ export default function LockerScreen() {
 
 // ─── FEATURED CARD ────────────────────────────────────────────────────────────
 
-function FeaturedCard({ card, onOpen }: { card: ContentCard; onOpen: () => void }) {
+function FeaturedCard({ card, onOpen, proLocked }: { card: ContentCard; onOpen: () => void; proLocked: boolean }) {
   const cfg = TYPE_CONFIG[card.card_type] ?? TYPE_CONFIG.article;
   return (
     <Pressable
-      style={({ pressed }) => [featStyles.wrap, pressed && { opacity: 0.88 }]}
+      style={({ pressed }) => [featStyles.wrap, proLocked && { opacity: 0.55 }, pressed && { opacity: 0.88 }]}
       onPress={onOpen}
     >
       <View style={featStyles.inner}>
         {/* Type badge */}
-        <View style={featStyles.typeBadge}>
-          <Ionicons name={cfg.icon as any} size={10} color={Colors.textSecondary} />
-          <Text style={featStyles.typeText}>{card.card_type.toUpperCase()}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          <View style={featStyles.typeBadge}>
+            <Ionicons name={cfg.icon as any} size={10} color={Colors.textSecondary} />
+            <Text style={featStyles.typeText}>{card.card_type.toUpperCase()}</Text>
+          </View>
+          {proLocked && <ProPill />}
         </View>
         <Text style={featStyles.title} numberOfLines={3}>{card.title}</Text>
         <View style={featStyles.footer}>

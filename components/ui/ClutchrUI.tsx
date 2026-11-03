@@ -49,6 +49,7 @@ import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Circle, Path, Polygon } from 'react-native-svg';
 import { Colors, Typography, Spacing, Radius, Shadow, ButtonTokens } from '../../constants/theme';
+import ProPill from './ProPill';
 import {
   DisplayFont, DisplayHero, DisplayCard, DisplayCardSm, DisplayStat,
   CategoryColor, TypeColor, Gradient, tint, TopHighlight,
@@ -730,16 +731,17 @@ const LIST_ROW_ICON: Record<keyof typeof TypeColor, React.ComponentProps<typeof 
 };
 
 export function ListRow({
-  title, meta, typeKey = 'article', duration, onPress,
+  title, meta, typeKey = 'article', duration, onPress, proLocked = false,
 }: {
   title: string;
   meta?: string;
   typeKey?: keyof typeof TypeColor;
   duration?: string;
   onPress?: () => void;
+  proLocked?: boolean;
 }) {
   return (
-    <Pressable onPress={onPress} style={({ pressed }) => [s.row, pressed && { opacity: 0.7 }]}>
+    <Pressable onPress={onPress} style={({ pressed }) => [s.row, proLocked && { opacity: 0.55 }, pressed && { opacity: 0.7 }]}>
       <View style={s.rowIcon}>
         <Ionicons name={LIST_ROW_ICON[typeKey]} size={20} color="#C9D1CC" />
       </View>
@@ -753,7 +755,7 @@ export function ListRow({
           {!!duration && <Text style={[Typography.labelSmall, { marginLeft: Spacing.sm }]}>· {duration}</Text>}
         </View>
       </View>
-      <Text style={{ color: Colors.textTertiary, fontSize: 20, fontFamily: 'Inter_400Regular' }}>›</Text>
+      {proLocked ? <ProPill /> : <Text style={{ color: Colors.textTertiary, fontSize: 20, fontFamily: 'Inter_400Regular' }}>›</Text>}
     </Pressable>
   );
 }

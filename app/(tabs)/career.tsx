@@ -24,6 +24,8 @@ import { Btn } from '@/components/ui';
 import { ScreenHeader, WorldTile, WorldTileSkeleton } from '@/components/ui/ClutchrUI';
 import { useMicrocopy } from '@/hooks/useMicrocopy';
 import { useProContext } from '@/context/ProContext';
+import { isFreeLesson, upgradeRoute, PAYWALL_SOURCE, useProAccess } from '@/lib/requiresPro';
+import ProPill from '@/components/ui/ProPill';
 import { ErrorState } from '@/components/SkeletonLoader';
 
 // ─── DEV FLAGS ────────────────────────────────────────────────────────────────
@@ -1118,7 +1120,15 @@ function TimelineNode({ lesson, idx, isDone, isNext, isLocked, isBoss, color }: 
     ((lesson as any).node_type as string | undefined) ??
     'LESSON';
 
+  const { isPro, isProLoading } = useProAccess();
+  const isProLocked = !isDone && !isPro && !isProLoading && !isFreeLesson(lesson.id);
+
   function handlePress() {
+    if (isProLocked) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      router.push(upgradeRoute(PAYWALL_SOURCE.lessonLocked) as any);
+      return;
+    }
     if (isLocked) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       Alert.alert('Not yet.', 'Complete the previous lesson to unlock this one.');
@@ -1127,8 +1137,10 @@ function TimelineNode({ lesson, idx, isDone, isNext, isLocked, isBoss, color }: 
     router.push(`/lesson/${lesson.id}`);
   }
 
+  const nextV = isNext && !isProLocked;
+
   return (
-    <Pressable style={tlStyles.row} onPress={handlePress}>
+    <Pressable style={[tlStyles.row, isProLocked && { opacity: 0.6 }]} onPress={handlePress}>
       {/* ── Node dot ── */}
       <View style={tlStyles.nodeCol}>
         <Animated.View
@@ -1136,7 +1148,7 @@ function TimelineNode({ lesson, idx, isDone, isNext, isLocked, isBoss, color }: 
             tlStyles.nodeCircle,
             { width: nodeSize, height: nodeSize, borderRadius: nodeSize / 2 },
             isDone && { backgroundColor: Colors.textDisabled, borderWidth: 0 },
-            !isDone && isNext && {
+            !isDone && nextV && {
               backgroundColor: '#0D0D12',
               borderWidth: 2.5,
               borderColor: color,
@@ -1150,21 +1162,22 @@ function TimelineNode({ lesson, idx, isDone, isNext, isLocked, isBoss, color }: 
               borderWidth: 1,
               borderColor: '#1e1e2a',
             },
-            !isDone && !isNext && !isLocked && isBoss && {
+            !isDone && !nextV && !isLocked && isBoss && {
               backgroundColor: '#0D0D12',
               borderWidth: 2,
               borderColor: color + '80',
             },
-            !isDone && !isNext && !isLocked && !isBoss && {
+            !isDone && !nextV && !isLocked && !isBoss && {
               backgroundColor: '#0E0E14',
               borderWidth: 1.5,
               borderColor: '#1e1e2a',
             },
-            isNext && { transform: [{ scale: pulseAnim }] },
+            nextV && { transform: [{ scale: pulseAnim }] },
           ]}
         >
-          {isDone    ? <Ionicons name="checkmark" size={isBoss ? 20 : 17} color="#fff" />
-          : isNext   ? <Ionicons name="play" size={14} color="#fff" style={{ marginLeft: 2 }} />
+          {isProLocked ? <Ionicons name="flash" size={14} color={Colors.warning} />
+          : isDone    ? <Ionicons name="checkmark" size={isBoss ? 20 : 17} color="#fff" />
+          : nextV   ? <Ionicons name="play" size={14} color="#fff" style={{ marginLeft: 2 }} />
           : isLocked ? <Ionicons name="lock-closed" size={13} color="rgba(255,255,255,0.2)" />
           :            <Text style={tlStyles.nodeNumText}>{idx + 1}</Text>}
         </Animated.View>
@@ -1173,8 +1186,8 @@ function TimelineNode({ lesson, idx, isDone, isNext, isLocked, isBoss, color }: 
       {/* ── Card ── */}
       <View style={[
         tlStyles.card,
-        !isDone && !isNext && !isLocked && { borderColor: '#1e1e28' },
-        isNext && {
+        !isDone && !nextV && !isLocked && { borderColor: '#1e1e28' },
+        nextV && {
           borderColor: color + '45',
           borderLeftWidth: 3,
           borderLeftColor: color,
@@ -1196,6 +1209,7 @@ function TimelineNode({ lesson, idx, isDone, isNext, isLocked, isBoss, color }: 
               {lessonFamily.toUpperCase()}{isBoss ? ' · FINAL' : ''}
             </Text>
           </View>
+          {isProLocked && <ProPill />}
           {isDone && (
             <View style={tlStyles.doneBadge}>
               <Text style={tlStyles.doneBadgeText}>DONE</Text>
@@ -1216,7 +1230,9 @@ function TimelineNode({ lesson, idx, isDone, isNext, isLocked, isBoss, color }: 
         </Text>
 
         {/* Footer row */}
-        {isLocked ? (
+        {isProLocked ? (
+          <Text style={tlStyles.lockedHint}>Unlock with Pro</Text>
+        ) : isLocked ? (
           <Text style={tlStyles.lockedHint}>Complete previous lesson to unlock</Text>
         ) : isDone ? (
           <Text style={[tlStyles.xpEarnedText, { color: Colors.textTertiary }]}>{lesson.xp_reward} XP earned</Text>
@@ -1356,7 +1372,8 @@ export default function CareerScreen() {
       const wl = lessons
         .filter(l => l.pillar_id === world.id)
         .sort((a, b) => a.order_index - b.order_index);
-      const next = wl.find(l => !completed.includes(l.id));
+      // Free players are only offered free lessons on the mission card.
+      const next = wl.find(l => !completed.includes(l.id) && (isPro || isFreeLesson(l.id)));
       if (next) return { lesson: next, world };
     }
     return null;
